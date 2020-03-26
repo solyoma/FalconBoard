@@ -1,0 +1,18 @@
+<RCC>
+  <qresource prefix="MyWhiteboard">
+    <file>Resources/black.png</file>
+    <file>Resources/blue.png</file>
+    <file>Resources/close.png</file>
+    <file>Resources/eraser.png</file>
+    <file>Resources/green.png</file>
+    <file>Resources/move.png</file>
+    <file>Resources/multi.png</file>
+    <file>Resources/new.png</file>
+    <file>Resources/open.png</file>
+    <file>Resources/red.png</file>
+    <file>Resources/save.png</file>
+    <file>Resources/saveas.png</file>
+    <file>Resources/screenshot.png</file>
+    <file>Resources/zoomrot.png</file>
+  </qresource>
+</RCC>
