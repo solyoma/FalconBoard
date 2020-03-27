@@ -29,6 +29,7 @@ public:
 signals:
     void canUndo(bool state);     // state: true -> can undo
     void canRedo (bool  state);   // state: true -> can redo
+    void wantFocus();
 
 public slots:
     void clearImage();

@@ -76,6 +76,7 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
         _lastDrawnItem.penWidth = _myPenWidth;
         _lastDrawnItem.points.push_back(_lastPoint);
     }
+    emit wantFocus();
 }
 
 void DrawArea::mouseMoveEvent(QMouseEvent* event)
@@ -147,6 +148,7 @@ void DrawArea::resizeImage(QImage* image, const QSize& newSize)
 void DrawArea::clearHistory()
 {
     _history.clear();
+    clearImage();
     emit canUndo(false);
     emit canRedo(false);
 }

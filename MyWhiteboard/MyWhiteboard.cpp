@@ -14,6 +14,8 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
     _drawArea->setPenWidth(_actPenWidth); 
 
     _CreateAndAddActions();
+
+    ui.centralWidget->setFocus();
 }
 
 void MyWhiteboard::_CreateAndAddActions()
@@ -30,6 +32,7 @@ void MyWhiteboard::_CreateAndAddActions()
 
     ui.mainToolBar->addAction(ui.actionExit);
     ui.mainToolBar->addSeparator();
+    ui.mainToolBar->addAction(ui.actionNew);
     ui.mainToolBar->addAction(ui.actionOpen);
     ui.mainToolBar->addAction(ui.actionSave);
     ui.mainToolBar->addAction(ui.actionSaveAs);
@@ -53,6 +56,9 @@ void MyWhiteboard::_CreateAndAddActions()
     _psbPenWidth->setMaximum(200);
     _psbPenWidth->setSingleStep(1);
     _psbPenWidth->setValue(_actPenWidth);
+    QRect rect = _psbPenWidth->geometry();
+    rect.setWidth(30);
+    _psbPenWidth->setGeometry(rect);
 
     ui.mainToolBar->addWidget(_psbPenWidth);
         // more than one valeChanged() function exists
@@ -60,8 +66,11 @@ void MyWhiteboard::_CreateAndAddActions()
 
     connect(_drawArea, &DrawArea::canUndo, this, &MyWhiteboard::slotForUndo);
     connect(_drawArea, &DrawArea::canRedo, this, &MyWhiteboard::slotForRedo);
+    connect(_drawArea, &DrawArea::wantFocus, this, &MyWhiteboard::slotForFocus);
 
-    connect(ui.actionClearArea, &QAction::triggered, _drawArea, &DrawArea::clearHistory);
+
+    connect(ui.actionNew, &QAction::triggered, _drawArea, &DrawArea::clearHistory);
+    connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::clearHistory);
 }
 
 bool MyWhiteboard::_ShouldSave()
@@ -163,4 +172,9 @@ void MyWhiteboard::slotForUndo(bool b)
 void MyWhiteboard::slotForRedo(bool b)
 {
     ui.actionRedo->setEnabled(b);
+}
+
+void MyWhiteboard::slotForFocus()
+{
+    ui.centralWidget->setFocus();
 }

@@ -42,7 +42,7 @@ private slots:
 	void on_action_Red_triggered()	 { _SetRedPen();   _SetPenWidth(); };
 	void on_action_Green_triggered() { _SetGreenPen(); _SetPenWidth(); };
 	void on_action_Blue_triggered()  { _SetBluePen();  _SetPenWidth(); };
-	void on_action_Ereaser_triggered() { _ereaserOn = true; _drawArea->setPenColor("white");  _SetPenWidth(); }
+	void on_action_Ereaser_triggered() { _ereaserOn = true; _drawArea->setPenColor("white");  _SetPenWidth(); slotForFocus(); }
 
 	void on_actionUndo_triggered();
 	void on_actionRedo_triggered();
@@ -62,6 +62,7 @@ private slots:
 
 	void slotForUndo(bool b);
 	void slotForRedo(bool b);
+	void slotForFocus();
 private:
 	Ui::MyWhiteboardClass ui;
 
@@ -92,6 +93,7 @@ private:
 		_busy = true;
 		_psbPenWidth->setValue(_actPenWidth);
 		_busy = false;
+		ui.centralWidget->setFocus();
 	}
 	void _SetBlackPen()  { _SetPenColor(QColor("black")); }
 	void _SetRedPen()    { _SetPenColor(QColor("red")); }
