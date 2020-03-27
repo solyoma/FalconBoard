@@ -6,10 +6,17 @@
 MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 {
 	ui.setupUi(this);
-    CreateAndAddActions();
+
+    _actPenWidth = 3;
+    _actColor = "black";
+    _drawArea = static_cast<DrawArea*>(ui.centralWidget);
+    _drawArea->setPenColor(_actColor);
+    _drawArea->setPenWidth(_actPenWidth); 
+
+    _CreateAndAddActions();
 }
 
-void MyWhiteboard::CreateAndAddActions()
+void MyWhiteboard::_CreateAndAddActions()
 {
     const QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
     for (const QByteArray& format : imageFormats) {
@@ -17,24 +24,47 @@ void MyWhiteboard::CreateAndAddActions()
 
         QAction* action = new QAction(text, this);
         action->setData(format);
-        connect(action, &QAction::triggered, this, &MyWhiteboard::_saveAsActs);
+        connect(action, &QAction::triggered, this, &MyWhiteboard::on_actionSaveAs_triggered);
         _saveAsActs.append(action);
     }
-    ui.mainToolBar->addAction(QIcon(":/Resources/black.png"), QString(), this, "blackPen");
-    ui.mainToolBar->addAction(QIcon(":/Resources/red.png"), QString(), this, "redPen");
-    ui.mainToolBar->addAction(QIcon(":/Resources/green.png"), QString(), this, "greenPen");
-    ui.mainToolBar->addAction(QIcon(":/Resources/blue.png"), QString(), this, "bluePen");
+
+    ui.mainToolBar->addAction(ui.actionExit);
+    ui.mainToolBar->addSeparator();
+    ui.mainToolBar->addAction(ui.actionOpen);
+    ui.mainToolBar->addAction(ui.actionSave);
+    ui.mainToolBar->addAction(ui.actionSaveAs);
+    ui.mainToolBar->addSeparator();
+    ui.mainToolBar->addAction(ui.action_Print);
+    ui.mainToolBar->addSeparator();
+
+    ui.mainToolBar->addAction(ui.action_Black);
+    ui.mainToolBar->addAction(ui.action_Red);
+    ui.mainToolBar->addAction(ui.action_Green);
+    ui.mainToolBar->addAction(ui.action_Blue);
+    ui.mainToolBar->addAction(ui.action_Ereaser);
+    ui.mainToolBar->addSeparator();
+
+    // TODO add toolbar items for actions undo redo, open, save, saveas, print, erease, exit here
     ui.mainToolBar->addSeparator();
 
     ui.mainToolBar->addWidget(new QLabel(tr("Pen Width:")));
-    QSpinBox* psb = new QSpinBox();
-    psb->setMinimum(1);
-    psb->setMaximum(200);
-    psb->setSingleStep(1);
-    ui.mainToolBar->addWidget(psb);
+    _psbPenWidth = new QSpinBox();
+    _psbPenWidth->setMinimum(1);
+    _psbPenWidth->setMaximum(200);
+    _psbPenWidth->setSingleStep(1);
+    _psbPenWidth->setValue(_actPenWidth);
+
+    ui.mainToolBar->addWidget(_psbPenWidth);
+        // more than one valeChanged() function exists
+    connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &MyWhiteboard::slotPenWidthChanged);
+
+    connect(_drawArea, &DrawArea::canUndo, this, &MyWhiteboard::slotForUndo);
+    connect(_drawArea, &DrawArea::canRedo, this, &MyWhiteboard::slotForRedo);
+
+    connect(ui.actionClearArea, &QAction::triggered, _drawArea, &DrawArea::clearHistory);
 }
 
-bool MyWhiteboard::shouldSave()
+bool MyWhiteboard::_ShouldSave()
 {
     if (_drawArea->isModified()) {
         QMessageBox::StandardButton ret;
@@ -44,14 +74,14 @@ bool MyWhiteboard::shouldSave()
             QMessageBox::Save | QMessageBox::Discard
             | QMessageBox::Cancel);
         if (ret == QMessageBox::Save)
-            return saveFile();
+            return _SaveFile();
         else if (ret == QMessageBox::Cancel)
             return false;
     }
     return true;
 }
 
-bool MyWhiteboard::saveFile()
+bool MyWhiteboard::_SaveFile()
 {
     if (_saveName.isEmpty())
         return false;
@@ -61,7 +91,7 @@ bool MyWhiteboard::saveFile()
 void MyWhiteboard::closeEvent(QCloseEvent* event)
 {
     {
-        if (shouldSave())
+        if (_ShouldSave())
             event->accept();
         else
             event->ignore();
@@ -70,7 +100,7 @@ void MyWhiteboard::closeEvent(QCloseEvent* event)
 
 void MyWhiteboard::on_actionOpen_triggered()
 {
-    if (shouldSave()) 
+    if (_ShouldSave()) 
     {
         QString fileName = QFileDialog::getOpenFileName(this,
                                                         tr("Open File"), QDir::currentPath());
@@ -81,7 +111,7 @@ void MyWhiteboard::on_actionOpen_triggered()
 
 void MyWhiteboard::on_actionSave_triggered()
 {
-    saveFile();
+    _SaveFile();
 }
 
 void MyWhiteboard::on_actionAbout_triggered()
@@ -94,10 +124,10 @@ void MyWhiteboard::on_actionAbout_triggered()
 
 void MyWhiteboard::on_actionClearArea_triggered()
 {
-    _drawArea->clearImage();
+    _drawArea->ClearArea();
 }
 
-void MyWhiteboard::ona_actionSaveAs_triggered()
+void MyWhiteboard::on_actionSaveAs_triggered()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     _fileFormat = action->data().toByteArray();
@@ -112,5 +142,25 @@ void MyWhiteboard::ona_actionSaveAs_triggered()
     if (fileName.isEmpty())
         return ;
     _saveName = fileName;
-    saveFile();
+    _SaveFile();
+}
+
+void MyWhiteboard::on_actionUndo_triggered()
+{
+    _drawArea->Undo();
+}
+
+void MyWhiteboard::on_actionRedo_triggered()
+{
+    _drawArea->Redo();
+}
+
+void MyWhiteboard::slotForUndo(bool b)
+{
+    ui.actionUndo->setEnabled(b);
+}
+
+void MyWhiteboard::slotForRedo(bool b)
+{
+    ui.actionRedo->setEnabled(b);
 }

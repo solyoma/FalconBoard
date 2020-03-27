@@ -56,4 +56,9 @@
   <ItemGroup>
     <ResourceCompile Include="MyWhiteboard.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="history.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

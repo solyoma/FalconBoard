@@ -10,10 +10,17 @@
     <height>783</height>
    </rect>
   </property>
+  <property name="cursor">
+   <cursorShape>ArrowCursor</cursorShape>
+  </property>
   <property name="windowTitle">
    <string>MyWhiteboard</string>
   </property>
-  <widget class="DrawArea" name="centralWidget"/>
+  <widget class="DrawArea" name="centralWidget">
+   <property name="cursor">
+    <cursorShape>CrossCursor</cursorShape>
+   </property>
+  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -37,19 +44,25 @@
    </widget>
    <widget class="QMenu" name="menu_Options">
     <property name="title">
-     <string>&amp;Options</string>
+     <string>&amp;Edit</string>
     </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
     <addaction name="action_Black"/>
     <addaction name="action_Red"/>
     <addaction name="action_Green"/>
     <addaction name="action_Blue"/>
+    <addaction name="action_Ereaser"/>
+    <addaction name="separator"/>
+    <addaction name="action_Mark"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
      <string>&amp;Help</string>
     </property>
     <addaction name="action_help"/>
-    <addaction name="action_About"/>
+    <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menu_Clear">
     <property name="title">
@@ -72,14 +85,22 @@
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/open.png</normaloff>:/MyWhiteboard/Resources/open.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;Open</string>
+    <string>&amp;Open...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionSave">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/save.png</normaloff>:/MyWhiteboard/Resources/save.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Save</string>
    </property>
@@ -88,11 +109,19 @@
    </property>
   </action>
   <action name="actionSaveAs">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/saveas.png</normaloff>:/MyWhiteboard/Resources/saveas.png</iconset>
+   </property>
    <property name="text">
-    <string>&amp;SaveAs</string>
+    <string>&amp;SaveAs...</string>
    </property>
   </action>
   <action name="actionExit">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/close.png</normaloff>:/MyWhiteboard/Resources/close.png</iconset>
+   </property>
    <property name="text">
     <string>E&amp;xit</string>
    </property>
@@ -101,35 +130,51 @@
    </property>
   </action>
   <action name="action_Black">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/black.png</normaloff>:/MyWhiteboard/Resources/black.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Black</string>
    </property>
    <property name="shortcut">
-    <string>0</string>
+    <string>Alt+1</string>
    </property>
   </action>
   <action name="action_Red">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/red.png</normaloff>:/MyWhiteboard/Resources/red.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Red</string>
    </property>
    <property name="shortcut">
-    <string>1</string>
+    <string>Alt+2</string>
    </property>
   </action>
   <action name="action_Green">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/green.png</normaloff>:/MyWhiteboard/Resources/green.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Green</string>
    </property>
    <property name="shortcut">
-    <string>2</string>
+    <string>Alt+3</string>
    </property>
   </action>
   <action name="action_Blue">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/blue.png</normaloff>:/MyWhiteboard/Resources/blue.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Blue</string>
    </property>
    <property name="shortcut">
-    <string>Return</string>
+    <string>Alt+4</string>
    </property>
   </action>
   <action name="action_help">
@@ -137,19 +182,61 @@
     <string>?</string>
    </property>
   </action>
-  <action name="action_About">
+  <action name="actionAbout">
    <property name="text">
     <string>&amp;About</string>
    </property>
   </action>
   <action name="action_Print">
    <property name="text">
-    <string>&amp;Print</string>
+    <string>&amp;Print...</string>
    </property>
   </action>
   <action name="actionClearArea">
    <property name="text">
     <string>C&amp;lear Area</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Del</string>
+   </property>
+  </action>
+  <action name="action_Ereaser">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/eraser.png</normaloff>:/MyWhiteboard/Resources/eraser.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Ereaser</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+E</string>
+   </property>
+  </action>
+  <action name="action_Mark">
+   <property name="text">
+    <string>&amp;Mark</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Re&amp;do</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Z</string>
    </property>
   </action>
  </widget>

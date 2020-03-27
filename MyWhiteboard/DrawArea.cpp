@@ -17,6 +17,12 @@ DrawArea::DrawArea(QWidget* parent)
     setAttribute(Qt::WA_StaticContents);
 }
 
+void DrawArea::ClearArea()
+{
+    _history.push_back(DrawnItem());
+    clearImage();
+}
+
 bool DrawArea::openImage(const QString& fileName)
 {
     QImage loadedImage;
@@ -25,19 +31,19 @@ bool DrawArea::openImage(const QString& fileName)
 
     QSize newSize = loadedImage.size().expandedTo(size());
     resizeImage(&loadedImage, newSize);
-    image = loadedImage;
-    modified = false;
+    _image = loadedImage;
+    _modified = false;
     update();
     return true;
 }
 
 bool DrawArea::saveImage(const QString& fileName, const char* fileFormat)
 {
-    QImage visibleImage = image;
+    QImage visibleImage = _image;
     resizeImage(&visibleImage, size());
 
     if (visibleImage.save(fileName, fileFormat)) {
-        modified = false;
+        _modified = false;
         return true;
     }
     return false;
@@ -45,40 +51,52 @@ bool DrawArea::saveImage(const QString& fileName, const char* fileFormat)
 
 void DrawArea::setPenColor(const QColor& newColor)
 {
-    myPenColor = newColor;
+    _myPenColor = newColor;
 }
 
 void DrawArea::setPenWidth(int newWidth)
 {
-    myPenWidth = newWidth;
+    _myPenWidth = newWidth;
 }
 
 void DrawArea::clearImage()
 {
-    image.fill(qRgb(255, 255, 255));
-    modified = true;
+    _image.fill(qRgb(255, 255, 255));
+    _modified = true;
     update();
 }
 
 void DrawArea::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {
-        lastPoint = event->pos();
-        scribbling = true;
+        _lastPoint = event->pos();
+        _scribbling = true;
+        _lastDrawnItem.clear();
+        _lastDrawnItem.penColor = _myPenColor;
+        _lastDrawnItem.penWidth = _myPenWidth;
+        _lastDrawnItem.points.push_back(_lastPoint);
     }
 }
 
 void DrawArea::mouseMoveEvent(QMouseEvent* event)
 {
-    if ((event->buttons() & Qt::LeftButton) && scribbling)
+    if ((event->buttons() & Qt::LeftButton) && _scribbling)
+    {
         drawLineTo(event->pos());
+        _lastDrawnItem.points.push_back(_lastPoint);
+    }
 }
 
 void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton && scribbling) {
+    if (event->button() == Qt::LeftButton && _scribbling) {
         drawLineTo(event->pos());
-        scribbling = false;
+        _scribbling = false;
+
+        _history.push_back(_lastDrawnItem);
+
+        emit canUndo(true);
+        emit canRedo(false);
     }
 }
 
@@ -86,15 +104,15 @@ void DrawArea::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);
     QRect dirtyRect = event->rect();
-    painter.drawImage(dirtyRect, image, dirtyRect);
+    painter.drawImage(dirtyRect, _image, dirtyRect);
 }
 
 void DrawArea::resizeEvent(QResizeEvent* event)
 {
-    if (width() > image.width() || height() > image.height()) {
-        int newWidth = qMax(width() + 128, image.width());
-        int newHeight = qMax(height() + 128, image.height());
-        resizeImage(&image, QSize(newWidth, newHeight));
+    if (width() > _image.width() || height() > _image.height()) {
+        int newWidth =  qMax(width() + 128,  _image.width());
+        int newHeight = qMax(height() + 128, _image.height());
+        resizeImage(&_image, QSize(newWidth, newHeight));
         update();
     }
     QWidget::resizeEvent(event);
@@ -102,16 +120,16 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 
 void DrawArea::drawLineTo(const QPoint& endPoint)
 {
-    QPainter painter(&image);
-    painter.setPen(QPen(myPenColor, myPenWidth, Qt::SolidLine, Qt::RoundCap,
+    QPainter painter(&_image);
+    painter.setPen(QPen(_myPenColor, _myPenWidth, Qt::SolidLine, Qt::RoundCap,
         Qt::RoundJoin));
-    painter.drawLine(lastPoint, endPoint);
-    modified = true;
+    painter.drawLine(_lastPoint, endPoint);
+    _modified = true;
 
-    int rad = (myPenWidth / 2) + 2;
-    update(QRect(lastPoint, endPoint).normalized()
+    int rad = (_myPenWidth / 2) + 2;
+    update(QRect(_lastPoint, endPoint).normalized()
         .adjusted(-rad, -rad, +rad, +rad));
-    lastPoint = endPoint;
+    _lastPoint = endPoint;
 }
 
 void DrawArea::resizeImage(QImage* image, const QSize& newSize)
@@ -126,6 +144,13 @@ void DrawArea::resizeImage(QImage* image, const QSize& newSize)
     *image = newImage;
 }
 
+void DrawArea::clearHistory()
+{
+    _history.clear();
+    emit canUndo(false);
+    emit canRedo(false);
+}
+
 void DrawArea::print()
 {
 #if QT_CONFIG(printdialog)
@@ -136,11 +161,60 @@ void DrawArea::print()
     if (printDialog.exec() == QDialog::Accepted) {
         QPainter painter(&printer);
         QRect rect = painter.viewport();
-        QSize size = image.size();
+        QSize size = _image.size();
         size.scale(rect.size(), Qt::KeepAspectRatio);
         painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
-        painter.setWindow(image.rect());
-        painter.drawImage(0, 0, image);
+        painter.setWindow(_image.rect());
+        painter.drawImage(0, 0, _image);
     }
 #endif // QT_CONFIG(printdialog)
+}
+
+void DrawArea::Redraw(DrawnItem& item)
+{
+    setPenColor(item.penColor);
+    setPenWidth(item.penWidth);
+
+}
+
+bool DrawArea::_ReplotItem(const DrawnItem* pdrni)
+{
+    if (!pdrni)
+        return false;
+
+    if (pdrni->points.size())    // else clear screen
+    {
+        _lastPoint = pdrni->points[0];
+        _myPenColor = pdrni->penColor;
+        _myPenWidth = pdrni->penWidth;
+        for (int i = 1; i < pdrni->points.size(); ++i)
+            drawLineTo(pdrni->points[i]);
+    }
+    else
+        clearImage();
+
+    return true;
+}
+
+void DrawArea::Undo()
+{
+    clearImage();
+    if (_history.CanUndo())
+    {
+        _history.BeginUndo();
+        const DrawnItem* pdrni;
+        while(_ReplotItem(_history.UndoOneStep()) )
+            ;
+
+        emit canRedo(true);
+    }
+    emit canUndo(_history.CanUndo());
+}
+
+void DrawArea::Redo()
+{
+    _ReplotItem (_history.Redo());
+
+    emit canUndo(_history.CanUndo() );
+    emit canRedo(_history.CanRedo());
 }
