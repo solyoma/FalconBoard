@@ -32,6 +32,9 @@ void MyWhiteboard::_CreateAndAddActions()
 
     ui.mainToolBar->addAction(ui.actionExit);
     ui.mainToolBar->addSeparator();
+    ui.mainToolBar->addAction(ui.actionUndo);
+    ui.mainToolBar->addAction(ui.actionRedo);
+    ui.mainToolBar->addSeparator();
     ui.mainToolBar->addAction(ui.actionNew);
     ui.mainToolBar->addAction(ui.actionOpen);
     ui.mainToolBar->addAction(ui.actionSave);

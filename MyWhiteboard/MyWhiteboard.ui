@@ -221,6 +221,10 @@
    <property name="enabled">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/undo.png</normaloff>:/MyWhiteboard/Resources/undo.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Undo</string>
    </property>
@@ -231,6 +235,10 @@
   <action name="actionRedo">
    <property name="enabled">
     <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/redo.png</normaloff>:/MyWhiteboard/Resources/redo.png</iconset>
    </property>
    <property name="text">
     <string>Re&amp;do</string>
