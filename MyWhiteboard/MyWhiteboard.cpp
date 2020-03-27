@@ -14,7 +14,7 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
     _drawArea->setPenWidth(_actPenWidth); 
 
     _CreateAndAddActions();
-
+    _AddSaveAsMenu();
     ui.centralWidget->setFocus();
 }
 
@@ -73,6 +73,15 @@ void MyWhiteboard::_CreateAndAddActions()
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::clearHistory);
 }
 
+void MyWhiteboard::_AddSaveAsMenu()
+{
+    QMenu *pSaveAsMenu = new QMenu(QApplication::tr("Save &As"), this);
+    for (QAction* action : qAsConst(_saveAsActs))
+        pSaveAsMenu->addAction(action);
+    ui.menu_File->insertMenu(ui.action_Print, pSaveAsMenu);
+    ui.menu_File->insertSeparator(ui.action_Print);
+}
+
 bool MyWhiteboard::_ShouldSave()
 {
     if (_drawArea->isModified()) {
@@ -92,8 +101,6 @@ bool MyWhiteboard::_ShouldSave()
 
 bool MyWhiteboard::_SaveFile()
 {
-    if (_saveName.isEmpty())
-        return false;
     return _drawArea->saveImage(_saveName, _fileFormat.constData());
 }
 
@@ -120,7 +127,10 @@ void MyWhiteboard::on_actionOpen_triggered()
 
 void MyWhiteboard::on_actionSave_triggered()
 {
-    _SaveFile();
+    if (_saveName.isEmpty())
+        on_actionSaveAs_triggered();
+    else
+        _SaveFile();
 }
 
 void MyWhiteboard::on_actionAbout_triggered()
@@ -140,6 +150,8 @@ void MyWhiteboard::on_actionSaveAs_triggered()
 {
     QAction* action = qobject_cast<QAction*>(sender());
     _fileFormat = action->data().toByteArray();
+    if (_fileFormat.isEmpty())
+        _fileFormat = "png";
 
     QString initialPath = QDir::currentPath() + "/untitled." + _fileFormat;
 

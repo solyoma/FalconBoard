@@ -82,6 +82,7 @@ private:
 	QVector<DrawnItem> _undoStack;
 
 	void _CreateAndAddActions();
+	void _AddSaveAsMenu();
 	bool _ShouldSave();
 	bool _SaveFile();
 		 
