@@ -30,6 +30,8 @@ public:
         if (res > 0)    // TODO send message if read error
             _Redraw();
         _modified = false;
+        emit CanUndo(true);
+        emit CanRedo(false);
         return res;
     }
     bool Save(QString name) { return  _history.Save(name); }

@@ -257,19 +257,23 @@ void MyWhiteboard::SlotForFocus()
 
 void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)
 {
-    switch (pt)
+    static bool penEraser = false;     // set to true if not erasemode just
+    switch (pt)                         // eraser end of stylus used
     {
         case QTabletEvent::Eraser:
             if (!_eraserOn)
+            {
+                penEraser = true;
                 on_action_Eraser_triggered();
+            }
             break;
         default:
-            if (_eraserOn)
+            if (penEraser)
             {
-                _SetCursor(DrawArea::csPen);
                 _SetCursor(DrawArea::csPen);
                 _SetPenColor(_actColor);
                 _SetPenWidth();
+                penEraser = false;
             }
             break;
     }

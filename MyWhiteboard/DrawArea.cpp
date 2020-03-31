@@ -158,8 +158,8 @@ void DrawArea::tabletEvent(QTabletEvent* event)
             if (!_pendown) 
             {
                 _pendown = true;
-                _InitiateDrawing(event);
                 emit PointerTypeChange(event->pointerType());
+                _InitiateDrawing(event);
             }
             break;
     case QEvent::TabletMove:
