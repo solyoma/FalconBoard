@@ -18,6 +18,7 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 
     QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents); // for tablet
 
+    connect(_drawArea, &DrawArea::PointerTypeChange, this, &MyWhiteboard::SlotForPointerType);
     ui.centralWidget->setFocus();
 }
 
@@ -151,8 +152,6 @@ void MyWhiteboard::on_actionLoad_triggered()
 
     if (_eraserOn)
         on_action_Eraser_triggered();
-    else
-        _SetCursor(DrawArea::csPen);
 }
 
 void MyWhiteboard::on_actionSave_triggered()
@@ -254,4 +253,24 @@ void MyWhiteboard::SlotForRedo(bool b)
 void MyWhiteboard::SlotForFocus()
 {
     ui.centralWidget->setFocus();
+}
+
+void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)
+{
+    switch (pt)
+    {
+        case QTabletEvent::Eraser:
+            if (!_eraserOn)
+                on_action_Eraser_triggered();
+            break;
+        default:
+            if (_eraserOn)
+            {
+                _SetCursor(DrawArea::csPen);
+                _SetCursor(DrawArea::csPen);
+                _SetPenColor(_actColor);
+                _SetPenWidth();
+            }
+            break;
+    }
 }

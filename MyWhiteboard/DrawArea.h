@@ -5,6 +5,7 @@
 #include <QBitmap>
 #include <QPoint>
 #include <QWidget>
+#include <QTabletEvent>
 
 #include "history.h"
 
@@ -49,6 +50,7 @@ signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo
     void WantFocus();
+    void PointerTypeChange(QTabletEvent::PointerType pt);
 
 public slots:
     void NewData();

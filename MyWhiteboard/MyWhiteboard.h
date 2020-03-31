@@ -54,7 +54,8 @@ private slots:
 		_eraserOn = true; 
 		_drawArea->SetPenColor("white");
 		_drawArea->SetCursor(DrawArea::csEraser);
-		_SetPenWidth(); SlotForFocus(); 
+		_SetPenWidth(); 
+		SlotForFocus(); 
 	}
 
 	void on_actionUndo_triggered();
@@ -76,6 +77,7 @@ private slots:
 	void SlotForUndo(bool b);
 	void SlotForRedo(bool b);
 	void SlotForFocus();
+	void SlotForPointerType(QTabletEvent::PointerType pt);
 private:
 	Ui::MyWhiteboardClass ui;
 
