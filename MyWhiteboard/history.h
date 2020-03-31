@@ -1,12 +1,73 @@
 #pragma once
 
-struct DrawnItem    // stores the scribbled lines from pen down to pen up
-{                   // or a screen erease event (when points are empty)
+#include <QFile>
+#include <QDataStream>
+#include <QIODevice>
+
+enum HistEvent { heScribble,        // series of points from start to finish of scribble
+                 heVisibleCleared,  // visible image erased
+                 heCanvasMoved,     // canvas moved: new top left coordinates in points[0]
+                 heImageLoaded      // an image loaded into _background
+                };
+struct DrawnItem    // stores the freehand lines from pen down to pen up
+{                   // or a screen erease event (when 'points' is empty)
+    DrawnItem(HistEvent he = heScribble) noexcept : histEvent(he) {}
+    DrawnItem(const DrawnItem& di)  { *this = di; }
+    DrawnItem(const DrawnItem&& di) noexcept { *this = di; }
+    DrawnItem& operator=(const DrawnItem& di)
+    {
+        histEvent = di.histEvent;
+        penColor = di.penColor;
+        penWidth = di.penWidth;
+        points = di.points;
+        return *this;
+    }
+
+    DrawnItem& operator=(const DrawnItem&& di)  noexcept
+    {
+        histEvent = di.histEvent;
+        penColor = di.penColor;
+        penWidth = di.penWidth;
+        points = di.points;
+        return *this;
+    }
+
+    HistEvent histEvent = heScribble;
     QColor penColor;
     int penWidth;
-    QVector<QPoint> points;
+    QVector<QPoint> points;           // coordinates are relative to logical origin (0,0)
+
+
     void clear() { points.clear(); }
 };
+
+inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
+{
+    ofs << (qint32)di.histEvent << di.penColor.rgba() << (qint32)di.penWidth;
+    ofs << (qint32)di.points.size();
+    for (auto pt : di.points)
+        ofs << (qint32)pt.x() << (qint32)pt.y();
+    return ofs;
+}
+
+inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
+{
+    qint32 n;
+    ifs >> n; di.histEvent = static_cast<HistEvent>(n);
+    ifs >> n; di.penColor.setRgba(static_cast<QRgb>(n));
+    ifs >> n; di.penWidth = n;
+    qint32 x,y;
+    QPoint pt;
+    di.points.clear();
+    ifs >> n; 
+    while (n--)
+    {
+        ifs >> x >> y;
+        pt.setX(x); pt.setY(y);
+        di.points.push_back(pt);
+    }
+    return ifs;
+}
 
 class History  // stores all drawing sections and keeps track of undo and redo
 {
@@ -29,6 +90,9 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     int _GetStartIndex()
     {
+        if (_lastItem < 0)
+            return -1;
+
         for (int i = _IndicesOfClearScreen.size() - 1; i >= 0; --i)
             if (_IndicesOfClearScreen[i] < _lastItem)
                 return i;
@@ -37,6 +101,60 @@ class History  // stores all drawing sections and keeps track of undo and redo
 public:
     void clear() { _lastItem = -1; _items.clear(); _IndicesOfClearScreen.clear(), _redoAble = false; }
     int size() const { return _items.size(); }
+
+    const qint32 MAGIC_ID = 0x584d4153; // "SAMW" - little endian
+    bool Save(QString name)
+    {
+        QFile f(name);
+        f.open(QIODevice::WriteOnly);
+
+        if (!f.isOpen())
+            return false;   // can't write file
+
+        QDataStream ofs(&f);
+        ofs << MAGIC_ID;
+        for (auto dt : _items)
+        {                     // do not save canvas movement or background image events
+            if (ofs.status() != QDataStream::Ok)
+                return false;
+
+            if (dt.histEvent == heScribble || dt.histEvent == heVisibleCleared)
+                ofs << dt;
+        }
+        return true;
+    }
+
+    int Load(QString name)  // returns _ites.size() when Ok, -items.size()-1 when read error
+    {
+        QFile f(name);
+        f.open(QIODevice::ReadOnly);
+        if (!f.isOpen())    
+            return - 1;
+
+        QDataStream ifs(&f);
+        qint32 id;
+        ifs >> id;
+        if (id != MAGIC_ID)
+            return 0;
+
+        _items.clear();
+        _IndicesOfClearScreen.clear();
+        DrawnItem di;
+        int i = 0;
+        while (!ifs.atEnd())
+        {
+            ifs >> di;
+            if (ifs.status() != QDataStream::Ok)
+                return -_items.size() - 1;
+
+            if (di.histEvent == heVisibleCleared)
+                _IndicesOfClearScreen.push_back(i);
+            ++i;
+            _items.push_back(di);
+        }
+        return _items.size();
+    }
+
     bool CanUndo() const { return _lastItem >= 0; }
     bool CanRedo() const { return _redoAble; }
 
@@ -51,6 +169,11 @@ public:
 
     void ClearScreen() { push_back(_clearItem); }
 
+    void SetFirstItemToDraw()
+    {
+        _index = _GetStartIndex();    // sets _index to first item after last clear screen
+    }
+
     void BeginUndo()        // set position back one section
     {
         if (_lastItem >= 0)
@@ -62,9 +185,9 @@ public:
         else
             _redoAble = false;
     }
-    const DrawnItem* UndoOneStep()
+    const DrawnItem* GetOneStep()
     {
-        if (_index > _lastItem)
+        if (_lastItem < 0 || _index > _lastItem)
             return nullptr;
         return &_items[_index++];
     }

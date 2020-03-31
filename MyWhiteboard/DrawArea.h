@@ -2,6 +2,7 @@
 
 #include <QColor>
 #include <QImage>
+#include <QBitmap>
 #include <QPoint>
 #include <QWidget>
 
@@ -14,30 +15,40 @@ class DrawArea : public QWidget
     Q_OBJECT
 
 public:
+        // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
+    enum CursorShape {csArrow, csCross, csOHand, csCHand, csPen, csEraser };
     DrawArea(QWidget* parent = nullptr);
+
+//    void setTabletDevice(QTabletEvent* event)    {        updateCursor(event);    }
     void ClearArea();
+    void ClearBackground();
 
-    bool openImage(const QString& fileName);
-    bool saveImage(const QString& fileName, const char* fileFormat);
-    void setPenColor(const QColor& newColor);
-    void setPenWidth(int newWidth);
+    int Load(QString name) { return _history.Load(name); }
+    bool Save(QString name) { return _history.Save(name); }
 
-    bool isModified() const { return _modified; }
-    QColor penColor() const { return _myPenColor; }
-    int penWidth() const { return    _myPenWidth; }
+    bool OpenBackgroundImage(const QString& fileName);
+    bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
+
+    void SetPenColor(const QColor& newColor);
+    void SetPenWidth(int newWidth);
+
+    bool IsModified() const { return _modified; }
+    QColor PenColor() const { return _myPenColor; }
+    int PenWidth() const { return    _myPenWidth; }
 
 signals:
-    void canUndo(bool state);     // state: true -> can undo
-    void canRedo (bool  state);   // state: true -> can redo
-    void wantFocus();
+    void CanUndo(bool state);     // state: true -> can undo
+    void CanRedo (bool  state);   // state: true -> can redo
+    void WantFocus();
 
 public slots:
-    void clearImage();
-    void clearHistory();
-    void print();
-    void Redraw(DrawnItem& item);
+    void NewData();
+    void ClearImage();
+    void ClearHistory();
+    void Print();
     void Undo();
     void Redo();
+    void SetCursor(CursorShape cs);
 
 
 protected:
@@ -47,18 +58,29 @@ protected:
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
 
+    void tabletEvent(QTabletEvent* event) override;
+
 private:
-    void drawLineTo(const QPoint& endPoint);
-    void resizeImage(QImage* image, const QSize& newSize);
-
-    bool _ReplotItem(const DrawnItem* pdrni);
-
     bool    _modified = false;
-    bool    _scribbling = false;
+    bool    _scribbling = false;    // for mouse
+    bool    _pendown = false;       // for pen
     int     _myPenWidth = 1;
     QColor  _myPenColor = Qt::blue;
-    QImage  _image;
-    QPoint  _lastPoint;
+    QImage  _image;     // draw on this image
+                        // origin: (0,0) point on canvas first shown
+    QImage  _background;// an image for background layer
+    QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin
+            _lastPoint; // last point drawn relative to visible image
     DrawnItem _lastDrawnItem;
     History _history;
+
+    void _DrawBackground();
+    void _InitiateDrawing(QEvent* event);
+
+    void _DrawLineTo(const QPoint& endPoint);
+    void _ResizeImage(QImage* image, const QSize& newSize);
+
+    bool _ReplotItem(const DrawnItem* pdrni);
+    void _Redraw();
+
 };

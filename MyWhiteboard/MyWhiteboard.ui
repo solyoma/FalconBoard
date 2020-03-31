@@ -10,9 +10,6 @@
     <height>783</height>
    </rect>
   </property>
-  <property name="cursor">
-   <cursorShape>ArrowCursor</cursorShape>
-  </property>
   <property name="windowTitle">
    <string>MyWhiteboard</string>
   </property>
@@ -35,8 +32,12 @@
      <string>&amp;File</string>
     </property>
     <addaction name="actionNew"/>
-    <addaction name="actionOpen"/>
+    <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
+    <addaction name="actionSaveAs"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadBackground"/>
+    <addaction name="actionSaveVisible"/>
     <addaction name="action_Print"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -52,7 +53,7 @@
     <addaction name="action_Red"/>
     <addaction name="action_Green"/>
     <addaction name="action_Blue"/>
-    <addaction name="action_Ereaser"/>
+    <addaction name="action_Eraser"/>
     <addaction name="separator"/>
     <addaction name="action_Mark"/>
    </widget>
@@ -84,13 +85,16 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="actionOpen">
+  <action name="actionLoad">
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
      <normaloff>:/MyWhiteboard/Resources/open.png</normaloff>:/MyWhiteboard/Resources/open.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Open...</string>
+    <string>&amp;Load...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load saved data into memory</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -104,6 +108,12 @@
    <property name="text">
     <string>&amp;Save</string>
    </property>
+   <property name="iconText">
+    <string>Save...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
@@ -114,7 +124,7 @@
      <normaloff>:/MyWhiteboard/Resources/saveas.png</normaloff>:/MyWhiteboard/Resources/saveas.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;SaveAs...</string>
+    <string>Sa&amp;ve As...</string>
    </property>
   </action>
   <action name="actionExit">
@@ -196,17 +206,20 @@
    <property name="text">
     <string>C&amp;lear Area</string>
    </property>
+   <property name="toolTip">
+    <string>Clear Whiteboard except background image.</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Del</string>
    </property>
   </action>
-  <action name="action_Ereaser">
+  <action name="action_Eraser">
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
      <normaloff>:/MyWhiteboard/Resources/eraser.png</normaloff>:/MyWhiteboard/Resources/eraser.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Ereaser</string>
+    <string>&amp;Eraser</string>
    </property>
    <property name="shortcut">
     <string>Alt+E</string>
@@ -260,8 +273,30 @@
    <property name="text">
     <string>&amp;New</string>
    </property>
+   <property name="toolTip">
+    <string>Clear whiteboard</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionLoadBackground">
+   <property name="text">
+    <string>Loa&amp;d Image...</string>
+   </property>
+   <property name="iconText">
+    <string>Load Image</string>
+   </property>
+   <property name="toolTip">
+    <string>Load image as background</string>
+   </property>
+  </action>
+  <action name="actionSaveVisible">
+   <property name="text">
+    <string>Sav&amp;e Visible</string>
+   </property>
+   <property name="toolTip">
+    <string>Save visible image (not the lines)</string>
    </property>
   </action>
  </widget>

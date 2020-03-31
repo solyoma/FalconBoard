@@ -10,11 +10,14 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
     _actPenWidth = 3;
     _actColor = "black";
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
-    _drawArea->setPenColor(_actColor);
-    _drawArea->setPenWidth(_actPenWidth); 
+    _drawArea->SetPenColor(_actColor);
+    _drawArea->SetPenWidth(_actPenWidth); 
 
     _CreateAndAddActions();
-    _AddSaveAsMenu();
+    _AddSaveAsVisibleMenu();
+
+    QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents); // for tablet
+
     ui.centralWidget->setFocus();
 }
 
@@ -26,7 +29,7 @@ void MyWhiteboard::_CreateAndAddActions()
 
         QAction* action = new QAction(text, this);
         action->setData(format);
-        connect(action, &QAction::triggered, this, &MyWhiteboard::on_actionSaveAs_triggered);
+        connect(action, &QAction::triggered, this, &MyWhiteboard::SaveVisibleAsTriggered);
         _saveAsActs.append(action);
     }
 
@@ -36,7 +39,7 @@ void MyWhiteboard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.actionRedo);
     ui.mainToolBar->addSeparator();
     ui.mainToolBar->addAction(ui.actionNew);
-    ui.mainToolBar->addAction(ui.actionOpen);
+    ui.mainToolBar->addAction(ui.actionLoad);
     ui.mainToolBar->addAction(ui.actionSave);
     ui.mainToolBar->addAction(ui.actionSaveAs);
     ui.mainToolBar->addSeparator();
@@ -47,7 +50,7 @@ void MyWhiteboard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.action_Red);
     ui.mainToolBar->addAction(ui.action_Green);
     ui.mainToolBar->addAction(ui.action_Blue);
-    ui.mainToolBar->addAction(ui.action_Ereaser);
+    ui.mainToolBar->addAction(ui.action_Eraser);
     ui.mainToolBar->addSeparator();
 
     // TODO add toolbar items for actions undo redo, open, save, saveas, print, erease, exit here
@@ -64,33 +67,32 @@ void MyWhiteboard::_CreateAndAddActions()
     _psbPenWidth->setGeometry(rect);
 
     ui.mainToolBar->addWidget(_psbPenWidth);
-        // more than one valeChanged() function exists
+        // more than one valueChanged() function exists
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &MyWhiteboard::slotPenWidthChanged);
 
-    connect(_drawArea, &DrawArea::canUndo, this, &MyWhiteboard::slotForUndo);
-    connect(_drawArea, &DrawArea::canRedo, this, &MyWhiteboard::slotForRedo);
-    connect(_drawArea, &DrawArea::wantFocus, this, &MyWhiteboard::slotForFocus);
+    connect(_drawArea, &DrawArea::CanUndo, this, &MyWhiteboard::SlotForUndo);
+    connect(_drawArea, &DrawArea::CanRedo, this, &MyWhiteboard::SlotForRedo);
+    connect(_drawArea, &DrawArea::WantFocus, this, &MyWhiteboard::SlotForFocus);
 
 
-    connect(ui.actionNew, &QAction::triggered, _drawArea, &DrawArea::clearHistory);
-    connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::clearHistory);
+    connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
 }
 
-void MyWhiteboard::_AddSaveAsMenu()
+void MyWhiteboard::_AddSaveAsVisibleMenu()
 {
-    QMenu *pSaveAsMenu = new QMenu(QApplication::tr("Save &As"), this);
+    QMenu *pSaveAsVisibleMenu = new QMenu(QApplication::tr("Save Visible &As..."), this);
     for (QAction* action : qAsConst(_saveAsActs))
-        pSaveAsMenu->addAction(action);
-    ui.menu_File->insertMenu(ui.action_Print, pSaveAsMenu);
+        pSaveAsVisibleMenu->addAction(action);
+    ui.menu_File->insertMenu(ui.action_Print, pSaveAsVisibleMenu);
     ui.menu_File->insertSeparator(ui.action_Print);
 }
 
-bool MyWhiteboard::_ShouldSave()
+bool MyWhiteboard::_SaveIfYouWant()
 {
-    if (_drawArea->isModified()) {
+    if (_drawArea->IsModified()) {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(this, tr("MyWhiteboard"),
-            tr("The image has been modified.\n"
+            tr("Data have been modified.\n"
                 "Do you want to save your changes?"),
             QMessageBox::Save | QMessageBox::Discard
             | QMessageBox::Cancel);
@@ -104,27 +106,55 @@ bool MyWhiteboard::_ShouldSave()
 
 bool MyWhiteboard::_SaveFile()
 {
-    return _drawArea->saveImage(_saveName, _fileFormat.constData());
+    return _drawArea->Save(_saveName);
+}
+
+bool MyWhiteboard::_SaveBackgroundImage()
+{
+    return _drawArea->SaveVisibleImage(_backgroundImageName, _fileFormat.constData());
+}
+
+void MyWhiteboard::_SetCursor(DrawArea::CursorShape cs)
+{
+    _drawArea->SetCursor(cs);
 }
 
 void MyWhiteboard::closeEvent(QCloseEvent* event)
 {
     {
-        if (_ShouldSave())
+        if (_SaveIfYouWant())
             event->accept();
         else
             event->ignore();
     }
 }
 
-void MyWhiteboard::on_actionOpen_triggered()
+void MyWhiteboard::on_actionNew_triggered()
 {
-    if (_ShouldSave()) 
+    _drawArea->NewData();
+    _saveName.clear();
+    _backgroundImageName.clear();
+}
+
+void MyWhiteboard::on_actionLoadBackground_triggered()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                    tr("Open Background Image"), QDir::currentPath());
+    if (!fileName.isEmpty())
+        _drawArea->OpenBackgroundImage(fileName);
+}
+
+void MyWhiteboard::on_actionLoad_triggered()
+{
+    _SaveIfYouWant();
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Load Data"), 
+                                                    QDir::currentPath(),
+                                                    tr("MyWhiteboard files (*.mwb);;All files (*)"));
+    if (!fileName.isEmpty())
     {
-        QString fileName = QFileDialog::getOpenFileName(this,
-                                                        tr("Open File"), QDir::currentPath());
-        if (!fileName.isEmpty())
-            _drawArea->openImage(fileName);
+        _drawArea->Load(fileName);
+        _saveName = fileName;
     }
 }
 
@@ -134,6 +164,14 @@ void MyWhiteboard::on_actionSave_triggered()
         on_actionSaveAs_triggered();
     else
         _SaveFile();
+}
+
+void MyWhiteboard::on_actionSaveVisible_triggered()
+{
+    if (_backgroundImageName.isEmpty())
+        SaveVisibleAsTriggered();
+    else
+        _SaveBackgroundImage();
 }
 
 void MyWhiteboard::on_actionAbout_triggered()
@@ -151,6 +189,17 @@ void MyWhiteboard::on_actionClearArea_triggered()
 
 void MyWhiteboard::on_actionSaveAs_triggered()
 {
+    QString initialPath = QDir::currentPath() + "/untitled.mwb";
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
+                        initialPath, tr("MyWhiteboard Files (*.mwb);; All Files (*))"));
+    if (fileName.isEmpty())
+        return;
+    _saveName = fileName;
+    _SaveFile();
+}
+
+void MyWhiteboard::SaveVisibleAsTriggered()
+{
     QAction* action = qobject_cast<QAction*>(sender());
     _fileFormat = action->data().toByteArray();
     if (_fileFormat.isEmpty())
@@ -165,8 +214,8 @@ void MyWhiteboard::on_actionSaveAs_triggered()
         .arg(QString::fromLatin1(_fileFormat)));
     if (fileName.isEmpty())
         return ;
-    _saveName = fileName;
-    _SaveFile();
+    _backgroundImageName = fileName;
+    _SaveBackgroundImage();
 }
 
 void MyWhiteboard::on_actionUndo_triggered()
@@ -179,17 +228,17 @@ void MyWhiteboard::on_actionRedo_triggered()
     _drawArea->Redo();
 }
 
-void MyWhiteboard::slotForUndo(bool b)
+void MyWhiteboard::SlotForUndo(bool b)
 {
     ui.actionUndo->setEnabled(b);
 }
 
-void MyWhiteboard::slotForRedo(bool b)
+void MyWhiteboard::SlotForRedo(bool b)
 {
     ui.actionRedo->setEnabled(b);
 }
 
-void MyWhiteboard::slotForFocus()
+void MyWhiteboard::SlotForFocus()
 {
     ui.centralWidget->setFocus();
 }
