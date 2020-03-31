@@ -93,8 +93,6 @@ private:
 	QSpinBox * _psbPenWidth = nullptr;
 	QList<QAction*> _saveAsActs;
 
-	QVector<DrawnItem> _undoStack;
-
 	void _CreateAndAddActions();
 	void _AddSaveAsVisibleMenu();
 	bool _SaveIfYouWant();

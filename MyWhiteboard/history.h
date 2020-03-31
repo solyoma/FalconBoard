@@ -102,7 +102,7 @@ public:
     void clear() { _lastItem = -1; _items.clear(); _IndicesOfClearScreen.clear(), _redoAble = false; }
     int size() const { return _items.size(); }
 
-    const qint32 MAGIC_ID = 0x584d4153; // "SAMW" - little endian
+    const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian
     bool Save(QString name)
     {
         QFile f(name);
@@ -152,7 +152,7 @@ public:
             ++i;
             _items.push_back(di);
         }
-        return _items.size();
+        return _lastItem =_items.size()-1;
     }
 
     bool CanUndo() const { return _lastItem >= 0; }

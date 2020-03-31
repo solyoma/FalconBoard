@@ -73,6 +73,7 @@ void DrawArea::NewData()
 {
     ClearHistory();
     ClearBackground();
+    _modified = false;
 }
 
 void DrawArea::ClearImage()
@@ -218,6 +219,7 @@ void DrawArea::ClearHistory()
 {
     _history.clear();
     ClearImage();
+    _topLeft = QPoint();
     emit CanUndo(false);
     emit CanRedo(false);
 }

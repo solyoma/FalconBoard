@@ -136,14 +136,6 @@ void MyWhiteboard::on_actionNew_triggered()
     _backgroundImageName.clear();
 }
 
-void MyWhiteboard::on_actionLoadBackground_triggered()
-{
-    QString fileName = QFileDialog::getOpenFileName(this,
-                    tr("Open Background Image"), QDir::currentPath());
-    if (!fileName.isEmpty())
-        _drawArea->OpenBackgroundImage(fileName);
-}
-
 void MyWhiteboard::on_actionLoad_triggered()
 {
     _SaveIfYouWant();
@@ -156,6 +148,11 @@ void MyWhiteboard::on_actionLoad_triggered()
         _drawArea->Load(fileName);
         _saveName = fileName;
     }
+
+    if (_eraserOn)
+        on_action_Eraser_triggered();
+    else
+        _SetCursor(DrawArea::csPen);
 }
 
 void MyWhiteboard::on_actionSave_triggered()
@@ -164,27 +161,6 @@ void MyWhiteboard::on_actionSave_triggered()
         on_actionSaveAs_triggered();
     else
         _SaveFile();
-}
-
-void MyWhiteboard::on_actionSaveVisible_triggered()
-{
-    if (_backgroundImageName.isEmpty())
-        SaveVisibleAsTriggered();
-    else
-        _SaveBackgroundImage();
-}
-
-void MyWhiteboard::on_actionAbout_triggered()
-{
-    QMessageBox::about(this, tr("About MyWhiteboard"),
-        tr("<p>Based on Qt's <b>Scribble</b> example "
-            "but with undo, marking and moveing areas of screen "
-            "</p>"));
-}
-
-void MyWhiteboard::on_actionClearArea_triggered()
-{
-    _drawArea->ClearArea();
 }
 
 void MyWhiteboard::on_actionSaveAs_triggered()
@@ -196,6 +172,22 @@ void MyWhiteboard::on_actionSaveAs_triggered()
         return;
     _saveName = fileName;
     _SaveFile();
+}
+
+void MyWhiteboard::on_actionLoadBackground_triggered()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                    tr("Open Background Image"), QDir::currentPath());
+    if (!fileName.isEmpty())
+        _drawArea->OpenBackgroundImage(fileName);
+}
+
+void MyWhiteboard::on_actionSaveVisible_triggered()
+{
+    if (_backgroundImageName.isEmpty())
+        SaveVisibleAsTriggered();
+    else
+        _SaveBackgroundImage();
 }
 
 void MyWhiteboard::SaveVisibleAsTriggered()
@@ -218,14 +210,35 @@ void MyWhiteboard::SaveVisibleAsTriggered()
     _SaveBackgroundImage();
 }
 
+void MyWhiteboard::on_actionAbout_triggered()
+{
+    QMessageBox::about(this, tr("About MyWhiteboard"),
+        tr("<p>Based on Qt's <b>Scribble</b> example "
+            "but with undo, marking and moveing areas of screen "
+            "</p>"));
+}
+
+void MyWhiteboard::on_actionClearArea_triggered()
+{
+    _drawArea->ClearArea();
+}
+
 void MyWhiteboard::on_actionUndo_triggered()
 {
     _drawArea->Undo();
+    if (_eraserOn)
+        on_action_Eraser_triggered();
+    else
+        _SetCursor(DrawArea::csPen);
 }
 
 void MyWhiteboard::on_actionRedo_triggered()
 {
     _drawArea->Redo();
+    if (_eraserOn)
+        on_action_Eraser_triggered();
+    else
+        _SetCursor(DrawArea::csPen);
 }
 
 void MyWhiteboard::SlotForUndo(bool b)

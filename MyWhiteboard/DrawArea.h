@@ -23,14 +23,23 @@ public:
     void ClearArea();
     void ClearBackground();
 
-    int Load(QString name) { return _history.Load(name); }
-    bool Save(QString name) { return _history.Save(name); }
+    int Load(QString name) 
+    { 
+        int res = _history.Load(name); 
+        if (res > 0)    // TODO send message if read error
+            _Redraw();
+        _modified = false;
+        return res;
+    }
+    bool Save(QString name) { return  _history.Save(name); }
 
     bool OpenBackgroundImage(const QString& fileName);
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
 
     void SetPenColor(const QColor& newColor);
     void SetPenWidth(int newWidth);
+
+    void SetOrigin() { _topLeft = QPoint(); }
 
     bool IsModified() const { return _modified; }
     QColor PenColor() const { return _myPenColor; }
