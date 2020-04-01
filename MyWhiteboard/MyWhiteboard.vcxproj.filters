@@ -34,12 +34,18 @@
     <ClCompile Include="DrawArea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="snipper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MyWhiteboard.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="DrawArea.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="snipper.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

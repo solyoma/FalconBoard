@@ -1,6 +1,9 @@
 #include "MyWhiteboard.h"
 #include <QSpinBox>
 #include <QLabel>
+#include <QScreen>
+#include <QPainter>
+#include <QThread>
 #include "DrawArea.h"
 
 MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
@@ -54,8 +57,6 @@ void MyWhiteboard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.action_Eraser);
     ui.mainToolBar->addSeparator();
 
-    // TODO add toolbar items for actions undo redo, open, save, saveas, print, erease, exit here
-    ui.mainToolBar->addSeparator();
 
     ui.mainToolBar->addWidget(new QLabel(tr("Pen Width:")));
     _psbPenWidth = new QSpinBox();
@@ -66,8 +67,10 @@ void MyWhiteboard::_CreateAndAddActions()
     QRect rect = _psbPenWidth->geometry();
     rect.setWidth(30);
     _psbPenWidth->setGeometry(rect);
-
     ui.mainToolBar->addWidget(_psbPenWidth);
+
+    ui.mainToolBar->addSeparator();
+    ui.mainToolBar->addAction(ui.action_Screenshot);
         // more than one valueChanged() function exists
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &MyWhiteboard::slotPenWidthChanged);
 
@@ -119,6 +122,22 @@ bool MyWhiteboard::_SaveBackgroundImage()
 void MyWhiteboard::_SetCursor(DrawArea::CursorShape cs)
 {
     _drawArea->SetCursor(cs);
+}
+
+void MyWhiteboard::_ConnectDisconnectScreenshotLabel()
+{
+    static bool connected;
+
+    if (connected)
+    {
+        disconnect(plblScreen, &Snipper::SnipperCancelled, this, &MyWhiteboard::SlotForScreenShotCancelled);
+        disconnect(plblScreen, &Snipper::SnipperReady, this, &MyWhiteboard::SlotForScreenshotReady);
+    }
+    else
+    {
+        connect(plblScreen, &Snipper::SnipperCancelled, this, &MyWhiteboard::SlotForScreenShotCancelled);
+        connect(plblScreen, &Snipper::SnipperReady, this, &MyWhiteboard::SlotForScreenshotReady);
+    }
 }
 
 void MyWhiteboard::closeEvent(QCloseEvent* event)
@@ -218,6 +237,26 @@ void MyWhiteboard::on_actionAbout_triggered()
             "</p>"));
 }
 
+void MyWhiteboard::on_action_Screenshot_triggered()
+{
+    QScreen* screen = QGuiApplication::primaryScreen();
+    if (!screen)
+        return;
+
+    plblScreen = new Snipper(nullptr);
+    plblScreen->setGeometry(screen->geometry());
+    _ConnectDisconnectScreenshotLabel();
+
+    hide();
+
+    QThread::msleep(300);
+
+    plblScreen->setPixmap(screen->grabWindow(0));
+
+    show();
+    plblScreen->show();
+}
+
 void MyWhiteboard::on_actionClearCanvas_triggered()
 {
     _drawArea->ClearCanvas();
@@ -283,4 +322,29 @@ void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)
             }
             break;
     }
+}
+
+void MyWhiteboard::SlotForScreenshotReady(QRect geometry)
+{
+    QSize size(geometry.width(), geometry.height());
+    QImage image(size, QImage::Format_ARGB32);
+
+    QPainter *painter = new QPainter(&image);   // need to delete it before the label is deleted
+    painter->drawImage(QPoint(0,0), plblScreen->pixmap()->toImage(), geometry);
+    delete painter;
+
+    _drawArea->SetBackgroundImage(image);
+    plblScreen->hide();
+    _ConnectDisconnectScreenshotLabel();
+    delete plblScreen;
+    plblScreen = nullptr;
+
+}
+
+void MyWhiteboard::SlotForScreenShotCancelled()
+{
+    plblScreen->hide();
+    _ConnectDisconnectScreenshotLabel();
+    delete plblScreen;
+    plblScreen = nullptr;
 }

@@ -55,6 +55,8 @@
     <addaction name="action_Blue"/>
     <addaction name="action_Eraser"/>
     <addaction name="separator"/>
+    <addaction name="action_Screenshot"/>
+    <addaction name="separator"/>
     <addaction name="action_Mark"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
@@ -147,7 +149,7 @@
      <normaloff>:/MyWhiteboard/Resources/black.png</normaloff>:/MyWhiteboard/Resources/black.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Black</string>
+    <string>Blac&amp;k</string>
    </property>
    <property name="shortcut">
     <string>Alt+1</string>
@@ -228,6 +230,9 @@
    </property>
   </action>
   <action name="action_Mark">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>&amp;Mark</string>
    </property>
@@ -304,6 +309,18 @@
   <action name="actionClearBackgroundImage">
    <property name="text">
     <string>Clear Background</string>
+   </property>
+  </action>
+  <action name="action_Screenshot">
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/screenshot.png</normaloff>:/MyWhiteboard/Resources/screenshot.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Screenshot</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
    </property>
   </action>
  </widget>

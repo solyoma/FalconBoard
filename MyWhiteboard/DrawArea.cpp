@@ -39,17 +39,8 @@ bool DrawArea::OpenBackgroundImage(const QString& fileName)
     if (!loadedImage.load(fileName))
         return false;
 
-    QSize newSize = loadedImage.size().expandedTo(size());
-    _ResizeImage(&loadedImage, newSize, false); // background not transparent
-    _background = loadedImage;
-    if (!_background.isNull())
-    {
-        _isBackgroundSet = true;
-        _Redraw();
-    }
-    else
-        _modified = false;
-    update();
+    SetBackgroundImage(loadedImage);
+
     return true;
 }
 
@@ -66,6 +57,21 @@ bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
         return true;
     }
     return false;
+}
+
+void DrawArea::SetBackgroundImage(QImage& loadedImage)
+{
+    QSize newSize = loadedImage.size().expandedTo(size());
+    _ResizeImage(&loadedImage, newSize, false); // background not transparent
+    _background = loadedImage;
+    if (!_background.isNull())
+    {
+        _isBackgroundSet = true;
+        _Redraw();
+    }
+    else
+        _modified = false;
+    update();
 }
 
 void DrawArea::SetPenColor(const QColor& newColor)
@@ -332,3 +338,4 @@ void DrawArea::SetCursor(CursorShape cs)
         default:break;
     }
 }
+

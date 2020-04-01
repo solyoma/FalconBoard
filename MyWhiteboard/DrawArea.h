@@ -37,6 +37,7 @@ public:
 
     bool OpenBackgroundImage(const QString& fileName);
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
+    void SetBackgroundImage(QImage& image);
 
     void SetPenColor(const QColor& newColor);
     void SetPenWidth(int newWidth);
