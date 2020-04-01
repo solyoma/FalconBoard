@@ -90,7 +90,8 @@ void MyWhiteboard::_AddSaveAsVisibleMenu()
 
 bool MyWhiteboard::_SaveIfYouWant()
 {
-    if (_drawArea->IsModified()) {
+    if (_drawArea->IsModified()) 
+    {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(this, tr("MyWhiteboard"),
             tr("Data have been modified.\n"

@@ -204,7 +204,7 @@
   </action>
   <action name="actionClearArea">
    <property name="text">
-    <string>C&amp;lear Area</string>
+    <string>C&amp;lear</string>
    </property>
    <property name="toolTip">
     <string>Clear Whiteboard except background image.</string>

@@ -44,7 +44,7 @@ public:
 
     void SetOrigin() { _topLeft = QPoint(); }
 
-    bool IsModified() const { return _modified; }
+    bool IsModified() const { return  _history.CanUndo() ? _modified : false; }
     QColor PenColor() const { return _myPenColor; }
     int PenWidth() const { return    _myPenWidth; }
 
@@ -63,7 +63,6 @@ public slots:
     void Redo();
     void SetCursor(CursorShape cs);
 
-
 protected:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
@@ -77,6 +76,7 @@ private:
     bool    _modified = false;
     bool    _scribbling = false;    // for mouse
     bool    _pendown = false;       // for pen
+    bool    _erasemode = false;
     int     _myPenWidth = 1;
     QColor  _myPenColor = Qt::blue;
     QImage  _image;     // draw on this image

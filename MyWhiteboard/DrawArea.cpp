@@ -1,4 +1,5 @@
 #include "DrawArea.h"
+#include "DrawArea.h"
 
 #include <QMouseEvent>
 #include <QPainter>
@@ -78,7 +79,7 @@ void DrawArea::NewData()
 
 void DrawArea::ClearImage()
 {
-    _image.fill(qRgb(255, 255, 255));
+    _image.fill(qRgba(255, 255, 255, 0));
     _modified = true;
     update();
 }
@@ -87,7 +88,8 @@ void DrawArea::_DrawBackground()
 {
     if (!_background.isNull()) 
     { 
-        _image = _background; update(); 
+        _image = _background; 
+        update(); 
     }
 }
 
@@ -195,6 +197,8 @@ void DrawArea::_DrawLineTo(const QPoint& endPoint)
     QPainter painter(&_image);
     painter.setPen(QPen(_myPenColor, _myPenWidth, Qt::SolidLine, Qt::RoundCap,
         Qt::RoundJoin));
+//    if (_erasemode)
+//        painter.setCompositionMode(QPainter::CompositionMode_Clear);
     painter.drawLine(_lastPoint, endPoint);
     _modified = true;
 
@@ -300,6 +304,7 @@ void DrawArea::Redo()
 #include <QFileInfo>
 void DrawArea::SetCursor(CursorShape cs)
 {
+    _erasemode = false;
     switch (cs)
     {
         case csArrow: setCursor(Qt::ArrowCursor); break;
@@ -309,8 +314,10 @@ void DrawArea::SetCursor(CursorShape cs)
         case csEraser: 
             {
                     QBitmap pbm(QString(":/MyWhiteboard/Resources/eraserpen.png"));
-                    setCursor(QCursor(pbm, pbm)); break;
+                    setCursor(QCursor(pbm, pbm));
+                    _erasemode = true;
             }
+            break;
         default:break;
     }
 }
