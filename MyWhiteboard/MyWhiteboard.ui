@@ -68,7 +68,9 @@
     <property name="title">
      <string>&amp;Clear</string>
     </property>
-    <addaction name="actionClearArea"/>
+    <addaction name="actionClearCanvas"/>
+    <addaction name="actionClearBackgroundImage"/>
+    <addaction name="separator"/>
     <addaction name="actionClearHistory"/>
    </widget>
    <addaction name="menu_File"/>
@@ -202,7 +204,7 @@
     <string>&amp;Print...</string>
    </property>
   </action>
-  <action name="actionClearArea">
+  <action name="actionClearCanvas">
    <property name="text">
     <string>C&amp;lear</string>
    </property>
@@ -297,6 +299,11 @@
    </property>
    <property name="toolTip">
     <string>Save visible image (not the lines)</string>
+   </property>
+  </action>
+  <action name="actionClearBackgroundImage">
+   <property name="text">
+    <string>Clear Background</string>
    </property>
   </action>
  </widget>

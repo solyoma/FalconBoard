@@ -39,7 +39,8 @@ private slots:
 	void on_actionSaveVisible_triggered();
 	void SaveVisibleAsTriggered();
 
-	void on_actionClearArea_triggered();
+	void on_actionClearCanvas_triggered();
+	void on_actionClearBackgroundImage_triggered();
 	void on_action_Print_triggered() { _drawArea->Print();  }
 	void on_actionAbout_triggered();
 

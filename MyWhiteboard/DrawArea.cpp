@@ -20,15 +20,17 @@ DrawArea::DrawArea(QWidget* parent)
     setCursor(Qt::CrossCursor);
 }
 
-void DrawArea::ClearArea()
+void DrawArea::ClearCanvas()
 {
     _history.push_back(DrawnItem(heVisibleCleared));
-    ClearImage();
+    _ClearCanvas();
 }
 
 void DrawArea::ClearBackground()
 {
     _background.fill(qRgb(255, 255, 255));
+    _isBackgroundSet = false;
+    update();
 }
 
 bool DrawArea::OpenBackgroundImage(const QString& fileName)
@@ -38,10 +40,13 @@ bool DrawArea::OpenBackgroundImage(const QString& fileName)
         return false;
 
     QSize newSize = loadedImage.size().expandedTo(size());
-    _ResizeImage(&loadedImage, newSize);
+    _ResizeImage(&loadedImage, newSize, false); // background not transparent
     _background = loadedImage;
     if (!_background.isNull())
+    {
+        _isBackgroundSet = true;
         _Redraw();
+    }
     else
         _modified = false;
     update();
@@ -50,8 +55,11 @@ bool DrawArea::OpenBackgroundImage(const QString& fileName)
 
 bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 {
-    QImage visibleImage = _image;           
-    _ResizeImage(&visibleImage, size());
+    QImage visibleImage = _background;           
+    QPainter painter(&visibleImage);
+    painter.drawImage(QPoint(0,0), _canvas);
+
+    _ResizeImage(&visibleImage, size(), false);
 
     if (visibleImage.save(fileName, fileFormat)) {
         _modified = false;
@@ -77,26 +85,19 @@ void DrawArea::NewData()
     _modified = false;
 }
 
-void DrawArea::ClearImage()
+void DrawArea::_ClearCanvas()
 {
-    _image.fill(qRgba(255, 255, 255, 0));
+    _canvas.fill(qRgba(255, 255, 255, 0));
     _modified = true;
     update();
-}
-
-void DrawArea::_DrawBackground()
-{
-    if (!_background.isNull()) 
-    { 
-        _image = _background; 
-        update(); 
-    }
 }
 
 void DrawArea::_InitiateDrawing(QEvent* event)
 {
     _lastPoint = _pendown ? ((QTabletEvent*)event)->pos(): ((QMouseEvent*)event)->pos();
     _lastDrawnItem.clear();
+    if (_erasemode)
+        _lastDrawnItem.histEvent = heEraser;
     _lastDrawnItem.penColor = _myPenColor;
     _lastDrawnItem.penWidth = _myPenWidth;
     _lastDrawnItem.points.push_back(_lastPoint);
@@ -136,17 +137,20 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 
 void DrawArea::paintEvent(QPaintEvent* event)
 {
-    QPainter painter(this);
+    QPainter painter(this);             // show image on widget
     QRect dirtyRect = event->rect();
-    painter.drawImage(dirtyRect, _image, dirtyRect);
+    painter.drawImage(dirtyRect, _background, dirtyRect);
+    painter.drawImage(dirtyRect, _canvas, dirtyRect);
 }
 
 void DrawArea::resizeEvent(QResizeEvent* event)
 {
-    if (width() > _image.width() || height() > _image.height()) {
-        int newWidth =  qMax(width() + 128,  _image.width());
-        int newHeight = qMax(height() + 128, _image.height());
-        _ResizeImage(&_image, QSize(newWidth, newHeight));
+    if (width() > _canvas.width() || height() > _canvas.height()) 
+    {
+        int newWidth =  qMax(width() + 128,  _canvas.width());
+        int newHeight = qMax(height() + 128, _canvas.height());
+        _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
+        _ResizeImage(&_background, QSize(newWidth, newHeight), false);
         update();
     }
     QWidget::resizeEvent(event);
@@ -194,11 +198,11 @@ void DrawArea::tabletEvent(QTabletEvent* event)
 
 void DrawArea::_DrawLineTo(const QPoint& endPoint)
 {
-    QPainter painter(&_image);
+    QPainter painter(&_canvas);
     painter.setPen(QPen(_myPenColor, _myPenWidth, Qt::SolidLine, Qt::RoundCap,
         Qt::RoundJoin));
-//    if (_erasemode)
-//        painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    if (_erasemode)
+        painter.setCompositionMode(QPainter::CompositionMode_Clear);
     painter.drawLine(_lastPoint, endPoint);
     _modified = true;
 
@@ -208,14 +212,25 @@ void DrawArea::_DrawLineTo(const QPoint& endPoint)
     _lastPoint = endPoint;
 }
 
-void DrawArea::_ResizeImage(QImage* image, const QSize& newSize)
+void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTransparent)
 {
     if (image->size() == newSize)
         return;
 
-    QImage newImage(newSize, QImage::Format_RGB32);
-    newImage.fill(qRgb(255, 255, 255));
+    QImage newImage(newSize, QImage::Format_ARGB32);
+
+    //auto FillImage = [&](QImage* image) 
+    //{ 
+    //    QPainter painter(image); 
+    //    painter.fillRect(0, 0, image->width(), image->height(), isTransparent ? Qt::transparent : Qt::white);
+    //};
+
+    //FillImage(&newImage);
+
+    QColor color = isTransparent ? Qt::transparent : Qt::white;
+    newImage.fill(color);
     QPainter painter(&newImage);
+    painter.setCompositionMode(QPainter::CompositionMode_Source); //??
     painter.drawImage(QPoint(0, 0), *image);
     *image = newImage;
 }
@@ -223,7 +238,7 @@ void DrawArea::_ResizeImage(QImage* image, const QSize& newSize)
 void DrawArea::ClearHistory()
 {
     _history.clear();
-    ClearImage();
+    _ClearCanvas();
     _topLeft = QPoint();
     emit CanUndo(false);
     emit CanRedo(false);
@@ -239,20 +254,17 @@ void DrawArea::Print()
     if (printDialog.exec() == QDialog::Accepted) {
         QPainter painter(&printer);
         QRect rect = painter.viewport();
-        QSize size = _image.size();
+        QSize size = _canvas.size();
         size.scale(rect.size(), Qt::KeepAspectRatio);
         painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
-        painter.setWindow(_image.rect());
-        painter.drawImage(0, 0, _image);
+        painter.setWindow(_canvas.rect());
+        painter.drawImage(0, 0, _canvas);
     }
 #endif // QT_CONFIG(printdialog)
 }
 
 void DrawArea::_Redraw()
 {
-    if(!_background.isNull())
-        _image = _background;
-
     _history.SetFirstItemToDraw();
     while (_ReplotItem(_history.GetOneStep()))
         ;
@@ -263,27 +275,26 @@ bool DrawArea::_ReplotItem(const DrawnItem* pdrni)
     if (!pdrni)
         return false;
 
-    if (pdrni->points.size())    // else clear screen
+    if (pdrni->points.size())    // else clear screen, move, etc
     {
         _lastPoint = pdrni->points[0] - _topLeft; 
         _myPenColor = pdrni->penColor;
         _myPenWidth = pdrni->penWidth;
+        _erasemode = pdrni->histEvent == heEraser ? true : false;
         for (int i = 1; i < pdrni->points.size(); ++i)
             _DrawLineTo(pdrni->points[i]);
     }
     else
-        ClearImage();
+        ClearCanvas();
 
     return true;
 }
 
 void DrawArea::Undo()
 {
-    ClearImage();
+    _ClearCanvas();
     if (_history.CanUndo())
     {
-        if (!_background.isNull())
-            _image = _background;
         _history.BeginUndo();
         while(_ReplotItem(_history.GetOneStep()) )
             ;

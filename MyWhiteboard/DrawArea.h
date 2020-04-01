@@ -21,7 +21,6 @@ public:
     DrawArea(QWidget* parent = nullptr);
 
 //    void setTabletDevice(QTabletEvent* event)    {        updateCursor(event);    }
-    void ClearArea();
     void ClearBackground();
 
     int Load(QString name) 
@@ -56,7 +55,7 @@ signals:
 
 public slots:
     void NewData();
-    void ClearImage();
+    void ClearCanvas();
     void ClearHistory();
     void Print();
     void Undo();
@@ -79,19 +78,23 @@ private:
     bool    _erasemode = false;
     int     _myPenWidth = 1;
     QColor  _myPenColor = Qt::blue;
-    QImage  _image;     // draw on this image
+   
+    QImage  _background,// an image for background layer
+            _canvas;    // draw on this then show background and this on the widget
                         // origin: (0,0) point on canvas first shown
-    QImage  _background;// an image for background layer
+    bool    _isBackgroundSet = false;      // an image has been loaded into _background
+    bool    _fixedBackground = true; // background will not scroll with image
     QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin
             _lastPoint; // last point drawn relative to visible image
     DrawnItem _lastDrawnItem;
     History _history;
 
-    void _DrawBackground();
     void _InitiateDrawing(QEvent* event);
 
-    void _DrawLineTo(const QPoint& endPoint);
-    void _ResizeImage(QImage* image, const QSize& newSize);
+    void _ClearCanvas();
+
+    void _DrawLineTo(const QPoint& endPoint);   // on _canvas then update
+    void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
     bool _ReplotItem(const DrawnItem* pdrni);
     void _Redraw();

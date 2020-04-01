@@ -5,11 +5,12 @@
 #include <QIODevice>
 
 enum HistEvent { heScribble,        // series of points from start to finish of scribble
+                 heEraser,          // eraser used
                  heVisibleCleared,  // visible image erased
                  heCanvasMoved,     // canvas moved: new top left coordinates in points[0]
                  heImageLoaded      // an image loaded into _background
                 };
-struct DrawnItem    // stores the freehand lines from pen down to pen up
+struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 {                   // or a screen erease event (when 'points' is empty)
     DrawnItem(HistEvent he = heScribble) noexcept : histEvent(he) {}
     DrawnItem(const DrawnItem& di)  { *this = di; }

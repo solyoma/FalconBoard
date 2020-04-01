@@ -218,9 +218,14 @@ void MyWhiteboard::on_actionAbout_triggered()
             "</p>"));
 }
 
-void MyWhiteboard::on_actionClearArea_triggered()
+void MyWhiteboard::on_actionClearCanvas_triggered()
 {
-    _drawArea->ClearArea();
+    _drawArea->ClearCanvas();
+}
+
+void MyWhiteboard::on_actionClearBackgroundImage_triggered()
+{
+    _drawArea->ClearBackground();
 }
 
 void MyWhiteboard::on_actionUndo_triggered()
