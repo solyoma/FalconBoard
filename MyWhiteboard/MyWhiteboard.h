@@ -135,5 +135,5 @@ private:
 		_busy = false;
 	}
 
-	void _ConnectDisconnectScreenshotLabel(); // toggle
+	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
 };

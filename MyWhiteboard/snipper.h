@@ -26,7 +26,7 @@ public:
 	void show()
 	{
 		setCursor(Qt::CrossCursor);
-		QLabel::show();
+		QLabel::show();  
 	}
 signals:
 	void SnipperCancelled();

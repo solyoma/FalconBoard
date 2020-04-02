@@ -281,17 +281,23 @@ bool DrawArea::_ReplotItem(const DrawnItem* pdrni)
     if (!pdrni)
         return false;
 
-    if (pdrni->points.size())    // else clear screen, move, etc
+    switch(pdrni->histEvent)
     {
-        _lastPoint = pdrni->points[0] - _topLeft; 
-        _myPenColor = pdrni->penColor;
-        _myPenWidth = pdrni->penWidth;
-        _erasemode = pdrni->histEvent == heEraser ? true : false;
-        for (int i = 1; i < pdrni->points.size(); ++i)
-            _DrawLineTo(pdrni->points[i]);
+        case heScribble:
+        case heEraser:    // else clear screen, move, etc
+            _lastPoint = pdrni->points[0] - _topLeft; 
+            _myPenColor = pdrni->penColor;
+            _myPenWidth = pdrni->penWidth;
+            _erasemode = pdrni->histEvent == heEraser ? true : false;
+            for (int i = 1; i < pdrni->points.size(); ++i)
+                _DrawLineTo(pdrni->points[i]);
+            break;
+        case heVisibleCleared:
+            _ClearCanvas();
+            break;
+        default:
+            break;
     }
-    else
-        ClearCanvas();
 
     return true;
 }

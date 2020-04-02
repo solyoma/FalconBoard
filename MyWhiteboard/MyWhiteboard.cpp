@@ -124,19 +124,18 @@ void MyWhiteboard::_SetCursor(DrawArea::CursorShape cs)
     _drawArea->SetCursor(cs);
 }
 
-void MyWhiteboard::_ConnectDisconnectScreenshotLabel()
+void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
 {
-    static bool connected;
 
-    if (connected)
-    {
-        disconnect(plblScreen, &Snipper::SnipperCancelled, this, &MyWhiteboard::SlotForScreenShotCancelled);
-        disconnect(plblScreen, &Snipper::SnipperReady, this, &MyWhiteboard::SlotForScreenshotReady);
-    }
-    else
+    if (join)
     {
         connect(plblScreen, &Snipper::SnipperCancelled, this, &MyWhiteboard::SlotForScreenShotCancelled);
         connect(plblScreen, &Snipper::SnipperReady, this, &MyWhiteboard::SlotForScreenshotReady);
+    }
+    else
+    {
+        disconnect(plblScreen, &Snipper::SnipperCancelled, this, &MyWhiteboard::SlotForScreenShotCancelled);
+        disconnect(plblScreen, &Snipper::SnipperReady, this, &MyWhiteboard::SlotForScreenshotReady);
     }
 }
 
@@ -245,7 +244,7 @@ void MyWhiteboard::on_action_Screenshot_triggered()
 
     plblScreen = new Snipper(nullptr);
     plblScreen->setGeometry(screen->geometry());
-    _ConnectDisconnectScreenshotLabel();
+    _ConnectDisconnectScreenshotLabel(true);
 
     hide();
 
@@ -326,6 +325,8 @@ void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)
 
 void MyWhiteboard::SlotForScreenshotReady(QRect geometry)
 {
+    plblScreen->hide();
+
     QSize size(geometry.width(), geometry.height());
     QImage image(size, QImage::Format_ARGB32);
 
@@ -334,8 +335,7 @@ void MyWhiteboard::SlotForScreenshotReady(QRect geometry)
     delete painter;
 
     _drawArea->SetBackgroundImage(image);
-    plblScreen->hide();
-    _ConnectDisconnectScreenshotLabel();
+    _ConnectDisconnectScreenshotLabel(false);
     delete plblScreen;
     plblScreen = nullptr;
 
@@ -344,7 +344,7 @@ void MyWhiteboard::SlotForScreenshotReady(QRect geometry)
 void MyWhiteboard::SlotForScreenShotCancelled()
 {
     plblScreen->hide();
-    _ConnectDisconnectScreenshotLabel();
+    _ConnectDisconnectScreenshotLabel(false);
     delete plblScreen;
     plblScreen = nullptr;
 }

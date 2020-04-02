@@ -73,12 +73,14 @@ void Snipper::tabletEvent(QTabletEvent* event)
 				_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
 			_rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
 			_rubberBand->show();
+			event->accept();
 			break;
 		case QEvent::TabletMove:
 			pos = event->pos();
 
 			if (_rubberBand)
 				_rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
+			event->accept();
 			break;
 		case QEvent::TabletRelease:
 			if (_rubberBand)
@@ -90,9 +92,11 @@ void Snipper::tabletEvent(QTabletEvent* event)
 					rect = _rubberBand->geometry();
 				}
 				delete _rubberBand;
+				_rubberBand = nullptr;
+				_tabletInput = false;
+				event->accept();
 				emit SnipperReady(rect);
 			}
-			_tabletInput = false;
 			break;
 		default:
 			break;
