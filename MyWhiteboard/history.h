@@ -159,7 +159,7 @@ public:
     bool CanUndo() const { return _lastItem >= 0; }
     bool CanRedo() const { return _redoAble; }
 
-    void push_back(DrawnItem& itm)
+    void push_back(DrawnItem itm)
     {
         _redoAble = false;
         if (++_lastItem == _items.size())
