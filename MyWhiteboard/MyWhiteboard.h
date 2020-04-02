@@ -110,7 +110,7 @@ private:
 	bool _SaveFile();
 	bool _SaveBackgroundImage();
 		 
-	void _SetPenColor(QColor& color) 
+	void _SetPenColor(QColor color) 
 	{ 
 		_actColor = color; 
 		_eraserOn = false; 

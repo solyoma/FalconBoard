@@ -47,7 +47,9 @@ void Snipper::mouseReleaseEvent(QMouseEvent* event)
 		{
 			rect = _rubberBand->geometry();
 		}
+		event->accept();
 		delete _rubberBand;
+		_rubberBand = nullptr;
 		emit SnipperReady(rect);
 	}
 }

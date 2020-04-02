@@ -1,5 +1,5 @@
-#include "MyWhiteboard.h"
 #include <QtWidgets/QApplication>
+#include "MyWhiteboard.h"
 
 int main(int argc, char *argv[])
 {
