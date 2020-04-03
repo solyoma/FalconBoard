@@ -144,6 +144,12 @@
    </property>
   </action>
   <action name="action_Black">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
      <normaloff>:/MyWhiteboard/Resources/black.png</normaloff>:/MyWhiteboard/Resources/black.png</iconset>
@@ -156,6 +162,9 @@
    </property>
   </action>
   <action name="action_Red">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
      <normaloff>:/MyWhiteboard/Resources/red.png</normaloff>:/MyWhiteboard/Resources/red.png</iconset>
@@ -168,6 +177,9 @@
    </property>
   </action>
   <action name="action_Green">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
      <normaloff>:/MyWhiteboard/Resources/green.png</normaloff>:/MyWhiteboard/Resources/green.png</iconset>
@@ -180,6 +192,9 @@
    </property>
   </action>
   <action name="action_Blue">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
      <normaloff>:/MyWhiteboard/Resources/blue.png</normaloff>:/MyWhiteboard/Resources/blue.png</iconset>
@@ -218,6 +233,9 @@
    </property>
   </action>
   <action name="action_Eraser">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
      <normaloff>:/MyWhiteboard/Resources/eraser.png</normaloff>:/MyWhiteboard/Resources/eraser.png</iconset>
@@ -226,7 +244,7 @@
     <string>&amp;Eraser</string>
    </property>
    <property name="shortcut">
-    <string>Alt+E</string>
+    <string>Ctrl+E</string>
    </property>
   </action>
   <action name="action_Mark">

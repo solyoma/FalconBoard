@@ -11,6 +11,7 @@
 #include <QSpinBox>
 #include <QCloseEvent>
 #include <QEvent>
+#include <QActionGroup>
 
 #include "snipper.h"
 
@@ -47,14 +48,7 @@ private slots:
 	void on_action_Red_triggered()	 { _SetRedPen();   _SetCursor(DrawArea::csPen); _SetPenWidth(); };
 	void on_action_Green_triggered() { _SetGreenPen(); _SetCursor(DrawArea::csPen); _SetPenWidth(); };
 	void on_action_Blue_triggered()  { _SetBluePen();  _SetCursor(DrawArea::csPen); _SetPenWidth(); };
-	void on_action_Eraser_triggered() 
-	{ 
-		_eraserOn = true; 
-		_drawArea->SetPenColor("white");
-		_drawArea->SetCursor(DrawArea::csEraser);
-		_SetPenWidth(); 
-		SlotForFocus(); 
-	}
+	void on_action_Eraser_triggered();
 	void on_action_Screenshot_triggered();
 
 	void on_actionClearCanvas_triggered();
@@ -101,6 +95,7 @@ private:
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;
 	QList<QAction*> _saveAsActs;
+	QActionGroup* _penGroup = nullptr;
 
 	Snipper* plblScreen = nullptr;		// screen grap label
 
@@ -110,6 +105,11 @@ private:
 	bool _SaveFile();
 	bool _SaveBackgroundImage();
 		 
+	void CheckColorState(QAction *paction)
+	{
+		paction->setChecked(true);
+	}
+
 	void _SetPenColor(QColor color) 
 	{ 
 		_actColor = color; 
@@ -121,10 +121,11 @@ private:
 		ui.centralWidget->setFocus();
 	}
 	void _SetCursor(DrawArea::CursorShape cs);
-	void _SetBlackPen()  { _SetPenColor(QColor("black")); }
-	void _SetRedPen()    { _SetPenColor(QColor("red")); }
-	void _SetGreenPen()  { _SetPenColor(QColor("green")); }
-	void _SetBluePen()   { _SetPenColor(QColor("blue")); }
+
+	void _SetBlackPen();
+	void _SetRedPen()  ;
+	void _SetGreenPen();
+	void _SetBluePen() ;
 		 
 	void _SetPenWidth() 
 	{ 

@@ -55,6 +55,14 @@ void MyWhiteboard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.action_Green);
     ui.mainToolBar->addAction(ui.action_Blue);
     ui.mainToolBar->addAction(ui.action_Eraser);
+
+    _penGroup = new QActionGroup(this);
+    _penGroup->addAction(ui.action_Black);
+    _penGroup->addAction(ui.action_Red);
+    _penGroup->addAction(ui.action_Green);
+    _penGroup->addAction(ui.action_Blue);
+    _penGroup->addAction(ui.action_Eraser);
+
     ui.mainToolBar->addSeparator();
 
 
@@ -123,6 +131,11 @@ void MyWhiteboard::_SetCursor(DrawArea::CursorShape cs)
 {
     _drawArea->SetCursor(cs);
 }
+
+void MyWhiteboard::_SetBlackPen() { _SetPenColor(QColor("black")); CheckColorState(ui.action_Black); }
+void MyWhiteboard::_SetRedPen() { _SetPenColor(QColor("red")); CheckColorState(ui.action_Red); }
+void MyWhiteboard::_SetGreenPen() { _SetPenColor(QColor("green"));  CheckColorState(ui.action_Green); }
+void MyWhiteboard::_SetBluePen() { _SetPenColor(QColor("blue"));  CheckColorState(ui.action_Blue); }
 
 void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
 {
@@ -234,6 +247,16 @@ void MyWhiteboard::on_actionAbout_triggered()
         tr("<p>Based on Qt's <b>Scribble</b> example "
             "but with undo, marking and moveing areas of screen "
             "</p>"));
+}
+
+void MyWhiteboard::on_action_Eraser_triggered()
+{
+    _eraserOn = true;
+    _drawArea->SetPenColor("white");
+    _drawArea->SetCursor(DrawArea::csEraser);
+    _SetPenWidth();
+    CheckColorState(ui.action_Eraser);
+    SlotForFocus();
 }
 
 void MyWhiteboard::on_action_Screenshot_triggered()
