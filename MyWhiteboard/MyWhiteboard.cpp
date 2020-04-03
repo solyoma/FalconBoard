@@ -11,9 +11,9 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 	ui.setupUi(this);
 
     _actPenWidth = 3;
-    _actColor = "black";
+    _actPen = penBlack;
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
-    _drawArea->SetPenColor(_actColor);
+    _drawArea->SetPenColor(_actPen);
     _drawArea->SetPenWidth(_actPenWidth); 
 
     _CreateAndAddActions();
@@ -127,15 +127,65 @@ bool MyWhiteboard::_SaveBackgroundImage()
     return _drawArea->SaveVisibleImage(_backgroundImageName, _fileFormat.constData());
 }
 
+void MyWhiteboard::SelectPen(QAction* paction)
+{
+    paction->setChecked(true);
+}
+
+void MyWhiteboard::SelectPen(MyPenKind color)
+{
+    if (color == penEraser)
+    {
+        on_action_Eraser_triggered();
+        return;
+    }
+
+    switch (_actPen)
+    {
+    default:
+    case penBlack: ui.action_Black->setChecked(true); break;
+    case penRed: ui.action_Red->setChecked(true); break;
+    case penGreen: ui.action_Green->setChecked(true); break;
+    case penBlue: ui.action_Blue->setChecked(true); break;
+    }
+    _SetPenColor();
+}
+
+void MyWhiteboard::_SetPenColor()
+{
+    _eraserOn = _actPen == penEraser;
+    _drawArea->SetPenColor(_actPen);
+    _busy = true;
+    _psbPenWidth->setValue(_actPenWidth);
+    _busy = false;
+    ui.centralWidget->setFocus();
+}
+
+void MyWhiteboard::_SetPenColor(MyPenKind color)
+{
+    _actPen = color;
+    _SetPenColor();
+}
+
+
 void MyWhiteboard::_SetCursor(DrawArea::CursorShape cs)
 {
     _drawArea->SetCursor(cs);
 }
 
-void MyWhiteboard::_SetBlackPen() { _SetPenColor(QColor("black")); CheckColorState(ui.action_Black); }
-void MyWhiteboard::_SetRedPen() { _SetPenColor(QColor("red")); CheckColorState(ui.action_Red); }
-void MyWhiteboard::_SetGreenPen() { _SetPenColor(QColor("green"));  CheckColorState(ui.action_Green); }
-void MyWhiteboard::_SetBluePen() { _SetPenColor(QColor("blue"));  CheckColorState(ui.action_Blue); }
+void MyWhiteboard::_SetBlackPen() { _SetPenColor(penBlack);  SelectPen(ui.action_Black); }
+void MyWhiteboard::_SetRedPen() { _SetPenColor  (penRed);    SelectPen(ui.action_Red); }
+void MyWhiteboard::_SetGreenPen() { _SetPenColor(penGreen);  SelectPen(ui.action_Green); }
+void MyWhiteboard::_SetBluePen() { _SetPenColor (penBlue);   SelectPen(ui.action_Blue); }
+
+void MyWhiteboard::_SetPenWidth()
+{
+    int pw = _eraserOn ? _eraserWidth : _actPenWidth;
+    _drawArea->SetPenWidth(pw);
+    _busy = true;
+    _psbPenWidth->setValue(pw);
+    _busy = false;
+}
 
 void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
 {
@@ -179,6 +229,7 @@ void MyWhiteboard::on_actionLoad_triggered()
     if (!fileName.isEmpty())
     {
         _drawArea->Load(fileName);
+        _SetPenColor();
         _saveName = fileName;
     }
 
@@ -252,10 +303,10 @@ void MyWhiteboard::on_actionAbout_triggered()
 void MyWhiteboard::on_action_Eraser_triggered()
 {
     _eraserOn = true;
-    _drawArea->SetPenColor("white");
+    _drawArea->SetPenColor(_actPen = penEraser);
     _drawArea->SetCursor(DrawArea::csEraser);
     _SetPenWidth();
-    CheckColorState(ui.action_Eraser);
+    SelectPen(ui.action_Eraser);
     SlotForFocus();
 }
 
@@ -292,15 +343,18 @@ void MyWhiteboard::on_actionClearBackgroundImage_triggered()
 void MyWhiteboard::on_actionUndo_triggered()
 {
     _drawArea->Undo();
+    SelectPen(_actPen);
     if (_eraserOn)
         on_action_Eraser_triggered();
     else
         _SetCursor(DrawArea::csPen);
+
 }
 
 void MyWhiteboard::on_actionRedo_triggered()
 {
     _drawArea->Redo();
+    SelectPen(_actPen);
     if (_eraserOn)
         on_action_Eraser_triggered();
     else
@@ -338,7 +392,7 @@ void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)
             if (penEraser)
             {
                 _SetCursor(DrawArea::csPen);
-                _SetPenColor(_actColor);
+                _SetPenColor(_actPen);
                 _SetPenWidth();
                 penEraser = false;
             }

@@ -76,9 +76,9 @@ void DrawArea::SetBackgroundImage(QImage& loadedImage)
     update();
 }
 
-void DrawArea::SetPenColor(const QColor& newColor)
+void DrawArea::SetPenColor(MyPenKind newColor)
 {
-    _myPenColor = newColor;
+    _myPenKind = newColor;
 }
 
 void DrawArea::SetPenWidth(int newWidth)
@@ -106,7 +106,7 @@ void DrawArea::_InitiateDrawing(QEvent* event)
     _lastDrawnItem.clear();
     if (_erasemode)
         _lastDrawnItem.histEvent = heEraser;
-    _lastDrawnItem.penColor = _myPenColor;
+    _lastDrawnItem.penKind = _myPenKind;
     _lastDrawnItem.penWidth = _myPenWidth;
     _lastDrawnItem.points.push_back(_lastPoint);
 }
@@ -207,7 +207,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
 void DrawArea::_DrawLineTo(const QPoint& endPoint)
 {
     QPainter painter(&_canvas);
-    painter.setPen(QPen(_myPenColor, _myPenWidth, Qt::SolidLine, Qt::RoundCap,
+    painter.setPen(QPen(_PenColor(), _myPenWidth, Qt::SolidLine, Qt::RoundCap,
         Qt::RoundJoin));
     if (_erasemode)
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
@@ -288,7 +288,7 @@ bool DrawArea::_ReplotItem(const DrawnItem* pdrni)
         case heScribble:
         case heEraser:    // else clear screen, move, etc
             _lastPoint = pdrni->points[0] - _topLeft; 
-            _myPenColor = pdrni->penColor;
+            _myPenKind = pdrni->penKind;
             _myPenWidth = pdrni->penWidth;
             _erasemode = pdrni->histEvent == heEraser ? true : false;
             for (int i = 1; i < pdrni->points.size(); ++i)
@@ -306,13 +306,14 @@ bool DrawArea::_ReplotItem(const DrawnItem* pdrni)
 
 void DrawArea::Undo()
 {
-    _ClearCanvas();
     if (_history.CanUndo())
     {
+        _ClearCanvas();
         _history.BeginUndo();
         while(_ReplotItem(_history.GetOneStep()) )
             ;
 
+        _modified = true;
         emit CanRedo(true);
     }
     emit CanUndo(_history.CanUndo());
@@ -320,6 +321,7 @@ void DrawArea::Undo()
 
 void DrawArea::Redo()
 {
+    _modified = true;
     _ReplotItem (_history.Redo());
 
     emit CanUndo(_history.CanUndo() );

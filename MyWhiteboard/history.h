@@ -10,6 +10,8 @@ enum HistEvent { heScribble,        // series of points from start to finish of 
                  heCanvasMoved,     // canvas moved: new top left coordinates in points[0]
                  heImageLoaded      // an image loaded into _background
                 };
+enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser };
+
 struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 {                   // or a screen erease event (when 'points' is empty)
     DrawnItem(HistEvent he = heScribble) noexcept : histEvent(he) {}
@@ -18,7 +20,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     DrawnItem& operator=(const DrawnItem& di)
     {
         histEvent = di.histEvent;
-        penColor = di.penColor;
+        penKind = di.penKind;
         penWidth = di.penWidth;
         points = di.points;
         return *this;
@@ -27,14 +29,14 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     DrawnItem& operator=(const DrawnItem&& di)  noexcept
     {
         histEvent = di.histEvent;
-        penColor = di.penColor;
+        penKind = di.penKind;
         penWidth = di.penWidth;
         points = di.points;
         return *this;
     }
 
     HistEvent histEvent = heScribble;
-    QColor penColor;
+    MyPenKind penKind = penBlack;
     int penWidth;
     QVector<QPoint> points;           // coordinates are relative to logical origin (0,0)
 
@@ -44,7 +46,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
 {
-    ofs << (qint32)di.histEvent << di.penColor.rgba() << (qint32)di.penWidth;
+    ofs << (qint32)di.histEvent << (qint32)di.penKind << (qint32)di.penWidth;
     ofs << (qint32)di.points.size();
     for (auto pt : di.points)
         ofs << (qint32)pt.x() << (qint32)pt.y();
@@ -55,7 +57,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 {
     qint32 n;
     ifs >> n; di.histEvent = static_cast<HistEvent>(n);
-    ifs >> n; di.penColor.setRgba(static_cast<QRgb>(n));
+    ifs >> n; di.penKind = (MyPenKind)n;
     ifs >> n; di.penWidth = n;
     qint32 x,y;
     QPoint pt;

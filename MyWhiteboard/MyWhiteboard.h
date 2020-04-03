@@ -87,7 +87,7 @@ private:
 	bool	_eraserOn = false;
 	int		_actPenWidth = 2,
 			_eraserWidth = 30;
-	QColor	_actColor;
+	MyPenKind _actPen = penBlack;
 	QString _backgroundImageName;	// get format from extension
 	QString _saveName;				// last saved data file
 	QByteArray _fileFormat = "png";
@@ -105,21 +105,14 @@ private:
 	bool _SaveFile();
 	bool _SaveBackgroundImage();
 		 
-	void CheckColorState(QAction *paction)
-	{
-		paction->setChecked(true);
-	}
+	void SelectPen(QAction* paction);
 
-	void _SetPenColor(QColor color) 
-	{ 
-		_actColor = color; 
-		_eraserOn = false; 
-		_drawArea->SetPenColor(_actColor);  
-		_busy = true;
-		_psbPenWidth->setValue(_actPenWidth);
-		_busy = false;
-		ui.centralWidget->setFocus();
-	}
+	void SelectPen(MyPenKind color);
+
+	void _SetPenColor();
+
+	void _SetPenColor(MyPenKind color);
+
 	void _SetCursor(DrawArea::CursorShape cs);
 
 	void _SetBlackPen();
@@ -127,14 +120,7 @@ private:
 	void _SetGreenPen();
 	void _SetBluePen() ;
 		 
-	void _SetPenWidth() 
-	{ 
-		int pw = _eraserOn ? _eraserWidth : _actPenWidth; 
-		_drawArea->SetPenWidth(pw); 
-		_busy = true;
-		_psbPenWidth->setValue(pw);
-		_busy = false;
-	}
+	void _SetPenWidth();
 
 	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
 };

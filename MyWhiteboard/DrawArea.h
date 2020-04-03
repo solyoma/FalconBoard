@@ -18,6 +18,7 @@ class DrawArea : public QWidget
 public:
         // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
     enum CursorShape {csArrow, csCross, csOHand, csCHand, csPen, csEraser };
+
     DrawArea(QWidget* parent = nullptr);
 
 //    void setTabletDevice(QTabletEvent* event)    {        updateCursor(event);    }
@@ -27,7 +28,10 @@ public:
     { 
         int res = _history.Load(name); 
         if (res >= 0)    // TODO send message if read error
+        {
+            _ClearCanvas();
             _Redraw();
+        }
         _modified = false;
         emit CanUndo(true);
         emit CanRedo(false);
@@ -39,13 +43,13 @@ public:
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
     void SetBackgroundImage(QImage& image);
 
-    void SetPenColor(const QColor& newColor);
+    void SetPenColor(MyPenKind newColor);
     void SetPenWidth(int newWidth);
 
     void SetOrigin() { _topLeft = QPoint(); }
 
     bool IsModified() const { return  _history.CanUndo() ? _modified : false; }
-    QColor PenColor() const { return _myPenColor; }
+    MyPenKind PenKind() const { return _myPenKind;  }
     int PenWidth() const { return    _myPenWidth; }
 
 signals:
@@ -78,7 +82,7 @@ private:
     bool    _pendown = false;       // for pen
     bool    _erasemode = false;
     int     _myPenWidth = 1;
-    QColor  _myPenColor = Qt::blue;
+    MyPenKind _myPenKind = penBlack;
    
     QImage  _background,// an image for background layer
             _canvas;    // draw on this then show background and this on the widget
@@ -99,5 +103,24 @@ private:
 
     bool _ReplotItem(const DrawnItem* pdrni);
     void _Redraw();
+    QColor _PenColor() const
+    {
+        static MyPenKind _prevKind = penNone;
+        static QColor color;
+        if (_myPenKind == _prevKind)
+            return color;
+
+        _prevKind = _myPenKind;
+
+        switch (_myPenKind)
+        {
+            default:
+            case penBlack: return  color = QColor(Qt::black);
+            case penRed: return    color = QColor(Qt::red);
+            case penGreen: return  color = QColor(Qt::green);
+            case penBlue: return   color = QColor(Qt::blue);
+            case penEraser: return color = QColor(Qt::white);
+        }
+    }
 
 };
