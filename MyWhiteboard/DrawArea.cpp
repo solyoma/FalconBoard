@@ -47,12 +47,14 @@ bool DrawArea::OpenBackgroundImage(const QString& fileName)
 bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 {
     QImage visibleImage = _background;           
+    _ResizeImage(&visibleImage, size(), false);
+
     QPainter painter(&visibleImage);
     painter.drawImage(QPoint(0,0), _canvas);
 
-    _ResizeImage(&visibleImage, size(), false);
 
-    if (visibleImage.save(fileName, fileFormat)) {
+    if (visibleImage.save(fileName, fileFormat)) 
+    {
         _modified = false;
         return true;
     }

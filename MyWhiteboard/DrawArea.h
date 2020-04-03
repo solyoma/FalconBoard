@@ -26,7 +26,7 @@ public:
     int Load(QString name) 
     { 
         int res = _history.Load(name); 
-        if (res > 0)    // TODO send message if read error
+        if (res >= 0)    // TODO send message if read error
             _Redraw();
         _modified = false;
         emit CanUndo(true);
