@@ -32,9 +32,11 @@ public:
 
 protected:
 	void closeEvent(QCloseEvent* event) override;
+	void showEvent(QShowEvent* event) override;
 
 private slots:
 	void on_actionNew_triggered();
+
 
 	void on_actionLoad_triggered();
 	void on_actionSave_triggered();
@@ -64,18 +66,7 @@ private slots:
 
 	void on_action_Mark_triggered() {/*TODO*/ ; }
 
-	void slotPenWidthChanged(int val) 
-	{ 
-		if (_busy)		// from program
-			return;
-						// from user
-		if (_eraserOn)
-			_eraserWidth = val;
-		else
-			_penWidth  = val;
-
-		_SetPenWidth(); 
-	}
+	void slotPenWidthChanged(int val);
 
 	void SlotForUndo(bool b);
 	void SlotForRedo(bool b);
@@ -89,6 +80,7 @@ private:
 	Ui::MyWhiteboardClass ui;
 
 	bool _busy = false;
+	bool _firstShown = false;	// main window was shown first
 
 	bool	_eraserOn = false;
 	int		_penWidth = 3,
@@ -96,6 +88,7 @@ private:
 	MyPenKind _actPen = penBlack;
 	QString _backgroundImageName;	// get format from extension
 	QString _saveName;				// last saved data file
+	QString _sImageName;			// background image
 	QByteArray _fileFormat = "png";
 
 	DrawArea * _drawArea;
@@ -107,6 +100,13 @@ private:
 
 	QString _sBackgroundColor = "#FFFFFF",
 			_sTextColor = "#000000";
+
+	ScreenMode _screenMode = smLight;
+
+	void RestoreState();
+	void SaveState();
+
+	void _LoadData(QString fileName);
 
 	void _CreateAndAddActions();
 	void _AddSaveAsVisibleMenu();

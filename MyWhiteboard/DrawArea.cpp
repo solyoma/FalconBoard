@@ -33,6 +33,20 @@ void DrawArea::ClearBackground()
     update();
 }
 
+int DrawArea::Load(QString name)
+{
+    int res = _history.Load(name);
+    if (res >= 0)    // TODO send message if read error
+    {
+        _ClearCanvas();
+        _Redraw();
+    }
+    _modified = false;
+    emit CanUndo(true);
+    emit CanRedo(false);
+    return res;
+}
+
 bool DrawArea::OpenBackgroundImage(const QString& fileName)
 {
     if (!_loadedImage.load(fileName))

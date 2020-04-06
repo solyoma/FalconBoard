@@ -24,19 +24,7 @@ public:
 //    void setTabletDevice(QTabletEvent* event)    {        updateCursor(event);    }
     void ClearBackground();
 
-    int Load(QString name) 
-    { 
-        int res = _history.Load(name); 
-        if (res >= 0)    // TODO send message if read error
-        {
-            _ClearCanvas();
-            _Redraw();
-        }
-        _modified = false;
-        emit CanUndo(true);
-        emit CanRedo(false);
-        return res;
-    }
+    int Load(QString name);
     bool Save(QString name) { return  _history.Save(name); }
 
     bool OpenBackgroundImage(const QString& fileName);

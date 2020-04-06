@@ -85,6 +85,9 @@
     <addaction name="actionLightMode"/>
     <addaction name="actionDarkMode"/>
     <addaction name="actionBlackMode"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveData"/>
+    <addaction name="actionSaveBackgroundImage"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Options"/>
@@ -381,6 +384,28 @@
    </property>
    <property name="text">
     <string>Black mode</string>
+   </property>
+  </action>
+  <action name="actionSaveData">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save Data</string>
+   </property>
+  </action>
+  <action name="actionSaveBackgroundImage">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Save background Image</string>
    </property>
   </action>
  </widget>

@@ -4,6 +4,7 @@
 #include <QScreen>
 #include <QPainter>
 #include <QThread>
+#include <QSettings>
 #include "DrawArea.h"
 
 MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
@@ -20,7 +21,68 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
     QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents); // for tablet
 
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &MyWhiteboard::SlotForPointerType);
+
+    RestoreState();
+
     ui.centralWidget->setFocus();
+}
+
+static const QString sVersion = "1.0";
+void MyWhiteboard::RestoreState()
+{
+    QSettings s("MyWhiteboard.ini", QSettings::IniFormat);
+
+    restoreGeometry(s.value("myWidget/geometry").toByteArray());
+    restoreState(s.value("myWidget/windowState").toByteArray());
+
+    QString qs = s.value("version", sVersion).toString();
+    if (qs != sVersion)
+        return;
+    qs = s.value("mode", "s").toString();
+
+    switch (qs[0].unicode())
+    {
+        case 'b': on_actionBlackMode_triggered(); break;
+        case 'd': on_actionDarkMode_triggered(); break;
+        case 's': // default on form
+        default: break;
+    }
+
+    int n = s.value("size", 3).toInt();
+    _penWidth = n;
+    _psbPenWidth->setValue(n);
+    n = s.value("esize", 30).toInt();
+    _eraserWidth = n;
+    
+    ui.actionSaveData->setChecked(s.value("saved", false).toBool());
+    ui.actionSaveBackgroundImage->setChecked(s.value("saveb", false).toBool());
+
+    qs = s.value("img", QString()).toString();
+    if (!qs.isEmpty())
+        _drawArea->OpenBackgroundImage(qs);
+
+    qs = s.value("data", QString()).toString();
+    if (!qs.isEmpty())
+        _saveName = qs;      // only load on show()  _LoadData(qs);
+}
+
+void MyWhiteboard::SaveState()
+{
+    QSettings s("MyWhiteboard.ini",QSettings::IniFormat);
+
+    s.setValue("geometry", saveGeometry());
+    s.setValue("windowState", saveState());
+
+    s.setValue("version", sVersion);
+    s.setValue("mode", _screenMode == smLight ? "s" :_screenMode == smDark ? "d" : "b");
+    s.setValue("size", _penWidth);
+    s.setValue("esize", _eraserWidth);
+    s.setValue("saved", ui.actionSaveData->isChecked());
+    s.setValue("saveb", ui.actionSaveBackgroundImage->isChecked());
+    if (!_sImageName.isEmpty() && ui.actionSaveBackgroundImage->isChecked())
+        s.setValue("img", _sImageName);
+    if (ui.actionUndo->isEnabled() && !_saveName.isEmpty() && ui.actionSaveData->isChecked() )
+        s.setValue("data", _saveName);
 }
 
 void MyWhiteboard::_CreateAndAddActions()
@@ -104,7 +166,7 @@ void MyWhiteboard::_AddSaveAsVisibleMenu()
 
 bool MyWhiteboard::_SaveIfYouWant()
 {
-    if (_drawArea->IsModified()) 
+    if (_drawArea->IsModified() && !ui.actionSaveData->isChecked() ) 
     {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(this, tr("MyWhiteboard"),
@@ -209,6 +271,8 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
         sWhite = "white_",  // prefix for dark modes
         sPng = ".png";
 
+    _screenMode = mode;
+
     QString actions[] = {
             "close",        // 0
             "eraser",       // 1
@@ -261,9 +325,24 @@ void MyWhiteboard::closeEvent(QCloseEvent* event)
 {
     {
         if (_SaveIfYouWant())
+        {
             event->accept();
+            SaveState();        // TODO: set what to save state
+        }
         else
             event->ignore();
+    }
+}
+
+void MyWhiteboard::showEvent(QShowEvent* event)
+{
+    QMainWindow::showEvent(event);
+
+    if (!_firstShown)
+    {
+        _firstShown = true;
+        if (!_saveName.isEmpty())
+            _LoadData(_saveName);
     }
 }
 
@@ -274,6 +353,16 @@ void MyWhiteboard::on_actionNew_triggered()
     _backgroundImageName.clear();
 }
 
+void MyWhiteboard::_LoadData(QString fileName)
+{
+    if (!fileName.isEmpty())
+    {
+        _drawArea->Load(fileName);
+        _SetPenKind();
+        _saveName = fileName;
+    }
+}
+
 void MyWhiteboard::on_actionLoad_triggered()
 {
     _SaveIfYouWant();
@@ -281,12 +370,7 @@ void MyWhiteboard::on_actionLoad_triggered()
                                                     tr("Load Data"), 
                                                     QDir::currentPath(),
                                                     tr("MyWhiteboard files (*.mwb);;All files (*)"));
-    if (!fileName.isEmpty())
-    {
-        _drawArea->Load(fileName);
-        _SetPenKind();
-        _saveName = fileName;
-    }
+    _LoadData(fileName);
 
     if (_eraserOn)
         on_action_Eraser_triggered();
@@ -313,10 +397,10 @@ void MyWhiteboard::on_actionSaveAs_triggered()
 
 void MyWhiteboard::on_actionLoadBackground_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
+    _sImageName = QFileDialog::getOpenFileName(this,
                     tr("Open Background Image"), QDir::currentPath());
-    if (!fileName.isEmpty())
-        _drawArea->OpenBackgroundImage(fileName);
+    if (!_sImageName.isEmpty())
+        _drawArea->OpenBackgroundImage(_sImageName);
 }
 
 void MyWhiteboard::on_actionSaveVisible_triggered()
@@ -408,6 +492,7 @@ void MyWhiteboard::on_actionClearCanvas_triggered()
 void MyWhiteboard::on_actionClearBackgroundImage_triggered()
 {
     _drawArea->ClearBackground();
+    _sImageName.clear();
 }
 
 void MyWhiteboard::on_actionUndo_triggered()
@@ -429,6 +514,19 @@ void MyWhiteboard::on_actionRedo_triggered()
         on_action_Eraser_triggered();
     else
         _SetCursor(DrawArea::csPen);
+}
+
+void MyWhiteboard::slotPenWidthChanged(int val)
+{
+    if (_busy)		// from program
+        return;
+    // from user
+    if (_eraserOn)
+        _eraserWidth = val;
+    else
+        _penWidth = val;
+
+    _SetPenWidth();
 }
 
 void MyWhiteboard::SlotForUndo(bool b)
