@@ -11,7 +11,7 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 	ui.setupUi(this);
 
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
-    _drawArea->SetPenColor(_actPen);
+    _drawArea->SetPenKind(_actPen);
     _drawArea->SetPenWidth(_penWidth); 
 
     _CreateAndAddActions();
@@ -24,7 +24,7 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 }
 
 void MyWhiteboard::_CreateAndAddActions()
-{
+{                           // add filetype selection submenu for save image
     const QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
     for (const QByteArray& format : imageFormats) {
         QString text = tr("%1...").arg(QString::fromLatin1(format).toUpper());
@@ -60,6 +60,11 @@ void MyWhiteboard::_CreateAndAddActions()
     _penGroup->addAction(ui.action_Green);
     _penGroup->addAction(ui.action_Blue);
     _penGroup->addAction(ui.action_Eraser);
+
+    _modeGroup = new QActionGroup(this);
+    _modeGroup->addAction(ui.actionLightMode);
+    _modeGroup->addAction(ui.actionDarkMode);
+    _modeGroup->addAction(ui.actionBlackMode);
 
     ui.mainToolBar->addSeparator();
 
@@ -141,13 +146,13 @@ void MyWhiteboard::_SelectPen()     // call after '_actPen' is set
         case penBlue: ui.action_Blue->setChecked(true); break;
         case penEraser:on_action_Eraser_triggered(); return;
     }
-    _SetPenColor();
+    _SetPenKind();
 }
 
-void MyWhiteboard::_SetPenColor()
+void MyWhiteboard::_SetPenKind()
 {
     _eraserOn = _actPen == penEraser;
-    _drawArea->SetPenColor(_actPen);
+    _drawArea->SetPenKind(_actPen);
     _busy = true;
     _psbPenWidth->setValue(_penWidth);
     _busy = false;
@@ -198,6 +203,37 @@ void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
     }
 }
 
+void MyWhiteboard::_SetupMode(ScreenMode mode)
+{
+    QString ss;
+
+    switch (mode)
+    {
+        default:
+        case smLight:
+            ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/black.png"));
+            _sBackgroundColor = "#FFFFFF";
+            _sTextColor = "#000000";
+            break;
+        case smDark:
+            _sBackgroundColor = "#282828";
+            _sTextColor = "#E1E1E1";
+            ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/white.png")); // it still be called 'penBlack' though
+            break;
+        case smBlack:
+            _sBackgroundColor = "#191919";
+            _sTextColor = "#CCCCCC";
+            ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/white.png"));
+            break;
+    }
+    if(mode != smLight)
+        ss = "* {\n background-color:" + _sBackgroundColor + ";\n  color:" + _sTextColor +";\n}\n"
+                 "QMenuBar::item, QMenu::separator, QMenu::item {\ncolor:" + _sTextColor + ";\n}";
+    setStyleSheet(ss);
+
+    _drawArea->SetMode(mode != smLight, _sBackgroundColor);      // set penBlack color to White
+}
+
 void MyWhiteboard::closeEvent(QCloseEvent* event)
 {
     {
@@ -225,7 +261,7 @@ void MyWhiteboard::on_actionLoad_triggered()
     if (!fileName.isEmpty())
     {
         _drawArea->Load(fileName);
-        _SetPenColor();
+        _SetPenKind();
         _saveName = fileName;
     }
 
@@ -296,10 +332,25 @@ void MyWhiteboard::on_actionAbout_triggered()
             "</p>"));
 }
 
+void MyWhiteboard::on_actionLightMode_triggered()
+{
+    _SetupMode(smLight);
+}
+
+void MyWhiteboard::on_actionDarkMode_triggered()
+{
+    _SetupMode(smDark);
+}
+
+void MyWhiteboard::on_actionBlackMode_triggered()
+{
+    _SetupMode(smBlack);
+}
+
 void MyWhiteboard::on_action_Eraser_triggered()
 {
     _eraserOn = true;
-    _drawArea->SetPenColor(_actPen = penEraser);
+    _drawArea->SetPenKind(_actPen = penEraser);
     _drawArea->SetCursor(DrawArea::csEraser);
     _SetPenWidth();
     _SelectPenForAction(ui.action_Eraser);

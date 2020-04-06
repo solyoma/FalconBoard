@@ -43,7 +43,9 @@ public:
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
     void SetBackgroundImage(QImage& image);
 
-    void SetPenColor(MyPenKind newColor);
+    void SetMode(bool darkMode, QString color);
+    void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
+    void SetPenKind(MyPenKind newKind);
     void SetPenWidth(int newWidth);
     void SetEraserWidth(int newWidth);
 
@@ -88,10 +90,15 @@ private:
     MyPenKind _myPenKind = penBlack;
    
     QImage  _background,// an image for background layer
-            _canvas;    // draw on this then show background and this on the widget
+            _canvas,    // draw on this then show background and this on the widget
                         // origin: (0,0) point on canvas first shown
+            _loadedImage;   // background image loaded from disk
     bool    _isBackgroundSet = false;      // an image has been loaded into _background
     bool    _fixedBackground = true; // background will not scroll with image
+
+    bool _darkMode = false;
+    QColor _backgroundColor = Qt::white;
+
     QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin
             _lastPoint; // last point drawn relative to visible image
     DrawnItem _lastDrawnItem;
@@ -106,24 +113,6 @@ private:
 
     bool _ReplotItem(const DrawnItem* pdrni);
     void _Redraw();
-    QColor _PenColor() const
-    {
-        static MyPenKind _prevKind = penNone;
-        static QColor color;
-        if (_myPenKind == _prevKind)
-            return color;
-
-        _prevKind = _myPenKind;
-
-        switch (_myPenKind)
-        {
-            default:
-            case penBlack: return  color = QColor(Qt::black);
-            case penRed: return    color = QColor(Qt::red);
-            case penGreen: return  color = QColor(Qt::green);
-            case penBlue: return   color = QColor(Qt::blue);
-            case penEraser: return color = QColor(Qt::white);
-        }
-    }
+    QColor _PenColor() const;
 
 };

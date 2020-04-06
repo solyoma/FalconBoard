@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="MyWhiteboard">
+    <file>Resources/white.png</file>
     <file>Resources/eraserpen.png</file>
     <file>Resources/redo.png</file>
     <file>Resources/undo.png</file>

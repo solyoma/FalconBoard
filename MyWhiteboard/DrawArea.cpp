@@ -28,18 +28,17 @@ void DrawArea::ClearCanvas()
 
 void DrawArea::ClearBackground()
 {
-    _background.fill(qRgb(255, 255, 255));
+    _background.fill(_backgroundColor);
     _isBackgroundSet = false;
     update();
 }
 
 bool DrawArea::OpenBackgroundImage(const QString& fileName)
 {
-    QImage loadedImage;
-    if (!loadedImage.load(fileName))
+    if (!_loadedImage.load(fileName))
         return false;
 
-    SetBackgroundImage(loadedImage);
+    SetBackgroundImage(_loadedImage);
 
     return true;
 }
@@ -76,9 +75,19 @@ void DrawArea::SetBackgroundImage(QImage& loadedImage)
     update();
 }
 
-void DrawArea::SetPenColor(MyPenKind newColor)
+void DrawArea::SetMode(bool darkMode, QString color)
 {
-    _myPenKind = newColor;
+    _backgroundColor = color;
+    _background.fill(_backgroundColor);
+    if (_isBackgroundSet)
+            SetBackgroundImage(_loadedImage);
+    _darkMode = darkMode;
+    _Redraw();                  // because pen color changed!
+}
+
+void DrawArea::SetPenKind(MyPenKind newKind)
+{
+    _myPenKind = newKind;
 }
 
 void DrawArea::SetPenWidth(int newWidth)
@@ -100,7 +109,7 @@ void DrawArea::NewData()
 
 void DrawArea::_ClearCanvas()
 {
-    _canvas.fill(qRgba(255, 255, 255, 0));
+    _canvas.fill(qRgba(255,255,255, 0));     // transparent
     _modified = true;
     update();
 }
@@ -243,15 +252,7 @@ void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTranspar
 
     QImage newImage(newSize, QImage::Format_ARGB32);
 
-    //auto FillImage = [&](QImage* image) 
-    //{ 
-    //    QPainter painter(image); 
-    //    painter.fillRect(0, 0, image->width(), image->height(), isTransparent ? Qt::transparent : Qt::white);
-    //};
-
-    //FillImage(&newImage);
-
-    QColor color = isTransparent ? Qt::transparent : Qt::white;
+    QColor color = isTransparent ? Qt::transparent : _backgroundColor;
     newImage.fill(color);
     QPainter painter(&newImage);
     painter.setCompositionMode(QPainter::CompositionMode_Source); //??
@@ -292,6 +293,31 @@ void DrawArea::_Redraw()
     _history.SetFirstItemToDraw();
     while (_ReplotItem(_history.GetOneStep()))
         ;
+}
+
+QColor DrawArea::_PenColor() const
+
+{
+    static MyPenKind _prevKind = penNone;
+    static QColor color;
+    if (_myPenKind == _prevKind)
+    {
+        if (_myPenKind != penBlack)
+            return color;
+        return _darkMode ? QColor(Qt::white) : QColor(Qt::black);
+    }
+
+    _prevKind = _myPenKind;
+
+    switch (_myPenKind)
+    {
+    default:
+    case penBlack: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
+    case penRed: return    color = QColor(Qt::red);
+    case penGreen: return  color = QColor(Qt::green);
+    case penBlue: return   color = QColor(Qt::blue);
+    case penEraser: return color = QColor(Qt::white);
+    }
 }
 
 bool DrawArea::_ReplotItem(const DrawnItem* pdrni)

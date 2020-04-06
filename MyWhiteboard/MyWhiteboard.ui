@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>MyWhiteboard</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="DrawArea" name="centralWidget">
    <property name="cursor">
     <cursorShape>CrossCursor</cursorShape>
@@ -75,10 +78,19 @@
     <addaction name="separator"/>
     <addaction name="actionClearHistory"/>
    </widget>
+   <widget class="QMenu" name="menu_Options_2">
+    <property name="title">
+     <string>&amp;Options</string>
+    </property>
+    <addaction name="actionLightMode"/>
+    <addaction name="actionDarkMode"/>
+    <addaction name="actionBlackMode"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Options"/>
    <addaction name="menu_Clear"/>
    <addaction name="menu_Help"/>
+   <addaction name="menu_Options_2"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -339,6 +351,36 @@
    </property>
    <property name="shortcut">
     <string>F4</string>
+   </property>
+  </action>
+  <action name="actionLightMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>System</string>
+   </property>
+  </action>
+  <action name="actionDarkMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Dark mode</string>
+   </property>
+  </action>
+  <action name="actionBlackMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Black mode</string>
    </property>
   </action>
  </widget>

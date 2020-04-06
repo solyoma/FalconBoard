@@ -21,6 +21,8 @@ class DrawArea;
 
 const int HISTORY_DEPTH = 20;
 
+enum ScreenMode { smLight, smDark, smBlack };
+
 class MyWhiteboard : public QMainWindow
 {
 	Q_OBJECT
@@ -55,6 +57,10 @@ private slots:
 	void on_actionClearBackgroundImage_triggered();
 	void on_action_Print_triggered() { _drawArea->Print();  }
 	void on_actionAbout_triggered();
+
+	void on_actionLightMode_triggered();
+	void on_actionDarkMode_triggered();
+	void on_actionBlackMode_triggered();
 
 	void on_action_Mark_triggered() {/*TODO*/ ; }
 
@@ -95,9 +101,12 @@ private:
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;
 	QList<QAction*> _saveAsActs;
-	QActionGroup* _penGroup = nullptr;
+	QActionGroup* _penGroup, *_modeGroup;
 
 	Snipper* plblScreen = nullptr;		// screen grap label
+
+	QString _sBackgroundColor = "#FFFFFF",
+			_sTextColor = "#000000";
 
 	void _CreateAndAddActions();
 	void _AddSaveAsVisibleMenu();
@@ -109,7 +118,7 @@ private:
 
 	void _SelectPen();	// for _actPen
 
-	void _SetPenColor();
+	void _SetPenKind();
 
 	void _SetPenKind(MyPenKind color);
 
@@ -123,4 +132,6 @@ private:
 	void _SetPenWidth();
 
 	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
+
+	void _SetupMode(ScreenMode mode);
 };
