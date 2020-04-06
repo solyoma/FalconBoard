@@ -45,12 +45,13 @@ public:
 
     void SetPenColor(MyPenKind newColor);
     void SetPenWidth(int newWidth);
+    void SetEraserWidth(int newWidth);
 
     void SetOrigin() { _topLeft = QPoint(); }
 
     bool IsModified() const { return  _history.CanUndo() ? _modified : false; }
     MyPenKind PenKind() const { return _myPenKind;  }
-    int PenWidth() const { return    _myPenWidth; }
+    int PenWidth() const { return    _actPenWidth; }
 
 signals:
     void CanUndo(bool state);     // state: true -> can undo
@@ -81,7 +82,9 @@ private:
     bool    _scribbling = false;    // for mouse
     bool    _pendown = false;       // for pen
     bool    _erasemode = false;
-    int     _myPenWidth = 1;
+    int     _penWidth = 1;
+    int     _eraserWidth = 30;
+    int     _actPenWidth = 1;
     MyPenKind _myPenKind = penBlack;
    
     QImage  _background,// an image for background layer

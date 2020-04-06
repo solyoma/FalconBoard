@@ -66,7 +66,7 @@ private slots:
 		if (_eraserOn)
 			_eraserWidth = val;
 		else
-			_actPenWidth  = val;
+			_penWidth  = val;
 
 		_SetPenWidth(); 
 	}
@@ -85,7 +85,7 @@ private:
 	bool _busy = false;
 
 	bool	_eraserOn = false;
-	int		_actPenWidth = 2,
+	int		_penWidth = 3,
 			_eraserWidth = 30;
 	MyPenKind _actPen = penBlack;
 	QString _backgroundImageName;	// get format from extension
@@ -105,13 +105,13 @@ private:
 	bool _SaveFile();
 	bool _SaveBackgroundImage();
 		 
-	void SelectPen(QAction* paction);
+	void _SelectPenForAction(QAction* paction);
 
-	void SelectPen(MyPenKind color);
+	void _SelectPen();	// for _actPen
 
 	void _SetPenColor();
 
-	void _SetPenColor(MyPenKind color);
+	void _SetPenKind(MyPenKind color);
 
 	void _SetCursor(DrawArea::CursorShape cs);
 

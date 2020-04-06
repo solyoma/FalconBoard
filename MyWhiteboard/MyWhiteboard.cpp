@@ -10,11 +10,9 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 {
 	ui.setupUi(this);
 
-    _actPenWidth = 3;
-    _actPen = penBlack;
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
     _drawArea->SetPenColor(_actPen);
-    _drawArea->SetPenWidth(_actPenWidth); 
+    _drawArea->SetPenWidth(_penWidth); 
 
     _CreateAndAddActions();
     _AddSaveAsVisibleMenu();
@@ -71,7 +69,7 @@ void MyWhiteboard::_CreateAndAddActions()
     _psbPenWidth->setMinimum(1);
     _psbPenWidth->setMaximum(200);
     _psbPenWidth->setSingleStep(1);
-    _psbPenWidth->setValue(_actPenWidth);
+    _psbPenWidth->setValue(_penWidth);
     QRect rect = _psbPenWidth->geometry();
     rect.setWidth(30);
     _psbPenWidth->setGeometry(rect);
@@ -127,26 +125,21 @@ bool MyWhiteboard::_SaveBackgroundImage()
     return _drawArea->SaveVisibleImage(_backgroundImageName, _fileFormat.constData());
 }
 
-void MyWhiteboard::SelectPen(QAction* paction)
+void MyWhiteboard::_SelectPenForAction(QAction* paction)
 {
     paction->setChecked(true);
 }
 
-void MyWhiteboard::SelectPen(MyPenKind color)
+void MyWhiteboard::_SelectPen()     // call after '_actPen' is set
 {
-    if (color == penEraser)
-    {
-        on_action_Eraser_triggered();
-        return;
-    }
-
     switch (_actPen)
     {
-    default:
-    case penBlack: ui.action_Black->setChecked(true); break;
-    case penRed: ui.action_Red->setChecked(true); break;
-    case penGreen: ui.action_Green->setChecked(true); break;
-    case penBlue: ui.action_Blue->setChecked(true); break;
+        default:
+        case penBlack: ui.action_Black->setChecked(true); break;
+        case penRed: ui.action_Red->setChecked(true); break;
+        case penGreen: ui.action_Green->setChecked(true); break;
+        case penBlue: ui.action_Blue->setChecked(true); break;
+        case penEraser:on_action_Eraser_triggered(); return;
     }
     _SetPenColor();
 }
@@ -156,15 +149,15 @@ void MyWhiteboard::_SetPenColor()
     _eraserOn = _actPen == penEraser;
     _drawArea->SetPenColor(_actPen);
     _busy = true;
-    _psbPenWidth->setValue(_actPenWidth);
+    _psbPenWidth->setValue(_penWidth);
     _busy = false;
     ui.centralWidget->setFocus();
 }
 
-void MyWhiteboard::_SetPenColor(MyPenKind color)
+void MyWhiteboard::_SetPenKind(MyPenKind newPen)
 {
-    _actPen = color;
-    _SetPenColor();
+    _actPen = newPen;
+    _SelectPen();
 }
 
 
@@ -173,15 +166,18 @@ void MyWhiteboard::_SetCursor(DrawArea::CursorShape cs)
     _drawArea->SetCursor(cs);
 }
 
-void MyWhiteboard::_SetBlackPen() { _SetPenColor(penBlack);  SelectPen(ui.action_Black); }
-void MyWhiteboard::_SetRedPen() { _SetPenColor  (penRed);    SelectPen(ui.action_Red); }
-void MyWhiteboard::_SetGreenPen() { _SetPenColor(penGreen);  SelectPen(ui.action_Green); }
-void MyWhiteboard::_SetBluePen() { _SetPenColor (penBlue);   SelectPen(ui.action_Blue); }
+void MyWhiteboard::_SetBlackPen() { _SetPenKind(penBlack); }
+void MyWhiteboard::_SetRedPen()   { _SetPenKind  (penRed); }
+void MyWhiteboard::_SetGreenPen() { _SetPenKind(penGreen); }
+void MyWhiteboard::_SetBluePen()  { _SetPenKind (penBlue); }
 
 void MyWhiteboard::_SetPenWidth()
 {
-    int pw = _eraserOn ? _eraserWidth : _actPenWidth;
-    _drawArea->SetPenWidth(pw);
+    int pw = _eraserOn ? _eraserWidth : _penWidth;
+    if (_eraserOn)
+        _drawArea->SetEraserWidth(pw);
+    else
+        _drawArea->SetPenWidth(pw);
     _busy = true;
     _psbPenWidth->setValue(pw);
     _busy = false;
@@ -306,7 +302,7 @@ void MyWhiteboard::on_action_Eraser_triggered()
     _drawArea->SetPenColor(_actPen = penEraser);
     _drawArea->SetCursor(DrawArea::csEraser);
     _SetPenWidth();
-    SelectPen(ui.action_Eraser);
+    _SelectPenForAction(ui.action_Eraser);
     SlotForFocus();
 }
 
@@ -343,7 +339,7 @@ void MyWhiteboard::on_actionClearBackgroundImage_triggered()
 void MyWhiteboard::on_actionUndo_triggered()
 {
     _drawArea->Undo();
-    SelectPen(_actPen);
+    _SelectPen();
     if (_eraserOn)
         on_action_Eraser_triggered();
     else
@@ -354,7 +350,7 @@ void MyWhiteboard::on_actionUndo_triggered()
 void MyWhiteboard::on_actionRedo_triggered()
 {
     _drawArea->Redo();
-    SelectPen(_actPen);
+    _SelectPen();
     if (_eraserOn)
         on_action_Eraser_triggered();
     else
@@ -376,14 +372,16 @@ void MyWhiteboard::SlotForFocus()
     ui.centralWidget->setFocus();
 }
 
-void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)
+void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sent by tablet
 {
     static bool penEraser = false;     // set to true if not erasemode just
+    static MyPenKind pk = penBlack;
     switch (pt)                         // eraser end of stylus used
     {
-        case QTabletEvent::Eraser:
+        case QTabletEvent::Eraser:      // only when eraser side selected
             if (!_eraserOn)
             {
+                pk = _actPen;           // save for restoring
                 penEraser = true;
                 on_action_Eraser_triggered();
             }
@@ -392,7 +390,7 @@ void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)
             if (penEraser)
             {
                 _SetCursor(DrawArea::csPen);
-                _SetPenColor(_actPen);
+                _SetPenKind(pk);
                 _SetPenWidth();
                 penEraser = false;
             }

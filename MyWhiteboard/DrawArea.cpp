@@ -83,7 +83,12 @@ void DrawArea::SetPenColor(MyPenKind newColor)
 
 void DrawArea::SetPenWidth(int newWidth)
 {
-    _myPenWidth = newWidth;
+    _penWidth = newWidth;
+}
+
+void DrawArea::SetEraserWidth(int newWidth)
+{
+    _eraserWidth = newWidth;
 }
 
 void DrawArea::NewData()
@@ -105,9 +110,19 @@ void DrawArea::_InitiateDrawing(QEvent* event)
     _lastPoint = _pendown ? ((QTabletEvent*)event)->pos(): ((QMouseEvent*)event)->pos();
     _lastDrawnItem.clear();
     if (_erasemode)
+    {
         _lastDrawnItem.histEvent = heEraser;
+        _actPenWidth = _eraserWidth;
+    }
+    else
+    {
+        _lastDrawnItem.histEvent = heScribble;
+        _actPenWidth = _penWidth;
+    }
+
+
     _lastDrawnItem.penKind = _myPenKind;
-    _lastDrawnItem.penWidth = _myPenWidth;
+    _lastDrawnItem.penWidth = _actPenWidth;
     _lastDrawnItem.points.push_back(_lastPoint);
 }
 
@@ -166,13 +181,14 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 
 void DrawArea::tabletEvent(QTabletEvent* event)
 {
+    QTabletEvent::PointerType pointerT = event->pointerType();
     switch (event->type()) 
     {
         case QEvent::TabletPress:
             if (!_pendown) 
             {
                 _pendown = true;
-                emit PointerTypeChange(event->pointerType());
+                emit PointerTypeChange(pointerT);
                 _InitiateDrawing(event);
             }
             break;
@@ -207,14 +223,14 @@ void DrawArea::tabletEvent(QTabletEvent* event)
 void DrawArea::_DrawLineTo(const QPoint& endPoint)
 {
     QPainter painter(&_canvas);
-    painter.setPen(QPen(_PenColor(), _myPenWidth, Qt::SolidLine, Qt::RoundCap,
+    painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
         Qt::RoundJoin));
     if (_erasemode)
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
     painter.drawLine(_lastPoint, endPoint);
     _modified = true;
 
-    int rad = (_myPenWidth / 2) + 2;
+    int rad = (_actPenWidth / 2) + 2;
     update(QRect(_lastPoint, endPoint).normalized()
         .adjusted(-rad, -rad, +rad, +rad));
     _lastPoint = endPoint;
@@ -289,7 +305,7 @@ bool DrawArea::_ReplotItem(const DrawnItem* pdrni)
         case heEraser:    // else clear screen, move, etc
             _lastPoint = pdrni->points[0] - _topLeft; 
             _myPenKind = pdrni->penKind;
-            _myPenWidth = pdrni->penWidth;
+            _actPenWidth = pdrni->penWidth;
             _erasemode = pdrni->histEvent == heEraser ? true : false;
             for (int i = 1; i < pdrni->points.size(); ++i)
                 _DrawLineTo(pdrni->points[i]);
