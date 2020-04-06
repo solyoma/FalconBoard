@@ -205,7 +205,20 @@ void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
 
 void MyWhiteboard::_SetupMode(ScreenMode mode)
 {
-    QString ss;
+    QString ss,
+        sWhite = "white_",  // prefix for dark modes
+        sPng = ".png";
+
+    QString actions[] = {
+            "close",        // 0
+            "eraser",       // 1
+            "new",          // 2
+            "open",         // 3
+            "redo",         // 4
+            "save",         // 5
+            "screenshot",   // 6
+            "undo"          // 7
+    };
 
     switch (mode)
     {
@@ -214,6 +227,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/black.png"));
             _sBackgroundColor = "#FFFFFF";
             _sTextColor = "#000000";
+            sWhite.clear();
             break;
         case smDark:
             _sBackgroundColor = "#282828";
@@ -226,9 +240,18 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/white.png"));
             break;
     }
-    if(mode != smLight)
-        ss = "* {\n background-color:" + _sBackgroundColor + ";\n  color:" + _sTextColor +";\n}\n"
-                 "QMenuBar::item, QMenu::separator, QMenu::item {\ncolor:" + _sTextColor + ";\n}";
+    ui.actionExit->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[0] + sPng));
+    ui.action_Eraser->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[1] + sPng));
+    ui.actionNew->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[2] + sPng));
+    ui.actionLoad->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[3] + sPng));
+    ui.actionRedo->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[4] + sPng));
+    ui.actionSave->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[5] + sPng));
+    ui.action_Screenshot->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[6] + sPng));
+    ui.actionUndo->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[7] + sPng));
+
+    if (mode != smLight)
+        ss = "* {\n background-color:" + _sBackgroundColor + ";\n  color:" + _sTextColor + ";\n}\n"
+            "QMenuBar::item, QMenu::separator, QMenu::item {\ncolor:" + _sTextColor + ";\n}";
     setStyleSheet(ss);
 
     _drawArea->SetMode(mode != smLight, _sBackgroundColor);      // set penBlack color to White
