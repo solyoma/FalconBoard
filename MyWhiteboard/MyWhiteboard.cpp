@@ -32,8 +32,12 @@ void MyWhiteboard::RestoreState()
 {
     QSettings s("MyWhiteboard.ini", QSettings::IniFormat);
 
-    restoreGeometry(s.value("myWidget/geometry").toByteArray());
-    restoreState(s.value("myWidget/windowState").toByteArray());
+    restoreGeometry(s.value("geometry").toByteArray());
+    restoreState(s.value("windowState").toByteArray());
+
+    //  DEBUG
+//    QRect rect = geometry();
+    // /DEBUG
 
     QString qs = s.value("version", sVersion).toString();
     if (qs != sVersion)
@@ -69,6 +73,9 @@ void MyWhiteboard::RestoreState()
 void MyWhiteboard::SaveState()
 {
     QSettings s("MyWhiteboard.ini",QSettings::IniFormat);
+//  DEBUG
+//    QRect rect = geometry();
+// /DEBUG
 
     s.setValue("geometry", saveGeometry());
     s.setValue("windowState", saveState());
