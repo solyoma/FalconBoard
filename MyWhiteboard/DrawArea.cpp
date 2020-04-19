@@ -131,6 +131,10 @@ void DrawArea::_ClearCanvas()
 void DrawArea::_InitiateDrawing(QEvent* event)
 {
     _lastPoint = _pendown ? ((QTabletEvent*)event)->pos(): ((QMouseEvent*)event)->pos();
+
+    if (_spaceBarDown)      // no drawing
+        return;
+
     _lastDrawnItem.clear();
     if (_erasemode)
     {
@@ -146,13 +150,46 @@ void DrawArea::_InitiateDrawing(QEvent* event)
 
     _lastDrawnItem.penKind = _myPenKind;
     _lastDrawnItem.penWidth = _actPenWidth;
-    _lastDrawnItem.points.push_back(_lastPoint);
+    _lastDrawnItem.add(_lastPoint - _topLeft);
+}
+
+void DrawArea::keyPressEvent(QKeyEvent* event)
+{
+    if (!_scribbling && !_pendown && event->key() == Qt::Key_Space)
+    {
+        _spaceBarDown = true;
+        QWidget::keyPressEvent(event);
+    }
+}
+
+void DrawArea::keyReleaseEvent(QKeyEvent* event)
+{
+    if (!_spaceBarDown || !event->spontaneous() || event->isAutoRepeat())
+    {
+        QWidget::keyReleaseEvent(event);
+        return;
+    }
+
+    if (event->key() == Qt::Key_Space)
+    {
+        _spaceBarDown = false;
+        if (_scribbling || _pendown)
+        {
+            _RestoreCursor();
+            QWidget::keyReleaseEvent(event);
+            return;
+        }
+    }
+     QWidget::keyReleaseEvent(event);
 }
 
 void DrawArea::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton && !_pendown)  // even when using a pen some mouse message still appear
     {
+        if (_spaceBarDown)
+            _SaveCursor(Qt::ClosedHandCursor);
+
         _scribbling = true;
         _InitiateDrawing(event);
     }
@@ -163,21 +200,48 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
 {
     if ((event->buttons() & Qt::LeftButton) && _scribbling)
     {
-        _DrawLineTo(event->pos());
-        _lastDrawnItem.points.push_back(_lastPoint+_topLeft);
+        if (_spaceBarDown)
+        {
+            QPoint  dr = (event->pos() - _lastPoint),   // displacement vector
+                    o = _topLeft;                       // origin
+
+            o += dr;                // calculate new origin
+            if (o.x() > 0)
+                o.setX(0);
+            if (o.y() > 0)
+                o.setY(0);
+
+            _topLeft = o;
+            _ClearCanvas();
+            _Redraw();
+            _lastPoint = event->pos();
+        }
+        else
+        {
+            _DrawLineTo(event->pos());
+            _lastDrawnItem.add(_lastPoint - _topLeft);
+        }
     }
 }
 
 void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton && _scribbling) {
-        _DrawLineTo(event->pos());
+    if (event->button() == Qt::LeftButton && _scribbling) 
+    {
+        if (!_spaceBarDown)
+        {
+            _DrawLineTo(event->pos());
+            _lastDrawnItem.add(_lastPoint - _topLeft);
+
+            _history.push_back(_lastDrawnItem);
+
+            emit CanUndo(true);
+            emit CanRedo(false);
+        }
+        else
+            _RestoreCursor();
+
         _scribbling = false;
-
-        _history.push_back(_lastDrawnItem);
-
-        emit CanUndo(true);
-        emit CanRedo(false);
     }
 }
 
@@ -210,37 +274,90 @@ void DrawArea::tabletEvent(QTabletEvent* event)
         case QEvent::TabletPress:
             if (!_pendown) 
             {
+                if (_spaceBarDown)
+                    _SaveCursor(Qt::ClosedHandCursor);
                 _pendown = true;
                 emit PointerTypeChange(pointerT);
                 _InitiateDrawing(event);
             }
+            event->accept();
             break;
     case QEvent::TabletMove:
 #ifndef Q_OS_IOS
 //        if (event->device() == QTabletEvent::RotationStylus)
 //            updateCursor(event);
 #endif
-        if (_pendown) 
+        if (_pendown)
         {
-            _DrawLineTo(event->pos());
-            _lastDrawnItem.points.push_back(_lastPoint+_topLeft);
+            static QPoint lastpos;
+            static int counter; // only refresh screen when this is REFRESH_LIMIT
+                                // because tablet events frequency is large
+            const int REFRESH_LIMIT = 10;
+            QPoint pos = event->pos();
+            if (lastpos == pos)
+            {
+                event->accept();
+                break;
+            }
+            else
+            {
+                lastpos = pos;
+            }
+
+            if (_spaceBarDown)
+            {
+                QPoint  dr = (pos - _lastPoint),   // displacement vector
+                    o = _topLeft;                       // origin
+
+                o += dr;                // calculate new origin
+                if (o.x() > 0)
+                    o.setX(0);
+                if (o.y() > 0)
+                    o.setY(0);
+
+                _topLeft = o;
+                ++counter;
+                if (counter >= REFRESH_LIMIT)
+                {
+                    counter = 0;
+                    _ClearCanvas();
+                    _Redraw();
+                }
+                _lastPoint = event->pos();
+            }
+            else
+            {
+                _DrawLineTo(event->pos());
+                _lastDrawnItem.points.push_back(_lastPoint - _topLeft);
+            }
         }
+//        update();
+        event->accept();
         break;
     case QEvent::TabletRelease:
-        if (_pendown && event->buttons() == Qt::NoButton)
+        if (_pendown)// && event->buttons() == Qt::NoButton)
         {
-            _pendown = false;
-            _history.push_back(_lastDrawnItem);
+            if (!_spaceBarDown)
+            {
+                _DrawLineTo(event->pos());
+                _lastDrawnItem.add(_lastPoint - _topLeft);
 
-            emit CanUndo(true);
-            emit CanRedo(false);
+                _history.push_back(_lastDrawnItem);
+
+                emit CanUndo(true);
+                emit CanRedo(false);
+            }
+            else
+                _RestoreCursor();
+            _pendown = false;
         }
-        update();
+//        update();
+        event->accept();
         break;
     default:
+        event->ignore();
         break;
     }
-    event->accept();
 }
 
 void DrawArea::_DrawLineTo(const QPoint& endPoint)
@@ -334,21 +451,46 @@ QColor DrawArea::_PenColor() const
     }
 }
 
+void DrawArea::_SaveCursor(QCursor newCursor)
+{
+    if (!_cursorSaved)
+    {
+        _cursorSaved = true;
+        _savedCursor = cursor();
+        setCursor(newCursor);
+    }
+}
+
+void DrawArea::_RestoreCursor()
+{
+    if (_cursorSaved)
+    {
+        setCursor(_savedCursor);
+        _cursorSaved = false;
+    }
+}
+
 bool DrawArea::_ReplotItem(const DrawnItem* pdrni)
 {
     if (!pdrni)
         return false;
 
+    QRect r;
     switch(pdrni->histEvent)
     {
         case heScribble:
         case heEraser:    // else clear screen, move, etc
-            _lastPoint = pdrni->points[0] - _topLeft; 
+            r = geometry();
+            r = r.translated(-_topLeft).marginsAdded(QMargins(r.width(), r.height(), r.width(),r.height()));
+            if (!pdrni->intersects(r))    // the canvas rectangle has no intersection with 
+                break;                    // the scribble
+
+            _lastPoint = pdrni->points[0] + _topLeft; 
             _myPenKind = pdrni->penKind;
             _actPenWidth = pdrni->penWidth;
             _erasemode = pdrni->histEvent == heEraser ? true : false;
             for (int i = 1; i < pdrni->points.size(); ++i)
-                _DrawLineTo(pdrni->points[i]);
+                _DrawLineTo(pdrni->points[i] + _topLeft);
             break;
         case heVisibleCleared:
             _ClearCanvas();
@@ -388,6 +530,9 @@ void DrawArea::Redo()
 void DrawArea::SetCursor(CursorShape cs)
 {
     _erasemode = false;
+    if (_spaceBarDown && (_scribbling || _pendown)) // do not set the cursor when space bar is pressed
+        return;
+
     switch (cs)
     {
         case csArrow: setCursor(Qt::ArrowCursor); break;

@@ -81,7 +81,7 @@ void MyWhiteboard::SaveState()
     s.setValue("windowState", saveState());
 
     s.setValue("version", sVersion);
-    s.setValue("mode", _screenMode == smLight ? "s" :_screenMode == smDark ? "d" : "b");
+    s.setValue("mode", _screenMode == smSystem ? "s" :_screenMode == smDark ? "d" : "b");
     s.setValue("size", _penWidth);
     s.setValue("esize", _eraserWidth);
     s.setValue("saved", ui.actionSaveData->isChecked());
@@ -173,7 +173,7 @@ void MyWhiteboard::_AddSaveAsVisibleMenu()
 
 bool MyWhiteboard::_SaveIfYouWant()
 {
-    if (_drawArea->IsModified() && !ui.actionSaveData->isChecked() ) 
+    if (_drawArea->IsModified() && ui.actionSaveData->isChecked() ) 
     {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning(this, tr("MyWhiteboard"),
@@ -294,7 +294,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
     switch (mode)
     {
         default:
-        case smLight:
+        case smSystem:
             ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/black.png"));
             _sBackgroundColor = "#FFFFFF";
             _sTextColor = "#000000";
@@ -320,12 +320,25 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
     ui.action_Screenshot->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[6] + sPng));
     ui.actionUndo->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[7] + sPng));
 
-    if (mode != smLight)
-        ss = "* {\n background-color:" + _sBackgroundColor + ";\n  color:" + _sTextColor + ";\n}\n"
-            "QMenuBar::item, QMenu::separator, QMenu::item {\ncolor:" + _sTextColor + ";\n}";
+    if (mode != smSystem)
+        ss = "* {\n" 
+                  "  background-color:" + _sBackgroundColor + ";\n"
+                  "  color:" + _sTextColor + ";\n"
+             "}\n"
+             "QMenuBar::item, "
+             "QMenu::separator, "
+             "QMenu::item {\n"
+             "  color:" + _sTextColor + ";\n"
+             "}\n"
+             "QMenuBar::item:selected,\n"
+             "QMenu::item:selected {\n"
+             "  color:"+_sBackgroundColor + ";\n"
+             "  background-color:" + _sTextColor + ";\n"
+             "}\n";
+
     setStyleSheet(ss);
 
-    _drawArea->SetMode(mode != smLight, _sBackgroundColor);      // set penBlack color to White
+    _drawArea->SetMode(mode != smSystem, _sBackgroundColor);      // set penBlack color to White
 }
 
 void MyWhiteboard::closeEvent(QCloseEvent* event)
@@ -441,14 +454,14 @@ void MyWhiteboard::SaveVisibleAsTriggered()
 void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
-        tr("<p>Based on Qt's <b>Scribble</b> example "
-            "but with undo, marking and moveing areas of screen "
+        tr("<p>Based on Qt's <b>Scribble</b> example.</p>"
+            "<p>Enhanced in many ways by A. Sólyom"
             "</p>"));
 }
 
 void MyWhiteboard::on_actionLightMode_triggered()
 {
-    _SetupMode(smLight);
+    _SetupMode(smSystem);
 }
 
 void MyWhiteboard::on_actionDarkMode_triggered()

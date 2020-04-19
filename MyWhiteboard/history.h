@@ -23,6 +23,8 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
         penKind = di.penKind;
         penWidth = di.penWidth;
         points = di.points;
+        tl = di.tl;
+        br = di.br;
         return *this;
     }
 
@@ -32,16 +34,45 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
         penKind = di.penKind;
         penWidth = di.penWidth;
         points = di.points;
+        tl = di.tl;
+        br = di.br;
         return *this;
     }
 
     HistEvent histEvent = heScribble;
     MyPenKind penKind = penBlack;
     int penWidth;
-    QVector<QPoint> points;           // coordinates are relative to logical origin (0,0)
+    QVector<QPoint> points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
+    QPoint tl, br;                  // top left-bttom right coordinates of encapsulating rectangle
+                                    // not saved on disk, recreated on read
 
+    void clear() 
+    { 
+        points.clear(); 
+        tl = QPoint(0x7FFFFFFF, 0x7FFFFFFF);
+        br = QPoint(-1, -1);
+    }
 
-    void clear() { points.clear(); }
+    void add(QPoint p)
+    {
+        add(p.x(), p.y());
+    }
+
+    void add(int x, int y)
+    {
+        if (tl.x() > x) tl.setX(x);
+        if (tl.y() > x) tl.setY(y);
+        if (br.x() < x) br.setX(x);
+        if (br.y() < x) br.setY(y);
+
+        points.push_back(QPoint(x, y));
+    }
+
+    bool intersects(const QRect& rect) const
+    {
+        return rect.intersects(QRect(tl, br - QPoint(1,1)));
+    }
+
 };
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
@@ -59,15 +90,15 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
     ifs >> n; di.histEvent = static_cast<HistEvent>(n);
     ifs >> n; di.penKind = (MyPenKind)n;
     ifs >> n; di.penWidth = n;
+
     qint32 x,y;
-    QPoint pt;
-    di.points.clear();
+    di.clear();
+
     ifs >> n; 
     while (n--)
     {
         ifs >> x >> y;
-        pt.setX(x); pt.setY(y);
-        di.points.push_back(pt);
+        di.add(x, y);
     }
     return ifs;
 }
@@ -158,7 +189,9 @@ public:
         return _lastItem =_items.size()-1;
     }
 
-    bool CanUndo() const { return _lastItem >= 0; }
+    bool CanUndo() const { 
+        return _lastItem >= 0; 
+    }
     bool CanRedo() const { return _redoAble; }
 
     void push_back(DrawnItem itm)

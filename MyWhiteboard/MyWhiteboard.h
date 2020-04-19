@@ -21,7 +21,7 @@ class DrawArea;
 
 const int HISTORY_DEPTH = 20;
 
-enum ScreenMode { smLight, smDark, smBlack };
+enum ScreenMode { smSystem, smDark, smBlack };
 
 class MyWhiteboard : public QMainWindow
 {
@@ -101,7 +101,7 @@ private:
 	QString _sBackgroundColor = "#FFFFFF",
 			_sTextColor = "#000000";
 
-	ScreenMode _screenMode = smLight;
+	ScreenMode _screenMode = smSystem;
 
 	void RestoreState();
 	void SaveState();

@@ -59,6 +59,9 @@ public slots:
     void SetCursor(CursorShape cs);
 
 protected:
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
+
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
@@ -69,8 +72,9 @@ protected:
 
 private:
     bool    _modified = false;
-    bool    _scribbling = false;    // for mouse
-    bool    _pendown = false;       // for pen
+    bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
+    bool    _scribbling = false;    // true for mouse darwing (_spaceBarDown == false)
+    bool    _pendown = false;       // true for pen
     bool    _erasemode = false;
     int     _penWidth = 1;
     int     _eraserWidth = 30;
@@ -87,9 +91,11 @@ private:
     bool _darkMode = false;
     QColor _backgroundColor = Qt::white;
 
-    QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin
-            _lastPoint; // last point drawn relative to visible image
+    QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin  either 0 or negative values
+            _lastPoint; // canvas relative last point drawn relative to visible image
     DrawnItem _lastDrawnItem;
+    QCursor _savedCursor;
+    bool _cursorSaved = false;
     History _history;
 
     void _InitiateDrawing(QEvent* event);
@@ -102,5 +108,6 @@ private:
     bool _ReplotItem(const DrawnItem* pdrni);
     void _Redraw();
     QColor _PenColor() const;
-
+    void _SaveCursor(QCursor newCursor);
+    void _RestoreCursor();
 };
