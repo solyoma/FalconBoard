@@ -110,4 +110,15 @@ private:
     QColor _PenColor() const;
     void _SaveCursor(QCursor newCursor);
     void _RestoreCursor();
+
+    void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, negative delta.x: scroll right
+    void _ShiftAndDisplay(QPoint delta);
+    void _PageUp();
+    void _PageDown();
+    void _Home();
+    void _End();
+    void _Up();
+    void _Down();
+    void _Left();
+    void _Right();
 };

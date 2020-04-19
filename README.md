@@ -6,21 +6,23 @@ the coronavirus pandemic.
 *Features*: 
 
    0. Works under Windows and Linux, and (I hope) on Macs too.
-   1. Sytem, dark and darker view modes
+   1. System, dark and darker view modes
    2. Freehand drawing with four different (black/white, red, green, blue) color pens.
    3. Pen and eraser pen width is adjustable between 1 and 300 pixels.
    4. Unlimited Undo/Redo.
-   5. Usable with the mouse and with a graphic tablet.
-   6. Keyboard shortcuts to most functions.
-   7. Saving and loading sessions.
-   8. Loading a background image: all drawings are on a different layer above the background
+   5. "Unlimited" scrolling of page by keyboard (PgUp,PgDown,Home,Left,Right)
+      mouse or tablet (press and hold space while using them).
+   6. Usable with the mouse and with a graphic tablet.
+   7. Keyboard shortcuts to most functions.
+   8. Optional saving and loading sessions.
+   9. Loading a background image: all drawings are on a different layer above the background
       as nice to have illustrations to comment on.
-   9. Visible area can be printed and saved in many different image formats.
-  10. Take a screenshot from any rectangular area of the desktop and load it as background image.
-  11. Completely open source (GPL 3). 
+  10. Visible area can be printed and saved in many different image formats.
+  11. Take a screenshot from any rectangular area of the desktop and load it as background image.
+  12. Completely open source (GPL 3). 
       (used icons from PikaJian's Whitepad project https://github.com/PikaJian)
-  12. Written in C++ with Qt 14.1 (multi platform).
-  13. Both Visual studio project files and QtDesigner project files are included.
+  13. Written in C++ with Qt 14.1 (multi platform).
+  14. Both Visual studio project files and QtDesigner project files are included.
   
 *Compilation*:
 

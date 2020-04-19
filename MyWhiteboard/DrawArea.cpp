@@ -160,6 +160,26 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         _spaceBarDown = true;
         QWidget::keyPressEvent(event);
     }
+    else if (event->spontaneous())
+    {
+        if (!event->isAutoRepeat())
+        {
+            if (event->key() == Qt::Key_PageUp)
+                _PageUp();
+            else  if (event->key() == Qt::Key_PageDown)
+                _PageDown();
+            else  if (event->key() == Qt::Key_Home)
+                _Home();
+        }
+        if (event->key() == Qt::Key_Up)
+            _Up();
+        else if (event->key() == Qt::Key_Down)
+            _Down();
+        if (event->key() == Qt::Key_Left)
+            _Left();
+        if (event->key() == Qt::Key_Right)
+            _Right();
+    }
 }
 
 void DrawArea::keyReleaseEvent(QKeyEvent* event)
@@ -202,16 +222,8 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
     {
         if (_spaceBarDown)
         {
-            QPoint  dr = (event->pos() - _lastPoint),   // displacement vector
-                    o = _topLeft;                       // origin
-
-            o += dr;                // calculate new origin
-            if (o.x() > 0)
-                o.setX(0);
-            if (o.y() > 0)
-                o.setY(0);
-
-            _topLeft = o;
+            QPoint  dr = (event->pos() - _lastPoint);   // displacement vector
+            _ShiftOrigin(dr);
             _ClearCanvas();
             _Redraw();
             _lastPoint = event->pos();
@@ -306,16 +318,8 @@ void DrawArea::tabletEvent(QTabletEvent* event)
 
             if (_spaceBarDown)
             {
-                QPoint  dr = (pos - _lastPoint),   // displacement vector
-                    o = _topLeft;                       // origin
-
-                o += dr;                // calculate new origin
-                if (o.x() > 0)
-                    o.setX(0);
-                if (o.y() > 0)
-                    o.setY(0);
-
-                _topLeft = o;
+                QPoint  dr = (pos - _lastPoint);   // displacement vector
+                _ShiftOrigin(dr);
                 ++counter;
                 if (counter >= REFRESH_LIMIT)
                 {
@@ -526,7 +530,6 @@ void DrawArea::Redo()
     emit CanRedo(_history.CanRedo());
 }
 
-#include <QFileInfo>
 void DrawArea::SetCursor(CursorShape cs)
 {
     _erasemode = false;
@@ -550,3 +553,61 @@ void DrawArea::SetCursor(CursorShape cs)
     }
 }
 
+void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
+{
+    QPoint o = _topLeft;           // origin
+
+    o += delta;                // calculate new origin
+    if (o.x() > 0)
+        o.setX(0);
+    if (o.y() > 0)
+        o.setY(0);
+
+    _topLeft = o;
+}
+void DrawArea::_ShiftAndDisplay(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
+{
+    _ShiftOrigin(delta);
+    _ClearCanvas();
+    _Redraw();
+}
+void DrawArea::_PageUp()
+{
+    QPoint pt(0, geometry().height()/3*2);
+    _ShiftAndDisplay(pt);
+}
+void DrawArea::_PageDown()
+{
+    QPoint pt(0, -geometry().height() / 3 * 2);
+    _ShiftAndDisplay(pt);
+}
+void DrawArea::_Home()
+{
+    _ShiftAndDisplay(-_topLeft);
+}
+void DrawArea::_End()
+{
+    _ClearCanvas();
+    _Redraw();
+}
+
+void DrawArea::_Up()
+{
+    QPoint pt(0, 10);
+    _ShiftAndDisplay(pt);
+}
+void DrawArea::_Down()
+{
+    QPoint pt(0, -10);
+    _ShiftAndDisplay(pt);
+}
+void DrawArea::_Left()
+{
+    QPoint pt(10, 0);
+    _ShiftAndDisplay(pt);
+}
+void DrawArea::_Right()
+{
+    QPoint pt(-10, 0);
+    _ShiftAndDisplay(pt);
+}
