@@ -170,21 +170,23 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _PageDown();
             else  if (event->key() == Qt::Key_Home)
                 _Home();
+            else if (event->key() == Qt::Key_Shift)
+                _shiftKeyDown = true;
         }
         if (event->key() == Qt::Key_Up)
             _Up();
         else if (event->key() == Qt::Key_Down)
             _Down();
-        if (event->key() == Qt::Key_Left)
+        else if (event->key() == Qt::Key_Left)
             _Left();
-        if (event->key() == Qt::Key_Right)
+        else if (event->key() == Qt::Key_Right)
             _Right();
     }
 }
 
 void DrawArea::keyReleaseEvent(QKeyEvent* event)
 {
-    if (!_spaceBarDown || !event->spontaneous() || event->isAutoRepeat())
+    if ( (!_spaceBarDown && !_shiftKeyDown) || !event->spontaneous() || event->isAutoRepeat())
     {
         QWidget::keyReleaseEvent(event);
         return;
@@ -200,7 +202,9 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
             return;
         }
     }
-     QWidget::keyReleaseEvent(event);
+    _shiftKeyDown = false;
+    _startSet = false;
+    QWidget::keyReleaseEvent(event);
 }
 
 void DrawArea::mousePressEvent(QMouseEvent* event)
@@ -243,7 +247,6 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
         if (!_spaceBarDown)
         {
             _DrawLineTo(event->pos());
-            _lastDrawnItem.add(_lastPoint - _topLeft);
 
             _history.push_back(_lastDrawnItem);
 
@@ -254,6 +257,7 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
             _RestoreCursor();
 
         _scribbling = false;
+        _startSet = false;
     }
 }
 
@@ -319,7 +323,6 @@ void DrawArea::tabletEvent(QTabletEvent* event)
             if (_spaceBarDown)
             {
                 QPoint  dr = (pos - _lastPoint);   // displacement vector
-                _ShiftOrigin(dr);
                 ++counter;
                 if (counter >= REFRESH_LIMIT)
                 {
@@ -327,15 +330,15 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                     _ClearCanvas();
                     _Redraw();
                 }
+                _ShiftOrigin(dr);
                 _lastPoint = event->pos();
             }
             else
             {
                 _DrawLineTo(event->pos());
-                _lastDrawnItem.points.push_back(_lastPoint - _topLeft);
+                _lastDrawnItem.add(_lastPoint - _topLeft);
             }
         }
-//        update();
         event->accept();
         break;
     case QEvent::TabletRelease:
@@ -344,7 +347,6 @@ void DrawArea::tabletEvent(QTabletEvent* event)
             if (!_spaceBarDown)
             {
                 _DrawLineTo(event->pos());
-                _lastDrawnItem.add(_lastPoint - _topLeft);
 
                 _history.push_back(_lastDrawnItem);
 
@@ -354,8 +356,8 @@ void DrawArea::tabletEvent(QTabletEvent* event)
             else
                 _RestoreCursor();
             _pendown = false;
+            _startSet = false;
         }
-//        update();
         event->accept();
         break;
     default:
@@ -364,8 +366,56 @@ void DrawArea::tabletEvent(QTabletEvent* event)
     }
 }
 
-void DrawArea::_DrawLineTo(const QPoint& endPoint)
+void DrawArea::_CalcStartVector(QPoint& endpoint, int indexdOfEnDpoint)
 {
+    if (!_startSet && _shiftKeyDown)
+    {
+        int x0 = _lastDrawnItem.points[0].x(),
+            y0 = _lastDrawnItem.points[0].y(),
+            x = endpoint.x(),
+            y = endpoint.y(),
+            dx = abs(x - x0),
+            dy = abs(y - y0);
+
+        if (dx > dy && dy < 10)
+            _startVector = QPointF(1, 0);
+        else if (dy > dx && dx < 10)
+            _startVector = QPointF(0, 1);
+//        else if (dy > 10 && dx > 10)
+//            _startVector = QPointF(dx/(dx^2+dy^2), dy/ (dx ^ 2 + dy ^ 2));
+        _startSet = true;
+        // replace most points keeping only the first, an the last
+
+        QPoint  p0 = _lastDrawnItem.points[0],
+                p1 = _lastDrawnItem.points[indexdOfEnDpoint-1];
+        _lastDrawnItem.points.clear();
+        _lastDrawnItem.points.push_back(p0);    // no other points are necessary
+        _lastDrawnItem.points.push_back(p1);
+    }
+}
+
+QPoint DrawArea::_CorrectPoint(QPoint lastp, QPoint &newp)
+{
+    if (_startSet)
+    {
+        int dx2 = (newp.x() - lastp.x()) * _startVector.x(), // dx * svx
+            dy2 = (newp.y() - lastp.y()) * _startVector.y();
+
+        newp.setX(lastp.x() + dx2);
+        newp.setY(lastp.y() + dy2);
+            // leave only the first and the last element in the array
+        _lastDrawnItem.points.remove(1, _lastDrawnItem.points.size() - 1);
+        _lastDrawnItem.points.push_back(lastp);    // no other points are necessary
+    }
+    return newp;
+}
+
+void DrawArea::_DrawLineTo(QPoint endPoint)
+{
+    if (_lastDrawnItem.points.size() == 10)
+        _CalcStartVector(endPoint, 10);
+
+    _CorrectPoint(_lastPoint, endPoint);
     QPainter painter(&_canvas);
     painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
         Qt::RoundJoin));

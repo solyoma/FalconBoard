@@ -72,10 +72,18 @@ protected:
 
 private:
     bool    _modified = false;
+
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
+                   // used for constraints to draw horizontal vertical or slanted lines
+    bool    _shiftKeyDown = false;  
+    bool    _startSet = false;      // calculate start vector
+    QPointF  _startVector;           // when _shitKeyDown, calculated from first point: (y1-y0 > x1-x0,) +> vertical, etc
+                                    // and used in line drawing
+
     bool    _scribbling = false;    // true for mouse darwing (_spaceBarDown == false)
     bool    _pendown = false;       // true for pen
     bool    _erasemode = false;
+
     int     _penWidth = 1;
     int     _eraserWidth = 30;
     int     _actPenWidth = 1;
@@ -102,7 +110,10 @@ private:
 
     void _ClearCanvas();
 
-    void _DrawLineTo(const QPoint& endPoint);   // on _canvas then update
+    void _CalcStartVector(QPoint &endpoint, int indexdOfEnDpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
+    QPoint _CorrectPoint(QPoint lastp, QPoint &newp);     // using _startVector
+
+    void _DrawLineTo(QPoint endPoint);   // on _canvas then update
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
     bool _ReplotItem(const DrawnItem* pdrni);

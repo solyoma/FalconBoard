@@ -61,9 +61,9 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     void add(int x, int y)
     {
         if (tl.x() > x) tl.setX(x);
-        if (tl.y() > x) tl.setY(y);
+        if (tl.y() > y) tl.setY(y);
         if (br.x() < x) br.setX(x);
-        if (br.y() < x) br.setY(y);
+        if (br.y() < y) br.setY(y);
 
         points.push_back(QPoint(x, y));
     }
@@ -147,8 +147,10 @@ public:
 
         QDataStream ofs(&f);
         ofs << MAGIC_ID;
-        for (auto dt : _items)
-        {                     // do not save canvas movement or background image events
+        for (int i =0; i <= _lastItem; ++i) 
+        {   
+            auto dt = _items[i];
+            // do not save canvas movement or background image events
             if (ofs.status() != QDataStream::Ok)
                 return false;
 
