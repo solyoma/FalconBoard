@@ -96,21 +96,24 @@ private:
 	QList<QAction*> _saveAsActs;
 	QActionGroup* _penGroup, *_modeGroup;
 
-	Snipper* plblScreen = nullptr;		// screen grap label
+	Snipper* plblScreen = nullptr;		// screen grab label
 
 	QString _sBackgroundColor = "#FFFFFF",
 			_sTextColor = "#000000";
 
 	ScreenMode _screenMode = smSystem;
 
+	QString _lastDir, _lastFile;
+
 	void RestoreState();
 	void SaveState();
 
+	void _SaveLastDirectory(QString fileName);
 	void _LoadData(QString fileName);
 
 	void _CreateAndAddActions();
 	void _AddSaveAsVisibleMenu();
-	bool _SaveIfYouWant();
+	bool _SaveIfYouWant(bool mustAsk = false);
 	bool _SaveFile();
 	bool _SaveBackgroundImage();
 		 

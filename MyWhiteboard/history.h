@@ -115,6 +115,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
                          // then redu is possible starting at (lastItem+1)
                          // when new sectiom added after an undo it cannot be re-done
                          // and further UNDOs can't recreate the lines lost this way
+    bool _modified = false;
 
     QVector<int> _IndicesOfClearScreen;  // stores index positions wher the screen was cleared
                                         // start drawing for undo from the last element of this
@@ -133,7 +134,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
         return 0;
     }
 public:
-    void clear() { _lastItem = -1; _items.clear(); _IndicesOfClearScreen.clear(), _redoAble = false; }
+    void clear() { _lastItem = -1; _items.clear(); _IndicesOfClearScreen.clear(), _redoAble = false; _modified = false; }
     int size() const { return _items.size(); }
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian
@@ -157,6 +158,7 @@ public:
             if (dt.histEvent == heScribble || dt.histEvent == heVisibleCleared)
                 ofs << dt;
         }
+        _modified = false;
         return true;
     }
 
@@ -188,9 +190,11 @@ public:
             ++i;
             _items.push_back(di);
         }
+        _modified = false;
         return _lastItem =_items.size()-1;
     }
 
+    bool IsModified() const { return _modified; }
     bool CanUndo() const { 
         return _lastItem >= 0; 
     }
@@ -203,6 +207,7 @@ public:
             _items.push_back(itm);
         else
             _items[_lastItem] = itm;
+        _modified = true;
     }
 
     void ClearScreen() { push_back(_clearItem); }
@@ -219,6 +224,7 @@ public:
             _index = _GetStartIndex();
             _redoAble = true;
             --_lastItem;
+            _modified = true;
         }
         else
             _redoAble = false;
@@ -241,6 +247,9 @@ public:
         }
         const DrawnItem* pdrni = &_items[++_lastItem];
         _redoAble = _lastItem < _items.size() - 1;
+        if(!_redoAble)
+            _modified = false;
+
         return pdrni;
     }
 };

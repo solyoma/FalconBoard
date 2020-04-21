@@ -39,7 +39,7 @@ public:
 
     void SetOrigin() { _topLeft = QPoint(); }
 
-    bool IsModified() const { return  _history.CanUndo() ? _modified : false; }
+    bool IsModified() const { return  _history.IsModified(); }
     MyPenKind PenKind() const { return _myPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
 
@@ -65,19 +65,20 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
 
     void tabletEvent(QTabletEvent* event) override;
 
 private:
-    bool    _modified = false;
-
+            // key states used
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
-                   // used for constraints to draw horizontal vertical or slanted lines
-    bool    _shiftKeyDown = false;  
+    bool    _shiftKeyDown = false;  // used for constraints to draw horizontal vertical or slanted lines
+    bool    _altKeyDown = false;    // move background image
+
     bool    _startSet = false;      // calculate start vector
-    QPointF  _startVector;           // when _shitKeyDown, calculated from first point: (y1-y0 > x1-x0,) +> vertical, etc
+    bool    _isHorizontal;          // when _shitKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
                                     // and used in line drawing
 
     bool    _scribbling = false;    // true for mouse darwing (_spaceBarDown == false)
@@ -89,10 +90,10 @@ private:
     int     _actPenWidth = 1;
     MyPenKind _myPenKind = penBlack;
    
-    QImage  _background,// an image for background layer
-            _canvas,    // draw on this then show background and this on the widget
-                        // origin: (0,0) point on canvas first shown
-            _loadedImage;   // background image loaded from disk
+    QImage  _background,    // an image for background layer
+            _loadedImage,   // background image loaded from disk, or captured screen area will be copied onto _background
+            _canvas;        // transparent layr, draw on this then show background and this on the widget
+                            // origin: (0,0) point on canvas first shown
     bool    _isBackgroundSet = false;      // an image has been loaded into _background
     bool    _fixedBackground = true; // background will not scroll with image
 
@@ -100,7 +101,8 @@ private:
     QColor _backgroundColor = Qt::white;
 
     QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin  either 0 or negative values
-            _lastPoint; // canvas relative last point drawn relative to visible image
+            _firstPointC, // canvas relative first point drawn
+            _lastPointC; // canvas relative last point drawn relative to visible image
     DrawnItem _lastDrawnItem;
     QCursor _savedCursor;
     bool _cursorSaved = false;
@@ -110,8 +112,8 @@ private:
 
     void _ClearCanvas();
 
-    void _CalcStartVector(QPoint &endpoint, int indexdOfEnDpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
-    QPoint _CorrectPoint(QPoint lastp, QPoint &newp);     // using _startVector
+    bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
+    QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
 
     void _DrawLineTo(QPoint endPoint);   // on _canvas then update
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
@@ -122,6 +124,7 @@ private:
     void _SaveCursor(QCursor newCursor);
     void _RestoreCursor();
 
+    void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
     void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, negative delta.x: scroll right
     void _ShiftAndDisplay(QPoint delta);
     void _PageUp();

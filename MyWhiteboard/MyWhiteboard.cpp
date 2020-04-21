@@ -46,8 +46,8 @@ void MyWhiteboard::RestoreState()
 
     switch (qs[0].unicode())
     {
-        case 'b': on_actionBlackMode_triggered(); break;
-        case 'd': on_actionDarkMode_triggered(); break;
+        case 'b': ui.actionBlackMode->setChecked(true);  on_actionBlackMode_triggered(); break;
+        case 'd': ui.actionDarkMode->setChecked(true); on_actionDarkMode_triggered(); break;
         case 's': // default on form
         default: break;
     }
@@ -68,6 +68,8 @@ void MyWhiteboard::RestoreState()
     qs = s.value("data", QString()).toString();
     if (!qs.isEmpty())
         _saveName = qs;      // only load on show()  _LoadData(qs);
+    _lastDir  = s.value("lastDir",  "").toString();
+    _lastFile = s.value("lastFile", "untitled.mwb").toString();
 }
 
 void MyWhiteboard::SaveState()
@@ -90,6 +92,10 @@ void MyWhiteboard::SaveState()
         s.setValue("img", _sImageName);
     if (ui.actionUndo->isEnabled() && !_saveName.isEmpty() && ui.actionSaveData->isChecked() )
         s.setValue("data", _saveName);
+    if(!_lastDir.isEmpty())
+        s.setValue("lastDir", _lastDir);
+    if(!_lastFile.isEmpty() && _lastFile != "untitled.mwb")
+        s.setValue("lastFile", _lastFile);
 }
 
 void MyWhiteboard::_CreateAndAddActions()
@@ -171,16 +177,22 @@ void MyWhiteboard::_AddSaveAsVisibleMenu()
     ui.menu_File->insertSeparator(ui.action_Print);
 }
 
-bool MyWhiteboard::_SaveIfYouWant()
+bool MyWhiteboard::_SaveIfYouWant(bool mustAsk)
 {
-    if (_drawArea->IsModified() && ui.actionSaveData->isChecked() ) 
+    if (_drawArea->IsModified() ) 
     {
         QMessageBox::StandardButton ret;
-        ret = QMessageBox::warning(this, tr("MyWhiteboard"),
-            tr("Data have been modified.\n"
-                "Do you want to save your changes?"),
-            QMessageBox::Save | QMessageBox::Discard
-            | QMessageBox::Cancel);
+        if (!ui.actionSaveData->isChecked() || mustAsk)
+        {
+            ret = QMessageBox::warning(this, tr("MyWhiteboard"),
+                tr("Data have been modified.\n"
+                    "Do you want to save your changes?"),
+                QMessageBox::Save | QMessageBox::Discard
+                | QMessageBox::Cancel);
+        }
+        else
+            ret = QMessageBox::Save;
+
         if (ret == QMessageBox::Save)
             return _SaveFile();
         else if (ret == QMessageBox::Cancel)
@@ -385,12 +397,12 @@ void MyWhiteboard::_LoadData(QString fileName)
 
 void MyWhiteboard::on_actionLoad_triggered()
 {
-    _SaveIfYouWant();
+    _SaveIfYouWant(true);   // must ask if data changed
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Load Data"), 
-                                                    QDir::currentPath(),
+                                                    _lastDir, // QDir::currentPath(),
                                                     tr("MyWhiteboard files (*.mwb);;All files (*)"));
-    _LoadData(fileName);
+    _SaveLastDirectory(fileName);
 
     if (_eraserOn)
         on_action_Eraser_triggered();
@@ -403,14 +415,25 @@ void MyWhiteboard::on_actionSave_triggered()
     else
         _SaveFile();
 }
+void MyWhiteboard::_SaveLastDirectory(QString fileName)
+{
+    if (!fileName.isEmpty())
+    {
+        _LoadData(fileName);
+        int n = fileName.lastIndexOf('/');
+        _lastDir = fileName.left(n + 1);
+        _lastFile = fileName.mid(n + 1);
+    }
+}
 
 void MyWhiteboard::on_actionSaveAs_triggered()
 {
-    QString initialPath = QDir::currentPath() + "/untitled.mwb";
+    QString initialPath = _lastDir + _lastFile; // QDir::currentPath() + "/untitled.mwb";
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
                         initialPath, tr("MyWhiteboard Files (*.mwb);; All Files (*))"));
     if (fileName.isEmpty())
         return;
+    _SaveLastDirectory(fileName);
     _saveName = fileName;
     _SaveFile();
 }
