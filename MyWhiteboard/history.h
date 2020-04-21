@@ -55,6 +55,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
     static bool IsExtension(QPoint& p, QPoint& p1, QPoint& p2 = QPoint()) // vectors p->p1 and p1->p are parallel?
     {
+        return false;
         if (p == p1)
             return true;    // nullvector may point in any direction :)
 
