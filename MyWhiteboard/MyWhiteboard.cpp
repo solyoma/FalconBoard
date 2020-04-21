@@ -182,7 +182,7 @@ bool MyWhiteboard::_SaveIfYouWant(bool mustAsk)
     if (_drawArea->IsModified() ) 
     {
         QMessageBox::StandardButton ret;
-        if (!ui.actionSaveData->isChecked() || mustAsk)
+        if (!ui.actionSaveData->isChecked() || mustAsk || _saveName.isEmpty())
         {
             ret = QMessageBox::warning(this, tr("MyWhiteboard"),
                 tr("Data have been modified.\n"
