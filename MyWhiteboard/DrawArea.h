@@ -115,7 +115,8 @@ private:
     bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
     QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
 
-    void _DrawLineTo(QPoint endPoint);   // on _canvas then update
+    bool _DrawLineTo(QPoint endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
+                                         // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
     bool _ReplotItem(const DrawnItem* pdrni);

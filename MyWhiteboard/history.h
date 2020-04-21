@@ -53,19 +53,44 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
         br = QPoint(-1, -1);
     }
 
+    static bool IsExtension(QPoint& p, QPoint& p1, QPoint& p2 = QPoint()) // vectors p->p1 and p1->p are parallel?
+    {
+        if (p == p1)
+            return true;    // nullvector may point in any direction :)
+
+        QPointF vfp = p - p1,  // not (0.0, 0.0)
+            vfpp = p1 - p2;
+
+            // the two vectors point in the same direction?
+        return (vfp.x() != 0 && vfpp.x() != 0) ? ((vfp.y() / vfp.x() - vfpp.y() / vfpp.x()) < 1e-3) :
+                    ((vfp.y() != 0 && vfpp.y() != 0) ? (abs((vfp.x() / vfp.y() - vfpp.x() / vfpp.y())) < 1e-3) :
+                        (vfp.x() == 0 && vfpp.x() == 0 && vfp.y() == 0 && vfpp.y() == 0));
+    }
+
     void add(QPoint p)
     {
-        add(p.x(), p.y());
+        if (tl.x() > p.x()) tl.setX(p.x());
+        if (tl.y() > p.y()) tl.setY(p.y());
+        if (br.x() < p.x()) br.setX(p.x());
+        if (br.y() < p.y()) br.setY(p.y());
+        int n = points.size() - 1;      // if a point just extends the line in the same direction 
+                                        // as the previoud point was from the one before it
+                                        // then do not add a new point, jast modify the coordintes
+        if(n < 0  )
+            points.push_back(p);
+        else                      // we need at least one point already in the array
+        {
+            if( (n==0 && (IsExtension(p, points[n])) ) || (n > 0 && IsExtension(p, points[n], points[n-1])) )  // then the two vector points in the same direction
+                points[n] = p;                            // so continuation
+            else
+                points.push_back(p);
+        }
     }
 
     void add(int x, int y)
     {
-        if (tl.x() > x) tl.setX(x);
-        if (tl.y() > y) tl.setY(y);
-        if (br.x() < x) br.setX(x);
-        if (br.y() < y) br.setY(y);
-
-        points.push_back(QPoint(x, y));
+        QPoint p(x, y);
+        add(p);
     }
 
     bool intersects(const QRect& rect) const
@@ -134,7 +159,14 @@ class History  // stores all drawing sections and keeps track of undo and redo
         return 0;
     }
 public:
-    void clear() { _lastItem = -1; _items.clear(); _IndicesOfClearScreen.clear(), _redoAble = false; _modified = false; }
+    void clear() 
+    { 
+        _lastItem = -1; 
+        _items.clear(); 
+        _IndicesOfClearScreen.clear();
+        _redoAble = false; 
+        _modified = false; 
+    }
     int size() const { return _items.size(); }
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian

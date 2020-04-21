@@ -206,10 +206,7 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
         }
         else
         {
-            _DrawLineTo(event->pos());
-            if (_startSet)
-                _lastDrawnItem.points[1] = _lastPointC - _topLeft;
-            else
+            if(_DrawLineTo(event->pos()) )
                 _lastDrawnItem.add(_lastPointC - _topLeft);
         }
     }
@@ -253,11 +250,6 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
             _DrawLineTo(event->pos());
 
             _history.push_back(_lastDrawnItem);
-
-// DEBUG
-qDebug("ended: count (%d)", _lastDrawnItem.points.size());
-for(int i = 0; i < _lastDrawnItem.points.size(); ++i)
-    qDebug(" %d - (%d,%d)", i, _lastDrawnItem.points[i].x(), _lastDrawnItem.points[i].y() );
 
             emit CanUndo(true);
             emit CanRedo(false);
@@ -346,8 +338,8 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                 }
                 else
                 {
-                    _DrawLineTo(event->pos());
-                    _lastDrawnItem.add(_lastPointC - _topLeft);
+                    if(_DrawLineTo(event->pos()) )
+                        _lastDrawnItem.add(_lastPointC - _topLeft);
                 }
             }
         }
@@ -392,9 +384,6 @@ void DrawArea::_InitiateDrawing(QEvent* event)
 {
     _firstPointC = _lastPointC = _pendown ? ((QTabletEvent*)event)->pos() : ((QMouseEvent*)event)->pos();
 
-    // DEBUG
-    qDebug("Initiate drawing. First point: (%d, %d)", _firstPointC.x(), _firstPointC.y());
-
     if (_spaceBarDown)      // no drawing
         return;
 
@@ -422,19 +411,20 @@ void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
         // qpC canvas relative
     if (_startSet)
     {
-        qDebug("_ModifyIfSpecialDirection  qp: (%d, %d) %s", qpC.x(), qpC.y(), (_isHorizontal ? "Horiz" : "Vert"));
         if (_isHorizontal)
             qpC.setY(_firstPointC.y());
         else
             qpC.setX(_firstPointC.x());
-        qDebug("             modified:     qp': (%d, %d)", qpC.x(), qpC.y());
     }
 }
 
 
 /*========================================================
- * TASK:    When movement is constrained to be horizontal 
- *          or vertical 
+ * TASK:    Determines whether movement should be 
+ *          constrained to be horizontal or vertical 
+ *          and if so does not allow drawing until
+ *          the next point is at list 5 points from the first one
+ *          allows drawing in any other case
  * PARAMS:  newEndPoint is canvas relative
  * GLOBALS:
  * RETURNS: true : if is allowed to save 'newEndPointC'
@@ -442,8 +432,6 @@ void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
  *              yet in which direction
  * REMARKS: - Expects _lastDrawnItem to contain at least 
  *              two points
- *          - when movement is constrained leave only
- *              two points in _lastDrawnItem
  *          - without contraint does not modify newEndPoint
  *              and always returns true
  *-------------------------------------------------------*/
@@ -461,28 +449,16 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
         if (dx < 5 && dy < 5)
             return false;
 
-        if (dx > dy && dy < 5)
+        if (dx > dy)
             _isHorizontal = true;
-        else if (dy > dx && dx < 5)
+        else if (dy > dx)
             _isHorizontal = false;
         _startSet = true;
         // replace most points keeping only the first, and the last
 
         _ModifyIfSpecialDirection(_lastPointC);
         _ModifyIfSpecialDirection(newEndPointC);
-// DEBUG
-        qDebug("_CanSavePoint");
-        for (int i = 0; i < _lastDrawnItem.points.size(); ++i)
-            qDebug(" %d - (%d,%d)", i, _lastDrawnItem.points[i].x(), _lastDrawnItem.points[i].y());
-// /DEBUG
-        _lastDrawnItem.points.clear();
-        _lastDrawnItem.points.push_back(_firstPointC - _topLeft);              // no other points are necessary
-        _lastDrawnItem.points.push_back(newEndPointC - _topLeft);    // no other points are necessary
     }
-// DEBUG
-    if(!_startSet)
-        qDebug("_CanSavePoint allows drawing");
-// /DEBUG
     return true;
 }
 
@@ -494,15 +470,8 @@ QPoint DrawArea::_CorrectForDirection(QPoint &newpC)     // newpC canvas relativ
             newpC.setY(_firstPointC.y());
         else
             newpC.setX(_firstPointC.x());
-
-// DEBUG
-        if (_lastDrawnItem.points.size() < 2)
-            qDebug("Error: _lastDrawnItem size is 1");
-else
-// /DEBUG            
-            // there are only two elements in _lastDrawnItem
-        _lastDrawnItem.points[1] = _lastPointC - _topLeft;    // no other points are necessary
     }
+
     return newpC;
 }
 
@@ -510,8 +479,9 @@ else
  * TASK:    Draw line from '_lastPointC' to 'endPointC'
  * PARAMS:  endpointC : clanvas relative coordinate
  * GLOBALS:
- * RETURNS: nothing
- * REMARKS: - save _lastPointC before calling this function
+ * RETURNS: if the line was drawn and you must save _lastPointC
+ *          false otherwise
+ * REMARKS: - save _lastPointC after calling this function
  *              during user drawing
  *          - sets the new actual canvas relative position
  *            in '_lastPointC
@@ -520,12 +490,11 @@ else
  *          - when _shiftKeyDown 
  *              does not draw the point until a direction 
  *                  was established
- *              if direction is established modifies 
- *                  _lastDrawnItem.points[1]
- *-------------------------------------------------------*/
-void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
+  *-------------------------------------------------------*/
+bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
 {
-    if (_CanSavePoint(endPointC))     // i.e. must save point
+    bool result;
+    if ( (result=_CanSavePoint(endPointC)) )     // i.e. must save point
     {
         _CorrectForDirection(endPointC); // when _startSet leaves only one coord moving
                 // draw the line
@@ -535,14 +504,12 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
         if (_erasemode)
             painter.setCompositionMode(QPainter::CompositionMode_Clear);
         painter.drawLine(_lastPointC, endPointC);
-// DEBUG
-        qDebug("DrawLine: (%d, %d) => (%d, %d)", _lastPointC.x(), _lastPointC.y(), endPointC.x(), endPointC.y());
-// /DEBUG
         int rad = (_actPenWidth / 2) + 2;
         update(QRect(_lastPointC, endPointC).normalized()
             .adjusted(-rad, -rad, +rad, +rad));
     }
     _lastPointC = endPointC;
+    return result;
 }
 
 void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTransparent)

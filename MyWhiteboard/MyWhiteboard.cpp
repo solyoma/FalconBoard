@@ -35,10 +35,6 @@ void MyWhiteboard::RestoreState()
     restoreGeometry(s.value("geometry").toByteArray());
     restoreState(s.value("windowState").toByteArray());
 
-    //  DEBUG
-//    QRect rect = geometry();
-    // /DEBUG
-
     QString qs = s.value("version", sVersion).toString();
     if (qs != sVersion)
         return;
@@ -75,9 +71,6 @@ void MyWhiteboard::RestoreState()
 void MyWhiteboard::SaveState()
 {
     QSettings s("MyWhiteboard.ini",QSettings::IniFormat);
-//  DEBUG
-//    QRect rect = geometry();
-// /DEBUG
 
     s.setValue("geometry", saveGeometry());
     s.setValue("windowState", saveState());
@@ -88,13 +81,13 @@ void MyWhiteboard::SaveState()
     s.setValue("esize", _eraserWidth);
     s.setValue("saved", ui.actionSaveData->isChecked());
     s.setValue("saveb", ui.actionSaveBackgroundImage->isChecked());
-    if (!_sImageName.isEmpty() && ui.actionSaveBackgroundImage->isChecked())
+    if (/* !_sImageName.isEmpty() &&*/ ui.actionSaveBackgroundImage->isChecked())
         s.setValue("img", _sImageName);
-    if (ui.actionUndo->isEnabled() && !_saveName.isEmpty() && ui.actionSaveData->isChecked() )
+    if (ui.actionUndo->isEnabled() /* && !_saveName.isEmpty()*/ && ui.actionSaveData->isChecked() )
         s.setValue("data", _saveName);
-    if(!_lastDir.isEmpty())
+/*    if(!_lastDir.isEmpty()) */
         s.setValue("lastDir", _lastDir);
-    if(!_lastFile.isEmpty() && _lastFile != "untitled.mwb")
+/*    if(!_lastFile.isEmpty() && _lastFile != "untitled.mwb")*/
         s.setValue("lastFile", _lastFile);
 }
 
@@ -194,7 +187,12 @@ bool MyWhiteboard::_SaveIfYouWant(bool mustAsk)
             ret = QMessageBox::Save;
 
         if (ret == QMessageBox::Save)
-            return _SaveFile();
+        {
+            if (_saveName.isEmpty())
+                on_actionSaveAs_triggered();
+            else 
+                return _SaveFile();
+        }
         else if (ret == QMessageBox::Cancel)
             return false;
     }
@@ -419,7 +417,6 @@ void MyWhiteboard::_SaveLastDirectory(QString fileName)
 {
     if (!fileName.isEmpty())
     {
-        _LoadData(fileName);
         int n = fileName.lastIndexOf('/');
         _lastDir = fileName.left(n + 1);
         _lastFile = fileName.mid(n + 1);
