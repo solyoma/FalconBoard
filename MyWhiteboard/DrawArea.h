@@ -49,6 +49,7 @@ signals:
     void CanRedo (bool  state);   // state: true -> can redo
     void WantFocus();
     void PointerTypeChange(QTabletEvent::PointerType pt);
+    void TextToToolbar(QString text);
 
 public slots:
     void NewData();
@@ -125,7 +126,7 @@ private:
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
-    bool _ReplotItem(const DrawnItem* pdrni);
+    bool _ReplotItem(HistoryItem* pdrni); 
     void _Redraw();
     QColor _PenColor() const;
     void _SaveCursor(QCursor newCursor);
@@ -142,4 +143,6 @@ private:
     void _Down();
     void _Left();
     void _Right();
+
+    void ShowCoordinates(QPoint& qp);
 };

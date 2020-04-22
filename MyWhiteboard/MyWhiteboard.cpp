@@ -150,13 +150,18 @@ void MyWhiteboard::_CreateAndAddActions()
 
     ui.mainToolBar->addSeparator();
     ui.mainToolBar->addAction(ui.action_Screenshot);
-        // more than one valueChanged() function exists
+
+    ui.mainToolBar->addSeparator();
+    _plblMsg = new QLabel();
+    ui.mainToolBar->addWidget(_plblMsg);
+
+    // more than one valueChanged() function exists
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &MyWhiteboard::slotPenWidthChanged);
 
     connect(_drawArea, &DrawArea::CanUndo, this, &MyWhiteboard::SlotForUndo);
     connect(_drawArea, &DrawArea::CanRedo, this, &MyWhiteboard::SlotForRedo);
     connect(_drawArea, &DrawArea::WantFocus, this, &MyWhiteboard::SlotForFocus);
-
+    connect(_drawArea, &DrawArea::TextToToolbar, this, &MyWhiteboard::SlotForLabel);
 
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
 }
@@ -634,4 +639,9 @@ void MyWhiteboard::SlotForScreenShotCancelled()
     _ConnectDisconnectScreenshotLabel(false);
     delete plblScreen;
     plblScreen = nullptr;
+}
+
+void MyWhiteboard::SlotForLabel(QString text)
+{
+    _plblMsg->setText(text);
 }

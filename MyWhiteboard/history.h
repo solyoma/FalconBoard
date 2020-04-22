@@ -4,12 +4,15 @@
 #include <QDataStream>
 #include <QIODevice>
 
-enum HistEvent { heScribble,        // series of points from start to finish of scribble
-                 heEraser,          // eraser used
-                 heVisibleCleared,  // visible image erased
-                 heCanvasMoved,     // canvas moved: new top left coordinates in points[0]
-                 heImageLoaded,     // an image loaded into _background
-                 heItemsDeleted     // store the list of items deleted in this event
+enum HistEvent {
+    heNone,
+    heScribble,        // series of points from start to finish of scribble
+    heEraser,          // eraser used
+    heVisibleCleared,  // visible image erased
+    heCanvasMoved,     // canvas moved: new top left coordinates in points[0]
+    heBackgroundLoaded,     // an image loaded into _background
+    heBackgroundUnloaded,   // image unloaded from background
+    heItemsDeleted     // store the list of items deleted in this event
                 };
 enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser };
 
@@ -40,7 +43,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
         return *this;
     }
 
-    HistEvent histEvent = heScribble;
+    HistEvent histEvent = heVisibleCleared;
     bool isDeleted = false;
 
     MyPenKind penKind = penBlack;
@@ -133,61 +136,153 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 }
 
 
+/*========================================================
+ * One history element
+ *-------------------------------------------------------*/
+struct HistoryItem
+{
+    HistEvent histEvent = heNone;
+    int drawnIndex = -1;                // index in '_drawnItems'
+    QRect deleteRect;                   // all scribbles to delete are inside this rectangle
+    QVector<int> deletedList;           // indices into History::_dranIitems of deleted 
+    QString sBackgroundImageName;       // heBackgroundLoaded
+    bool isSaveable = false;            // can be saved into file (scriible and erase only?
+    bool processed = false;             // e.g. a delete was already processed
 
+    HistoryItem() {}
+    HistoryItem(const HistoryItem & other) { *this = other;  }
+    HistoryItem(const HistoryItem && other) { *this = other; }
+    HistoryItem& HistoryItem::operator=(const HistoryItem& other) 
+    { 
+        histEvent   = other.histEvent;
+        drawnIndex  = other.drawnIndex;
+        deleteRect  = other.deleteRect;
+        deletedList = other.deletedList;
+        isSaveable  = other.isSaveable;
+        sBackgroundImageName = other.sBackgroundImageName;
+        return *this;
+    }
+    HistoryItem& HistoryItem::operator=(const HistoryItem&& other)
+    {
+        histEvent = other.histEvent;
+        drawnIndex = other.drawnIndex;
+        deleteRect = other.deleteRect;
+        deletedList = other.deletedList;
+        isSaveable = other.isSaveable;
+        sBackgroundImageName = other.sBackgroundImageName;
+        return *this;
+    }
+
+
+    void clear()
+    {
+        deletedList.clear();
+        sBackgroundImageName.clear();
+        histEvent = heNone;
+        drawnIndex = -1;
+    }
+    void SetEvent(HistEvent he)
+    {
+        histEvent = he;
+        isSaveable = (he == heScribble || he == heEraser);
+        deletedList.clear();
+    }
+};
 
 
 /*========================================================
  * Class for storing history of editing
  *  contains a list of items drawn on screen, 
  *      screen deletion, item deleteion, canvas movement
- * GLOBALS:
- * RETURNS:
- * REMARKS: -
+ *  contains 
+ *      list of history item
+ *      list of drawn objects
+ *           later history items point to later 'drawnList' items
+ *           then earlier history items!
+ *
+ *      list of screen clearing event indices
+ *      _lastItem: index of the the last history item adedd
+ *          new items are added after this index
+ *          during undo: this index is decreased, at redo 
+ *              it is increased
+ *          if a new item is added after an undo it will be inserted
+ *              after this position i.e. other existing items in
+ *              '_items' will be invalid, similarly all items put
+ *              into '_drawnItems' will also be invalid
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    DrawnItem _clearItem;
+    HistoryItem     _historyItem;       // used internally for non drawable elements
 
-    QVector<DrawnItem> _items;
-    QVector<int> _nSelectedItems;   // indices into _items, set when we want to delete a bunch of items at once
+    QVector<HistoryItem> _items;
 
-    int _index = -1;        // start writing undo records from here
-    int _lastItem = -1;   // index of last item drawn on screen -1: no such item
-                         // next line will be added at index (lastItem+1)
-                         // when smaller than items.size()-1 and no new section is added
-                         // then redu is possible starting at (lastItem+1)
-                         // when new sectiom added after an undo it cannot be re-done
-                         // and further UNDOs can't recreate the lines lost this way
+    QVector<DrawnItem> _drawnItems;     // all items drawn on screen
+    QVector<int> _nSelectedItems;       // indices into '_drawnItems', set when we want to delete a bunch of items at once
+
+    QRect _selectionRect;               // select items completely inside this rectangle
+
     bool _modified = false;
 
-    QVector<int> _IndicesOfClearScreen;  // stores index positions wher the screen was cleared
-                                        // start drawing for undo from the last element of this
-                                        // which is smaller than or equal to 'lastItem'
+    int _index = -1;            // start writing undo records from here
+
+    int _lastItem = -1;         // in _items, index of last history item, -1: no such item
+    int _lastDrawnIndex = -1;   // in _drawnItems
 
     bool _redoAble = false;      // set to true if no new drawing occured after an undo
 
-    int _GetStartIndex()
+    int _GetStartIndex()        // find first drawable item in '_items' after a clear screen 
     {
         if (_lastItem < 0)
             return -1;
 
-        for (int i = _IndicesOfClearScreen.size() - 1; i >= 0; --i)
-            if (_IndicesOfClearScreen[i] < _lastItem)
-                return i;
+        int i = _lastItem;
+        for (; i >= 0; --i)
+            if (_items[i].histEvent == heVisibleCleared)
+                return i + 1;
+            // there were no iems to show
         return 0;
     }
+
+    inline bool _ValidDrawable(int index, bool* isClearEvent = nullptr)
+    {
+        const HistoryItem& item = _items[index];
+        return ValidDrawable(item, isClearEvent);
+
+    }
+
+    DrawnItem* _DrawnItemFor(int index)
+    {
+        const HistoryItem& item = _items[index];
+        DrawnItem clearItem;            // for clear screen items
+
+        bool isClear;
+        if (ValidDrawable(item, &isClear))
+            return &_drawnItems[item.drawnIndex];
+
+        return item.histEvent == heVisibleCleared ? &clearItem : nullptr;
+    }
+
+    bool _IsSaveable(const HistoryItem &item) const
+    {
+        return item.isSaveable ? (item.isSaveable && &_drawnItems[item.drawnIndex].isDeleted) : false;
+    }
+    bool _IsSaveable(int i) const
+    {
+        return _IsSaveable(_items[i]);
+    }
 public:
-    void clear() 
-    { 
-        _lastItem = -1; 
-        _items.clear(); 
-        _IndicesOfClearScreen.clear();
-        _redoAble = false; 
-        _modified = false; 
+    void clear()
+    {
+        _lastItem = -1;
+        _items.clear();
+        _drawnItems.clear();
+        _redoAble = false;
+        _modified = false;
     }
     int size() const { return _items.size(); }
 
-    const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian
+    const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
+
     bool Save(QString name)
     {
         QFile f(name);
@@ -198,15 +293,16 @@ public:
 
         QDataStream ofs(&f);
         ofs << MAGIC_ID;
-        for (int i =0; i <= _lastItem; ++i) 
-        {   
+           // only save after last clear screen op.
+        for (int i = _GetStartIndex(); i <= _lastItem; ++i)
+        {
             auto dt = _items[i];
             // do not save canvas movement or background image events
             if (ofs.status() != QDataStream::Ok)
                 return false;
 
-            if (dt.histEvent == heScribble || dt.histEvent == heVisibleCleared)
-                ofs << dt;
+            if (_IsSaveable(dt) )
+                ofs << _drawnItems[dt.drawnIndex];
         }
         _modified = false;
         return true;
@@ -216,8 +312,8 @@ public:
     {
         QFile f(name);
         f.open(QIODevice::ReadOnly);
-        if (!f.isOpen())    
-            return - 1;
+        if (!f.isOpen())
+            return -1;
 
         QDataStream ifs(&f);
         qint32 id;
@@ -226,7 +322,8 @@ public:
             return 0;
 
         _items.clear();
-        _IndicesOfClearScreen.clear();
+        _drawnItems.clear();
+
         DrawnItem di;
         int i = 0;
         while (!ifs.atEnd())
@@ -235,36 +332,73 @@ public:
             if (ifs.status() != QDataStream::Ok)
                 return -_items.size() - 1;
 
-            if (di.histEvent == heVisibleCleared)
-                _IndicesOfClearScreen.push_back(i);
             ++i;
-            _items.push_back(di);
+            // DEBUG
+            //di.histEvent = (HistEvent)(((int)di.histEvent) + 1);
+            // /DEBUG            
+
+
+            push_back(di);
         }
         _modified = false;
-        return _lastItem =_items.size()-1;
+        return _lastItem = _items.size() - 1;
     }
 
     bool IsModified() const { return _modified; }
-    bool CanUndo() const { 
-        return _lastItem >= 0; 
-    }
+    bool CanUndo() const { return _lastItem >= 0; }
     bool CanRedo() const { return _redoAble; }
 
-    void push_back(DrawnItem itm)
+    void push_back(DrawnItem itm)           // and save it in history too
     {
+        // sav drawn item
         _redoAble = false;
-        if (++_lastItem == _items.size())
-            _items.push_back(itm);
+        if (++_lastDrawnIndex == _drawnItems.size())
+            _drawnItems.push_back(itm);
         else
-            _items[_lastItem] = itm;
+            _drawnItems[_lastDrawnIndex] = itm;
+
+        _historyItem.SetEvent(itm.histEvent); // scribble or eraser
+        _historyItem.drawnIndex = _lastDrawnIndex;
+        _historyItem.processed = false;
+        add(_historyItem);
+    }
+
+    void add(HistoryItem& hi)
+    {
+        if (++_lastItem == _items.size())
+            _items.push_back(hi);
+        else
+            _items[_lastItem] = hi;
         _modified = true;
     }
 
-    void ClearScreen() { push_back(_clearItem); }
-
-    void SetFirstItemToDraw()
+    void ClearScreen()
     {
-        _index = _GetStartIndex();    // sets _index to first item after last clear screen
+        _historyItem.SetEvent(heVisibleCleared);
+        add(_historyItem);
+    }
+
+    bool ValidDrawable(const HistoryItem& item, bool* isClearEvent = nullptr)
+    {
+        bool res = _IsSaveable(item);
+        if (isClearEvent)
+            *isClearEvent = (item.histEvent == heVisibleCleared); // still may be not drawable
+
+        return res;
+    }
+    DrawnItem* DrawableFor(HistoryItem& item)
+    {
+        return &_drawnItems[item.drawnIndex];
+    }
+
+    DrawnItem* DrawnItemAt(int index)
+    {
+        return &_drawnItems[index];
+    }
+
+    int SetFirstItemToDraw()
+    {
+        return _index = _GetStartIndex();    // sets _index to first item after last clear screen
     }
 
     void BeginUndo()        // set position back one section
@@ -272,21 +406,26 @@ public:
         if (_lastItem >= 0)
         {
             _index = _GetStartIndex();
-            _redoAble = true;
+                // if the last step was a deletion first redo that
+            if (_items[_lastItem].histEvent == heItemsDeleted)
+                UnDeleteItemsFor(_items[_lastItem]);
             --_lastItem;
+
+            _redoAble = true;
             _modified = true;
         }
         else
             _redoAble = false;
     }
-    const DrawnItem* GetOneStep()
+    HistoryItem* GetOneStep()
     {
         if (_lastItem < 0 || _index > _lastItem)
             return nullptr;
-        return &_items[_index++];
+
+        return  &_items[_index++];
     }
 
-    const DrawnItem* Redo()   // returns item to redo
+    HistoryItem* Redo()   // returns item to redo
     {
         if (!_redoAble)
             return nullptr;
@@ -295,38 +434,67 @@ public:
             _redoAble = false;
             return nullptr;
         }
-        const DrawnItem* pdrni = &_items[++_lastItem];
+
+        HistoryItem* phi = &_items[++_lastItem];
         _redoAble = _lastItem < _items.size() - 1;
-        if(!_redoAble)
+        if (!_redoAble)
             _modified = false;
 
-        return pdrni;
+        return phi;
     }
 
     int CollectItemsInside(QRect rect)
     {
+        _selectionRect = rect;
+
         _nSelectedItems.clear();
-        for (int i=0; i < _items.size(); ++i)
+            // just check scribbles after the last clear screen
+        for(int i = _GetStartIndex(); i < _lastItem; ++i)
         {
-            if (rect.contains(QRect(_items[i].tl, _items[i].br), true))
-                _nSelectedItems.push_back(i);
+            const HistoryItem& item = _items[i];
+            if (ValidDrawable(item) && (rect.contains(QRect(_drawnItems[item.drawnIndex].tl, _drawnItems[item.drawnIndex].br), true)))
+                _nSelectedItems.push_back(item.drawnIndex); // index in _drawnItemList
         }
         return _nSelectedItems.size();
     }
 
-    void DeleteItemsInList()
+    void HideDeletedItems(HistoryItem *phi = nullptr) // phi points inside _items
     {
-        if (_nSelectedItems.isEmpty())
+        if (phi && phi->processed)
             return;
-        QVector<DrawnItem>::iterator itB = _items.begin()+ _nSelectedItems[0],
-             itE = _items.begin() + _nSelectedItems[_nSelectedItems.size()-1] + 1;
-        _items.erase(itB, itE);
-        if (_lastItem >= _items.size())
-            _lastItem = _items.size() - 1;
-        if (_lastItem > _nSelectedItems[0] && _lastItem < _items.size()) // inside
-            _lastItem = _nSelectedItems[0];
-        _nSelectedItems.clear();
+
+        bool newData; 
+        newData = phi == nullptr;
+
+        if (newData)     // then new history item
+        {
+            _historyItem.SetEvent(heItemsDeleted);  // clears deletedList
+            _historyItem.deletedList = _nSelectedItems;
+            _historyItem.deleteRect = _selectionRect;
+            phi = &_historyItem;
+
+            if (_nSelectedItems.isEmpty())          // and do not add it to list
+                return;
+        }
+                                                   // else it was set into phi already
+        for (int i : phi->deletedList)              // mark elements
+            _drawnItems[i].isDeleted = true;
+
+        if (newData)
+        {
+            _historyItem.processed = true;
+            add(_historyItem);
+            _nSelectedItems.clear();
+        }
+        else
+            phi->processed = true;
+    }
+
+    void UnDeleteItemsFor(HistoryItem &hi)
+    {
+        for (int i : hi.deletedList)
+            _drawnItems[i].isDeleted = false;
+
+        hi.processed = false;
     }
 };
-
-

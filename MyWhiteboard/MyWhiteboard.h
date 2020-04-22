@@ -76,6 +76,8 @@ private slots:
 	void SlotForScreenshotReady(QRect geometry);
 	void SlotForScreenShotCancelled();
 
+	void SlotForLabel(QString text);
+
 private:
 	Ui::MyWhiteboardClass ui;
 
@@ -92,7 +94,9 @@ private:
 	QByteArray _fileFormat = "png";
 
 	DrawArea * _drawArea;
-	QSpinBox * _psbPenWidth = nullptr;
+	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
+	QLabel* _plblMsg = nullptr;			// -" -
+
 	QList<QAction*> _saveAsActs;
 	QActionGroup* _penGroup, *_modeGroup;
 

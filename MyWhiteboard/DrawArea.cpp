@@ -134,15 +134,17 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         if (_rubberBand)    // felet rubberband for any keypress
         {
             if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace)
-			{
-                if (_history.CollectItemsInside(_rubberRect))
+            {
+                _RemoveRubberBand();
+                if (_history.CollectItemsInside(_rubberRect.translated(-_topLeft)))
                 {
-                    _history.DeleteItemsInList();
+                    _history.HideDeletedItems();
                     _ClearCanvas();
                     _Redraw();
                 }
             }
-			_RemoveRubberBand();            
+            else
+                _RemoveRubberBand();
         }
         else
         {
@@ -213,6 +215,7 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
 
 void DrawArea::mouseMoveEvent(QMouseEvent* event)
 {
+    ShowCoordinates(event->pos());
     if ((event->buttons() & Qt::LeftButton) && _scribbling)
     {
         QPoint  dr = (event->pos() - _lastPointC);   // displacement vector
@@ -292,11 +295,7 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
         if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
             _rubberRect = _rubberBand->geometry();
         else
-        {
-            _rubberBand->hide();
-            delete _rubberBand;
-            _rubberBand = nullptr;
-        }
+            _RemoveRubberBand();
         event->accept();
     }
 }
@@ -411,10 +410,12 @@ void DrawArea::tabletEvent(QTabletEvent* event)
 
 void DrawArea::_RemoveRubberBand()
 {
-    _rubberBand->hide();
-    delete _rubberBand;
-    _rubberBand = nullptr;
-
+    if (_rubberBand)
+    {
+        _rubberBand->hide();
+        delete _rubberBand;
+        _rubberBand = nullptr;
+    }
 }
 
 /*========================================================
@@ -653,30 +654,60 @@ void DrawArea::_RestoreCursor()
     }
 }
 
-bool DrawArea::_ReplotItem(const DrawnItem* pdrni)
+bool DrawArea::_ReplotItem(HistoryItem* phi)
 {
-    if (!pdrni)
+    if (!phi)
         return false;
 
-    QRect r;
-    switch(pdrni->histEvent)
+    static int lastItemDrawn = -1;  // used with undelete: print items until this index
+
+    DrawnItem* pdrni;     // used when we must draw something onto the screen
+    QRect r;                    // but only if it intersects with this
+
+    auto plot = [&]()   // lambda to plot point pointed by pdrni
+                {
+        if (pdrni->isDeleted || !pdrni->intersects(r))    // if the canvas rectangle has no intersection with 
+            return;                   // the scribble
+
+        _lastPointC = pdrni->points[0] + _topLeft;
+        _myPenKind = pdrni->penKind;
+        _actPenWidth = pdrni->penWidth;
+        _erasemode = pdrni->histEvent == heEraser ? true : false;
+        for (int i = 1; i < pdrni->points.size(); ++i)
+            _DrawLineTo(pdrni->points[i] + _topLeft);
+    };
+
+    switch(phi->histEvent)
     {
         case heScribble:
         case heEraser:    // else clear screen, move, etc
-            r = geometry();
-            r = r.translated(-_topLeft).marginsAdded(QMargins(r.width(), r.height(), r.width(),r.height()));
-            if (!pdrni->intersects(r))    // the canvas rectangle has no intersection with 
-                break;                    // the scribble
+            r = QRect(0,0, geometry().width(), geometry().height() );
+            r = r.translated(-_topLeft);
+// DEBUG
+//            r = r.marginsAdded(QMargins(200,200,200,200)); // ????
+// /DEBUG            
 
-            _lastPointC = pdrni->points[0] + _topLeft; 
-            _myPenKind = pdrni->penKind;
-            _actPenWidth = pdrni->penWidth;
-            _erasemode = pdrni->histEvent == heEraser ? true : false;
-            for (int i = 1; i < pdrni->points.size(); ++i)
-                _DrawLineTo(pdrni->points[i] + _topLeft);
+            lastItemDrawn = phi->drawnIndex;    // saved for plotting undeleted items
+
+            pdrni = _history.DrawableFor(*phi);
+
+            plot();
+
             break;
         case heVisibleCleared:
             _ClearCanvas();
+            break;
+        case heItemsDeleted:    // delete and redraw all visible scribbles from the beginning without going through the HistoryItem List
+            if (!phi->processed)
+            {
+                _history.HideDeletedItems(phi);
+                _ClearCanvas();
+                for (int i = _history.SetFirstItemToDraw(); i <= lastItemDrawn; ++i)
+                {
+                    pdrni = _history.DrawnItemAt(i);
+                    plot();
+                }
+            }
             break;
         default:
             break;
@@ -690,7 +721,7 @@ void DrawArea::Undo()
     if (_history.CanUndo())
     {
         _ClearCanvas();
-        _history.BeginUndo();
+        _history.BeginUndo();  // undelete items deleted before the last item
         while(_ReplotItem(_history.GetOneStep()) )
             ;
 
@@ -741,6 +772,8 @@ void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, negative
         o.setY(0);
 
     _topLeft = o;
+
+    emit TextToToolbar(QString("top left: (%1, %2)").arg(_topLeft.x()).arg(_topLeft.y()));
 }
 void DrawArea::_ShiftAndDisplay(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
 {
@@ -787,4 +820,9 @@ void DrawArea::_Right()
 {
     QPoint pt(-10, 0);
     _ShiftAndDisplay(pt);
+}
+
+void DrawArea::ShowCoordinates(QPoint& qp)
+{
+    emit TextToToolbar(QString("(%1, %2)").arg(qp.x()).arg(qp.y()));
 }
