@@ -321,7 +321,7 @@ public:
         QVector<DrawnItem>::iterator itB = _items.begin()+ _nSelectedItems[0],
              itE = _items.begin() + _nSelectedItems[_nSelectedItems.size()-1] + 1;
         _items.erase(itB, itE);
-        if (_lastItem > _items.size())
+        if (_lastItem >= _items.size())
             _lastItem = _items.size() - 1;
         if (_lastItem > _nSelectedItems[0] && _lastItem < _items.size()) // inside
             _lastItem = _nSelectedItems[0];
