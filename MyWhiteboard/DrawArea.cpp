@@ -131,25 +131,38 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
     }
     else if (event->spontaneous())
     {
-        if (!event->isAutoRepeat())
+        if (_rubberBand)    // felet rubberband for any keypress
         {
-            if (event->key() == Qt::Key_PageUp)
-                _PageUp();
-            else  if (event->key() == Qt::Key_PageDown)
-                _PageDown();
-            else  if (event->key() == Qt::Key_Home)
-                _Home();
-            else if (event->key() == Qt::Key_Shift)
-                _shiftKeyDown = true;
+            if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace)
+			{
+                if (_history.CollectItemsInside(_rubberRect))
+                {
+                    _history.DeleteItemsInList();
+                    _ClearCanvas();
+                    _Redraw();
+                }
+            }
+			_RemoveRubberBand();            
         }
-        if (event->key() == Qt::Key_Up)
-            _Up();
-        else if (event->key() == Qt::Key_Down)
-            _Down();
-        else if (event->key() == Qt::Key_Left)
-            _Left();
-        else if (event->key() == Qt::Key_Right)
-            _Right();
+        else
+        {
+			if (event->key() == Qt::Key_PageUp)
+				_PageUp();
+			else  if (event->key() == Qt::Key_PageDown)
+				_PageDown();
+			else  if (event->key() == Qt::Key_Home)
+				_Home();
+			else if (event->key() == Qt::Key_Shift)
+				_shiftKeyDown = true;
+			if (event->key() == Qt::Key_Up)
+				_Up();
+			else if (event->key() == Qt::Key_Down)
+				_Down();
+			else if (event->key() == Qt::Key_Left)
+				_Left();
+			else if (event->key() == Qt::Key_Right)
+				_Right();
+		}
     }
 }
 
@@ -186,6 +199,15 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
         _scribbling = true;
         _InitiateDrawing(event);
     }
+    else if (event->button() == Qt::RightButton)
+    {
+        _rubber_origin = event->pos();
+        if (!_rubberBand)
+            _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+        _rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
+        _rubberBand->show();
+    }
+
     emit WantFocus();
 }
 
@@ -209,6 +231,11 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
             if(_DrawLineTo(event->pos()) )
                 _lastDrawnItem.add(_lastPointC - _topLeft);
         }
+    }
+    else if ((event->buttons() & Qt::RightButton) && _rubberBand)
+    {
+        QPoint pos = event->pos();
+        _rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
     }
 }
 
@@ -259,6 +286,18 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 
         _scribbling = false;
         _startSet = false;
+    }
+    else if (_rubberBand)
+    {
+        if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
+            _rubberRect = _rubberBand->geometry();
+        else
+        {
+            _rubberBand->hide();
+            delete _rubberBand;
+            _rubberBand = nullptr;
+        }
+        event->accept();
     }
 }
 
@@ -368,6 +407,14 @@ void DrawArea::tabletEvent(QTabletEvent* event)
         event->ignore();
         break;
     }
+}
+
+void DrawArea::_RemoveRubberBand()
+{
+    _rubberBand->hide();
+    delete _rubberBand;
+    _rubberBand = nullptr;
+
 }
 
 /*========================================================

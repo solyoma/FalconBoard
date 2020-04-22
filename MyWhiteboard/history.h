@@ -8,7 +8,8 @@ enum HistEvent { heScribble,        // series of points from start to finish of 
                  heEraser,          // eraser used
                  heVisibleCleared,  // visible image erased
                  heCanvasMoved,     // canvas moved: new top left coordinates in points[0]
-                 heImageLoaded      // an image loaded into _background
+                 heImageLoaded,     // an image loaded into _background
+                 heItemsDeleted     // store the list of items deleted in this event
                 };
 enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser };
 
@@ -40,6 +41,8 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     }
 
     HistEvent histEvent = heScribble;
+    bool isDeleted = false;
+
     MyPenKind penKind = penBlack;
     int penWidth;
     QVector<QPoint> points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
@@ -129,11 +132,25 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
     return ifs;
 }
 
+
+
+
+
+/*========================================================
+ * Class for storing history of editing
+ *  contains a list of items drawn on screen, 
+ *      screen deletion, item deleteion, canvas movement
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
     DrawnItem _clearItem;
 
     QVector<DrawnItem> _items;
+    QVector<int> _nSelectedItems;   // indices into _items, set when we want to delete a bunch of items at once
+
     int _index = -1;        // start writing undo records from here
     int _lastItem = -1;   // index of last item drawn on screen -1: no such item
                          // next line will be added at index (lastItem+1)
@@ -284,6 +301,31 @@ public:
             _modified = false;
 
         return pdrni;
+    }
+
+    int CollectItemsInside(QRect rect)
+    {
+        _nSelectedItems.clear();
+        for (int i=0; i < _items.size(); ++i)
+        {
+            if (rect.contains(QRect(_items[i].tl, _items[i].br), true))
+                _nSelectedItems.push_back(i);
+        }
+        return _nSelectedItems.size();
+    }
+
+    void DeleteItemsInList()
+    {
+        if (_nSelectedItems.isEmpty())
+            return;
+        QVector<DrawnItem>::iterator itB = _items.begin()+ _nSelectedItems[0],
+             itE = _items.begin() + _nSelectedItems[_nSelectedItems.size()-1] + 1;
+        _items.erase(itB, itE);
+        if (_lastItem > _items.size())
+            _lastItem = _items.size() - 1;
+        if (_lastItem > _nSelectedItems[0] && _lastItem < _items.size()) // inside
+            _lastItem = _nSelectedItems[0];
+        _nSelectedItems.clear();
     }
 };
 

@@ -5,6 +5,7 @@
 #include <QBitmap>
 #include <QPoint>
 #include <QWidget>
+#include <QRubberBand>
 #include <QTabletEvent>
 
 #include "history.h"
@@ -107,6 +108,11 @@ private:
     QCursor _savedCursor;
     bool _cursorSaved = false;
     History _history;
+
+    QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
+    QPoint   _rubber_origin;
+    QRect   _rubberRect;        // used to select histoy items
+    void  _RemoveRubberBand();
 
     void _InitiateDrawing(QEvent* event);
 
