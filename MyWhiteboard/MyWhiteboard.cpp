@@ -406,6 +406,7 @@ void MyWhiteboard::on_actionLoad_triggered()
                                                     _lastDir, // QDir::currentPath(),
                                                     tr("MyWhiteboard files (*.mwb);;All files (*)"));
     _SaveLastDirectory(fileName);
+    _LoadData(fileName);
 
     if (_eraserOn)
         on_action_Eraser_triggered();

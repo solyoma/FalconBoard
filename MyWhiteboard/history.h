@@ -274,6 +274,7 @@ public:
     void clear()
     {
         _lastItem = -1;
+        _lastDrawnIndex = -1;
         _items.clear();
         _drawnItems.clear();
         _redoAble = false;
@@ -323,6 +324,8 @@ public:
 
         _items.clear();
         _drawnItems.clear();
+        _lastItem = -1;
+        _lastDrawnIndex = -1;
 
         DrawnItem di;
         int i = 0;
