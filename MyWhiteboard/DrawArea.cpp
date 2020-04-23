@@ -485,7 +485,7 @@ void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
  *-------------------------------------------------------*/
 bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to canvas, not _topLeft
 {
-    if (!_startSet && _shiftKeyDown)
+    if (!_startSet && _shiftKeyDown && (_pendown || _scribbling))
     {
         int x0 = _firstPointC.x(),    // relative to canvas
             y0 = _firstPointC.y(),
@@ -512,7 +512,7 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
 
 QPoint DrawArea::_CorrectForDirection(QPoint &newpC)     // newpC canvas relative
 {
-    if (_startSet)  // then _lastDrawnItem only contains 2 points!
+    if (_startSet)  
     {
         if (_isHorizontal)
             newpC.setY(_firstPointC.y());
@@ -677,16 +677,16 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             _DrawLineTo(pdrni->points[i] + _topLeft);
     };
 
-    switch(phi->histEvent)
-    {
-        case heScribble:
-        case heEraser:    // else clear screen, move, etc
             r = QRect(0,0, geometry().width(), geometry().height() );
             r = r.translated(-_topLeft);
 // DEBUG
 //            r = r.marginsAdded(QMargins(200,200,200,200)); // ????
 // /DEBUG            
 
+    switch(phi->histEvent)
+    {
+        case heScribble:
+        case heEraser:    // else clear screen, move, etc
             lastItemDrawn = phi->drawnIndex;    // saved for plotting undeleted items
 
             pdrni = _history.DrawableFor(*phi);

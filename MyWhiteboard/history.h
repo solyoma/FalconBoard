@@ -452,7 +452,7 @@ public:
 
         _nSelectedItems.clear();
             // just check scribbles after the last clear screen
-        for(int i = _GetStartIndex(); i < _lastItem; ++i)
+        for(int i = _GetStartIndex(); i <= _lastItem; ++i)
         {
             const HistoryItem& item = _items[i];
             if (ValidDrawable(item) && (rect.contains(QRect(_drawnItems[item.drawnIndex].tl, _drawnItems[item.drawnIndex].br), true)))
