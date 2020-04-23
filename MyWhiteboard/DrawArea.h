@@ -8,8 +8,17 @@
 #include <QRubberBand>
 #include <QTabletEvent>
 
+#include <thread>
+
 #include "history.h"
 
+
+using namespace std::chrono_literals;
+
+inline void SleepFor(std::chrono::milliseconds mseconds)
+{
+    std::this_thread::sleep_for(mseconds); // Delay a bit
+}
 // ******************************************************
 
 class DrawArea : public QWidget
@@ -91,6 +100,9 @@ private:
     int     _eraserWidth = 30;
     int     _actPenWidth = 1;
     MyPenKind _myPenKind = penBlack;
+
+    std::chrono::milliseconds _msecs = 10ms;   // when delayed playback
+    bool _delayedPlayback = false; // ???? to make it work not user drawing should be done in an other thread
    
     QImage  _background,    // an image for background layer
             _loadedImage,   // background image loaded from disk, or captured screen area will be copied onto _background
@@ -103,6 +115,7 @@ private:
     QColor _backgroundColor = Qt::white;
 
     QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin  either 0 or negative values
+            _tlMax,     // maximum value of top left of page with drawing on it
             _firstPointC, // canvas relative first point drawn
             _lastPointC; // canvas relative last point drawn relative to visible image
     DrawnItem _lastDrawnItem;
@@ -139,10 +152,10 @@ private:
     void _PageDown();
     void _Home();
     void _End();
-    void _Up();
-    void _Down();
-    void _Left();
-    void _Right();
+    void _Up(int distance = 10);
+    void _Down(int distance = 10);
+    void _Left(int distance = 10);
+    void _Right(int distance = 10);
 
     void ShowCoordinates(QPoint& qp);
 };

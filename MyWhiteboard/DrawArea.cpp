@@ -154,16 +154,19 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_PageDown();
 			else  if (event->key() == Qt::Key_Home)
 				_Home();
-			else if (event->key() == Qt::Key_Shift)
+            else  if (event->key() == Qt::Key_End)
+                _End();
+            else if (event->key() == Qt::Key_Shift)
 				_shiftKeyDown = true;
+
 			if (event->key() == Qt::Key_Up)
-				_Up();
+				_Up( event->modifiers().testFlag(Qt::ControlModifier) ? 100: 10);
 			else if (event->key() == Qt::Key_Down)
-				_Down();
+				_Down(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
 			else if (event->key() == Qt::Key_Left)
-				_Left();
+				_Left(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
 			else if (event->key() == Qt::Key_Right)
-				_Right();
+				_Right(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
 		}
     }
 }
@@ -555,6 +558,12 @@ bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
         int rad = (_actPenWidth / 2) + 2;
         update(QRect(_lastPointC, endPointC).normalized()
             .adjusted(-rad, -rad, +rad, +rad));
+
+        if (_topLeft.x()< _tlMax.x() || _topLeft.y() < _tlMax.y())     // last page of drawing
+            _tlMax = _topLeft;
+        // this should be in an other thread to work, else everything stops
+//        if (!_pendown && !_scribbling && _delayedPlayback)
+//            SleepFor(5ms);
     }
     _lastPointC = endPointC;
     return result;
@@ -605,9 +614,18 @@ void DrawArea::Print()
 
 void DrawArea::_Redraw()
 {
+    int savewidth = _penWidth;
+    MyPenKind savekind = _myPenKind;
+    bool saveEraseMode = _erasemode;
+
     _history.SetFirstItemToDraw();
     while (_ReplotItem(_history.GetOneStep()))
         ;
+
+    SetPenWidth(savewidth);
+    SetPenKind(savekind);
+    saveEraseMode = _erasemode;
+
 }
 
 QColor DrawArea::_PenColor() const
@@ -666,8 +684,15 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
 
     auto plot = [&]()   // lambda to plot point pointed by pdrni
                 {
-        if (pdrni->isDeleted || !pdrni->intersects(r))    // if the canvas rectangle has no intersection with 
-            return;                   // the scribble
+        if (pdrni->isDeleted)
+            return;          
+        
+        if ( (pdrni->br.x() - r.width()) < _tlMax.x() || (pdrni->br.x() - r.height())< _tlMax.y())     // set last page of drawing
+            _tlMax.rx() = (pdrni->br.x() - r.width()), _tlMax.ry() = (pdrni->br.y() - r.height());     // but do not draw unless
+
+        if (!pdrni->intersects(r))      // if the canvas rectangle has no intersection with         
+            return;                     // the scribble
+
 
         _lastPointC = pdrni->points[0] + _topLeft;
         _myPenKind = pdrni->penKind;
@@ -773,7 +798,7 @@ void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, negative
 
     _topLeft = o;
 
-    emit TextToToolbar(QString("top left: (%1, %2)").arg(_topLeft.x()).arg(_topLeft.y()));
+    emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
 }
 void DrawArea::_ShiftAndDisplay(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
 {
@@ -797,28 +822,30 @@ void DrawArea::_Home()
 }
 void DrawArea::_End()
 {
+    _topLeft = _tlMax;
+    emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
     _ClearCanvas();
     _Redraw();
 }
 
-void DrawArea::_Up()
+void DrawArea::_Up(int amount)
 {
-    QPoint pt(0, 10);
+    QPoint pt(0, amount);
     _ShiftAndDisplay(pt);
 }
-void DrawArea::_Down()
+void DrawArea::_Down(int amount)
 {
-    QPoint pt(0, -10);
+    QPoint pt(0, -amount);
     _ShiftAndDisplay(pt);
 }
-void DrawArea::_Left()
+void DrawArea::_Left(int amount)
 {
-    QPoint pt(10, 0);
+    QPoint pt(amount, 0);
     _ShiftAndDisplay(pt);
 }
-void DrawArea::_Right()
+void DrawArea::_Right(int amount)
 {
-    QPoint pt(-10, 0);
+    QPoint pt(-amount, 0);
     _ShiftAndDisplay(pt);
 }
 

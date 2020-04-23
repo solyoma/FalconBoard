@@ -61,17 +61,17 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
     static bool IsExtension(QPoint& p, QPoint& p1, QPoint& p2 = QPoint()) // vectors p->p1 and p1->p are parallel?
     {
-        return false;
+        //return false;       // DEBUG as it is not working yet
+
         if (p == p1)
             return true;    // nullvector may point in any direction :)
 
-        QPointF vfp = p - p1,  // not (0.0, 0.0)
-            vfpp = p1 - p2;
+        QPoint vp = p - p1,  // not (0, 0)
+            vpp = p1 - p2;
 
-            // the two vectors point in the same direction?
-        return (vfp.x() != 0 && vfpp.x() != 0) ? ((vfp.y() / vfp.x() - vfpp.y() / vfpp.x()) < 1e-3) :
-                    ((vfp.y() != 0 && vfpp.y() != 0) ? (abs((vfp.x() / vfp.y() - vfpp.x() / vfpp.y())) < 1e-3) :
-                        (vfp.x() == 0 && vfpp.x() == 0 && vfp.y() == 0 && vfpp.y() == 0));
+            // the two vectors point in the same direction when vpp.y()/vppx == vp.y()/vp(x)
+            // i.e to avoid checking for zeros in divison: 
+        return vpp.y() * vp.x() == vp.y() * vpp.x();
     }
 
     void add(QPoint p)
@@ -80,14 +80,17 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
         if (tl.y() > p.y()) tl.setY(p.y());
         if (br.x() < p.x()) br.setX(p.x());
         if (br.y() < p.y()) br.setY(p.y());
-        int n = points.size() - 1;      // if a point just extends the line in the same direction 
-                                        // as the previoud point was from the one before it
-                                        // then do not add a new point, jast modify the coordintes
+        int n = points.size() - 1;       
+                                        
+                                        
         if(n < 0  )
             points.push_back(p);
         else                      // we need at least one point already in the array
-        {
-            if( (n==0 && (IsExtension(p, points[n])) ) || (n > 0 && IsExtension(p, points[n], points[n-1])) )  // then the two vector points in the same direction
+        {   // if a point just extends the line in the same direction (IsExtension())
+            // as the previous point was from the one before it
+            // then do not add a new point, just modify the coordintes
+            // (n 0: 1 point, >0: at least 2 points are already in the array
+            if( n > 0 && IsExtension(p, points[n], points[n-1]) )  // then the two vector points in the same direction
                 points[n] = p;                            // so continuation
             else
                 points.push_back(p);
@@ -264,7 +267,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     bool _IsSaveable(const HistoryItem &item) const
     {
-        return item.isSaveable ? (item.isSaveable && &_drawnItems[item.drawnIndex].isDeleted) : false;
+        return item.isSaveable ? (item.isSaveable && !_drawnItems[item.drawnIndex].isDeleted) : false;
     }
     bool _IsSaveable(int i) const
     {
