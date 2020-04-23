@@ -142,7 +142,7 @@ private:
     bool _ReplotItem(HistoryItem* pdrni); 
     void _Redraw();
     QColor _PenColor() const;
-    void _SaveCursor(QCursor newCursor);
+    void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
 
     void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector

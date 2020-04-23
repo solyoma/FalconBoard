@@ -383,6 +383,7 @@ void MyWhiteboard::showEvent(QShowEvent* event)
 
 void MyWhiteboard::on_actionNew_triggered()
 {
+    _SaveIfYouWant(true);   // must ask if data changed
     _drawArea->NewData();
     _saveName.clear();
     _backgroundImageName.clear();

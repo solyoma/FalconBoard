@@ -199,7 +199,7 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
     if (event->button() == Qt::LeftButton && !_pendown)  // even when using a pen some mouse message still appear
     {
         if (_spaceBarDown)
-            _SaveCursor(Qt::ClosedHandCursor);
+            _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
 
         _scribbling = true;
         _InitiateDrawing(event);
@@ -327,13 +327,16 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 void DrawArea::tabletEvent(QTabletEvent* event)
 {
     QTabletEvent::PointerType pointerT = event->pointerType();
+
+    auto mb = event->buttons();
+
     switch (event->type()) 
     {
         case QEvent::TabletPress:
             if (!_pendown) 
             {
                 if (_spaceBarDown)
-                    _SaveCursor(Qt::ClosedHandCursor);
+                    _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
                 _pendown = true;
                 emit PointerTypeChange(pointerT);
                 _InitiateDrawing(event);
@@ -653,7 +656,7 @@ QColor DrawArea::_PenColor() const
     }
 }
 
-void DrawArea::_SaveCursor(QCursor newCursor)
+void DrawArea::_SaveCursorAndReplaceItWith(QCursor newCursor)
 {
     if (!_cursorSaved)
     {
@@ -853,5 +856,5 @@ void DrawArea::_Right(int amount)
 
 void DrawArea::ShowCoordinates(QPoint& qp)
 {
-    emit TextToToolbar(QString("(%1, %2)").arg(qp.x()).arg(qp.y()));
+    emit TextToToolbar(QString("x:%1, y:%2").arg(qp.x()).arg(qp.y()));
 }
