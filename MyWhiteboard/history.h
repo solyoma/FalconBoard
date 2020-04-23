@@ -145,7 +145,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 struct HistoryItem
 {
     HistEvent histEvent = heNone;
-    int drawnIndex = -1;                // index in '_drawnItems'
+    int drawnIndex = -1;                // index in 'History::_drawnItems'
     QRect deleteRect;                   // all scribbles to delete are inside this rectangle
     QVector<int> deletedList;           // indices into History::_dranIitems of deleted 
     QString sBackgroundImageName;       // heBackgroundLoaded
@@ -175,7 +175,6 @@ struct HistoryItem
         sBackgroundImageName = other.sBackgroundImageName;
         return *this;
     }
-
 
     void clear()
     {
@@ -356,7 +355,7 @@ public:
 
     void push_back(DrawnItem itm)           // and save it in history too
     {
-        // sav drawn item
+        // save drawn item
         _redoAble = false;
         if (++_lastDrawnIndex == _drawnItems.size())
             _drawnItems.push_back(itm);

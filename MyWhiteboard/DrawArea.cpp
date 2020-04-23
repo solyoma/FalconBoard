@@ -153,7 +153,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			else  if (event->key() == Qt::Key_PageDown)
 				_PageDown();
 			else  if (event->key() == Qt::Key_Home)
-				_Home();
+				_Home(event->modifiers().testFlag(Qt::ControlModifier) );
             else  if (event->key() == Qt::Key_End)
                 _End();
             else if (event->key() == Qt::Key_Shift)
@@ -265,7 +265,7 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
 
     if ( dy > 10 || dy < -10 || dx > 10 || dx < -10)
     {
-        _ShiftAndDisplay(QPoint(dx, dy));
+        _ShiftAndDisplayBy(QPoint(dx, dy));
 
         degv = degh = 0;
         dx = dy = 0;
@@ -686,13 +686,11 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
                 {
         if (pdrni->isDeleted)
             return;          
-        
-        if ( (pdrni->br.x() - r.width()) < _tlMax.x() || (pdrni->br.x() - r.height())< _tlMax.y())     // set last page of drawing
-            _tlMax.rx() = (pdrni->br.x() - r.width()), _tlMax.ry() = (pdrni->br.y() - r.height());     // but do not draw unless
+        if (_tlMax.x() > _topLeft.x() || _tlMax.y() > _topLeft.y())
+            _tlMax = _topLeft;
 
         if (!pdrni->intersects(r))      // if the canvas rectangle has no intersection with         
             return;                     // the scribble
-
 
         _lastPointC = pdrni->points[0] + _topLeft;
         _myPenKind = pdrni->penKind;
@@ -800,7 +798,7 @@ void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, negative
 
     emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
 }
-void DrawArea::_ShiftAndDisplay(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
+void DrawArea::_ShiftAndDisplayBy(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
 {
     _ShiftOrigin(delta);
     _ClearCanvas();
@@ -809,16 +807,20 @@ void DrawArea::_ShiftAndDisplay(QPoint delta)    // delta changes _topLeft, nega
 void DrawArea::_PageUp()
 {
     QPoint pt(0, geometry().height()/3*2);
-    _ShiftAndDisplay(pt);
+    _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_PageDown()
 {
     QPoint pt(0, -geometry().height() / 3 * 2);
-    _ShiftAndDisplay(pt);
+    _ShiftAndDisplayBy(pt);
 }
-void DrawArea::_Home()
+void DrawArea::_Home(bool toTop)
 {
-    _ShiftAndDisplay(-_topLeft);
+    QPoint pt = -_topLeft;
+
+    if(!toTop)
+        pt.setY(0);   // do not move in y direction
+    _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_End()
 {
@@ -831,22 +833,22 @@ void DrawArea::_End()
 void DrawArea::_Up(int amount)
 {
     QPoint pt(0, amount);
-    _ShiftAndDisplay(pt);
+    _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Down(int amount)
 {
     QPoint pt(0, -amount);
-    _ShiftAndDisplay(pt);
+    _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Left(int amount)
 {
     QPoint pt(amount, 0);
-    _ShiftAndDisplay(pt);
+    _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Right(int amount)
 {
     QPoint pt(-amount, 0);
-    _ShiftAndDisplay(pt);
+    _ShiftAndDisplayBy(pt);
 }
 
 void DrawArea::ShowCoordinates(QPoint& qp)

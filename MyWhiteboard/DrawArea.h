@@ -147,10 +147,10 @@ private:
 
     void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
     void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, negative delta.x: scroll right
-    void _ShiftAndDisplay(QPoint delta);
+    void _ShiftAndDisplayBy(QPoint delta);
     void _PageUp();
     void _PageDown();
-    void _Home();
+    void _Home(bool toTop);
     void _End();
     void _Up(int distance = 10);
     void _Down(int distance = 10);
