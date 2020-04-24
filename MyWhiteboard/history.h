@@ -9,21 +9,24 @@ enum HistEvent {
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
     heVisibleCleared,  // visible image erased
-    heCanvasMoved,     // canvas moved: new top left coordinates in points[0]
+    heTopLeftChanged,     // canvas moved: new top left coordinates in points[0]
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
-    heItemsDeleted     // store the list of items deleted in this event
+    heItemsDeleted,     // store the list of items deleted in this event
+    heItemsCopied,      // they may also be deleted!
+    heItemsPasted,
+    heTopLeftMoved      // store new top and left in two element of a HistoryItems's deletedList
                 };
 enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser };
 
 struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 {                   // or a screen erease event (when 'points' is empty)
-    DrawnItem(HistEvent he = heScribble) noexcept : histEvent(he) {}
+    DrawnItem(HistEvent he = heScribble) noexcept : _type(he) {}
     DrawnItem(const DrawnItem& di)  { *this = di; }
     DrawnItem(const DrawnItem&& di) noexcept { *this = di; }
     DrawnItem& operator=(const DrawnItem& di)
     {
-        histEvent = di.histEvent;
+        _type = di._type;
         penKind = di.penKind;
         penWidth = di.penWidth;
         points = di.points;
@@ -34,7 +37,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
     DrawnItem& operator=(const DrawnItem&& di)  noexcept
     {
-        histEvent = di.histEvent;
+        _type = di._type;
         penKind = di.penKind;
         penWidth = di.penWidth;
         points = di.points;
@@ -43,7 +46,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
         return *this;
     }
 
-    HistEvent histEvent = heVisibleCleared;
+    HistEvent _type = heVisibleCleared;
     bool isDeleted = false;
 
     MyPenKind penKind = penBlack;
@@ -112,7 +115,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
 {
-    ofs << (qint32)di.histEvent << (qint32)di.penKind << (qint32)di.penWidth;
+    ofs << (qint32)di._type << (qint32)di.penKind << (qint32)di.penWidth;
     ofs << (qint32)di.points.size();
     for (auto pt : di.points)
         ofs << (qint32)pt.x() << (qint32)pt.y();
@@ -122,7 +125,7 @@ inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
 inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 {
     qint32 n;
-    ifs >> n; di.histEvent = static_cast<HistEvent>(n);
+    ifs >> n; di._type = static_cast<HistEvent>(n);
     ifs >> n; di.penKind = (MyPenKind)n;
     ifs >> n; di.penWidth = n;
 
@@ -144,7 +147,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
  *-------------------------------------------------------*/
 struct HistoryItem
 {
-    HistEvent histEvent = heNone;
+    HistEvent _type = heNone;
     int drawnIndex = -1;                // index in 'History::_drawnItems'
     QRect deleteRect;                   // all scribbles to delete are inside this rectangle
     QVector<int> deletedList;           // indices into History::_dranIitems of deleted 
@@ -157,7 +160,7 @@ struct HistoryItem
     HistoryItem(const HistoryItem && other) { *this = other; }
     HistoryItem& HistoryItem::operator=(const HistoryItem& other) 
     { 
-        histEvent   = other.histEvent;
+        _type   = other._type;
         drawnIndex  = other.drawnIndex;
         deleteRect  = other.deleteRect;
         deletedList = other.deletedList;
@@ -167,7 +170,7 @@ struct HistoryItem
     }
     HistoryItem& HistoryItem::operator=(const HistoryItem&& other)
     {
-        histEvent = other.histEvent;
+        _type = other._type;
         drawnIndex = other.drawnIndex;
         deleteRect = other.deleteRect;
         deletedList = other.deletedList;
@@ -180,15 +183,28 @@ struct HistoryItem
     {
         deletedList.clear();
         sBackgroundImageName.clear();
-        histEvent = heNone;
+        _type = heNone;
         drawnIndex = -1;
     }
     void SetEvent(HistEvent he)
     {
-        histEvent = he;
+        _type = he;
         isSaveable = (he == heScribble || he == heEraser);
         deletedList.clear();
     }
+
+    void SetTopLeft(QPoint tl)  // for heTopLeftChanged
+    {
+        deletedList.clear();
+        deletedList.push_back(tl.x());
+        deletedList.push_back(tl.y());
+    }
+
+    QPoint AsTopLeft()
+    {
+        return QPoint(deletedList[0], deletedList[1]);
+    }
+
 };
 
 
@@ -214,7 +230,7 @@ struct HistoryItem
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    HistoryItem     _historyItem;       // used internally for non drawable elements
+    HistoryItem     _histoyEvent;       // for drawable and other elements
 
     QVector<HistoryItem> _items;
 
@@ -239,7 +255,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
         int i = _lastItem;
         for (; i >= 0; --i)
-            if (_items[i].histEvent == heVisibleCleared)
+            if (_items[i]._type == heVisibleCleared)
                 return i + 1;
             // there were no iems to show
         return 0;
@@ -261,7 +277,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
         if (ValidDrawable(item, &isClear))
             return &_drawnItems[item.drawnIndex];
 
-        return item.histEvent == heVisibleCleared ? &clearItem : nullptr;
+        return item._type == heVisibleCleared ? &clearItem : nullptr;
     }
 
     bool _IsSaveable(const HistoryItem &item) const
@@ -339,11 +355,11 @@ public:
 
             ++i;
             // DEBUG
-            //di.histEvent = (HistEvent)(((int)di.histEvent) + 1);
+            //di._type = (HistEvent)(((int)di._type) + 1);
             // /DEBUG            
 
 
-            push_back(di);
+            addDrawnItem(di);
         }
         _modified = false;
         return _lastItem = _items.size() - 1;
@@ -353,7 +369,7 @@ public:
     bool CanUndo() const { return _lastItem >= 0; }
     bool CanRedo() const { return _redoAble; }
 
-    void push_back(DrawnItem itm)           // and save it in history too
+    void addDrawnItem(DrawnItem itm)           // and save it in history too
     {
         // save drawn item
         _redoAble = false;
@@ -362,10 +378,10 @@ public:
         else
             _drawnItems[_lastDrawnIndex] = itm;
 
-        _historyItem.SetEvent(itm.histEvent); // scribble or eraser
-        _historyItem.drawnIndex = _lastDrawnIndex;
-        _historyItem.processed = false;
-        add(_historyItem);
+        _histoyEvent.SetEvent(itm._type); // scribble or eraser
+        _histoyEvent.drawnIndex = _lastDrawnIndex;
+        _histoyEvent.processed = false;     // if this contained deleted items, now it doesn't
+        add(_histoyEvent);
     }
 
     void add(HistoryItem& hi)
@@ -376,18 +392,37 @@ public:
             _items[_lastItem] = hi;
         _modified = true;
     }
-
-    void ClearScreen()
+    void add()
     {
-        _historyItem.SetEvent(heVisibleCleared);
-        add(_historyItem);
+        add(_histoyEvent);
+    }
+    
+    void addClearScreen()
+    {
+        _histoyEvent.SetEvent(heVisibleCleared);
+        add(_histoyEvent);
+    }
+
+    void addOriginChanged(QPoint &origin)       // merge successive position changes
+    {
+        if (_lastItem >= 0 && _items[_lastItem]._type == heTopLeftChanged)
+        {
+            _items[_lastItem].SetTopLeft(origin);
+        }
+        else                                  // new event
+        {
+            _histoyEvent.SetEvent(heTopLeftChanged);
+            _histoyEvent.deletedList.clear();
+            _histoyEvent.SetTopLeft(origin);
+            add();
+        }
     }
 
     bool ValidDrawable(const HistoryItem& item, bool* isClearEvent = nullptr)
     {
         bool res = _IsSaveable(item);
         if (isClearEvent)
-            *isClearEvent = (item.histEvent == heVisibleCleared); // still may be not drawable
+            *isClearEvent = (item._type == heVisibleCleared); // still may be not drawable
 
         return res;
     }
@@ -406,14 +441,36 @@ public:
         return _index = _GetStartIndex();    // sets _index to first item after last clear screen
     }
 
-    void BeginUndo()        // set position back one section
+    QPoint BeginUndo()        // returns top left after undo 
     {
+        QPoint tl(1,1);            // top left before last step ( (1,1) - not set)
+
         if (_lastItem >= 0)
         {
             _index = _GetStartIndex();
                 // if the last step was a deletion first redo that
-            if (_items[_lastItem].histEvent == heItemsDeleted)
+            if (_items[_lastItem]._type == heItemsDeleted)
                 UnDeleteItemsFor(_items[_lastItem]);
+                // if the last step ws positioning set the pervious position
+            else if (_items[_lastItem]._type == heTopLeftChanged)
+            {
+                int i;
+                bool otherTypeOfItem = false;   
+
+                for (i = _lastItem - 1; i >= 0; --i)
+                    if (_items[i]._type == heTopLeftChanged) // previous change position found
+                    {
+                        tl = QPoint(_items[i].AsTopLeft());
+                        break;
+                    }
+                    else if (_items[i]._type == heVisibleCleared)
+                    {
+                        tl = QPoint(0, 0);
+                        break;
+                    }
+                if(i < 0)       // no movement before this: move to (0, 0)
+                    tl = QPoint(0, 0);
+            }
             --_lastItem;
 
             _redoAble = true;
@@ -421,6 +478,8 @@ public:
         }
         else
             _redoAble = false;
+
+        return tl;
     }
     HistoryItem* GetOneStep()
     {
@@ -442,8 +501,8 @@ public:
 
         HistoryItem* phi = &_items[++_lastItem];
         _redoAble = _lastItem < _items.size() - 1;
-        if (!_redoAble)
-            _modified = false;
+        //if (!_redoAble)
+        //    _modified = false;
 
         return phi;
     }
@@ -473,10 +532,10 @@ public:
 
         if (newData)     // then new history item
         {
-            _historyItem.SetEvent(heItemsDeleted);  // clears deletedList
-            _historyItem.deletedList = _nSelectedItems;
-            _historyItem.deleteRect = _selectionRect;
-            phi = &_historyItem;
+            _histoyEvent.SetEvent(heItemsDeleted);  // clears deletedList
+            _histoyEvent.deletedList = _nSelectedItems;
+            _histoyEvent.deleteRect = _selectionRect;
+            phi = &_histoyEvent;
 
             if (_nSelectedItems.isEmpty())          // and do not add it to list
                 return;
@@ -487,8 +546,8 @@ public:
 
         if (newData)
         {
-            _historyItem.processed = true;
-            add(_historyItem);
+            _histoyEvent.processed = true;
+            add(_histoyEvent);
             _nSelectedItems.clear();
         }
         else

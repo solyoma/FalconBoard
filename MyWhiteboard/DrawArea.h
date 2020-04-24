@@ -95,6 +95,7 @@ private:
     bool    _scribbling = false;    // true for mouse darwing (_spaceBarDown == false)
     bool    _pendown = false;       // true for pen
     bool    _erasemode = false;
+    bool    _scribblesCopied = false;   // copy/copy & delete : list of scribbles into 'history::_nSelectedItems';
 
     int     _penWidth = 1;
     int     _eraserWidth = 30;
@@ -116,7 +117,9 @@ private:
 
     QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin  either 0 or negative values
             _tlMax,     // maximum value of top left of page with drawing on it
-            _firstPointC, // canvas relative first point drawn
+            _lastMove;  // value of last canvas moveme
+
+    QPoint  _firstPointC, // canvas relative first point drawn
             _lastPointC; // canvas relative last point drawn relative to visible image
     DrawnItem _lastDrawnItem;
     QCursor _savedCursor;
@@ -146,6 +149,7 @@ private:
     void _RestoreCursor();
 
     void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
+    void _SetOrigin(QPoint qp);  // sets new topleft and displays it on label
     void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, negative delta.x: scroll right
     void _ShiftAndDisplayBy(QPoint delta);
     void _PageUp();
