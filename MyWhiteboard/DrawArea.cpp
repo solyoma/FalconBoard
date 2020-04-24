@@ -333,13 +333,16 @@ void DrawArea::tabletEvent(QTabletEvent* event)
     switch (event->type()) 
     {
         case QEvent::TabletPress:
-            if (!_pendown) 
+            if (event->pressure())
             {
-                if (_spaceBarDown)
-                    _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
-                _pendown = true;
-                emit PointerTypeChange(pointerT);
-                _InitiateDrawing(event);
+                if (!_pendown)
+                {
+                    if (_spaceBarDown)
+                        _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
+                    _pendown = true;
+                    emit PointerTypeChange(pointerT);
+                    _InitiateDrawing(event);
+                }
             }
             event->accept();
             break;
