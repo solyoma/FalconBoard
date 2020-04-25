@@ -9,14 +9,14 @@ enum HistEvent {
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
     heVisibleCleared,  // visible image erased
-    heTopLeftChanged,  // store new top and left in two element of a HistoryItems's deletedList
+    heTopLeftChanged,  // store new top and left in two element of a HistoryItems's specialList
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
     heItemsDeleted,     // store the list of items deleted in this event
     heItemsPasted       // list of draw events added first drawn item is at index 'drawnItem'
-                        // last one is at index 'deletedList[0]'
+                        // last one is at index 'specialList[0]'
                         // Undo: set _lastDrawnIndex to that given in previous history item
-                        // Redo: set _lastDrawnIndex to 'deletedList[0]'
+                        // Redo: set _lastDrawnIndex to 'specialList[0]'
                 };
 enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser };
 
@@ -158,7 +158,7 @@ struct HistoryItem
 {
     HistEvent _type = heNone;
     int drawnIndex = -1;                // index in 'History::_drawnItems'
-    QVector<int> deletedList;           // indices into History::_dranIitems of deleted 
+    QVector<int> specialList;           // indices into History::_dranIitems of deleted , and some other purpuse
     QString sBackgroundImageName;       // heBackgroundLoaded
     bool isSaveable = false;            // can be saved into file (scriible and erase only?
     bool processed = false;             // e.g. a delete was already processed
@@ -170,7 +170,7 @@ struct HistoryItem
     { 
         _type   = other._type;
         drawnIndex  = other.drawnIndex;
-        deletedList = other.deletedList;
+        specialList = other.specialList;
         isSaveable  = other.isSaveable;
         sBackgroundImageName = other.sBackgroundImageName;
         return *this;
@@ -179,7 +179,7 @@ struct HistoryItem
     {
         _type = other._type;
         drawnIndex = other.drawnIndex;
-        deletedList = other.deletedList;
+        specialList = other.specialList;
         isSaveable = other.isSaveable;
         sBackgroundImageName = other.sBackgroundImageName;
         return *this;
@@ -187,7 +187,7 @@ struct HistoryItem
 
     void clear()
     {
-        deletedList.clear();
+        specialList.clear();
         sBackgroundImageName.clear();
         _type = heNone;
         drawnIndex = -1;
@@ -196,19 +196,19 @@ struct HistoryItem
     {
         _type = he;
         isSaveable = (he == heScribble || he == heEraser);
-        deletedList.clear();
+        specialList.clear();
     }
 
     void SetTopLeft(QPoint tl)  // for heTopLeftChanged
     {
-        deletedList.clear();
-        deletedList.push_back(tl.x());
-        deletedList.push_back(tl.y());
+        specialList.clear();
+        specialList.push_back(tl.x());
+        specialList.push_back(tl.y());
     }
 
     QPoint AsTopLeft()
     {
-        return QPoint(deletedList[0], deletedList[1]);
+        return QPoint(specialList[0], specialList[1]);
     }
 
 };
@@ -286,7 +286,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
             if (_items[_lastItem]._type == heScribble || _items[_lastItem]._type == heEraser) // last item is drawable
                 _lastDrawnIndex = _items[_lastItem].drawnIndex;
             if (_items[_lastItem]._type == heItemsPasted)
-                _lastDrawnIndex = _items[_lastItem].deletedList[0]; // end of pasted stored here
+                _lastDrawnIndex = _items[_lastItem].specialList[0]; // end of pasted stored here
         }
         _AddToDrawnItems(itm);
 
@@ -342,7 +342,13 @@ public:
             if (ofs.status() != QDataStream::Ok)
                 return false;
 
-            if (_IsSaveable(dt) )
+            if (dt._type == heItemsPasted)           // then save all visible pasted items
+            {
+                for (int i = dt.drawnIndex; i <= dt.specialList[0]; ++i)
+                    if (!_drawnItems[i].isDeleted)
+                        ofs << _drawnItems[i];
+            }
+            else if (_IsSaveable(dt) )
                 ofs << _drawnItems[dt.drawnIndex];
         }
         _modified = false;
@@ -395,7 +401,7 @@ public:
     {                                                  // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
         // save drawn item
         _AddDrawnItemInternal(itm);
-        _historyItem.deletedList.push_back(_historyItem.drawnIndex);    // last index of element added
+        _historyItem.specialList.push_back(_historyItem.drawnIndex);    // last index of element added
         return add(_historyItem);
     }
             // when paste items first call NewPastedItem(), then
@@ -405,12 +411,12 @@ public:
     {
         _AddDrawnItemInternal(itm);
         _historyItem._type = heItemsPasted; // modify one set before
-        _historyItem.deletedList.push_back(_lastDrawnIndex);
+        _historyItem.specialList.push_back(_lastDrawnIndex);
     }
 
     void AddToPastedItem(DrawnItem& itm)  // only call after newPastedItem() !
     {
-        _historyItem.deletedList[0] = _AddToDrawnItems(itm);
+        _historyItem.specialList[0] = _AddToDrawnItems(itm);
     }
 
     HistoryItem* addPastedItem(DrawnItem& itm)  // only call after newPastedItem()  and items added
@@ -457,7 +463,7 @@ public:
         else                                  // new event
         {
             _historyItem.SetEvent(heTopLeftChanged);
-            _historyItem.deletedList.clear();
+            _historyItem.specialList.clear();
             _historyItem.SetTopLeft(origin);
             add();
         }
@@ -606,15 +612,15 @@ public:
 
         if (newData)     // then new history item
         {
-            _historyItem.SetEvent(heItemsDeleted);  // clears deletedList
-            _historyItem.deletedList = _nSelectedItems;
+            _historyItem.SetEvent(heItemsDeleted);  // clears specialList
+            _historyItem.specialList = _nSelectedItems;
             phi = &_historyItem;
 
             if (_nSelectedItems.isEmpty())          // and do not add it to list
                 return;
         }
                                                    // else it was set into phi already
-        for (int i : phi->deletedList)              // mark elements
+        for (int i : phi->specialList)              // mark elements
             _drawnItems[i].isDeleted = true;
 
         if (newData)
@@ -629,7 +635,7 @@ public:
 
     void UnDeleteItemsFor(HistoryItem &hi)
     {
-        for (int i : hi.deletedList)
+        for (int i : hi.specialList)
             _drawnItems[i].isDeleted = false;
 
         hi.processed = false;

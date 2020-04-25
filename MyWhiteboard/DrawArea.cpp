@@ -783,12 +783,12 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             }
             break;
         case heItemsPasted:
-            for (int i = 0; i <= phi->deletedList[0]; ++i)
+            for (int i = 0; i <= phi->specialList[0]; ++i)
             {
                 pdrni = _history.DrawnItemAt(i);
                 plot();
             }
-            lastItemDrawn = phi->deletedList[0];
+            lastItemDrawn = phi->specialList[0];
             break;
         case heTopLeftChanged:       // only used when redo/undo
         default:
@@ -819,7 +819,7 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
 {                           // unles top left changed
     HistoryItem* phi = _history.Redo();
-    if (phi->_type == heTopLeftChanged && (_topLeft.x() != phi->deletedList[0] || _topLeft.y() != phi->deletedList[1]) )
+    if (phi->_type == heTopLeftChanged && (_topLeft.x() != phi->specialList[0] || _topLeft.y() != phi->specialList[1]) )
     {
         _SetOrigin(phi->AsTopLeft());
         _ClearCanvas();
