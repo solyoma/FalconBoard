@@ -171,12 +171,19 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
                 const QVector<DrawnItem>& dritems = _history.CopiedItems();
 
-				for (auto di: dritems)
+
+                _lastDrawnItem = dritems[0];
+                _lastDrawnItem.Translate(dr);
+                _history.NewPastedItem(_lastDrawnItem);
+
+                for (int i = 1; i < dritems.size(); ++i)
 				{
-                    _lastDrawnItem = di;
+                    _lastDrawnItem = dritems[i];
 					_lastDrawnItem.Translate(dr);
-					_ReplotItem(_history.addDrawnItem(_lastDrawnItem));
+                    _history.AddToPastedItem(_lastDrawnItem);
 				}
+				_ReplotItem(_history.add());
+
                 emit CanUndo(true);
                 emit CanRedo(false);
 			}
@@ -775,6 +782,14 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
                 }
             }
             break;
+        case heItemsPasted:
+            for (int i = 0; i <= phi->deletedList[0]; ++i)
+            {
+                pdrni = _history.DrawnItemAt(i);
+                plot();
+            }
+            lastItemDrawn = phi->deletedList[0];
+            break;
         case heTopLeftChanged:       // only used when redo/undo
         default:
             break;
@@ -791,6 +806,7 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
         QPoint tl = _history.BeginUndo();  // undelete items deleted before the last item
         if (tl.x() <= 0) // else no change
             _topLeft = tl;
+
 
         while(_ReplotItem(_history.GetOneStep()) )
             ;

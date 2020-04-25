@@ -13,7 +13,10 @@ enum HistEvent {
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
     heItemsDeleted,     // store the list of items deleted in this event
-    heItemsPasted       // draw events pasted, store undo/redo count
+    heItemsPasted       // list of draw events added first drawn item is at index 'drawnItem'
+                        // last one is at index 'deletedList[0]'
+                        // Undo: set _lastDrawnIndex to that given in previous history item
+                        // Redo: set _lastDrawnIndex to 'deletedList[0]'
                 };
 enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser };
 
@@ -265,6 +268,33 @@ class History  // stores all drawing sections and keeps track of undo and redo
         return 0;
     }
 
+
+    int _AddToDrawnItems(DrawnItem& itm)
+    {
+        if (++_lastDrawnIndex == _drawnItems.size())
+            _drawnItems.push_back(itm);
+        else
+            _drawnItems[_lastDrawnIndex] = itm;
+        return _lastDrawnIndex;
+    }
+
+    void _AddDrawnItemInternal(DrawnItem& itm)  // called by addDrawnItem() and addPasteItem()
+    {                                           // does not add '_historyItem' to list
+        _redoAble = false;                      // although sets all of its parameters
+        if (_lastItem >= 0)
+        {
+            if (_items[_lastItem]._type == heScribble || _items[_lastItem]._type == heEraser) // last item is drawable
+                _lastDrawnIndex = _items[_lastItem].drawnIndex;
+            if (_items[_lastItem]._type == heItemsPasted)
+                _lastDrawnIndex = _items[_lastItem].deletedList[0]; // end of pasted stored here
+        }
+        _AddToDrawnItems(itm);
+
+        _historyItem.SetEvent(itm._type); // scribble or eraser
+        _historyItem.drawnIndex = _lastDrawnIndex;
+        _historyItem.processed = false;     // if this contained deleted items, now it doesn't
+    }
+
     inline bool _ValidDrawable(int index)
     {
         const HistoryItem& item = _items[index];
@@ -361,22 +391,30 @@ public:
     bool CanUndo() const { return _lastItem >= 0; }
     bool CanRedo() const { return _redoAble; }
 
-    HistoryItem *addDrawnItem(DrawnItem itm)           // may be after an undo, so
+    HistoryItem *addDrawnItem(DrawnItem &itm)           // may be after an undo, so
     {                                                  // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
         // save drawn item
-        _redoAble = false;
-        if (_lastItem >= 0 && (_items[_lastItem]._type == heScribble || _items[_lastItem]._type == heEraser)) // last item is drawable
-        {
-            _lastDrawnIndex = _items[_lastItem].drawnIndex;
-        }
-        if (++_lastDrawnIndex == _drawnItems.size())
-            _drawnItems.push_back(itm);
-        else
-            _drawnItems[_lastDrawnIndex] = itm;
+        _AddDrawnItemInternal(itm);
+        _historyItem.deletedList.push_back(_historyItem.drawnIndex);    // last index of element added
+        return add(_historyItem);
+    }
+            // when paste items first call NewPastedItem(), then
+            // add each element pasted with AddToPastedItems()
+            // and finish with 'add(void)'
+    void NewPastedItem(DrawnItem& itm)
+    {
+        _AddDrawnItemInternal(itm);
+        _historyItem._type = heItemsPasted; // modify one set before
+        _historyItem.deletedList.push_back(_lastDrawnIndex);
+    }
 
-        _historyItem.SetEvent(itm._type); // scribble or eraser
-        _historyItem.drawnIndex = _lastDrawnIndex;
-        _historyItem.processed = false;     // if this contained deleted items, now it doesn't
+    void AddToPastedItem(DrawnItem& itm)  // only call after newPastedItem() !
+    {
+        _historyItem.deletedList[0] = _AddToDrawnItems(itm);
+    }
+
+    HistoryItem* addPastedItem(DrawnItem& itm)  // only call after newPastedItem()  and items added
+    {
         return add(_historyItem);
     }
     DrawnItem* DrawnItemFor(int index)             // items for one scribble
@@ -475,6 +513,7 @@ public:
                 if(i < 0)       // no movement before this: move to (0, 0)
                     tl = QPoint(0, 0);
             }
+
             --_lastItem;
 
             _redoAble = true;
