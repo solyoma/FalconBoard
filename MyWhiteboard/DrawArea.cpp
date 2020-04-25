@@ -131,35 +131,55 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
     }
     else if (event->spontaneous())
     {
-        if (_rubberBand)    // delete rubberband for any keypress
+        if (_rubberBand)    // delete rubberband for any keypress except pure modifiers
         {
-            if (event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace)
-            {
+            bool bDelete = event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace,
+                 bCopy   = (event->key() == Qt::Key_Insert || event->key() == Qt::Key_C || event->key() == Qt::Key_X) &&
+                                        event->modifiers().testFlag(Qt::ControlModifier),
+                 bCut    = bCopy && (event->key() == Qt::Key_X),
+                 bPaste  =  _scribblesCopied && 
+                            ( (event->key() == Qt::Key_Insert && event->modifiers().testFlag(Qt::ShiftModifier)) ||
+                              (event->key() == Qt::Key_V && event->modifiers().testFlag(Qt::ControlModifier))
+                            ),
+                 bRemove = (bDelete | bCopy | bCut | bPaste) ||
+                           (event->key() != Qt::Key_Control && event->key() != Qt::Key_Shift && event->key() != Qt::Key_Alt),
+                 bCollected = false;
+
+            if (bRemove)
                 _RemoveRubberBand();
-                if (_history.CollectItemsInside(_rubberRect.translated(-_topLeft)))
+            if (bCut || bDelete || bCopy)
+            {
+                if ((bCollected = _history.CollectItemsInside(_rubberRect.translated(-_topLeft))))
                 {
-                    _history.HideDeletedItems();
-                    _ClearCanvas();
-                    _Redraw();
+                    _history.CopySelected();
+                    _scribblesCopied = true;        // never remove selected list
                 }
             }
-            else if ((event->key() == Qt::Key_Insert || event->key() == Qt::Key_C || event->key() == Qt::Key_X) && 
-                        event->modifiers().testFlag(Qt::ControlModifier))   // copy or cut
+
+            if ((bCut || bDelete) && bCollected)
             {
-                _RemoveRubberBand();
-                if (_history.CollectItemsInside(_rubberRect.translated(-_topLeft)))
-                {
-                    if (event->key() == Qt::Key_X)   // cut
-                    {
-                        _history.HideDeletedItems();
-                        _ClearCanvas();
-                        _Redraw();
-                    }
-                    _scribblesCopied = true;
-                }
+                _history.HideDeletedItems();
+                _ClearCanvas();
+                _Redraw();
             }
-            else
-                _RemoveRubberBand();
+
+			if (bPaste)
+			{           // _histoy's copied item list is valid, each item is canvas relative
+				
+                        // get offset to top left of encompassing rect of copied items relative to '_topLeft'
+				QPoint dr = _rubberRect.translated(-_topLeft).topLeft(); 
+
+                const QVector<DrawnItem>& dritems = _history.CopiedItems();
+
+				for (auto di: dritems)
+				{
+                    _lastDrawnItem = di;
+					_lastDrawnItem.Translate(dr);
+					_ReplotItem(_history.addDrawnItem(_lastDrawnItem));
+				}
+                emit CanUndo(true);
+                emit CanRedo(false);
+			}
         }
         else
         {
@@ -763,7 +783,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
     return true;
 }
 
-void DrawArea::Undo()
+void DrawArea::Undo()               // must draw again all underlying scribbles
 {
     if (_history.CanUndo())
     {
@@ -780,8 +800,8 @@ void DrawArea::Undo()
     emit CanUndo(_history.CanUndo());
 }
 
-void DrawArea::Redo()
-{
+void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
+{                           // unles top left changed
     HistoryItem* phi = _history.Redo();
     if (phi->_type == heTopLeftChanged && (_topLeft.x() != phi->deletedList[0] || _topLeft.y() != phi->deletedList[1]) )
     {
@@ -822,6 +842,7 @@ void DrawArea::SetCursor(CursorShape cs)
 void DrawArea::_SetOrigin(QPoint o)
 {
     _topLeft = o;
+    _RemoveRubberBand();
 
     emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
 }

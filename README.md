@@ -1,6 +1,6 @@
 # MyWhiteboard
 
-Last modified: April 23. 2020.
+Last modified: April 25. 2020.
 
 MyWhiteboard was created to help me with giving remote lectures during 
 the coronavirus pandemic.
@@ -15,8 +15,11 @@ the coronavirus pandemic.
    5. "Unlimited" scrolling of page by keyboard (PgUp,PgDown,Home,Left,Right)
       mouse or graphics tablet (press and hold space while using them or used
       the wheel on the mouse).
-   6. Mark area by right mouse button or , and delete "scribbles" completely inside
-      this area with the Del or BackSpace keys.
+   6. Mark area by right button on mouse or tablet, and 
+            - delete "scribbles" completely inside
+                this area with the Del or BackSpace keys.
+            - copy / cut marked area and paste it at any position, even into new
+                documents
    7. Usable with the mouse and with a graphic tablet.
    8. Keyboard shortcuts to most functions.
    8. Optional saving and loading sessions, autosaving data and background.
