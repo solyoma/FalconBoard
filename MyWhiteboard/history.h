@@ -361,10 +361,14 @@ public:
     bool CanUndo() const { return _lastItem >= 0; }
     bool CanRedo() const { return _redoAble; }
 
-    HistoryItem *addDrawnItem(DrawnItem itm)           // and save it in history too
-    {
+    HistoryItem *addDrawnItem(DrawnItem itm)           // may be after an undo, so
+    {                                                  // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
         // save drawn item
         _redoAble = false;
+        if (_lastItem >= 0 && (_items[_lastItem]._type == heScribble || _items[_lastItem]._type == heEraser)) // last item is drawable
+        {
+            _lastDrawnIndex = _items[_lastItem].drawnIndex;
+        }
         if (++_lastDrawnIndex == _drawnItems.size())
             _drawnItems.push_back(itm);
         else
