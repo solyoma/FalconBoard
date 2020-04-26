@@ -771,7 +771,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             _ClearCanvas();
             break;
         case heItemsDeleted:    // delete and redraw all visible scribbles from the beginning without going through the HistoryItem List
-            if (!phi->processed)
+            if (!phi->hidden)
             {
                 _history.HideDeletedItems(phi);
                 _ClearCanvas();
@@ -783,12 +783,12 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             }
             break;
         case heItemsPasted:
-            for (int i = 0; i <= phi->specialList[0]; ++i)
+            for (int i = 0; i <= phi->lastDrawnIndex; ++i)
             {
                 pdrni = _history.DrawnItemAt(i);
                 plot();
             }
-            lastItemDrawn = phi->specialList[0];
+            lastItemDrawn = phi->lastDrawnIndex;
             break;
         case heTopLeftChanged:       // only used when redo/undo
         default:
@@ -819,7 +819,7 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
 {                           // unles top left changed
     HistoryItem* phi = _history.Redo();
-    if (phi->_type == heTopLeftChanged && (_topLeft.x() != phi->specialList[0] || _topLeft.y() != phi->specialList[1]) )
+    if (phi->_type == heTopLeftChanged && (_topLeft.x() != phi->drawnIndex|| _topLeft.y() != phi->lastDrawnIndex) )
     {
         _SetOrigin(phi->AsTopLeft());
         _ClearCanvas();
