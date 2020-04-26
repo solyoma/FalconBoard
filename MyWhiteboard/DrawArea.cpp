@@ -164,30 +164,20 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
             if ((bCut || bDelete) && bCollected)
             {
-                _history.HideDeletedItems();
+                _history.addDeleteItems();
                 _ClearCanvas();
                 _Redraw();
             }
 
 			if (bPaste)
-			{           // _histoy's copied item list is valid, each item is canvas relative
+			{           // _history's copied item list is valid, each item is canvas relative
 				
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
 				QPoint dr = _rubberRect.translated(-_topLeft).topLeft(); 
 
-                const QVector<DrawnItem>& dritems = _history.CopiedItems();
-
-                _lastDrawnItem = dritems[0];
-                _lastDrawnItem.Translate(dr);
-                _history.NewPastedItem(_lastDrawnItem);
-
-                for (int i = 1; i < dritems.size(); ++i)
-				{
-                    _lastDrawnItem = dritems[i];
-					_lastDrawnItem.Translate(dr);
-                    _history.AddToPastedItem(_lastDrawnItem);
-				}
-				_ReplotItem(_history.add());
+                HistoryItem*phi = _history.addPastedItems();
+                if(phi)
+				    _ReplotItem(phi);
 
                 emit CanUndo(true);
                 emit CanRedo(false);
@@ -202,8 +192,9 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                     case Qt::Key_3:pk = penGreen;  break;
                     case Qt::Key_4:pk = penBlue;  break;
                 }
-                _history.ReColorSelected(pk);
-                _Redraw();
+                HistoryItem* phi =_history.addRecolor(pk);
+                if(phi)
+                    _Redraw();
             }
         }
         else
@@ -520,12 +511,12 @@ void DrawArea::_InitiateDrawing(QEvent* event)
     _lastDrawnItem.clear();
     if (_erasemode)
     {
-        _lastDrawnItem._type = heEraser;
+        _lastDrawnItem.type = heEraser;
         _actPenWidth = _eraserWidth;
     }
     else
     {
-        _lastDrawnItem._type = heScribble;
+        _lastDrawnItem.type = heScribble;
         _actPenWidth = _penWidth;
     }
 
@@ -754,8 +745,6 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
     if (!phi)
         return false;
 
-    static int lastItemDrawn = -1;  // used with undelete: print items until this index
-
     DrawnItem* pdrni;     // used when we must draw something onto the screen
     QRect r;                    // but only if it intersects with this
 
@@ -772,50 +761,29 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         _lastPointC = pdrni->points[0] + _topLeft;
         _myPenKind = pdrni->penKind;
         _actPenWidth = pdrni->penWidth;
-        _erasemode = pdrni->_type == heEraser ? true : false;
+        _erasemode = pdrni->type == heEraser ? true : false;
         for (int i = 1; i < pdrni->points.size(); ++i)
             _DrawLineTo(pdrni->points[i] + _topLeft);
     };
 
-            r = QRect(0,0, geometry().width(), geometry().height() );
-            r = r.translated(-_topLeft);
-// DEBUG
-//            r = r.marginsAdded(QMargins(200,200,200,200)); // ????
-// /DEBUG            
+    r = QRect(0,0, geometry().width(), geometry().height() );
+    r = r.translated(-_topLeft);
 
     switch(phi->type)
     {
         case heScribble:
-        case heEraser:    // else clear screen, move, etc
-            lastItemDrawn = phi->drawnIndex;    // saved for plotting undeleted items
-
-            pdrni = _history.DrawableFor(*phi);
-
+        case heEraser:    
+            pdrni = phi->GetDrawable(0);
             plot();
-
             break;
         case heVisibleCleared:
             _ClearCanvas();
             break;
-        case heItemsDeleted:    // delete and redraw all visible scribbles from the beginning without going through the HistoryItem List
-            if (!phi->hidden)
-            {
-                _history.HideDeletedItems(phi);
-                _ClearCanvas();
-                for (int i = _history.SetFirstItemToDraw(); i <= lastItemDrawn; ++i)
-                {
-                    pdrni = _history.DrawnItemAt(i);
-                    plot();
-                }
-            }
+        case heItemsDeleted:    // nothing to do
             break;
         case heItemsPasted:
-            for (int i = 0; i <= phi->lastDrawnIndex; ++i)
-            {
+            for (int i = 0; (pdrni = phi->GetDrawable()); ++i)
                 pdrni = _history.DrawnItemAt(i);
-                plot();
-            }
-            lastItemDrawn = phi->lastDrawnIndex;
             break;
         case heTopLeftChanged:       // only used when redo/undo
         default:
@@ -846,11 +814,16 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
 {                           // unless top left or items color changed
     HistoryItem* phi = _history.Redo();
-    if( phi->type == heTopLeftChanged && (_topLeft.x() != phi->drawnIndex|| _topLeft.y() != phi->lastDrawnIndex) )
+    if (phi->type == heTopLeftChanged)
     {
-        _SetOrigin(phi->AsTopLeft());
-        _ClearCanvas();
-        _Redraw();
+        HistoryTopLeftChangedItem* p = dynamic_cast<HistoryTopLeftChangedItem*>(phi);
+
+        if (_topLeft != p->topLeft)
+        {
+            _SetOrigin(p->topLeft);
+            _ClearCanvas();
+            _Redraw();
+        }
     }
     else if (phi->type == heRecolor)
     {

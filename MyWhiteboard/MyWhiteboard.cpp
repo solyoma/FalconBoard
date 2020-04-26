@@ -83,7 +83,7 @@ void MyWhiteboard::SaveState()
     s.setValue("saveb", ui.actionSaveBackgroundImage->isChecked());
     if (/* !_sImageName.isEmpty() &&*/ ui.actionSaveBackgroundImage->isChecked())
         s.setValue("img", _sImageName);
-    if (ui.actionUndo->isEnabled() /* && !_saveName.isEmpty()*/ && ui.actionSaveData->isChecked() )
+//    if (/* ui.actionUndo->isEnabled()  && !_saveName.isEmpty() && */ ui.actionSaveData->isChecked() )
         s.setValue("data", _saveName);
 /*    if(!_lastDir.isEmpty()) */
         s.setValue("lastDir", _lastDir);
