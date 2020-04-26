@@ -482,8 +482,33 @@ void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
         tr("<p>Based on Qt's <b>Scribble</b> example.</p>"
-            "<p>Enhanced in many ways by A. Sólyom"
+            "<p>Enhanced in many ways by A. Sólyom (2020)"
             "</p>"));
+}
+
+void MyWhiteboard::on_actionHelp_triggered()
+{
+    QMessageBox::about(this, tr("MyWhiteboard help"),
+        tr("<p><b>Move paper</b><br>")+
+        tr("  with the mouse or pen while holding down the spacebar,<br>"
+           "  using the arrow keys alone or with Ctrl.</p>")+
+        tr("<p><b>Keyboard Shortcuts not shown on menus/buttons:</b></p>")+
+        tr("<p><i>Start of line</i><br>&nbsp;&nbsp;Home</p>")+
+        tr("<p><i>To start of document</i><br>&nbsp;&nbsp;Ctrl+Home</p>") +
+        tr("<p><i>To lowest position used so far</i><br>&nbsp;&nbsp;End</p>") +
+        tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl End</p>") +
+        tr("<p><i>Select colors</i><br>&nbsp;&nbsp;Alt+1, ..., Alt+4</p>")+
+        tr("<p><i>Recolor selected</i><br>&nbsp;&nbsp;Ctrl+Alt+1, ..., Ctrl+Alt+4 </p>")+
+        tr("<p><i>Copy selected</i><br>&nbsp;&nbsp;Ctrl+Ins, Ctrl+C</p>") +
+        tr("<p><i>Cut selected</i><br>&nbsp;&nbsp;Ctrl+X, Shift+Del</p>") +
+        tr("<p><i>Delete selected</i><br>&nbsp;&nbsp;Del, BackSpace</p>") +
+        "<br>" +
+        tr("<p><i>Select</i> drawings with right button.</p>") +
+        tr("<p>Selected drawings can be deleted, copied or cut out by keyboard shortcuts./p>") +
+        tr("<p>To paste selection select destination with right button and use keyboard shortcut.</p>")+
+        tr("<p>Draw horizontal or vertical lines by holding down a Shift key while drawing.</p>")
+
+    );
 }
 
 void MyWhiteboard::on_actionLightMode_triggered()

@@ -8,6 +8,7 @@ enum HistEvent {
     heNone,
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
+    heRecolor,         // save old color, set new color
     heVisibleCleared,  // visible image erased
     heTopLeftChanged,  // store new top and left in two element of a HistoryItems's deletedList
     heBackgroundLoaded,     // an image loaded into _background
@@ -157,7 +158,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
  *-------------------------------------------------------*/
 struct HistoryItem
 {
-    HistEvent _type = heNone;
+    HistEvent type = heNone;
     bool isSaveable = false;            // can be saved into file (scriible and erase only?
     QRect itemRect;                     // simple dranables: same as their rect, pasted items: unions of those
 
@@ -165,8 +166,11 @@ struct HistoryItem
     int lastDrawnIndex = -1;            // index in 'History::_drawnItems' last drawnable OR new 'Top' for 'heTopLeftEvent'
                                         // for single drawnItem both are the same
 
-    QVector<int> deletedList;           // indices into History::_drawnItems
+    QVector<int> deletedList;           // indices into History::_drawnItems for deleted or recolored  items
     bool hidden = false;                // e.g. a delete was already hidden
+
+    QVector<MyPenKind> penKindList;     // only used for 'heRecolor'
+    MyPenKind pk;                       // - " - 
 
     QString sBackgroundImageName;       // heBackgroundLoaded
 
@@ -175,45 +179,52 @@ struct HistoryItem
     HistoryItem(const HistoryItem && other) { *this = other; }
     HistoryItem& HistoryItem::operator=(const HistoryItem& other) 
     { 
-        _type   = other._type;
+        type   = other.type;
         drawnIndex  = other.drawnIndex;
         lastDrawnIndex  = other.lastDrawnIndex;
         deletedList = other.deletedList;
+        penKindList = other.penKindList;
         isSaveable  = other.isSaveable;
         sBackgroundImageName = other.sBackgroundImageName;
         itemRect = other.itemRect;
+        pk = other.pk;
         return *this;
     }
     HistoryItem& HistoryItem::operator=(const HistoryItem&& other)
     {
-        _type = other._type;
+        type = other.type;
         drawnIndex  = other.drawnIndex;
         lastDrawnIndex  = other.lastDrawnIndex;
         deletedList = other.deletedList;
+        penKindList = other.penKindList;
         isSaveable = other.isSaveable;
         sBackgroundImageName = other.sBackgroundImageName;
         itemRect = other.itemRect;
+        pk = other.pk;
         return *this;
     }
 
     void clear()
     {
         deletedList.clear();
+        penKindList.clear();
         sBackgroundImageName.clear();
-        _type = heNone;
+        type = heNone;
         drawnIndex = -1;
         lastDrawnIndex = -1;
     }
     void SetEvent(HistEvent he)   // removes deleted indices
     {
-        _type = he;
+        type = he;
         isSaveable = (he == heScribble || he == heEraser || heItemsPasted);
         deletedList.clear();
+        penKindList.clear();
     }
 
     void SetTopLeft(QPoint tl)  // heTopLeftChanged event
     {
         deletedList.clear();
+        penKindList.clear();
         drawnIndex      = tl.x();
         lastDrawnIndex  = tl.y();
     }
@@ -275,7 +286,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
         int i = _lastItem;
         for (; i >= 0; --i)
-            if (_items[i]._type == heVisibleCleared)
+            if (_items[i].type == heVisibleCleared)
                 return i + 1;
             // there were no iems to show
         return 0;
@@ -309,9 +320,9 @@ class History  // stores all drawing sections and keeps track of undo and redo
         _redoAble = false;                      // get rid of undone items
         if (_lastItem >= 0)                     // 
         {                                       // so "remove" those items by modifying '_indexLastDrawnItem'
-            if (_items[_lastItem]._type == heScribble || _items[_lastItem]._type == heEraser) // last item is drawable
+            if (_items[_lastItem].type == heScribble || _items[_lastItem].type == heEraser) // last item is drawable
                 _indexLastDrawnItem = _items[_lastItem].drawnIndex;
-            if (_items[_lastItem]._type == heItemsPasted)               // for pasted items
+            if (_items[_lastItem].type == heItemsPasted)               // for pasted items
                 _indexLastDrawnItem = _items[_lastItem].lastDrawnIndex; // end of pasted stored here
         }
         _AddToDrawnItems(itm);
@@ -342,6 +353,37 @@ class History  // stores all drawing sections and keeps track of undo and redo
     bool _IsSaveable(int i) const
     {
         return _IsSaveable(_items[i]);
+    }
+
+    void _ReColorSelected(HistoryItem &item, bool doIt)
+    {
+        if (item.deletedList.isEmpty())
+            return;
+
+        QVector<int>& list = item.deletedList;
+                            // expects: deletedList is list of indeixes of drawn elements
+        if (doIt)           //          items.pk already set
+        {
+            bool was = item.penKindList.size();
+
+            for (int i = 0; i < list.size(); ++i)
+            {
+                if (_drawnItems[list[i]]._type == heScribble)
+                {
+                    if (!was)
+                        item.penKindList.push_back(_drawnItems[list[i]].penKind);
+                    _drawnItems[list[i]].penKind = item.pk;
+                }
+            }
+        }
+        else   // undo it
+        {
+            for (int i = 0; i < list.size(); ++i)
+            {
+                if (_drawnItems[list[i]]._type == heScribble)
+                    _drawnItems[list[i]].penKind = item.penKindList[i];
+            }
+        }
     }
 public:
     void clear()
@@ -375,7 +417,7 @@ public:
             if (ofs.status() != QDataStream::Ok)
                 return false;
 
-            if (dt._type == heItemsPasted)           // then save all visible pasted items
+            if (dt.type == heItemsPasted)           // then save all visible pasted items
             {
                 for (int i = dt.drawnIndex; i <= dt.lastDrawnIndex; ++i)
                     if (!_drawnItems[i].isDeleted)
@@ -442,7 +484,7 @@ public:
     void NewPastedItem(DrawnItem& itm)
     {
         _AddNewDrawnItem(itm);
-        _historyItem._type = heItemsPasted; // modify one set before
+        _historyItem.type = heItemsPasted; // modify one set before
     }
 
     void AddToPastedItem(DrawnItem& itm)  // only call after newPastedItem() !
@@ -488,7 +530,7 @@ public:
 
     void addOriginChanged(QPoint &origin)       // merge successive position changes
     {
-        if (_lastItem >= 0 && _items[_lastItem]._type == heTopLeftChanged)
+        if (_lastItem >= 0 && _items[_lastItem].type == heTopLeftChanged)
         {
             _items[_lastItem].SetTopLeft(origin);
         }
@@ -529,21 +571,21 @@ public:
         {
             _index = _GetStartIndex();
                 // if the last step was a deletion first redo that
-            if (_items[_lastItem]._type == heItemsDeleted)
+            if (_items[_lastItem].type == heItemsDeleted)
                 UnDeleteItemsFor(_items[_lastItem]);
                 // if the last step ws positioning set the pervious position
-            else if (_items[_lastItem]._type == heTopLeftChanged)
+            else if (_items[_lastItem].type == heTopLeftChanged)
             {
                 int i;
                 bool otherTypeOfItem = false;   
 
                 for (i = _lastItem - 1; i >= 0; --i)
-                    if (_items[i]._type == heTopLeftChanged) // previous change position found
+                    if (_items[i].type == heTopLeftChanged) // previous change position found
                     {
                         tl = QPoint(_items[i].AsTopLeft());
                         break;
                     }
-                    else if (_items[i]._type == heVisibleCleared)
+                    else if (_items[i].type == heVisibleCleared)
                     {
                         tl = QPoint(0, 0);
                         break;
@@ -551,6 +593,8 @@ public:
                 if(i < 0)       // no movement before this: move to (0, 0)
                     tl = QPoint(0, 0);
             }
+            else if (_items[_lastItem].type == heRecolor)
+                _ReColorSelected(_items[_lastItem], false); // set colors back
 
             --_lastItem;
 
@@ -581,9 +625,10 @@ public:
         }
 
         HistoryItem* phi = &_items[++_lastItem];
+        if (phi->type == heRecolor)
+            _ReColorSelected(*phi, true);
+
         _redoAble = _lastItem < _items.size() - 1;
-        //if (!_redoAble)
-        //    _modified = false;
 
         return phi;
     }
@@ -671,5 +716,17 @@ public:
             _drawnItems[i].isDeleted = false;
 
         hi.hidden = false;
+    }
+
+    void ReColorSelected(MyPenKind pk)
+    {
+        if (_nSelectedItemsList.isEmpty())
+            return;
+
+        _historyItem.SetEvent(heRecolor);
+        _historyItem.deletedList = _nSelectedItemsList;
+        _historyItem.pk = pk;
+        _ReColorSelected(_historyItem, true);
+        add();
     }
 };

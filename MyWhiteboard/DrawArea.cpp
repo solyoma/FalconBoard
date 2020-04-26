@@ -131,23 +131,29 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
     }
     else if (event->spontaneous())
     {
+        int key = event->key();
+        Qt::KeyboardModifiers mods = event->modifiers();
+
         if (_rubberBand)    // delete rubberband for any keypress except pure modifiers
         {
-            bool bDelete = event->key() == Qt::Key_Delete || event->key() == Qt::Key_Backspace,
-                 bCopy   = (event->key() == Qt::Key_Insert || event->key() == Qt::Key_C || event->key() == Qt::Key_X) &&
-                                        event->modifiers().testFlag(Qt::ControlModifier),
-                 bCut    = bCopy && (event->key() == Qt::Key_X),
+            bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
+                 bCut    = ((key == Qt::Key_X) && mods.testFlag(Qt::ControlModifier)) ||
+                           ((key == Qt::Key_Insert) && mods.testFlag(Qt::ShiftModifier)),
+                 bCopy   = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
+                                        mods.testFlag(Qt::ControlModifier),
                  bPaste  =  _scribblesCopied && 
-                            ( (event->key() == Qt::Key_Insert && event->modifiers().testFlag(Qt::ShiftModifier)) ||
-                              (event->key() == Qt::Key_V && event->modifiers().testFlag(Qt::ControlModifier))
+                            ( (key == Qt::Key_Insert && mods.testFlag(Qt::ShiftModifier)) ||
+                              (key == Qt::Key_V && mods.testFlag(Qt::ControlModifier))
                             ),
                  bRemove = (bDelete | bCopy | bCut | bPaste) ||
-                           (event->key() != Qt::Key_Control && event->key() != Qt::Key_Shift && event->key() != Qt::Key_Alt),
-                 bCollected = false;
+                           (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt),
+                 bCollected = false,
+                 bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4) &&
+                            (mods.testFlag(Qt::ControlModifier) && mods.testFlag(Qt::AltModifier));
 
             if (bRemove)
                 _RemoveRubberBand();
-            if (bCut || bDelete || bCopy)
+            if (bCut || bDelete || bCopy || bRecolor)
             {
                 if ((bCollected = _history.CollectItemsInside(_rubberRect.translated(-_topLeft))))
                 {
@@ -171,7 +177,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
                 const QVector<DrawnItem>& dritems = _history.CopiedItems();
 
-
                 _lastDrawnItem = dritems[0];
                 _lastDrawnItem.Translate(dr);
                 _history.NewPastedItem(_lastDrawnItem);
@@ -187,6 +192,19 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit CanUndo(true);
                 emit CanRedo(false);
 			}
+            if (bRecolor)
+            {
+                MyPenKind pk;
+                switch (key)
+                {
+                    case Qt::Key_1:pk = penBlack;  break;
+                    case Qt::Key_2:pk = penRed;  break;
+                    case Qt::Key_3:pk = penGreen;  break;
+                    case Qt::Key_4:pk = penBlue;  break;
+                }
+                _history.ReColorSelected(pk);
+                _Redraw();
+            }
         }
         else
         {
@@ -242,6 +260,9 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
     {
         if (_spaceBarDown)
             _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
+
+        if (_rubberBand)
+            _RemoveRubberBand();
 
         _scribbling = true;
         _InitiateDrawing(event);
@@ -314,6 +335,10 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
 
         degv = degh = 0;
         dx = dy = 0;
+
+        if (_rubberBand)
+            _RemoveRubberBand();
+
     }
     else
         event->ignore();
@@ -388,6 +413,8 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                     emit PointerTypeChange(pointerT);
                     _InitiateDrawing(event);
                 }
+                if (_rubberBand)
+                    _RemoveRubberBand();
             }
             event->accept();
             break;
@@ -756,7 +783,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
 //            r = r.marginsAdded(QMargins(200,200,200,200)); // ????
 // /DEBUG            
 
-    switch(phi->_type)
+    switch(phi->type)
     {
         case heScribble:
         case heEraser:    // else clear screen, move, etc
@@ -817,12 +844,16 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 }
 
 void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
-{                           // unles top left changed
+{                           // unless top left or items color changed
     HistoryItem* phi = _history.Redo();
-    if (phi->_type == heTopLeftChanged && (_topLeft.x() != phi->drawnIndex|| _topLeft.y() != phi->lastDrawnIndex) )
+    if( phi->type == heTopLeftChanged && (_topLeft.x() != phi->drawnIndex|| _topLeft.y() != phi->lastDrawnIndex) )
     {
         _SetOrigin(phi->AsTopLeft());
         _ClearCanvas();
+        _Redraw();
+    }
+    else if (phi->type == heRecolor)
+    {
         _Redraw();
     }
     else

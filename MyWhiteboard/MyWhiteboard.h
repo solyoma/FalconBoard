@@ -58,7 +58,9 @@ private slots:
 	void on_actionClearCanvas_triggered();
 	void on_actionClearBackgroundImage_triggered();
 	void on_action_Print_triggered() { _drawArea->Print();  }
+
 	void on_actionAbout_triggered();
+	void on_actionHelp_triggered();
 
 	void on_actionLightMode_triggered();
 	void on_actionDarkMode_triggered();
