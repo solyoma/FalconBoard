@@ -569,7 +569,7 @@ void MyWhiteboard::on_actionClearBackgroundImage_triggered()
 
 void MyWhiteboard::on_actionUndo_triggered()
 {
-    _drawArea->Undo();
+    _drawArea->Undo();                
     _SelectPen();
     if (_eraserOn)
         on_action_Eraser_triggered();

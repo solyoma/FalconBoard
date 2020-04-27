@@ -126,6 +126,8 @@ private:
     bool _cursorSaved = false;
     History _history;
 
+    QRect _canvasRect;
+
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
     QPoint   _rubber_origin;
     QRect   _rubberRect;        // used to select histoy items

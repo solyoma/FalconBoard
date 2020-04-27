@@ -175,7 +175,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
 				QPoint dr = _rubberRect.translated(-_topLeft).topLeft(); 
 
-                HistoryItem*phi = _history.addPastedItems();
+                HistoryItem* phi = _history.addPastedItems(dr);
                 if(phi)
 				    _ReplotItem(phi);
 
@@ -284,7 +284,6 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
             _ShiftOrigin(dr);
             _ClearCanvas();
             _Redraw();
-            _history.addOriginChanged(_topLeft);
 
             _lastPointC = event->pos();
         }
@@ -322,7 +321,6 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
     if ( dy > 10 || dy < -10 || dx > 10 || dx < -10)
     {
         _ShiftAndDisplayBy(QPoint(dx, dy));
-        _history.addOriginChanged(_topLeft);
 
         degv = degh = 0;
         dx = dy = 0;
@@ -383,6 +381,8 @@ void DrawArea::resizeEvent(QResizeEvent* event)
         update();
     }
     QWidget::resizeEvent(event);
+
+    _canvasRect = QRect(0, 0, geometry().width(), geometry().height() ).translated(-_topLeft);     // 0,0 relative rectangle
 }
 
 void DrawArea::tabletEvent(QTabletEvent* event)
@@ -444,7 +444,6 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                         _Redraw();
                     }
                     _ShiftOrigin(dr);
-                    _history.addOriginChanged(_topLeft);
                     _lastPointC = event->pos();
                 }
                 else
@@ -656,7 +655,7 @@ void DrawArea::ClearHistory()
 {
     _history.clear();
     _ClearCanvas();
-    _topLeft = QPoint();
+    _SetOrigin(QPoint() );  // new _topLeft and _canvasRect
     emit CanUndo(false);
     emit CanRedo(false);
 }
@@ -746,7 +745,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         return false;
 
     DrawnItem* pdrni;     // used when we must draw something onto the screen
-    QRect r;                    // but only if it intersects with this
+//    QRect r;            // but only if it intersects with the visible canvas
 
     auto plot = [&]()   // lambda to plot point pointed by pdrni
                 {
@@ -755,8 +754,8 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         if (_tlMax.x() > _topLeft.x() || _tlMax.y() > _topLeft.y())
             _tlMax = _topLeft;
 
-        if (!pdrni->intersects(r))      // if the canvas rectangle has no intersection with         
-            return;                     // the scribble
+        if (!pdrni->intersects(_canvasRect))      // if the canvas rectangle has no intersection with         
+            return;                               // the scribble
 
         _lastPointC = pdrni->points[0] + _topLeft;
         _myPenKind = pdrni->penKind;
@@ -766,15 +765,15 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             _DrawLineTo(pdrni->points[i] + _topLeft);
     };
 
-    r = QRect(0,0, geometry().width(), geometry().height() );
-    r = r.translated(-_topLeft);
+    //r = _canvasRect;
+    //r = r.translated(-_topLeft);
 
     switch(phi->type)
     {
         case heScribble:
         case heEraser:    
-            pdrni = phi->GetDrawable(0);
-            plot();
+            if( (pdrni = phi->GetDrawable(0)))
+                plot();
             break;
         case heVisibleCleared:
             _ClearCanvas();
@@ -782,14 +781,17 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         case heItemsDeleted:    // nothing to do
             break;
         case heItemsPasted:
-            for (int i = 0; (pdrni = phi->GetDrawable()); ++i)
-                pdrni = _history.DrawnItemAt(i);
+            pdrni = phi->GetDrawable();
+            for (int i = 1; pdrni; ++i)
+            {
+                plot();
+                pdrni = phi->GetDrawable(i);
+            }
             break;
-        case heTopLeftChanged:       // only used when redo/undo
         default:
             break;
     }
-
+                                    
     return true;
 }
 
@@ -798,9 +800,11 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
     if (_history.CanUndo())
     {
         _ClearCanvas();
-        QPoint tl = _history.BeginUndo();  // undelete items deleted before the last item
-        if (tl.x() <= 0) // else no change
-            _topLeft = tl;
+        QRect tl = _history.BeginUndo();  // undelete items deleted before the last item
+        if (tl.isValid() && !_canvasRect.intersects(tl) ) // try to put at the middle of the screen
+        {
+            _SetOrigin(- (tl.topLeft() + QPoint( (_canvasRect.width() - tl.width())/2, - (_canvasRect.height() - tl.height()) / 2))) ;
+        }
 
 
         while(_ReplotItem(_history.GetOneStep()) )
@@ -814,22 +818,14 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
 {                           // unless top left or items color changed
     HistoryItem* phi = _history.Redo();
-    if (phi->type == heTopLeftChanged)
+    if (phi->type == heRecolor)
+        _Redraw();
+    else if (phi->type == heItemsDeleted)
     {
-        HistoryTopLeftChangedItem* p = dynamic_cast<HistoryTopLeftChangedItem*>(phi);
-
-        if (_topLeft != p->topLeft)
-        {
-            _SetOrigin(p->topLeft);
-            _ClearCanvas();
-            _Redraw();
-        }
-    }
-    else if (phi->type == heRecolor)
-    {
+        _ClearCanvas();
         _Redraw();
     }
-    else
+    else    // heScribble, heEraser
         _ReplotItem(phi);
 
     emit CanUndo(_history.CanUndo() );
@@ -863,6 +859,7 @@ void DrawArea::_SetOrigin(QPoint o)
 {
     _topLeft = o;
     _RemoveRubberBand();
+    _canvasRect.moveTo(-_topLeft);
 
     emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
 }
@@ -890,13 +887,11 @@ void DrawArea::_PageUp()
 {
     QPoint pt(0, geometry().height()/3*2);
     _ShiftAndDisplayBy(pt);
-    _history.addOriginChanged(_topLeft);
 }
 void DrawArea::_PageDown()
 {
     QPoint pt(0, -geometry().height() / 3 * 2);
     _ShiftAndDisplayBy(pt);
-    _history.addOriginChanged(_topLeft);
 }
 void DrawArea::_Home(bool toTop)
 {
@@ -905,12 +900,10 @@ void DrawArea::_Home(bool toTop)
     if(!toTop)
         pt.setY(0);   // do not move in y direction
     _ShiftAndDisplayBy(pt);
-    _history.addOriginChanged(_topLeft);
 }
 void DrawArea::_End()
 {
     _topLeft = _tlMax;
-    _history.addOriginChanged(_topLeft);
     emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
     _ClearCanvas();
     _Redraw();
@@ -920,25 +913,21 @@ void DrawArea::_Up(int amount)
 {
     QPoint pt(0, amount);
     _ShiftAndDisplayBy(pt);
-    _history.addOriginChanged(_topLeft);
 }
 void DrawArea::_Down(int amount)
 {
     QPoint pt(0, -amount);
     _ShiftAndDisplayBy(pt);
-    _history.addOriginChanged(_topLeft);
 }
 void DrawArea::_Left(int amount)
 {
     QPoint pt(amount, 0);
     _ShiftAndDisplayBy(pt);
-    _history.addOriginChanged(_topLeft);
 }
 void DrawArea::_Right(int amount)
 {
     QPoint pt(-amount, 0);
     _ShiftAndDisplayBy(pt);
-    _history.addOriginChanged(_topLeft);
 }
 
 void DrawArea::ShowCoordinates(QPoint& qp)
