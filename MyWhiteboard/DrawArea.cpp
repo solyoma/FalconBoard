@@ -3,6 +3,7 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QMessageBox>
 
 #if defined(QT_PRINTSUPPORT_LIB)
 #include <QtPrintSupport/qtprintsupportglobal.h>
@@ -36,7 +37,13 @@ void DrawArea::ClearBackground()
 int DrawArea::Load(QString name)
 {
     int res = _history.Load(name);
-    if (res >= 0)    // TODO send message if read error
+    if (!res)
+        QMessageBox::about(this, tr("MyWhiteboard"), tr("Invalid file"));
+    else if(res == -1)
+        QMessageBox::about(this, tr("MyWhiteboard"), tr("File not found"));
+    else if(res < 0)
+        QMessageBox::about(this, tr("MyWhiteboard"), QString( tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res-1));
+    if(res && res != -1)    // TODO send message if read error
     {
         _ClearCanvas();
         _Redraw();
@@ -803,7 +810,7 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
         QRect tl = _history.BeginUndo();  // undelete items deleted before the last item
         if (tl.isValid() && !_canvasRect.intersects(tl) ) // try to put at the middle of the screen
         {
-            _SetOrigin(- (tl.topLeft() + QPoint( (_canvasRect.width() - tl.width())/2, - (_canvasRect.height() - tl.height()) / 2))) ;
+            _SetOrigin(_topLeft - QPoint( (_canvasRect.width() - tl.width())/2, - (_canvasRect.height() - tl.height()) / 2)) ;
         }
 
 
