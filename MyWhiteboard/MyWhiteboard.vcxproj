@@ -83,6 +83,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DrawArea.cpp" />
+    <ClCompile Include="history.cpp" />
     <ClCompile Include="snipper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyWhiteboard.cpp" />

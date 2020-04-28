@@ -23,7 +23,7 @@ DrawArea::DrawArea(QWidget* parent)
 
 void DrawArea::ClearCanvas()
 {
-    _history.addClearScreen();
+    _history.addClearCanvas();
     _ClearCanvas();
 }
 
@@ -123,9 +123,27 @@ void DrawArea::NewData()
     ClearBackground();
 }
 
-void DrawArea::_ClearCanvas()
+void DrawArea::_ClearCanvas() // uses _clippingRect
 {
-    _canvas.fill(qRgba(255,255,255, 0));     // transparent
+    if (_clippingRect == _canvasRect || !_clippingRect.isValid() || _clippingRect.isNull())
+    {
+        _canvas.fill(qRgba(255, 255, 255, 0));     // transparent
+        _clippingRect = _canvasRect;
+    }
+    else
+    {
+        QPainter painter(&_canvas);
+        painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    // DEBUG
+qDebug("topLeft: (%d, %d), clipping: (%d, %d, %d, %d)", _topLeft.x(), _topLeft.y(), 
+                                                        _clippingRect.x(),     _clippingRect.y(), 
+                                                        _clippingRect.width(), _clippingRect.height());
+qDebug("  translated by topLeft(%d, %d, %d, %d)", _clippingRect.translated(-_topLeft).x(), _clippingRect.translated(-_topLeft).y(),
+                                                  _clippingRect.translated(-_topLeft).width(), _clippingRect.translated(-_topLeft).height());
+// /DEBUG            
+
+        painter.fillRect(_clippingRect.translated(-_topLeft), qRgba(255, 255, 255, 0));
+    }
     update();
 }
 
@@ -325,7 +343,8 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
     if (!dx)
         dx = degh / 8;      // 15 degree
 
-    if ( dy > 10 || dy < -10 || dx > 10 || dx < -10)
+    const constexpr int tolerance = 3;
+    if ( dy > tolerance || dy < -tolerance || dx > tolerance || dx < -tolerance)
     {
         _ShiftAndDisplayBy(QPoint(dx, dy));
 
@@ -390,6 +409,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
     QWidget::resizeEvent(event);
 
     _canvasRect = QRect(0, 0, geometry().width(), geometry().height() ).translated(-_topLeft);     // 0,0 relative rectangle
+    _clippingRect = _canvasRect;
 }
 
 void DrawArea::tabletEvent(QTabletEvent* event)
@@ -608,9 +628,9 @@ void DrawArea::MoveToActualPosition(QRect rect)
     if (!rect.isNull() && rect.isValid() && !_canvasRect.intersects(rect)) // try to put at the middle of the screen
     {
         if (rect.x() < l || rect.x() > l + _canvasRect.width())
-            l = rect.x() + (_canvasRect.width() - rect.width()) / 2;
+            l = rect.x() - (_canvasRect.width() - rect.width()) / 2;
         if (rect.y() < t || rect.y() > t + _canvasRect.height())
-            t = rect.y() + (_canvasRect.height() - rect.height()) / 2;
+            t = rect.y() - (_canvasRect.height() - rect.height()) / 2;
 
         if (-l != _topLeft.x() || -t != _topLeft.y())
         {
@@ -774,7 +794,6 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         return false;
 
     DrawnItem* pdrni;     // used when we must draw something onto the screen
-//    QRect r;            // but only if it intersects with the visible canvas
 
     auto plot = [&]()   // lambda to plot point pointed by pdrni
                 {
@@ -783,8 +802,8 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         if (_tlMax.x() > _topLeft.x() || _tlMax.y() > _topLeft.y())
             _tlMax = _topLeft;
 
-        if (!pdrni->intersects(_canvasRect))      // if the canvas rectangle has no intersection with         
-            return;                               // the scribble
+        if (!pdrni->intersects(_clippingRect))   // if the clipping rectangle has no intersection with         
+            return;                              // the scribble
 
         _lastPointC = pdrni->points[0] + _topLeft;
         _myPenKind = pdrni->penKind;
@@ -793,9 +812,6 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         for (int i = 1; i < pdrni->points.size(); ++i)
             _DrawLineTo(pdrni->points[i] + _topLeft);
     };
-
-    //r = _canvasRect;
-    //r = r.translated(-_topLeft);
 
     switch(phi->type)
     {
@@ -828,12 +844,14 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 {
     if (_history.CanUndo())
     {
+        QRect rect = _history.Undo();
+        MoveToActualPosition(rect); 
+        _clippingRect = rect;
         _ClearCanvas();
-        MoveToActualPosition(_history.BeginUndo());  // undelete items deleted before the last item
         
         while(_ReplotItem(_history.GetOneStep()) )
             ;
-
+        _clippingRect = _canvasRect;
         emit CanRedo(true);
     }
     emit CanUndo(_history.CanUndo());
@@ -842,7 +860,11 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
 {                           // unless top left or items color changed
     HistoryItem* phi = _history.Redo();
+    if (!phi)
+        return;
+
     MoveToActualPosition(phi->Area());
+    _clippingRect = phi->Area();
 
     if (phi->type == heRecolor)
         _Redraw();
@@ -853,6 +875,8 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
     }
     else    // heScribble, heEraser
         _ReplotItem(phi);
+
+    _clippingRect = _canvasRect;
 
     emit CanUndo(_history.CanUndo() );
     emit CanRedo(_history.CanRedo());
@@ -886,6 +910,7 @@ void DrawArea::_SetOrigin(QPoint o)
     _topLeft = o;
     _RemoveRubberBand();
     _canvasRect.moveTo(-_topLeft);
+    _clippingRect = _canvasRect;
 
     emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
 }

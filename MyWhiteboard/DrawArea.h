@@ -126,7 +126,8 @@ private:
     bool _cursorSaved = false;
     History _history;
 
-    QRect _canvasRect;
+    QRect   _canvasRect;
+    QRect   _clippingRect;  // only need to draw here
 
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
     QPoint   _rubber_origin;

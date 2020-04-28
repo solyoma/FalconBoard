@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QtGui>
 #include <QFile>
 #include <QDataStream>
 #include <QIODevice>
@@ -31,129 +32,28 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     QRect rect;                     // top left-bttom right coordinates of encapsulating rectangle
                                     // not saved on disk, recreated on read
 
-    DrawnItem(HistEvent he = heScribble) noexcept : type(he) {}
-    DrawnItem(const DrawnItem& di)  { *this = di; }
-    DrawnItem(const DrawnItem&& di) noexcept { *this = di; }
-    DrawnItem& operator=(const DrawnItem& di)
-    {
-        type = di.type;
-        penKind = di.penKind;
-        penWidth = di.penWidth;
-        points = di.points;
-        rect = di.rect;
-        return *this;
-    }
+    DrawnItem(HistEvent he = heScribble) noexcept;
+    DrawnItem(const DrawnItem& di);
+    DrawnItem(const DrawnItem&& di);
+    DrawnItem& operator=(const DrawnItem& di);
 
-    DrawnItem& operator=(const DrawnItem&& di)  noexcept
-    {
-        type = di.type;
-        penKind = di.penKind;
-        penWidth = di.penWidth;
-        points = di.points;
-        rect = di.rect;
-        return *this;
-    }
+    DrawnItem& operator=(const DrawnItem&& di)  noexcept;
 
-    void clear() 
-    { 
-        points.clear(); 
-        rect = QRect();
-    }
+    void clear();
 
-    static bool IsExtension(QPoint& p, QPoint& p1, QPoint& p2 = QPoint()) // vectors p->p1 and p1->p are parallel?
-    {
-        //return false;       // DEBUG as it is not working yet
+    static bool IsExtension(QPoint& p, QPoint& p1, QPoint& p2 = QPoint()); // vectors p->p1 and p1->p are parallel?
+    void add(QPoint p);
 
-        if (p == p1)
-            return true;    // nullvector may point in any direction :)
+    void add(int x, int y);
 
-        QPoint vp = p - p1,  // not (0, 0)
-            vpp = p1 - p2;
+    bool intersects(const QRect& arect) const;
 
-            // the two vectors point in the same direction when vpp.y()/vpp.x() == vp.y()/vp.x()
-            // i.e to avoid checking for zeros in divison: 
-        return vpp.y() * vp.x() == vp.y() * vpp.x();
-    }
-
-    void add(QPoint p)
-    {
-        if (rect.isNull())
-            rect = QRect(p.x(), p.y(), 1, 1);      // single point
-        else if (!rect.contains(p))
-        {
-            if (rect.x() > p.x()) rect.setX(p.x());
-            if (rect.y() > p.y()) rect.setY(p.y());
-            if (rect.right() < p.x()) rect.setRight(p.x());
-            if (rect.bottom() < p.y()) rect.setBottom(p.y());
-        }
-// DEBUG
-//        qDebug("point: (%d, %d), rect: l:%d, t:%d, w:%d, h:%d",p.x(),p.y(),rect.x(),rect.y(),rect.width(),rect.height()) ;
-// /DEBUG            
-
-        int n = points.size() - 1;       
-                                        
-                                        
-        if(n < 0  )
-            points.push_back(p);
-        else                      // we need at least one point already in the array
-        {   // if a point just extends the line in the same direction (IsExtension())
-            // as the previous point was from the one before it
-            // then do not add a new point, just modify the coordintes
-            // (n 0: 1 point, >0: at least 2 points are already in the array
-            if( n > 0 && IsExtension(p, points[n], points[n-1]) )  // then the two vector points in the same direction
-                points[n] = p;                            // so continuation
-            else
-                points.push_back(p);
-        }
-    }
-
-    void add(int x, int y)
-    {
-        QPoint p(x, y);
-        add(p);
-    }
-
-    bool intersects(const QRect& arect) const
-    {
-        return rect.intersects(arect);
-    }
-
-    void Translate(QPoint dr)
-    {
-        for (int i = 0; i < points.size(); ++i)
-            points[i] = points[i] + dr;
-        rect.translate(dr);
-    }
-
+    void Translate(QPoint dr);
 };
 
-inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
-{
-    ofs << (qint32)di.type << (qint32)di.penKind << (qint32)di.penWidth;
-    ofs << (qint32)di.points.size();
-    for (auto pt : di.points)
-        ofs << (qint32)pt.x() << (qint32)pt.y();
-    return ofs;
-}
+inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di);
 
-inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
-{
-    qint32 n;
-    ifs >> n; di.type = static_cast<HistEvent>(n);
-    ifs >> n; di.penKind = (MyPenKind)n;
-    ifs >> n; di.penWidth = n;
-
-    qint32 x,y;
-    di.clear();
-
-    ifs >> n; 
-    while (n--)
-    {
-        ifs >> x >> y;
-        di.add(x, y);
-    }
-    return ifs;
-}
+inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di);
 //-------------------------------------------------------------------------
 // a list of drawn elements
 struct DrawnItemList
@@ -161,68 +61,15 @@ struct DrawnItemList
     QVector<DrawnItem> dw;
     int lastDrawnIndex = -1;        // start adding items after this
 
-    DrawnItem *Add(DrawnItem& dri)
-    {
-        if (++lastDrawnIndex == dw.size())
-            dw.push_back(dri);
-        else
-            dw[lastDrawnIndex] = dri;
-        return &dw[lastDrawnIndex];
-    }
-    DrawnItem* Add(QVector<DrawnItem> dwother, QRect &Area, QPoint *pTopLeft = nullptr)
-    {
-        DrawnItem* p;
-        Area = QRect();
+    DrawnItem* Add(DrawnItem& dri);
+    DrawnItem* Add(QVector<DrawnItem> dwother, QRect& Area, QPoint* pTopLeft = nullptr);
 
-        for (auto dri : dwother)
-        {
-            QRect driRect = QRect();
+    DrawnItem& operator[](int index);
 
-            for (QPoint &pt: dri.points) // correct for paste position
-            {
-                if (pTopLeft)
-                    pt += *pTopLeft;
-                if(!Area.contains(pt))
-                    driRect = driRect.united(QRect(pt, QSize(1,1) ) );
-            }
-            dri.rect = driRect;
-            Area = Area.united(driRect);
-
-            p = Add(dri);          // return only the last one
-        }
-        return p;
-    }
-
-    DrawnItem& operator[](int index)
-    { 
-        return dw[index];
-    }
-
-    void Clear() 
-    { 
-        dw.clear();
-        lastDrawnIndex = -1;
-    }
-    void Purge()    // elements with invalid type from list
-    {
-        int i = 0;
-        for (auto pd = dw.begin(); pd != dw.end(); ++pd) 
-            if (pd->type == heNone)
-            {
-                ++i;
-                pd = dw.erase(pd);
-                if (pd == dw.end())
-                    break;
-            }
-        if (i < lastDrawnIndex)
-            lastDrawnIndex = i;
-    }
-    int Size()
-    {
-        return dw.size();
-    }
+    void Clear();
+    void Purge();
+    int Size();
 };
-
 /*========================================================
  * One history element
  *-------------------------------------------------------*/
@@ -233,24 +80,20 @@ struct HistoryItem      // base class
 {
     HistEvent type = heNone;
     bool isSaveable = false;            // can be saved into file (scriible and erase only?
+    // function prototypes for easier access
     virtual bool Undo() { return true; }        // returns if process is complete, false: move to previous item
     virtual bool Redo() { return true; }        // returns if process is complete, false: move to next item
     virtual bool IsSaveable() const  { return isSaveable; }    // use when items may be deleetd
     virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; }
     virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
     virtual bool Hidden() const { return true; }    // must not draw it
-    virtual void Purge() const                      // use for items after undo when new history item should overwrite this one
-    {                                               // purge from drawn items when applicable
-        //  delete items in  pDrawn, 
-        //  set their type to heNone
-        //  call Purge of drawn item list
-    }
 };
 
 //--------------------------------------------
-struct HistoryClearVisible : HistoryItem
+struct HistoryClearCanvasItem : HistoryItem
 {
-    HistoryClearVisible() : HistoryItem() { type =heVisibleCleared; }
+    int drawnIndex;
+    HistoryClearCanvasItem(int drawnIndex);
 };
 
 //--------------------------------------------
@@ -260,46 +103,17 @@ struct HistoryDrawItem : public HistoryItem
     DrawnItemList* pDrawn = nullptr;    // pointer to base of array/list of drawn scribbles
     int drawnIndex = -1;                // index in 'History::_drawnItems' first drawnable
     QRect encompassingRect;             // same as for the drawable item
-    HistoryDrawItem(DrawnItem &dri, DrawnItemList* pdri) : HistoryItem(), pDrawn(pdri) 
-    { 
-        type = dri.type; 
-        isSaveable = true;
-        encompassingRect = pDrawn->Add(dri)->rect;
-        drawnIndex = pDrawn->lastDrawnIndex;
-    }
-    HistoryDrawItem(const HistoryDrawItem& other)
-    {
-        *this = other;
-    }
-    HistoryDrawItem(const HistoryDrawItem&& other)
-    {
-        *this = other;
-    }
+    HistoryDrawItem(DrawnItem& dri, DrawnItemList* pdri);
+    HistoryDrawItem(const HistoryDrawItem& other);
+    HistoryDrawItem(const HistoryDrawItem&& other);
 
-    bool Hidden() const override {return (*pDrawn)[drawnIndex].isDeleted; }
+    bool Hidden() const override;
 
-    HistoryDrawItem& operator=(const HistoryDrawItem& other)
-    {
-        type = other.type;
-        isSaveable = true;
-        pDrawn = other.pDrawn;
-        drawnIndex = other.drawnIndex;
-        encompassingRect = other.encompassingRect;
-    }
-    HistoryDrawItem& operator=(const HistoryDrawItem&& other)
-    {
-        type = other.type;
-        isSaveable = true;
-        pDrawn = other.pDrawn;
-        drawnIndex = other.drawnIndex;
-        encompassingRect = other.encompassingRect;
-    }
-    bool IsSaveable() const override { return (*pDrawn)[drawnIndex].isDeleted; }
-    DrawnItem* GetDrawable(int index = 0) const override 
-    { 
-        return (index || (*pDrawn)[drawnIndex].isDeleted) ? nullptr : &(*pDrawn)[drawnIndex];
-    }
-    QRect Area() const override { return encompassingRect; }
+    HistoryDrawItem& operator=(const HistoryDrawItem& other);
+    HistoryDrawItem& operator=(const HistoryDrawItem&& other);
+    bool IsSaveable() const override;
+    DrawnItem* GetDrawable(int index = 0) const override;
+    QRect Area() const override;
     // no new undo/redo needed
 };
 
@@ -307,53 +121,14 @@ struct HistoryDrawItem : public HistoryItem
 struct HistoryDeleteItems : public HistoryItem
 {
     DrawnItemList* pDrawn = nullptr;        // pointer to base of array/list of drawn scribbles
-    bool hidden = true;
     IntVector deletedList;              // indexes to element in '*pDrawn'
-    bool Undo() override
-    {
-        for (auto i : deletedList)
-            (*pDrawn)[i].isDeleted = false;
-        hidden = false;
-        return true;
-    }
-    bool Redo() override
-    {
-        for (auto i : deletedList)
-            (*pDrawn)[i].isDeleted = true;
-        hidden = true;
-        return true;
-    }
-    bool Hidden() const override { return hidden; }
-    HistoryDeleteItems(DrawnItemList* pdri, IntVector &selected) : HistoryItem(), pDrawn(pdri), deletedList(selected) 
-    { 
-        type = heItemsDeleted; 
-        Redo();         // and mark them
-    }
-    HistoryDeleteItems(HistoryDeleteItems& other) : HistoryDeleteItems(other.pDrawn, other.deletedList) {}
-    HistoryDeleteItems& operator=(const HistoryDeleteItems& other)
-    {
-        type = heItemsDeleted;
-        pDrawn = other.pDrawn;
-        deletedList = other.deletedList;
-        hidden = other.hidden;
-        return *this;
-    }
-    HistoryDeleteItems(HistoryDeleteItems&& other) : HistoryDeleteItems(other.pDrawn, other.deletedList) {}
-    HistoryDeleteItems& operator=(const HistoryDeleteItems&& other)
-    {
-        type = heItemsDeleted;
-        pDrawn = other.pDrawn;
-        deletedList = other.deletedList;
-        hidden = other.hidden;
-        return *this;
-    }
-    void Purge() const override        // remove elements from drawnItems permanently
-    {                                  // used when this Item is overwritten by another one
-        for(int i: deletedList)        // mark them as invalid
-            (*pDrawn)[i].type = heNone; 
-
-        pDrawn->Purge();               // and remove from list
-    }
+    bool Undo() override;
+    bool Redo() override;
+    HistoryDeleteItems(DrawnItemList* pdri, IntVector& selected);
+    HistoryDeleteItems(HistoryDeleteItems& other);
+    HistoryDeleteItems& operator=(const HistoryDeleteItems& other);
+    HistoryDeleteItems(HistoryDeleteItems&& other);
+    HistoryDeleteItems& operator=(const HistoryDeleteItems&& other);
 };
 
 //--------------------------------------------
@@ -364,74 +139,19 @@ struct HistoryPasteItem : HistoryItem
     int lastPastedIndex;
     QRect encompassingRect;
 
-    bool Undo() override
-    {
-        pDrawn->lastDrawnIndex = firstPastedIndex;
-        return true;
-    }
-    bool Redo() override
-    {
-        pDrawn->lastDrawnIndex = lastPastedIndex;
-        return true;
-    }
-    HistoryPasteItem(DrawnItemList* pdri, QVector<DrawnItem>& pastedList, QPoint topLeft) :
-        HistoryItem(), pDrawn(pdri)
-    {
-        type = heItemsPasted;
-        isSaveable = true;
-        firstPastedIndex = pDrawn->lastDrawnIndex + 1;
-        lastPastedIndex = firstPastedIndex + pastedList.size() - 1;
-        pDrawn->Add(pastedList, encompassingRect, &topLeft);
-    }
+    bool Undo() override;
+    bool Redo() override;
+    HistoryPasteItem(DrawnItemList* pdri, QVector<DrawnItem>& pastedList, QPoint topLeft);
 
-    HistoryPasteItem(HistoryPasteItem& other)
-    {
-        *this = other;
-    }
-    HistoryPasteItem& operator=(const HistoryPasteItem& other)
-    {
-        type = heItemsPasted;
-        isSaveable = true;
-        pDrawn = other.pDrawn;
-        firstPastedIndex = other.firstPastedIndex;
-        lastPastedIndex = other.lastPastedIndex;
-        encompassingRect = other.encompassingRect;
-        return *this;
-    }
-    HistoryPasteItem(HistoryPasteItem&& other)
-    {
-        *this = other;
-    }
-    HistoryPasteItem& operator=(const HistoryPasteItem&& other)
-    {
-        type = heItemsPasted;
-        isSaveable = true;
-        pDrawn = other.pDrawn;
-        firstPastedIndex = other.firstPastedIndex;
-        lastPastedIndex = other.lastPastedIndex;
-        encompassingRect = other.encompassingRect;
-        return *this;
-    }
+    HistoryPasteItem(HistoryPasteItem& other);
+    HistoryPasteItem& operator=(const HistoryPasteItem& other);
+    HistoryPasteItem(HistoryPasteItem&& other);
+    HistoryPasteItem& operator=(const HistoryPasteItem&& other);
 
-    bool IsSaveable() const override
-    {
-        int n = 0;
-        for (int i = firstPastedIndex; i <= lastPastedIndex; ++i)
-            if ((*pDrawn)[i].isDeleted)
-                ++n;
-        return n < pDrawn->Size();
-    }
-    DrawnItem* GetDrawable(int index = 0) const override 
-    { 
-        if(index < 0)
-            return nullptr; 
-        index += firstPastedIndex;
-        if (index > lastPastedIndex)
-            return false;
-        return (*pDrawn)[index].isDeleted ? nullptr : &(*pDrawn)[index];
-    }
+    bool IsSaveable() const override;
+    DrawnItem* GetDrawable(int index = 0) const override;
 
-    QRect Area() const override { return encompassingRect; }
+    QRect Area() const override;
 };
 
 //--------------------------------------------
@@ -443,60 +163,14 @@ struct HistoryReColorItem : HistoryItem
     MyPenKind pk;                           
     QRect encompassingRectangle;            // to scroll here when undo/redo
 
-    bool Undo() override
-    {
-        for (int i = 0; i < selectedList.size(); ++i)
-            (*pDrawn)[selectedList[i]].penKind = penKindList[i];
-        return true;
-    }
-    bool Redo() override
-    {
-        for (int i = 0; i < selectedList.size(); ++i)
-        {
-            penKindList[i] = (*pDrawn)[ selectedList[i] ].penKind;
-            (*pDrawn)[selectedList[i]].penKind = pk;
-        }
-        return true;
-    }
-    HistoryReColorItem(DrawnItemList* pdri, MyPenKind pk, IntVector &selectedList) : HistoryItem(), pDrawn(pdri), pk(pk), selectedList(selectedList)
-    { 
-        penKindList.resize(selectedList.size());
-        for (int i = 0; i < selectedList.size(); ++i)
-            encompassingRectangle = encompassingRectangle.united((*pDrawn)[selectedList[i]].rect);
-        type = heRecolor; 
-        Redo();
-    }
-
-    HistoryReColorItem(HistoryReColorItem& other)
-    { 
-        *this = other;
-    }
-
-    HistoryReColorItem& operator=(const HistoryReColorItem& other)
-    {
-        type = heRecolor;
-        pDrawn = other.pDrawn;
-        selectedList = other.selectedList;
-        penKindList = other.penKindList;
-        pk = other.pk;
-        return *this;
-    }
-
-    HistoryReColorItem(HistoryReColorItem&& other) : HistoryReColorItem(other.pDrawn, other.pk, other.selectedList)
-    {
-        *this = other;
-    }
-
-    HistoryReColorItem& operator=(const HistoryReColorItem&& other)
-    {
-        type = heRecolor;
-        pDrawn = other.pDrawn;
-        selectedList = other.selectedList;
-        penKindList = other.penKindList;
-        pk = other.pk;
-        return *this;
-    }
-    QRect Area() const override { return encompassingRectangle; }
+    bool Undo() override;
+    bool Redo() override;
+    HistoryReColorItem(DrawnItemList* pdri, MyPenKind pk, IntVector& selectedList);
+    HistoryReColorItem(HistoryReColorItem& other);
+    HistoryReColorItem& operator=(const HistoryReColorItem& other);
+    HistoryReColorItem(HistoryReColorItem&& other);
+    HistoryReColorItem& operator=(const HistoryReColorItem&& other);
+    QRect Area() const override;
 };
 
 /*========================================================
@@ -510,7 +184,7 @@ struct HistoryReColorItem : HistoryItem
  *           then earlier history items!
  *
  *      list of screen clearing event indices
- *      _lastItem: index of the the last history item adedd
+ *      _actItem: index of the the last history item adedd
  *          new items are added after this index
  *          during undo: this index is decreased, at redo 
  *              it is increased
@@ -521,13 +195,12 @@ struct HistoryReColorItem : HistoryItem
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    HistoryItem     *_historyItem;       // for drawable and other elements
-
     DrawnItemList       _drawnItems;          // all items drawn on screen
     QVector<DrawnItem>  _copiedItems;    // copy items into this list for pasting anywhere even in newly opened documents
 
     QVector<HistoryItem*> _items;
-    int _lastItem = -1;                 // in _items, index of last history item, -1: no such item
+    int _actItem = -1;                  // in _items, index of actual history item, -1: no such item
+    int _endItem = 0;                 // index until a redo can go (max value: _items.size()
 
     IntVector _nSelectedItemsList;   // indices into '_drawnItems', set when we want to delete a bunch of items all together
     QRect _selectionRect;               // encompassing rectangle for selected items used for paste operation
@@ -540,313 +213,62 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     bool _redoAble = false;      // set to true if no new drawing occured after an undo
 
-    HistoryItem * _AddItem(HistoryItem* p)
-    {
-        if (!p)
-            return nullptr;
+    HistoryItem* _AddItem(HistoryItem* p);
 
-         if (++_lastItem == _items.size())
-            _items.push_back(p);
-        else         // overwrite last item
-        {
-             _items[_lastItem]->Purge();    // remove this items forever
+    int _GetStartIndex();        // find first drawable item in '_items' after a clear screen 
+                               // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
 
-            delete _items[_lastItem];   // was new'd
-            _items[_lastItem] = p;      
-            _redoAble = false;
-                                        // and delete above this (just to see anywhere else if I have some problems)
-            for (int j = _lastItem + 1; j < _items.size(); ++j)
-            {
-                delete _items[j];
-                _items[j] = nullptr;
-            }
-        }
-        _redoAble = false;
-        return _items[_lastItem];
-    }
-
-    int _GetStartIndex()        // find first drawable item in '_items' after a clear screen 
-    {
-        if (_lastItem < 0)
-            return -1;
-
-        int i = _lastItem;
-        for (; i >= 0; --i)
-            if (_items[i]->type == heVisibleCleared)
-                return i + 1;
-            // there were no iems to show
-        return 0;
-    }
-
-    bool _IsSaveable(HistoryItem &item)         // when n drawables in it are deleted
-    {
-        if (!item.isSaveable)
-            return false;
-
-        if (item.type == heScribble || item.type == heEraser)
-        {
-            HistoryDrawItem& hdi = dynamic_cast<HistoryDrawItem &>(item);
-            return !_drawnItems[hdi.drawnIndex].isDeleted;
-        }
-        HistoryPasteItem& hpi = dynamic_cast<HistoryPasteItem&>(item);
-        bool res = true;
-        for(int i = hpi.firstPastedIndex; i <= hpi.lastPastedIndex; ++i)
-            res &=  !_drawnItems[ i ].isDeleted;
-        return res;
-    }
-
-    bool _IsSaveable(int i) 
-    {
-        return _IsSaveable(*_items[i]);
-    }
+    bool _IsSaveable(HistoryItem& item);         // when n drawables in it are deleted
+    bool _IsSaveable(int i);
 
 public:
     History() {}
-    ~History()
-    {
-        for (int i = 0; i < _items.size(); ++i)
-            delete _items[i];
-    }
-    void clear()
-    {
-        _lastItem = -1;
-
-        for (int i = 0; i < _items.size(); ++i)
-            delete _items[i];
-        _items.clear();
-
-        _drawnItems.Clear();
-        _redoAble = false;
-        _modified = false;
-    }
-    int size() const { return _items.size(); }
+    ~History();
+    void clear();
+    int size() const;
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
 
-    bool Save(QString name)
-    {
-        QFile f(name);
-        f.open(QIODevice::WriteOnly);
 
-        if (!f.isOpen())
-            return false;   // can't write file
+    /*========================================================
+     * TASK:    save actual visible drawn items
+     * PARAMS:  file name
+     * GLOBALS:
+     * RETURNS:
+     * REMARKS: - drawn items follow each other in the order 
+     *              they were used. 
+     *          - if a clear screen was somewhere it contains
+     *              the index of the last drawn item before it
+     *              so only items after it are saved
+     *-------------------------------------------------------*/
+    bool Save(QString name);
 
-        QDataStream ofs(&f);
-        ofs << MAGIC_ID;
-           // only save after last clear screen op.
-        for (int i = _GetStartIndex(); i <= _lastItem; ++i)
-        {
-            auto dt = _items[i];
-            // do not save canvas movement or background image events
-            if (ofs.status() != QDataStream::Ok)
-                return false;
-
-            if (dt->type == heItemsPasted)           // then save all visible pasted items
-            {
-                HistoryPasteItem& hpi = dynamic_cast<HistoryPasteItem&>(*dt);
-
-                for (int i = hpi.firstPastedIndex; i <= hpi.lastPastedIndex; ++i)
-                    if (!_drawnItems[i].isDeleted)
-                        ofs << _drawnItems[i];
-            }
-            else
-            {
-                HistoryDrawItem* hpi = dynamic_cast<HistoryDrawItem*>(dt);
-                if (_IsSaveable(*hpi))
-                    ofs << _drawnItems[hpi->drawnIndex];
-            }
-        }
-        _modified = false;
-        return true;
-    }
-
-    int Load(QString name)  // returns _ites.size() when Ok, -items.size()-1 when read error
-    {
-        QFile f(name);
-        f.open(QIODevice::ReadOnly);
-        if (!f.isOpen())
-            return -1;
-
-        QDataStream ifs(&f);
-        qint32 id;
-        ifs >> id;
-        if (id != MAGIC_ID)
-            return 0;
-
-        _items.clear();
-        _drawnItems.Clear();
-        _lastItem = -1;
-
-        DrawnItem di;
-        int i = 0;
-        while (!ifs.atEnd())
-        {
-            ifs >> di;
-            if (ifs.status() != QDataStream::Ok)
-                return -_items.size() - 1;
-
-            ++i;
-
-            addDrawnItem(di);
-        }
-        _modified = false;
-        return _lastItem = _items.size() - 1;
-    }
-
-    bool IsModified() const { return _modified; }
-    bool CanUndo() const { return _lastItem >= 0; }
+    int Load(QString name);  // returns _ites.size() when Ok, -items.size()-1 when read error
+    bool IsModified() const { return _modified & CanUndo(); }
+    bool CanUndo() const { return _actItem >= 0; }
     bool CanRedo() const { return _redoAble; }
 
 //--------------------- Add Items ------------------------------------------
 
-    HistoryItem *addDrawnItem(DrawnItem &itm)           // may be after an undo, so
-    {                                                  // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
-        HistoryDrawItem* p = new HistoryDrawItem(itm, &_drawnItems);
-        return _AddItem(p);
-    }
+    HistoryItem* addDrawnItem(DrawnItem& itm);           // may be after an undo, so
+                                                      // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
+    HistoryItem* addDeleteItems();
+    HistoryItem* addPastedItems(QPoint topLeft);
+    HistoryItem* addClearCanvas();
+    HistoryItem* addRecolor(MyPenKind pk);
 
-    HistoryItem *addDeleteItems()
-    {
-        if (!_nSelectedItemsList.size())
-            return nullptr;          // do not add an empty list
-        HistoryDeleteItems* p = new HistoryDeleteItems(&_drawnItems, _nSelectedItemsList);
-        return _AddItem(p);
-    }
+    DrawnItem* DrawnItemAt(int index);
+    int SetFirstItemToDraw();
+    QRect  Undo();        // returns top left after undo 
+    HistoryItem* Redo();
 
-    HistoryItem *addPastedItems(QPoint topLeft )
-    {
-        if (!_copiedItems.size())
-            return nullptr;          // do not add an empty list
+    HistoryItem* GetOneStep();
 
-        HistoryPasteItem *p = new HistoryPasteItem(&_drawnItems, _copiedItems, topLeft);
-        return _AddItem(p);
-    }
-    
-    HistoryItem* addClearScreen()
-    {
-        HistoryClearVisible* p= new HistoryClearVisible();
-        return _AddItem(p);
-    }
+    int CollectItemsInside(QRect rect);
 
-    HistoryItem* addRecolor(MyPenKind pk)
-    {
-        if (!_nSelectedItemsList.size())
-            return nullptr;          // do not add an empty list
-
-        HistoryReColorItem* p = new HistoryReColorItem(&_drawnItems, pk, _nSelectedItemsList);
-        return _AddItem(p);
-    }
-
-    DrawnItem* DrawnItemAt(int index)
-    {
-        return (index < 0 || index >= _drawnItems.Size()) ? nullptr :  &_drawnItems[index];
-    }
-
-    int SetFirstItemToDraw()
-    {
-        return _index = _GetStartIndex();    // sets _index to first item after last clear screen
-    }
-
-    QRect  BeginUndo()        // returns top left after undo 
-    {
-        QRect rect;            // rectangle containing element ( (1,1) - not set)
-
-        if (_lastItem >= 0)
-        {
-            _index = _GetStartIndex();
-
-            _items[_lastItem]->Undo();
-            rect = _items[_lastItem]->Area();     // area of undo
-
-            --_lastItem;
-
-            _redoAble = true;
-            _modified = true;
-        }
-        else
-            _redoAble = false;
-
-        return rect;
-    }
-
-    HistoryItem* GetOneStep()
-    {
-        if (_lastItem < 0 || _index > _lastItem)
-            return nullptr;
-
-        return  _items[_index++];
-    }
-
-    HistoryItem* Redo()   // returns item to redo
-    {
-        if (!_redoAble)
-            return nullptr;
-        if (_lastItem == _items.size() - 1)
-        {
-            _redoAble = false;
-            return nullptr;
-        }
-
-        HistoryItem* phi = _items[++_lastItem]; // in principle this should not go above
-        phi->Redo();
-
-        _redoAble = _lastItem < _items.size() - 1;
-
-        return phi;
-    }
-
-    int CollectItemsInside(QRect rect) // stores inices in _drawn
-    {
-
-        _nSelectedItemsList.clear();
-
-        _selectionRect = QRect();     // minimum size of selection
-            // just check scribbles after the last clear screen
-        for(int i = _GetStartIndex(); i <= _lastItem; ++i)
-        {
-            const HistoryItem *item = _items[i];
-            const DrawnItem* pdrni = item->GetDrawable();
-            if (pdrni && (rect.contains(item->Area(), true)))    // union of rects in a pasted item
-            {                       // here must be an item for drawing or pasting (others are undrawable)
-                int j = 0;
-                int selIndex = -1;
-                do
-                {
-                    if (item->type == heScribble || item->type == heEraser)
-                        selIndex = dynamic_cast<const HistoryDrawItem*>(item)->drawnIndex;
-                    else   // pasted
-                        selIndex = dynamic_cast<const HistoryPasteItem*>(item)->firstPastedIndex + j;
-                   _nSelectedItemsList.push_back(selIndex);  // index in _drawnItemList more than one when items pasted
-                } 
-                while (pdrni = item->GetDrawable(++j));
-
-                _selectionRect = _selectionRect.united(item->Area() );
-            }
-        }
-        return _nSelectedItemsList.size();
-    }
-
-    void CopySelected()      // copies selected scribbles into array. origin will be relative to (0,0)
-    {
-        if (!_nSelectedItemsList.isEmpty())
-        {
-            DrawnItem ditem;
-            _copiedItems.clear();
-            for (auto i : _nSelectedItemsList)
-            {
-                ditem = _drawnItems[i];
-                ditem.rect.translate( -_selectionRect.topLeft() ) ;
-                for( QPoint &p : ditem.points)
-                    p -= _selectionRect.topLeft();;
-                _copiedItems.push_back(ditem);
-            }
-            _selectionRect.translate(-_selectionRect.topLeft());
-        }
-    }
+    void CopySelected();      // copies selected scribbles into array. origin will be relative to (0,0)
     const QVector<DrawnItem>& CopiedItems() const { return _copiedItems;  }
     int CopiedCount() const { return _copiedItems.size();  }
-
     const QRect& EncompassingRect() const { return _selectionRect; }
-
     const QVector<int> &Selected() const { return _nSelectedItemsList;  }
 };
