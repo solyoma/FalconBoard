@@ -600,6 +600,28 @@ QPoint DrawArea::_CorrectForDirection(QPoint &newpC)     // newpC canvas relativ
     return newpC;
 }
 
+void DrawArea::MoveToActualPosition(QRect rect)
+{
+    int l = -_topLeft.x(),
+        t = -_topLeft.y();
+
+    if (!rect.isNull() && rect.isValid() && !_canvasRect.intersects(rect)) // try to put at the middle of the screen
+    {
+        if (rect.x() < l || rect.x() > l + _canvasRect.width())
+            l = rect.x() + (_canvasRect.width() - rect.width()) / 2;
+        if (rect.y() < t || rect.y() > t + _canvasRect.height())
+            t = rect.y() + (_canvasRect.height() - rect.height()) / 2;
+
+        if (-l != _topLeft.x() || -t != _topLeft.y())
+        {
+            _SetOrigin(QPoint(-l, -t));
+            _ClearCanvas();
+            _Redraw();
+        }
+    }
+
+}
+
 /*========================================================
  * TASK:    Draw line from '_lastPointC' to 'endPointC'
  * PARAMS:  endpointC : clanvas relative coordinate
@@ -807,13 +829,8 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
     if (_history.CanUndo())
     {
         _ClearCanvas();
-        QRect tl = _history.BeginUndo();  // undelete items deleted before the last item
-        if (tl.isValid() && !_canvasRect.intersects(tl) ) // try to put at the middle of the screen
-        {
-            _SetOrigin(_topLeft - QPoint( (_canvasRect.width() - tl.width())/2, - (_canvasRect.height() - tl.height()) / 2)) ;
-        }
-
-
+        MoveToActualPosition(_history.BeginUndo());  // undelete items deleted before the last item
+        
         while(_ReplotItem(_history.GetOneStep()) )
             ;
 
@@ -825,6 +842,8 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
 {                           // unless top left or items color changed
     HistoryItem* phi = _history.Redo();
+    MoveToActualPosition(phi->Area());
+
     if (phi->type == heRecolor)
         _Redraw();
     else if (phi->type == heItemsDeleted)

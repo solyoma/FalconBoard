@@ -203,6 +203,20 @@ struct DrawnItemList
         dw.clear();
         lastDrawnIndex = -1;
     }
+    void Purge()    // elements with invalid type from list
+    {
+        int i = 0;
+        for (auto pd = dw.begin(); pd != dw.end(); ++pd) 
+            if (pd->type == heNone)
+            {
+                ++i;
+                pd = dw.erase(pd);
+                if (pd == dw.end())
+                    break;
+            }
+        if (i < lastDrawnIndex)
+            lastDrawnIndex = i;
+    }
     int Size()
     {
         return dw.size();
@@ -223,8 +237,14 @@ struct HistoryItem      // base class
     virtual bool Redo() { return true; }        // returns if process is complete, false: move to next item
     virtual bool IsSaveable() const  { return isSaveable; }    // use when items may be deleetd
     virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; }
-    virtual QRect Area() const { return QRect(); } // encompassing rectangle for all points
-    virtual bool Hidden() const { return true; }  // must not draw it
+    virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
+    virtual bool Hidden() const { return true; }    // must not draw it
+    virtual void Purge() const                      // use for items after undo when new history item should overwrite this one
+    {                                               // purge from drawn items when applicable
+        //  delete items in  pDrawn, 
+        //  set their type to heNone
+        //  call Purge of drawn item list
+    }
 };
 
 //--------------------------------------------
@@ -327,6 +347,13 @@ struct HistoryDeleteItems : public HistoryItem
         hidden = other.hidden;
         return *this;
     }
+    void Purge() const override        // remove elements from drawnItems permanently
+    {                                  // used when this Item is overwritten by another one
+        for(int i: deletedList)        // mark them as invalid
+            (*pDrawn)[i].type = heNone; 
+
+        pDrawn->Purge();               // and remove from list
+    }
 };
 
 //--------------------------------------------
@@ -411,9 +438,10 @@ struct HistoryPasteItem : HistoryItem
 struct HistoryReColorItem : HistoryItem
 {
     DrawnItemList* pDrawn = nullptr;        // pointer to base of array/list of drawn scribbles
-    IntVector selectedList;             // indexes  to elements in '*pDrawn'
-    QVector<MyPenKind> penKindList;     // colors for elements in selectedList
-    MyPenKind pk;
+    IntVector selectedList;                 // indexes  to elements in '*pDrawn'
+    QVector<MyPenKind> penKindList;         // colors for elements in selectedList
+    MyPenKind pk;                           
+    QRect encompassingRectangle;            // to scroll here when undo/redo
 
     bool Undo() override
     {
@@ -433,6 +461,8 @@ struct HistoryReColorItem : HistoryItem
     HistoryReColorItem(DrawnItemList* pdri, MyPenKind pk, IntVector &selectedList) : HistoryItem(), pDrawn(pdri), pk(pk), selectedList(selectedList)
     { 
         penKindList.resize(selectedList.size());
+        for (int i = 0; i < selectedList.size(); ++i)
+            encompassingRectangle = encompassingRectangle.united((*pDrawn)[selectedList[i]].rect);
         type = heRecolor; 
         Redo();
     }
@@ -466,6 +496,7 @@ struct HistoryReColorItem : HistoryItem
         pk = other.pk;
         return *this;
     }
+    QRect Area() const override { return encompassingRectangle; }
 };
 
 /*========================================================
@@ -516,8 +547,10 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
          if (++_lastItem == _items.size())
             _items.push_back(p);
-        else
+        else         // overwrite last item
         {
+             _items[_lastItem]->Purge();    // remove this items forever
+
             delete _items[_lastItem];   // was new'd
             _items[_lastItem] = p;      
             _redoAble = false;
