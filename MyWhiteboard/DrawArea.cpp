@@ -2,6 +2,7 @@
 #include "DrawArea.h"
 
 #include <QMouseEvent>
+
 #include <QPainter>
 #include <QMessageBox>
 
@@ -135,11 +136,11 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
         QPainter painter(&_canvas);
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
     // DEBUG
-qDebug("topLeft: (%d, %d), clipping: (%d, %d, %d, %d)", _topLeft.x(), _topLeft.y(), 
-                                                        _clippingRect.x(),     _clippingRect.y(), 
-                                                        _clippingRect.width(), _clippingRect.height());
-qDebug("  translated by topLeft(%d, %d, %d, %d)", _clippingRect.translated(-_topLeft).x(), _clippingRect.translated(-_topLeft).y(),
-                                                  _clippingRect.translated(-_topLeft).width(), _clippingRect.translated(-_topLeft).height());
+//qDebug("topLeft: (%d, %d), clipping: (%d, %d, %d, %d)", _topLeft.x(), _topLeft.y(), 
+//                                                        _clippingRect.x(),     _clippingRect.y(), 
+//                                                        _clippingRect.width(), _clippingRect.height());
+//qDebug("  translated by topLeft(%d, %d, %d, %d)", _clippingRect.translated(-_topLeft).x(), _clippingRect.translated(-_topLeft).y(),
+//                                                  _clippingRect.translated(-_topLeft).width(), _clippingRect.translated(-_topLeft).height());
 // /DEBUG            
 
         painter.fillRect(_clippingRect.translated(-_topLeft), qRgba(255, 255, 255, 0));
@@ -221,6 +222,32 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 if(phi)
                     _Redraw();
             }
+
+            if (key == Qt::Key_R)    // draw rectangle
+            {
+                QRect r = _rubberRect;
+                _firstPointC = _lastPointC = r.topLeft();
+                _lastDrawnItem.clear();
+                _lastDrawnItem.type = heScribble;
+                _actPenWidth = _penWidth;
+                _lastDrawnItem.add(_lastPointC - _topLeft);
+                if (_DrawLineTo(r.topRight()) )
+                    _lastDrawnItem.add(_lastPointC - _topLeft);
+                if (_DrawLineTo(r.bottomRight()))
+                    _lastDrawnItem.add(_lastPointC - _topLeft);
+                if (_DrawLineTo(r.bottomLeft()))
+                    _lastDrawnItem.add(_lastPointC - _topLeft);
+                if (_DrawLineTo(r.topLeft()))
+                    _lastDrawnItem.add(_lastPointC - _topLeft);
+
+                _lastDrawnItem.penKind = _myPenKind;
+                _lastDrawnItem.penWidth = _actPenWidth;
+//                _lastDrawnItem.add(_lastPointC - _topLeft);
+
+                _history.addDrawnItem(_lastDrawnItem);
+                emit CanUndo(true);
+                emit CanRedo(false);
+            }
         }
         else
         {
@@ -235,14 +262,14 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
             else if (event->key() == Qt::Key_Shift)
 				_shiftKeyDown = true;
 
-			if (event->key() == Qt::Key_Up)
-				_Up( event->modifiers().testFlag(Qt::ControlModifier) ? 100: 10);
-			else if (event->key() == Qt::Key_Down)
-				_Down(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
-			else if (event->key() == Qt::Key_Left)
-				_Left(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
-			else if (event->key() == Qt::Key_Right)
-				_Right(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
+            if (event->key() == Qt::Key_Up)
+                _Up(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
+            else if (event->key() == Qt::Key_Down)
+                _Down(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
+            else if (event->key() == Qt::Key_Left)
+                _Left(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
+            else if (event->key() == Qt::Key_Right)
+                _Right(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
 		}
     }
 }
@@ -327,6 +354,12 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
 
 void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
 {
+    if (_pendown || _scribbling)
+    {
+        event->ignore();
+        return;
+    }
+
     int y  = _topLeft.y();
     static int dy = 0;                  
     static int dx = 0;
@@ -805,12 +838,23 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         if (!pdrni->intersects(_clippingRect))   // if the clipping rectangle has no intersection with         
             return;                              // the scribble
 
+        // DEBUG
+// draw rectange around item to see if item intersects the rectangle
+        //{
+        //    QPainter painter(&_canvas);
+        //    QRect rect = pdrni->rect.adjusted(-1,-1,0,0);   // 1px pen left and top:inside rectangle, put pen outside rectangle
+        //    painter.setPen(QPen(QColor(qRgb(132,123,45)), 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        //    painter.drawRect(rect);
+        //}
+        // /DEBUG            
+
         _lastPointC = pdrni->points[0] + _topLeft;
         _myPenKind = pdrni->penKind;
         _actPenWidth = pdrni->penWidth;
         _erasemode = pdrni->type == heEraser ? true : false;
         for (int i = 1; i < pdrni->points.size(); ++i)
             _DrawLineTo(pdrni->points[i] + _topLeft);
+
     };
 
     switch(phi->type)

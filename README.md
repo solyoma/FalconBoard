@@ -19,6 +19,7 @@ width screen capture and more (see below).
       mouse or graphics tablet (press and hold space while using them or used
       the wheel on the mouse).
    6. Mark area by right button on mouse or tablet, and 
+            - draw a rectangle by pressing the R key
             - delete drawings completely inside
                 this area with the Del or BackSpace keys.
             - copy / cut marked area and paste it at any position, even into new

@@ -48,16 +48,16 @@ void DrawnItem::add(QPoint p)
 {
 
 	if (rect.isNull())
-		rect = QRect(p.x() - penWidth, p.y() - penWidth, 2 * penWidth, 2 * penWidth);      // single point
+		rect = QRect(p.x() - 4*penWidth, p.y() - 4*penWidth, 8 * penWidth, 8 * penWidth);      // single point
 	else if (!rect.contains(p))
 	{
-		if (rect.x() >= p.x() - penWidth) rect.setX(p.x() - penWidth);
-		if (rect.y() >= p.y() - penWidth) rect.setY(p.y() - penWidth);
-		if (rect.right() <= p.x() + penWidth) rect.setRight(p.x() + penWidth + 1);
-		if (rect.bottom() <= p.y() + penWidth) rect.setBottom(p.y() + penWidth + 1);
+		if (rect.x() >= p.x() - penWidth) rect.setX(p.x() - 4*penWidth);
+		if (rect.y() >= p.y() - penWidth) rect.setY(p.y() - 4*penWidth);
+		if (rect.right() <= p.x() + penWidth) rect.setRight(p.x() + 6*penWidth + 1);
+		if (rect.bottom() <= p.y() + penWidth) rect.setBottom(p.y() + 6*penWidth + 1);
 	}
 	// DEBUG
-	qDebug("point: (%d, %d), rect: (l: %d, t: %d, w: %d, h: %d)", p.x(), p.y(), rect.x(), rect.y(), rect.width(), rect.height());
+	// qDebug("point: (%d, %d), rect: (l: %d, t: %d, w: %d, h: %d)", p.x(), p.y(), rect.x(), rect.y(), rect.width(), rect.height());
 	// /DEBUG            
 
 	int n = points.size() - 1;
@@ -149,7 +149,7 @@ DrawnItem* DrawnItemList::Add(QVector<DrawnItem> dwother, QRect& Area, QPoint* p
 			if (pTopLeft)
 				pt += *pTopLeft;
 			if (!Area.contains(pt))
-				driRect = driRect.united(QRect(pt, QSize(1, 1))).adjusted(-dri.penWidth, -dri.penWidth, dri.penWidth, dri.penWidth);
+				driRect = driRect.united(QRect(pt, QSize(1, 1))).adjusted(-2*dri.penWidth, -2*dri.penWidth, 2*dri.penWidth, 2*dri.penWidth);
 		}
 		dri.rect = driRect;
 		Area = Area.united(driRect);
