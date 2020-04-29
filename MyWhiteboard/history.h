@@ -27,12 +27,12 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     bool isDeleted = false;
 
     MyPenKind penKind = penBlack;
-    int penWidth;
+    int penWidth =1;
     QVector<QPoint> points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
     QRect rect;                     // top left-bttom right coordinates of encapsulating rectangle
                                     // not saved on disk, recreated on read
 
-    DrawnItem(HistEvent he = heScribble) noexcept;
+    DrawnItem(HistEvent he = heNone) noexcept;       // default constructor
     DrawnItem(const DrawnItem& di);
     DrawnItem(const DrawnItem&& di);
     DrawnItem& operator=(const DrawnItem& di);
@@ -54,102 +54,104 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di);
 
 inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di);
-//-------------------------------------------------------------------------
-// a list of drawn elements
-struct DrawnItemList
-{
-    QVector<DrawnItem> dw;
-    int lastDrawnIndex = -1;        // start adding items after this
 
-    DrawnItem* Add(DrawnItem& dri);
-    DrawnItem* Add(QVector<DrawnItem> dwother, QRect& Area, QPoint* pTopLeft = nullptr);
+//*********************************************************
+using DrawnItemVector = QVector<DrawnItem>;
 
-    DrawnItem& operator[](int index);
-
-    void Clear();
-    void Purge();
-    int Size();
-};
 /*========================================================
  * One history element
  *-------------------------------------------------------*/
 
 using IntVector = QVector<int>;
 
+struct History; // forward
+
 struct HistoryItem      // base class
 {
+    History* pHist;
     HistEvent type = heNone;
-    bool isSaveable = false;            // can be saved into file (scriible and erase only?
+
+    HistoryItem(History* pHist) : pHist(pHist) {}
+
+    virtual DrawnItem* GetDrawable(int index = 0) const = 0; // returns pointer to the index-th DrawnItem
+    virtual int Size() const { return 0; }         // size of stored scribbles or erases
+    virtual void SetVisibility(bool visible) { }
+
     // function prototypes for easier access
     virtual bool Undo() { return true; }        // returns if process is complete, false: move to previous item
     virtual bool Redo() { return true; }        // returns if process is complete, false: move to next item
-    virtual bool IsSaveable() const  { return isSaveable; }    // use when items may be deleetd
-    virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; }
     virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
     virtual bool Hidden() const { return true; }    // must not draw it
+    virtual bool IsSaveable() const  { return ! Hidden(); }    // use when items may be deleetd
 };
+
+
 
 //--------------------------------------------
 struct HistoryClearCanvasItem : HistoryItem
 {
-    int drawnIndex;
-    HistoryClearCanvasItem(int drawnIndex);
+    DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
+    HistoryClearCanvasItem(History* pHist);
 };
 
 //--------------------------------------------
 // type heScribble, heEraser
-struct HistoryDrawItem : public HistoryItem
+struct HistoryDrawnItem : public HistoryItem
 {
-    DrawnItemList* pDrawn = nullptr;    // pointer to base of array/list of drawn scribbles
-    int drawnIndex = -1;                // index in 'History::_drawnItems' first drawnable
-    QRect encompassingRect;             // same as for the drawable item
-    HistoryDrawItem(DrawnItem& dri, DrawnItemList* pdri);
-    HistoryDrawItem(const HistoryDrawItem& other);
-    HistoryDrawItem(const HistoryDrawItem&& other);
+    DrawnItem drawnItem;                // store data into this
+    HistoryDrawnItem(History* pHist, DrawnItem& dri);
+    HistoryDrawnItem(const HistoryDrawnItem& other);
+    HistoryDrawnItem(const HistoryDrawnItem&& other);
 
+    void SetVisibility(bool visible) override;
     bool Hidden() const override;
 
-    HistoryDrawItem& operator=(const HistoryDrawItem& other);
-    HistoryDrawItem& operator=(const HistoryDrawItem&& other);
-    bool IsSaveable() const override;
+    HistoryDrawnItem& operator=(const HistoryDrawnItem& other);
+    HistoryDrawnItem& operator=(const HistoryDrawnItem&& other);
+//    bool IsSaveable() const override;
     DrawnItem* GetDrawable(int index = 0) const override;
     QRect Area() const override;
+    int Size() const override { return 1; }
     // no new undo/redo needed
 };
 
 //--------------------------------------------
 struct HistoryDeleteItems : public HistoryItem
 {
-    DrawnItemList* pDrawn = nullptr;        // pointer to base of array/list of drawn scribbles
-    IntVector deletedList;              // indexes to element in '*pDrawn'
+    IntVector deletedList;   // indexes to element in '*pDrawn'
     bool Undo() override;
     bool Redo() override;
-    HistoryDeleteItems(DrawnItemList* pdri, IntVector& selected);
+    HistoryDeleteItems(History* pHist, IntVector& selected);
     HistoryDeleteItems(HistoryDeleteItems& other);
     HistoryDeleteItems& operator=(const HistoryDeleteItems& other);
     HistoryDeleteItems(HistoryDeleteItems&& other);
     HistoryDeleteItems& operator=(const HistoryDeleteItems&& other);
+    DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
 };
 
 //--------------------------------------------
 struct HistoryPasteItem : HistoryItem
 {
-    DrawnItemList* pDrawn = nullptr;        // pointer to base of array/list of drawn scribbles
-    int firstPastedIndex;
-    int lastPastedIndex;
     QRect encompassingRect;
+    DrawnItemVector pastedList;
 
-    bool Undo() override;
-    bool Redo() override;
-    HistoryPasteItem(DrawnItemList* pdri, QVector<DrawnItem>& pastedList, QPoint topLeft);
+    HistoryPasteItem(History* pHist, DrawnItemVector& pastedList, QRect& rect, QPoint topLeft);
 
     HistoryPasteItem(HistoryPasteItem& other);
     HistoryPasteItem& operator=(const HistoryPasteItem& other);
     HistoryPasteItem(HistoryPasteItem&& other);
     HistoryPasteItem& operator=(const HistoryPasteItem&& other);
 
-    bool IsSaveable() const override;
+    int Size() const override { return pastedList.size(); }
+
+    bool Undo() override;
+    bool Redo() override;
+
     DrawnItem* GetDrawable(int index = 0) const override;
+
+    bool Hidden() const override;       // when the first element is hidden, all hidden
+    // bool IsSaveable() const override;
+    void SetVisibility(bool visible) override; // for all elements in list
 
     QRect Area() const override;
 };
@@ -157,20 +159,20 @@ struct HistoryPasteItem : HistoryItem
 //--------------------------------------------
 struct HistoryReColorItem : HistoryItem
 {
-    DrawnItemList* pDrawn = nullptr;        // pointer to base of array/list of drawn scribbles
-    IntVector selectedList;                 // indexes  to elements in '*pDrawn'
+    IntVector selectedList;                 // indexes  to elements in '*pHist'
     QVector<MyPenKind> penKindList;         // colors for elements in selectedList
     MyPenKind pk;                           
     QRect encompassingRectangle;            // to scroll here when undo/redo
 
     bool Undo() override;
     bool Redo() override;
-    HistoryReColorItem(DrawnItemList* pdri, MyPenKind pk, IntVector& selectedList);
+    HistoryReColorItem(History* pHist, IntVector &selectedList, MyPenKind pk);
     HistoryReColorItem(HistoryReColorItem& other);
     HistoryReColorItem& operator=(const HistoryReColorItem& other);
     HistoryReColorItem(HistoryReColorItem&& other);
     HistoryReColorItem& operator=(const HistoryReColorItem&& other);
     QRect Area() const override;
+    DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
 };
 
 /*========================================================
@@ -195,30 +197,28 @@ struct HistoryReColorItem : HistoryItem
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    DrawnItemList       _drawnItems;          // all items drawn on screen
-    QVector<DrawnItem>  _copiedItems;    // copy items into this list for pasting anywhere even in newly opened documents
 
     QVector<HistoryItem*> _items;
     int _actItem = -1;                  // in _items, index of actual history item, -1: no such item
-    int _endItem = 0;                 // index until a redo can go (max value: _items.size()
+    int _endItem = 0;                   // index until a redo can go (max value: _items.size()
 
-    IntVector _nSelectedItemsList;   // indices into '_drawnItems', set when we want to delete a bunch of items all together
-    QRect _selectionRect;               // encompassing rectangle for selected items used for paste operation
+    DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
+    QRect _copiedRect;               // encompassing rectangle for copied items used for paste operation
+    IntVector _nSelectedItemsList;      // indices into '_items', set when we want to delete a bunch of items all together
+    QRect _selectionRect;               // encompassing rectangle for selected items
 
 
     bool _modified = false;
 
-    int _index = -1;            // start writing undo records from here
+    int _index = -1;                    // start writing undo records from here
 
 
-    bool _redoAble = false;      // set to true if no new drawing occured after an undo
+    bool _redoAble = false;             // set to true if no new drawing occured after an undo
 
     HistoryItem* _AddItem(HistoryItem* p);
 
-    int _GetStartIndex();        // find first drawable item in '_items' after a clear screen 
-                               // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
-
-    bool _IsSaveable(HistoryItem& item);         // when n drawables in it are deleted
+    int _GetStartIndex();               // find first drawable item in '_items' after a clear screen 
+                                        // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
     bool _IsSaveable(int i);
 
 public:
@@ -226,6 +226,8 @@ public:
     ~History();
     void clear();
     int size() const;
+
+    HistoryItem* operator[](int index);
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
 
@@ -249,15 +251,13 @@ public:
     bool CanRedo() const { return _redoAble; }
 
 //--------------------- Add Items ------------------------------------------
-
-    HistoryItem* addDrawnItem(DrawnItem& itm);           // may be after an undo, so
-                                                      // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
-    HistoryItem* addDeleteItems();
-    HistoryItem* addPastedItems(QPoint topLeft);
+    HistoryItem* addClearCanvasItem();
+    HistoryItem* addDrawnItem(DrawnItem& dri);
+    HistoryItem* addDeleteItems();                  // using 'this' and _nSelectedItemsList a
+    HistoryItem* addPastedItems(QPoint topLeft);    // using 'this' and _copiedList 
     HistoryItem* addClearCanvas();
     HistoryItem* addRecolor(MyPenKind pk);
 
-    DrawnItem* DrawnItemAt(int index);
     int SetFirstItemToDraw();
     QRect  Undo();        // returns top left after undo 
     HistoryItem* Redo();

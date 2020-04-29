@@ -179,6 +179,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
             if (bRemove)
                 _RemoveRubberBand();
+
             if (bCut || bDelete || bCopy || bRecolor)
             {
                 if ((bCollected = _history.CollectItemsInside(_rubberRect.translated(-_topLeft))))
