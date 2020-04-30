@@ -24,6 +24,8 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 
     RestoreState();
 
+    _SetupIconsForPenColors(_screenMode);
+
     ui.centralWidget->setFocus();
 }
 
@@ -91,8 +93,35 @@ void MyWhiteboard::SaveState()
         s.setValue("lastFile", _lastFile);
 }
 
+void MyWhiteboard::_LoadIcons()
+{
+    _iconPen = QIcon(":/MyWhiteboard/Resources/white.png");
+    _iconExit = QIcon(":/MyWhiteboard/Resources/close.png");
+    _iconEraser = QIcon(":/MyWhiteboard/Resources/eraser.png");
+    _iconNew = QIcon(":/MyWhiteboard/Resources/new.png");
+    _iconOpen = QIcon(":/MyWhiteboard/Resources/open.png");
+    _iconSave = QIcon(":/MyWhiteboard/Resources/save.png");
+    _iconSaveAs = QIcon(":/MyWhiteboard/Resources/saveas.png");
+    _iconUndo = QIcon(":/MyWhiteboard/Resources/undo.png");
+    _iconRedo = QIcon(":/MyWhiteboard/Resources/redo.png");
+    _iconScreenShot = QIcon(":/MyWhiteboard/Resources/screenshot.png");
+}
+
+void MyWhiteboard::_SetupIconsForPenColors(ScreenMode sm)
+{
+    _drawArea->drawColors.SetDarkMode(sm != smSystem);
+
+    ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]) : _iconPen);
+    ui.action_Red->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penRed]));
+    ui.action_Green->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penGreen]));
+    ui.action_Blue->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlue]));
+    ui.action_Yellow->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penYellow]));
+}
+
 void MyWhiteboard::_CreateAndAddActions()
-{                           // add filetype selection submenu for save image
+{   
+    _LoadIcons();
+    // add filetype selection submenu for save image
     const QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
     for (const QByteArray& format : imageFormats) {
         QString text = tr("%1...").arg(QString::fromLatin1(format).toUpper());
@@ -120,6 +149,7 @@ void MyWhiteboard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.action_Red);
     ui.mainToolBar->addAction(ui.action_Green);
     ui.mainToolBar->addAction(ui.action_Blue);
+    ui.mainToolBar->addAction(ui.action_Yellow);
     ui.mainToolBar->addAction(ui.action_Eraser);
 
     _penGroup = new QActionGroup(this);
@@ -127,6 +157,7 @@ void MyWhiteboard::_CreateAndAddActions()
     _penGroup->addAction(ui.action_Red);
     _penGroup->addAction(ui.action_Green);
     _penGroup->addAction(ui.action_Blue);
+    _penGroup->addAction(ui.action_Yellow);
     _penGroup->addAction(ui.action_Eraser);
 
     _modeGroup = new QActionGroup(this);
@@ -228,6 +259,7 @@ void MyWhiteboard::_SelectPen()     // call after '_actPen' is set
         case penRed: ui.action_Red->setChecked(true); break;
         case penGreen: ui.action_Green->setChecked(true); break;
         case penBlue: ui.action_Blue->setChecked(true); break;
+        case penYellow: ui.action_Yellow->setChecked(true); break;
         case penEraser:on_action_Eraser_triggered(); return;
     }
     _SetPenKind();
@@ -259,6 +291,7 @@ void MyWhiteboard::_SetBlackPen() { _SetPenKind(penBlack); }
 void MyWhiteboard::_SetRedPen()   { _SetPenKind  (penRed); }
 void MyWhiteboard::_SetGreenPen() { _SetPenKind(penGreen); }
 void MyWhiteboard::_SetBluePen()  { _SetPenKind (penBlue); }
+void MyWhiteboard::_SetYellowPen()  { _SetPenKind (penYellow); }
 
 void MyWhiteboard::_SetPenWidth()
 {
@@ -271,6 +304,38 @@ void MyWhiteboard::_SetPenWidth()
     _psbPenWidth->setValue(pw);
     _busy = false;
 }
+
+
+/*========================================================
+ * TASK: from a single QIcon create icons for all used colors
+ * PARAMS:  icon - base icon (png with white and black color)
+ *          colorW - replacement color for white must be valid
+ *          colorB - replacement colors for black,
+                     may be invalid
+ * GLOBALS:
+ * RETURNS: new icon with new colors set
+ * REMARKS: -
+ *-------------------------------------------------------*/
+QIcon MyWhiteboard::_ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB)
+{
+    QPixmap pm, pmW, pmB;
+    pmW = pmB = pm = sourceIcon.pixmap(64, 64);
+    QBitmap mask = pm.createMaskFromColor(Qt::white, Qt::MaskOutColor);
+
+    pmW.fill(colorW);
+    pmW.setMask(mask);
+    if (colorB.isValid())
+    {
+        mask = pm.createMaskFromColor(Qt::black, Qt::MaskOutColor);
+        pmB.fill(colorB);
+        pmB.setMask(mask);
+        QPainter painter(&pmW);
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.drawPixmap(0,0, pm.width(), pm.height(), pmB);
+    }
+    return QIcon(pmW);
+}
+
 
 void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
 {
@@ -306,34 +371,66 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             "undo"          // 7
     };
 
+    _SetupIconsForPenColors(mode);      // pen selection
+
     switch (mode)
     {
         default:
         case smSystem:
-            ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/black.png"));
+            _drawArea->drawColors.SetDarkMode(true);   // light mode: dark colors
+            ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]));
+            ui.actionExit   ->setIcon(_iconExit   );
+            ui.action_Eraser->setIcon(_iconEraser );
+            ui.actionNew    ->setIcon(_iconNew    );
+            ui.actionLoad   ->setIcon(_iconOpen   );
+            ui.actionRedo   ->setIcon(_iconRedo   );
+            ui.actionUndo   ->setIcon(_iconUndo   );
+            ui.actionSave   ->setIcon(_iconSave   );
+            ui.action_Screenshot->setIcon(_iconScreenShot);
             _sBackgroundColor = "#FFFFFF";
             _sTextColor = "#000000";
             sWhite.clear();
             break;
         case smDark:
+            _drawArea->drawColors.SetDarkMode(false);
+            ui.action_Black->setIcon( _iconPen); // white
+            ui.actionExit->setIcon(_ColoredIcon(_iconExit, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionNew->setIcon(_ColoredIcon(_iconNew  , _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionSave->setIcon(_ColoredIcon(_iconSave, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, _drawArea->drawColors[penBlack], QColor(Qt::white)));
             _sBackgroundColor = "#282828";
             _sTextColor = "#E1E1E1";
-            ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/white.png")); // it still be called 'penBlack' though
             break;
         case smBlack:
+            ui.action_Black->setIcon(_iconPen);     // white
+            _drawArea->drawColors.SetDarkMode(false);
+
+            ui.actionExit->setIcon(_ColoredIcon(_iconExit, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionNew->setIcon(_ColoredIcon(_iconNew, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionSave->setIcon(_ColoredIcon(_iconSave, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, _drawArea->drawColors[penBlack], QColor(Qt::white)));
             _sBackgroundColor = "#191919";
             _sTextColor = "#CCCCCC";
-            ui.action_Black->setIcon(QIcon(":/MyWhiteboard/Resources/white.png"));
             break;
     }
-    ui.actionExit->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[0] + sPng));
-    ui.action_Eraser->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[1] + sPng));
-    ui.actionNew->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[2] + sPng));
-    ui.actionLoad->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[3] + sPng));
-    ui.actionRedo->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[4] + sPng));
-    ui.actionSave->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[5] + sPng));
-    ui.action_Screenshot->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[6] + sPng));
-    ui.actionUndo->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[7] + sPng));
+    if(_eraserOn)
+        _drawArea->SetEraserCursor(&ui.action_Eraser->icon());
+
+    //ui.actionExit   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[0] + sPng));
+    //ui.action_Eraser->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[1] + sPng));
+    //ui.actionNew    ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[2] + sPng));
+    //ui.actionLoad   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[3] + sPng));
+    //ui.actionRedo   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[4] + sPng));
+    //ui.actionUndo   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[7] + sPng));
+    //ui.actionSave   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[5] + sPng));
 
     if (mode != smSystem)
         ss = "* {\n" 
@@ -353,7 +450,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
 
     setStyleSheet(ss);
 
-    _drawArea->SetMode(mode != smSystem, _sBackgroundColor);      // set penBlack color to White
+    _drawArea->SetMode(mode != smSystem, _sBackgroundColor);
 }
 
 void MyWhiteboard::closeEvent(QCloseEvent* event)
@@ -530,7 +627,7 @@ void MyWhiteboard::on_action_Eraser_triggered()
 {
     _eraserOn = true;
     _drawArea->SetPenKind(_actPen = penEraser);
-    _drawArea->SetCursor(DrawArea::csEraser);
+    _drawArea->SetCursor(DrawArea::csEraser, &ui.action_Eraser->icon());
     _SetPenWidth();
     _SelectPenForAction(ui.action_Eraser);
     SlotForFocus();

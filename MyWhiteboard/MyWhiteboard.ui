@@ -56,6 +56,7 @@
     <addaction name="action_Red"/>
     <addaction name="action_Green"/>
     <addaction name="action_Blue"/>
+    <addaction name="action_Yellow"/>
     <addaction name="action_Eraser"/>
     <addaction name="separator"/>
     <addaction name="action_Screenshot"/>
@@ -167,7 +168,7 @@
    </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
-     <normaloff>:/MyWhiteboard/Resources/black.png</normaloff>:/MyWhiteboard/Resources/black.png</iconset>
+     <normaloff>:/MyWhiteboard/Resources/white.png</normaloff>:/MyWhiteboard/Resources/white.png</iconset>
    </property>
    <property name="text">
     <string>Blac&amp;k</string>
@@ -182,7 +183,7 @@
    </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
-     <normaloff>:/MyWhiteboard/Resources/red.png</normaloff>:/MyWhiteboard/Resources/red.png</iconset>
+     <normaloff>:/MyWhiteboard/Resources/white.png</normaloff>:/MyWhiteboard/Resources/white.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Red</string>
@@ -197,7 +198,7 @@
    </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
-     <normaloff>:/MyWhiteboard/Resources/green.png</normaloff>:/MyWhiteboard/Resources/green.png</iconset>
+     <normaloff>:/MyWhiteboard/Resources/white.png</normaloff>:/MyWhiteboard/Resources/white.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Green</string>
@@ -212,7 +213,7 @@
    </property>
    <property name="icon">
     <iconset resource="MyWhiteboard.qrc">
-     <normaloff>:/MyWhiteboard/Resources/blue.png</normaloff>:/MyWhiteboard/Resources/blue.png</iconset>
+     <normaloff>:/MyWhiteboard/Resources/white.png</normaloff>:/MyWhiteboard/Resources/white.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Blue</string>
@@ -415,6 +416,21 @@
    </property>
    <property name="toolTip">
     <string>Save background Image at exit automatically</string>
+   </property>
+  </action>
+  <action name="action_Yellow">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="MyWhiteboard.qrc">
+     <normaloff>:/MyWhiteboard/Resources/white.png</normaloff>:/MyWhiteboard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Yellow</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+5</string>
    </property>
   </action>
  </widget>

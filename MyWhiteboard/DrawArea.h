@@ -20,6 +20,44 @@ inline void SleepFor(std::chrono::milliseconds mseconds)
     std::this_thread::sleep_for(mseconds); // Delay a bit
 }
 // ******************************************************
+class DrawColors
+{
+    QColor _invalid;
+    bool _dark = false;
+    const  int _COLOR_COUNT = 5;
+    struct _clr
+    {
+        MyPenKind kind;
+        QColor lightColor,    // _dark = false - for light mode
+               darkColor;     // _dark = true  - for dark mode
+        _clr() : kind(penNone), lightColor(QColor()), darkColor(QColor()) { }
+    } _colors[5];
+
+    int _penColorIndex(MyPenKind pk)
+    {
+        for (int i = 0; i < _COLOR_COUNT; ++i)
+            if (_colors[i].kind == pk)
+                return i;
+        return -1;
+    }
+
+public:
+    DrawColors()
+    {
+        _colors[0].kind = penBlack;
+        _colors[1].kind = penRed;
+        _colors[2].kind = penGreen;
+        _colors[3].kind = penBlue;
+        _colors[4].kind = penYellow;
+    }
+    void SetDarkMode(bool dark) { _dark = dark; }
+    QColor &operator[](MyPenKind pk)
+    { 
+        int i = _penColorIndex(pk);
+        return   (i < 0 ? _invalid : (_dark ? _colors[i].darkColor: _colors[i].lightColor) );
+    }
+};
+// ******************************************************
 
 class DrawArea : public QWidget
 {
@@ -29,9 +67,12 @@ public:
         // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
     enum CursorShape {csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
+    DrawColors drawColors;
+
     DrawArea(QWidget* parent = nullptr);
 
-//    void setTabletDevice(QTabletEvent* event)    {        updateCursor(event);    }
+    void SetPenColors();
+
     void ClearBackground();
 
     int Load(QString name);
@@ -53,6 +94,9 @@ public:
     MyPenKind PenKind() const { return _myPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
 
+    void SetCursor(CursorShape cs, QIcon* icon = nullptr);
+    void SetEraserCursor(QIcon *icon = nullptr);
+
 signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo
@@ -67,7 +111,6 @@ public slots:
     void Print();
     void Undo();
     void Redo();
-    void SetCursor(CursorShape cs);
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;
@@ -99,8 +142,10 @@ private:
 
     int     _penWidth = 1;
     int     _eraserWidth = 30;
+    QCursor _eraserCursor;
     int     _actPenWidth = 1;
     MyPenKind _myPenKind = penBlack;
+
 
     std::chrono::milliseconds _msecs = 10ms;   // when delayed playback
     bool _delayedPlayback = false; // ???? to make it work not user drawing should be done in an other thread
@@ -133,7 +178,6 @@ private:
     QPoint   _rubber_origin;
     QRect   _rubberRect;        // used to select histoy items
     void  _RemoveRubberBand();
-
     void _InitiateDrawing(QEvent* event);
 
     void _ClearCanvas();
@@ -149,7 +193,7 @@ private:
 
     bool _ReplotItem(HistoryItem* pdrni); 
     void _Redraw();
-    QColor _PenColor() const;
+    QColor _PenColor();
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
 

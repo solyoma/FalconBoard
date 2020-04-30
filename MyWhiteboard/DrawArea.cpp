@@ -20,6 +20,24 @@ DrawArea::DrawArea(QWidget* parent)
     setAttribute(Qt::WA_StaticContents);
     setAttribute(Qt::WA_TabletTracking);
     setCursor(Qt::CrossCursor);
+    SetPenColors();
+}
+
+void DrawArea::SetPenColors()
+{
+    drawColors.SetDarkMode(false);         // use on light mode screen
+    drawColors[penBlack] = Qt::black;
+    drawColors[penRed] =   Qt::darkRed;
+    drawColors[penGreen] = Qt::darkGreen;
+    drawColors[penBlue] =  Qt::darkBlue;
+    drawColors[penYellow] = Qt::darkYellow;
+    
+    drawColors.SetDarkMode(true);          // use on dark mode screens
+	drawColors[penBlack] = Qt::white;
+	drawColors[penRed] = Qt::red;
+	drawColors[penGreen] = Qt::green;
+	drawColors[penBlue] = Qt::blue;
+	drawColors[penYellow] = Qt::yellow;
 }
 
 void DrawArea::ClearCanvas()
@@ -107,7 +125,7 @@ void DrawArea::SetMode(bool darkMode, QString color)
     _background.fill(_backgroundColor);
     if (_isBackgroundSet)
             SetBackgroundImage(_loadedImage);
-    _darkMode = darkMode;
+    drawColors.SetDarkMode( _darkMode = darkMode);
     _Redraw();                  // because pen color changed!
 }
 
@@ -226,6 +244,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                     case Qt::Key_2:pk = penRed;  break;
                     case Qt::Key_3:pk = penGreen;  break;
                     case Qt::Key_4:pk = penBlue;  break;
+                    case Qt::Key_5:pk = penYellow;  break;
                 }
                 HistoryItem* phi =_history.addRecolor(pk);
                 if(phi)
@@ -788,7 +807,7 @@ void DrawArea::_Redraw()
 
 }
 
-QColor DrawArea::_PenColor() const
+QColor DrawArea::_PenColor()
 
 {
     static MyPenKind _prevKind = penNone;
@@ -804,12 +823,9 @@ QColor DrawArea::_PenColor() const
 
     switch (_myPenKind)
     {
-    default:
-    case penBlack: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
-    case penRed: return    color = QColor(Qt::red);
-    case penGreen: return  color = QColor(Qt::green);
-    case penBlue: return   color = QColor(Qt::blue);
-    case penEraser: return color = QColor(Qt::white);
+        case penBlack: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
+        default:
+            return color = drawColors[_myPenKind];
     }
 }
 
@@ -937,7 +953,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
     emit CanRedo(_history.CanRedo());
 }
 
-void DrawArea::SetCursor(CursorShape cs)
+void DrawArea::SetCursor(CursorShape cs, QIcon* icon)
 {
     _erasemode = false;
     if (_spaceBarDown && (_scribbling || _pendown)) // do not set the cursor when space bar is pressed
@@ -949,15 +965,20 @@ void DrawArea::SetCursor(CursorShape cs)
         case csOHand: setCursor(Qt::OpenHandCursor); break;
         case csCHand: setCursor(Qt::ClosedHandCursor); break;
         case csPen:   setCursor(Qt::CrossCursor); break;
-        case csEraser: 
-            {
-                    QBitmap pbm(QString(":/MyWhiteboard/Resources/eraserpen.png"));
-                    setCursor(QCursor(pbm, pbm));
-                    _erasemode = true;
-            }
-            break;
+        case csEraser: SetEraserCursor(icon);  break;
         default:break;
     }
+}
+
+void DrawArea::SetEraserCursor(QIcon *icon)
+{
+    if (icon)
+    {
+        QPixmap pxm = icon->pixmap(64, 64);
+        _eraserCursor = QCursor(pxm);
+    }
+    setCursor(_eraserCursor);
+    _erasemode = true;
 }
 
 void DrawArea::_SetOrigin(QPoint o)

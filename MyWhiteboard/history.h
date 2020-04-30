@@ -19,7 +19,7 @@ enum HistEvent {
                         // Undo: set _indexLastDrawnItem to that given in previous history item
                         // Redo: set _indexLastDrawnItem to 'lastDrawnIndex'
                 };
-enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser };
+enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser, penYellow };
 
 struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 {                   

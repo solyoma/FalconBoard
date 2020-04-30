@@ -52,6 +52,7 @@ private slots:
 	void on_action_Red_triggered()	 { _SetRedPen();   _SetCursor(DrawArea::csPen); _SetPenWidth(); };
 	void on_action_Green_triggered() { _SetGreenPen(); _SetCursor(DrawArea::csPen); _SetPenWidth(); };
 	void on_action_Blue_triggered()  { _SetBluePen();  _SetCursor(DrawArea::csPen); _SetPenWidth(); };
+	void on_action_Yellow_triggered() { _SetYellowPen();  _SetCursor(DrawArea::csPen); _SetPenWidth(); };
 	void on_action_Eraser_triggered();
 	void on_action_Screenshot_triggered();
 
@@ -90,6 +91,19 @@ private:
 	int		_penWidth = 3,
 			_eraserWidth = 30;
 	MyPenKind _actPen = penBlack;
+
+		// default icons
+	QIcon	_iconPen;	// set from white and change colors as required
+	QIcon   _iconExit		   ;
+	QIcon   _iconEraser		   ;
+	QIcon   _iconNew		   ;
+	QIcon   _iconOpen		   ;
+	QIcon   _iconSave		   ;
+	QIcon   _iconSaveAs		   ;
+	QIcon   _iconUndo		   ;
+	QIcon   _iconRedo		   ;
+	QIcon   _iconScreenShot	   ;
+
 	QString _backgroundImageName;	// get format from extension
 	QString _saveName;				// last saved data file
 	QString _sImageName;			// background image
@@ -114,6 +128,10 @@ private:
 	void RestoreState();
 	void SaveState();
 
+	QIcon _ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB = QColor());
+	void _LoadIcons();
+	void _SetupIconsForPenColors(ScreenMode sm);		// depend on mode
+
 	void _SaveLastDirectory(QString fileName);
 	void _LoadData(QString fileName);
 
@@ -137,8 +155,10 @@ private:
 	void _SetRedPen()  ;
 	void _SetGreenPen();
 	void _SetBluePen() ;
+	void _SetYellowPen() ;
 		 
 	void _SetPenWidth();
+
 
 	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
 
