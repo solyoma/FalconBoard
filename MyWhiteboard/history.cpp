@@ -113,7 +113,8 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 	ifs >> n; di.penWidth = n;
 
 	qint32 x, y;
-	di.clear();
+	di.points.clear();
+	di.rect = QRect(0, 0, 0, 0);
 
 	ifs >> n;
 	while (n--)
@@ -189,14 +190,14 @@ QRect HistoryDrawnItem::Area() const
 bool HistoryDeleteItems::Undo() 
 {
 	for (auto i : deletedList)
-		(*pHist)[i]->SetVisibility(false);
+		(*pHist)[i]->SetVisibility(true);
 	//        hidden = false;
 	return true;
 }
 bool HistoryDeleteItems::Redo() 
 {
 	for (auto i : deletedList)
-		(*pHist)[i]->SetVisibility(true);
+		(*pHist)[i]->SetVisibility(false);
 	//        hidden = true;
 	return true;
 }
@@ -227,8 +228,8 @@ HistoryDeleteItems& HistoryDeleteItems::operator=(const HistoryDeleteItems&& oth
 
 //--------------------------------------------
 
-HistoryPasteItem::HistoryPasteItem(History* pHist, DrawnItemVector& pastedList, QRect& rect, QPoint topLeft) : 
-		HistoryItem(pHist), pastedList(pastedList), encompassingRect(rect)
+HistoryPasteItem::HistoryPasteItem(History* pHist, DrawnItemVector& toPasteList, QRect& rect, QPoint topLeft) : 
+		HistoryItem(pHist), pastedList(toPasteList), encompassingRect(rect)
 {
 	type = heItemsPasted;
 	for (DrawnItem& di : pastedList)
@@ -303,7 +304,7 @@ HistoryReColorItem::HistoryReColorItem(History* pHist, IntVector& selectedList, 
 	int n = 0;						  // set size for penKind array and get encompassing rectangle
 	for (int i : selectedList)
 	{
-		encompassingRectangle = encompassingRectangle.united((*pHist)[selectedList[i]]->Area() );
+		encompassingRectangle = encompassingRectangle.united((*pHist)[i]->Area() );
 		n += (*pHist)[i]->Size();
 	}
 	penKindList.resize(n);
@@ -342,24 +343,24 @@ HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem&& oth
 //--------------------------------------------
 bool HistoryReColorItem::Undo() 
 {
-	for (int i = 0; i < selectedList.size(); ++i)
+	for (int i : selectedList)
 	{
 		int index = 0;
 		DrawnItem* pdri;
-		while( (pdri = (*pHist)[selectedList[i]]->GetDrawable(index)) )
-			pdri->penKind = penKindList[i + (index++)];
+		while( (pdri = (*pHist)[i]->GetDrawable(index)) )
+			pdri->penKind = penKindList[index++];
 	}
 	return true;
 }
 bool HistoryReColorItem::Redo() 
 {
-	for (int i = 0; i < selectedList.size(); ++i)
+	for (int i : selectedList)
 	{
 		int index = 0;
 		DrawnItem* pdri;
-		while ((pdri = (*pHist)[selectedList[i]]->GetDrawable(index)))
+		while ((pdri = (*pHist)[i]->GetDrawable(index)))
 		{
-			penKindList[i+index++] = pdri->penKind;
+			penKindList[index++] = pdri->penKind;
 			pdri->penKind = pk;
 		}
 	}
@@ -382,7 +383,7 @@ HistoryItem * History::_AddItem(HistoryItem * p)
 		return nullptr;
 
 	_nSelectedItemsList.clear();	// no valid selection after new item
-	_selectionRect = QRect(0,0,1,1);
+	_selectionRect = QRect();
 
 	if (++_actItem == _items.size())
 	{
@@ -404,6 +405,8 @@ HistoryItem * History::_AddItem(HistoryItem * p)
 		// /DEBUG
 	}
 	_redoAble = false;
+	_modified = true;
+
 	return _items[_actItem];
 }
 
@@ -447,7 +450,7 @@ int History::size() const { return _items.size(); }
 
 HistoryItem* History::operator[](int index)
 {
-	if(index < 0 || index > _endItem)
+	if(index < 0 || index >= _endItem)
 		return nullptr;
 	return _items[index];
 }
@@ -465,7 +468,7 @@ HistoryItem* History::operator[](int index)
  *-------------------------------------------------------*/
 bool History::Save(QString name)
 {
-	QFile f(name);
+	QFile f(name+".tmp");
 	f.open(QIODevice::WriteOnly);
 
 	if (!f.isOpen())
@@ -478,10 +481,13 @@ bool History::Save(QString name)
 	if (i >= 0) // there was a clear screen and we are after it
 		--i;
 	// each 
-	while (++i <= _endItem)
+	while (++i < _endItem)
 	{
 		if (ofs.status() != QDataStream::Ok)
+		{
+			f.remove();
 			return false;
+		}
 
 		if (!_items[i]->Hidden())
 		{
@@ -492,10 +498,15 @@ bool History::Save(QString name)
 		}
 	}
 	_modified = false;
+	if (QFile::exists(name + "~"))
+		QFile::remove(QString(name + "~"));
+	QFile::rename(name, QString(name + "~"));
+
+	f.rename(name);
 	return true;
 }
 
-int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-1 when read error
+int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() when Ok, -items.size()-1 when read error
 {
 	QFile f(name);
 	f.open(QIODevice::ReadOnly);
@@ -510,6 +521,7 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 
 	_items.clear();
 	_actItem = -1;
+	lastPosition = QPoint(0, 0);
 
 	DrawnItem di;
 	int i = 0;
@@ -521,7 +533,13 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 
 		++i;
 
-		addDrawnItem(di);
+		HistoryItem *phi = addDrawnItem(di);
+		di = ((HistoryDrawnItem*)phi)->drawnItem;
+
+		if (di.rect.x() > lastPosition.x())
+			lastPosition.setX(di.rect.x());
+		if (di.rect.y() > lastPosition.y())
+			lastPosition.setY(di.rect.y());
 	}
 	_modified = false;
 	_endItem = _items.size();

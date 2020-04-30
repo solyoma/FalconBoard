@@ -358,15 +358,13 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
 
 void MyWhiteboard::closeEvent(QCloseEvent* event)
 {
-    {
-        if (_SaveIfYouWant())
-        {
-            event->accept();
-            SaveState();        // TODO: set what to save state
-        }
-        else
-            event->ignore();
-    }
+	if (_SaveIfYouWant())
+	{
+		event->accept();
+	}
+	else
+		event->ignore();
+	SaveState();        // TODO: set what to save state
 }
 
 void MyWhiteboard::showEvent(QShowEvent* event)
@@ -482,6 +480,7 @@ void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
         tr("<p>Based on Qt's <b>Scribble</b> example.</p>"
+            "<p>Enhanced in many ways by A. Sólyom (2020)"
             "<p>Enhanced in many ways by A. Sólyom (2020)"
             "</p>"));
 }

@@ -245,7 +245,7 @@ public:
      *-------------------------------------------------------*/
     bool Save(QString name);
 
-    int Load(QString name);  // returns _ites.size() when Ok, -items.size()-1 when read error
+    int Load(QString name, QPoint &lastPosition);  // returns _ites.size() when Ok, -items.size()-1 when read error
     bool IsModified() const { return _modified & CanUndo(); }
     bool CanUndo() const { return _actItem >= 0; }
     bool CanRedo() const { return _redoAble; }

@@ -37,7 +37,7 @@ void DrawArea::ClearBackground()
 
 int DrawArea::Load(QString name)
 {
-    int res = _history.Load(name);
+    int res = _history.Load(name, _tlMax);
     if (!res)
         QMessageBox::about(this, tr("MyWhiteboard"), tr("Invalid file"));
     else if(res == -1)
@@ -46,6 +46,14 @@ int DrawArea::Load(QString name)
         QMessageBox::about(this, tr("MyWhiteboard"), QString( tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res-1));
     if(res && res != -1)    // TODO send message if read error
     {
+        _topLeft = QPoint(0, 0);
+        if (_tlMax.x() < width())
+            _tlMax.setX(0);
+        else
+            _tlMax.rx() = width()/2;
+        _tlMax.ry() -= (height() - 100);
+
+        _tlMax = -_tlMax;
         _ClearCanvas();
         _Redraw();
     }
@@ -739,6 +747,8 @@ void DrawArea::ClearHistory()
     _history.clear();
     _ClearCanvas();
     _SetOrigin(QPoint() );  // new _topLeft and _canvasRect
+    _tlMax = QPoint();
+
     emit CanUndo(false);
     emit CanRedo(false);
 }
@@ -891,7 +901,7 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
     {
         QRect rect = _history.Undo();
         MoveToActualPosition(rect); 
-        _clippingRect = rect;
+//        _clippingRect = rect;
         _ClearCanvas();
         
         while(_ReplotItem(_history.GetOneStep()) )
@@ -909,7 +919,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
         return;
 
     MoveToActualPosition(phi->Area());
-    _clippingRect = phi->Area();
+// ??    _clippingRect = phi->Area();
 
     if (phi->type == heRecolor)
         _Redraw();
@@ -957,7 +967,7 @@ void DrawArea::_SetOrigin(QPoint o)
     _canvasRect.moveTo(-_topLeft);
     _clippingRect = _canvasRect;
 
-    emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
+    ShowCoordinates(_topLeft);
 }
 
 
@@ -1000,7 +1010,7 @@ void DrawArea::_Home(bool toTop)
 void DrawArea::_End()
 {
     _topLeft = _tlMax;
-    emit TextToToolbar(QString("top left: (%1, %2)").arg(-_topLeft.x()).arg(-_topLeft.y()));
+    _SetOrigin(_topLeft);
     _ClearCanvas();
     _Redraw();
 }
