@@ -7,6 +7,33 @@
 #include <QSettings>
 #include "DrawArea.h"
 
+#ifdef _VIEWER
+MyWhiteboard::_RemoveMenus()
+{
+    ui.actionSave->setVisible(false);
+    ui.actionSaveAs->setVisible(false);
+    ui.actionSaveVisible->setVisible(false);
+    ui.actionLoadBackground->setVisible(false);
+    ui.action_Print->setVisible(false);
+
+    ui.actionUndo->setVisible(false);
+    ui.actionRedo->setVisible(false);
+    ui.action_Black->setVisible(false);
+    ui.action_Red->setVisible(false);
+    ui.action_Green->setVisible(false);
+    ui.action_Yellow->setVisible(false);
+    ui.action_Eraser->setVisible(false);
+    ui.action_Screenshot->setVisible(false);
+
+    ui.actionClearCanvas->setVisible(false);
+    ui.actionClearBackground->setVisible(false);
+    ui.actionClearHistory->setVisible(false);
+
+    ui.actionSaveData->setVisible(false);
+    ui.actionSaveBackgroundImage->setVisible(false);
+}
+#endif
+
 MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 {
 	ui.setupUi(this);
@@ -16,7 +43,11 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
     _drawArea->SetPenWidth(_penWidth); 
 
     _CreateAndAddActions();
-    _AddSaveAsVisibleMenu();
+#ifdef _VIEWER
+    _RemoveMenus();        // viewer has none of these
+#else
+    _AddSaveVisibleAsMenu();
+#endif
 
     QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents); // for tablet
 
@@ -50,6 +81,7 @@ void MyWhiteboard::RestoreState()
         default: break;
     }
 
+#ifndef _VIEWER
     int n = s.value("size", 3).toInt();
     _penWidth = n;
     _psbPenWidth->setValue(n);
@@ -62,12 +94,13 @@ void MyWhiteboard::RestoreState()
     qs = s.value("img", QString()).toString();
     if (!qs.isEmpty())
         _drawArea->OpenBackgroundImage(qs);
-
+#endif
     qs = s.value("data", QString()).toString();
     if (!qs.isEmpty())
         _saveName = qs;      // only load on show()  _LoadData(qs);
     _lastDir  = s.value("lastDir",  "").toString();
     _lastFile = s.value("lastFile", "untitled.mwb").toString();
+
 }
 
 void MyWhiteboard::SaveState()
@@ -79,18 +112,17 @@ void MyWhiteboard::SaveState()
 
     s.setValue("version", sVersion);
     s.setValue("mode", _screenMode == smSystem ? "s" :_screenMode == smDark ? "d" : "b");
+#ifndef _VIEWER
     s.setValue("size", _penWidth);
     s.setValue("esize", _eraserWidth);
     s.setValue("saved", ui.actionSaveData->isChecked());
     s.setValue("saveb", ui.actionSaveBackgroundImage->isChecked());
-    if (/* !_sImageName.isEmpty() &&*/ ui.actionSaveBackgroundImage->isChecked())
-        s.setValue("img", _sImageName);
-//    if (/* ui.actionUndo->isEnabled()  && !_saveName.isEmpty() && */ ui.actionSaveData->isChecked() )
-        s.setValue("data", _saveName);
-/*    if(!_lastDir.isEmpty()) */
-        s.setValue("lastDir", _lastDir);
-/*    if(!_lastFile.isEmpty() && _lastFile != "untitled.mwb")*/
-        s.setValue("lastFile", _lastFile);
+    if (ui.actionSaveBackgroundImage->isChecked())
+    s.setValue("img", _sImageName);
+#endif
+    s.setValue("data", _saveName);
+    s.setValue("lastDir", _lastDir);
+    s.setValue("lastFile", _lastFile);
 }
 
 void MyWhiteboard::_LoadIcons()
@@ -111,16 +143,19 @@ void MyWhiteboard::_SetupIconsForPenColors(ScreenMode sm)
 {
     _drawArea->drawColors.SetDarkMode(sm != smSystem);
 
+#ifndef _VIEWER
     ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]) : _iconPen);
     ui.action_Red->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penRed]));
     ui.action_Green->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penGreen]));
     ui.action_Blue->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlue]));
     ui.action_Yellow->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penYellow]));
+#endif
 }
 
 void MyWhiteboard::_CreateAndAddActions()
 {   
     _LoadIcons();
+#ifndef _VIEWER
     // add filetype selection submenu for save image
     const QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
     for (const QByteArray& format : imageFormats) {
@@ -159,12 +194,14 @@ void MyWhiteboard::_CreateAndAddActions()
     _penGroup->addAction(ui.action_Blue);
     _penGroup->addAction(ui.action_Yellow);
     _penGroup->addAction(ui.action_Eraser);
+#endif
 
     _modeGroup = new QActionGroup(this);
     _modeGroup->addAction(ui.actionLightMode);
     _modeGroup->addAction(ui.actionDarkMode);
     _modeGroup->addAction(ui.actionBlackMode);
 
+#ifndef _VIEWER
     ui.mainToolBar->addSeparator();
 
 
@@ -195,9 +232,13 @@ void MyWhiteboard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::TextToToolbar, this, &MyWhiteboard::SlotForLabel);
 
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
+#else
+    removeToolBar(ui.mainToolBar);
+#endif
 }
 
-void MyWhiteboard::_AddSaveAsVisibleMenu()
+#ifndef _VIEWER
+void MyWhiteboard::_AddSaveVisibleAsMenu()
 {
     QMenu *pSaveAsVisibleMenu = new QMenu(QApplication::tr("Save Visible &As..."), this);
     for (QAction* action : qAsConst(_saveAsActs))
@@ -208,7 +249,7 @@ void MyWhiteboard::_AddSaveAsVisibleMenu()
 
 bool MyWhiteboard::_SaveIfYouWant(bool mustAsk)
 {
-    if (_drawArea->IsModified() ) 
+    if (_drawArea->IsModified() )
     {
         QMessageBox::StandardButton ret;
         if (!ui.actionSaveData->isChecked() || mustAsk || _saveName.isEmpty())
@@ -304,7 +345,7 @@ void MyWhiteboard::_SetPenWidth()
     _psbPenWidth->setValue(pw);
     _busy = false;
 }
-
+#endif
 
 /*========================================================
  * TASK: from a single QIcon create icons for all used colors
@@ -337,6 +378,7 @@ QIcon MyWhiteboard::_ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB
 }
 
 
+#ifndef _VIEWER
 void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
 {
 
@@ -351,7 +393,7 @@ void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
         disconnect(plblScreen, &Snipper::SnipperReady, this, &MyWhiteboard::SlotForScreenshotReady);
     }
 }
-
+#endif
 void MyWhiteboard::_SetupMode(ScreenMode mode)
 {
     QString ss,
@@ -476,6 +518,7 @@ void MyWhiteboard::showEvent(QShowEvent* event)
     }
 }
 
+#ifndef _VIEWER
 void MyWhiteboard::on_actionNew_triggered()
 {
     _SaveIfYouWant(true);   // must ask if data changed
@@ -483,7 +526,7 @@ void MyWhiteboard::on_actionNew_triggered()
     _saveName.clear();
     _backgroundImageName.clear();
 }
-
+#endif
 void MyWhiteboard::_LoadData(QString fileName)
 {
     if (!fileName.isEmpty())
@@ -508,6 +551,7 @@ void MyWhiteboard::on_actionLoad_triggered()
         on_action_Eraser_triggered();
 }
 
+#ifndef _VIEWER
 void MyWhiteboard::on_actionSave_triggered()
 {
     if (_saveName.isEmpty())
@@ -572,12 +616,12 @@ void MyWhiteboard::SaveVisibleAsTriggered()
     _backgroundImageName = fileName;
     _SaveBackgroundImage();
 }
+#endif
 
 void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
         tr("<p>Based on Qt's <b>Scribble</b> example.</p>"
-            "<p>Enhanced in many ways by A. Sólyom (2020)"
             "<p>Enhanced in many ways by A. Sólyom (2020)"
             "</p>"));
 }
@@ -592,7 +636,9 @@ void MyWhiteboard::on_actionHelp_triggered()
         tr("<p><i>To start of line</i><br>&nbsp;&nbsp;Home</p>")+
         tr("<p><i>To start of document</i><br>&nbsp;&nbsp;Ctrl+Home</p>") +
         tr("<p><i>To lowest position used so far</i><br>&nbsp;&nbsp;End</p>") +
-        tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl End</p>") +
+        tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl End</p>")
+#ifndef _VIEWER
+        +
         tr("<p><i>Select colors</i><br>&nbsp;&nbsp;Alt+1, ..., Alt+4</p>")+
         tr("<p><i>Draw rectangle</i> around selected area<br>&nbsp;&nbsp;R key")+
         tr("<p><i>Recolor selected</i><br>&nbsp;&nbsp;Ctrl+Alt+1, ..., Ctrl+Alt+4 </p>")+
@@ -604,7 +650,7 @@ void MyWhiteboard::on_actionHelp_triggered()
         tr("<p>Selected drawings can be deleted, copied or cut out by keyboard shortcuts./p>") +
         tr("<p>To paste selection select destination with right button and use keyboard shortcut.</p>")+
         tr("<p>Draw horizontal or vertical lines by holding down a Shift key while drawing.</p>")
-
+#endif
     );
 }
 
@@ -623,6 +669,7 @@ void MyWhiteboard::on_actionBlackMode_triggered()
     _SetupMode(smBlack);
 }
 
+#ifndef _VIEWER
 void MyWhiteboard::on_action_Eraser_triggered()
 {
     _eraserOn = true;
@@ -769,3 +816,4 @@ void MyWhiteboard::SlotForLabel(QString text)
 {
     _plblMsg->setText(text);
 }
+#endif

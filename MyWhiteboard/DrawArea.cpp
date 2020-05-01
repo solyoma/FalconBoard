@@ -80,6 +80,7 @@ int DrawArea::Load(QString name)
     return res;
 }
 
+#ifndef _VIEWER
 bool DrawArea::OpenBackgroundImage(const QString& fileName)
 {
     if (!_loadedImage.load(fileName))
@@ -118,7 +119,7 @@ void DrawArea::SetBackgroundImage(QImage& loadedImage)
     }
     update();
 }
-
+#endif
 void DrawArea::SetMode(bool darkMode, QString color)
 {
     _backgroundColor = color;
@@ -186,6 +187,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         int key = event->key();
         Qt::KeyboardModifiers mods = event->modifiers();
 
+#ifndef _VIEWER
         if (_rubberBand)    // delete rubberband for any keypress except pure modifiers
         {
             bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
@@ -278,6 +280,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
             }
         }
         else
+#endif
         {
 			if (event->key() == Qt::Key_PageUp)
 				_PageUp();
@@ -332,10 +335,11 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
         if (_spaceBarDown)
             _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
 
+        _scribbling = true;
+#ifndef _VIEWER
         if (_rubberBand)
             _RemoveRubberBand();
 
-        _scribbling = true;
         _InitiateDrawing(event);
     }
     else if (event->button() == Qt::RightButton)
@@ -345,6 +349,7 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
             _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
         _rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
         _rubberBand->show();
+#endif
     }
 
     emit WantFocus();
@@ -367,17 +372,21 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
 
             _lastPointC = event->pos();
         }
+#ifndef _VIEWER
         else
         {
             if(_DrawLineTo(event->pos()) )
                 _lastDrawnItem.add(_lastPointC - _topLeft);
         }
+#endif
     }
+#ifndef _VIEWER
     else if ((event->buttons() & Qt::RightButton) && _rubberBand)
     {
         QPoint pos = event->pos();
         _rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
     }
+#endif
 }
 
 void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
@@ -426,12 +435,14 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
     {
         if (!_spaceBarDown)
         {
+#ifndef _VIEWER
             _DrawLineTo(event->pos());
 
             _history.addDrawnItem(_lastDrawnItem);
 
             emit CanUndo(true);
             emit CanRedo(false);
+#endif
         }
         else
             _RestoreCursor();
@@ -439,6 +450,7 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
         _scribbling = false;
         _startSet = false;
     }
+#ifndef _VIEWER
     else if (_rubberBand)
     {
         if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
@@ -447,6 +459,7 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
             _RemoveRubberBand();
         event->accept();
     }
+#endif
 }
 
 void DrawArea::paintEvent(QPaintEvent* event)
@@ -490,10 +503,14 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                         _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
                     _pendown = true;
                     emit PointerTypeChange(pointerT);
+#ifndef _VIEWER
                     _InitiateDrawing(event);
+#endif
                 }
+#ifndef _VIEWER
                 if (_rubberBand)
                     _RemoveRubberBand();
+#endif
             }
             event->accept();
             break;
@@ -534,11 +551,13 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                     _ShiftOrigin(dr);
                     _lastPointC = event->pos();
                 }
+#ifndef _VIEWER
                 else
                 {
                     if(_DrawLineTo(event->pos()) )
                         _lastDrawnItem.add(_lastPointC - _topLeft);
                 }
+#endif
             }
         }
         event->accept();
@@ -568,6 +587,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
     }
 }
 
+#ifndef _VIEWER
 void DrawArea::_RemoveRubberBand()
 {
     if (_rubberBand)
@@ -680,7 +700,7 @@ QPoint DrawArea::_CorrectForDirection(QPoint &newpC)     // newpC canvas relativ
 
     return newpC;
 }
-
+#endif
 void DrawArea::MoveToActualPosition(QRect rect)
 {
     int l = -_topLeft.x(),
@@ -702,6 +722,8 @@ void DrawArea::MoveToActualPosition(QRect rect)
     }
 
 }
+
+#ifndef _VIEWER
 
 /*========================================================
  * TASK:    Draw line from '_lastPointC' to 'endPointC'
@@ -745,7 +767,7 @@ bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
     _lastPointC = endPointC;
     return result;
 }
-
+#endif
 void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTransparent)
 {
     if (image->size() == newSize)
@@ -772,6 +794,7 @@ void DrawArea::ClearHistory()
     emit CanRedo(false);
 }
 
+#ifndef _VIEWER
 void DrawArea::Print()
 {
 #if QT_CONFIG(printdialog)
@@ -790,7 +813,7 @@ void DrawArea::Print()
     }
 #endif // QT_CONFIG(printdialog)
 }
-
+#endif
 void DrawArea::_Redraw()
 {
     int savewidth = _penWidth;
@@ -911,6 +934,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
     return true;
 }
 
+#ifndef _VIEWER
 void DrawArea::Undo()               // must draw again all underlying scribbles
 {
     if (_history.CanUndo())
@@ -952,7 +976,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
     emit CanUndo(_history.CanUndo() );
     emit CanRedo(_history.CanRedo());
 }
-
+#endif
 void DrawArea::SetCursor(CursorShape cs, QIcon* icon)
 {
     _erasemode = false;
@@ -1057,7 +1081,9 @@ void DrawArea::_Right(int amount)
     _ShiftAndDisplayBy(pt);
 }
 
+#ifndef _VIEWER
 void DrawArea::ShowCoordinates(QPoint& qp)
 {
     emit TextToToolbar(QString("x:%1, y:%2").arg(qp.x()).arg(qp.y()));
 }
+#endif

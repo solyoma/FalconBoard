@@ -35,8 +35,8 @@ protected:
 	void showEvent(QShowEvent* event) override;
 
 private slots:
+#ifndef _VIEWER
 	void on_actionNew_triggered();
-
 
 	void on_actionLoad_triggered();
 	void on_actionSave_triggered();
@@ -60,13 +60,6 @@ private slots:
 	void on_actionClearBackgroundImage_triggered();
 	void on_action_Print_triggered() { _drawArea->Print();  }
 
-	void on_actionAbout_triggered();
-	void on_actionHelp_triggered();
-
-	void on_actionLightMode_triggered();
-	void on_actionDarkMode_triggered();
-	void on_actionBlackMode_triggered();
-
 	void on_action_Mark_triggered() {/*TODO*/ ; }
 
 	void slotPenWidthChanged(int val);
@@ -80,6 +73,14 @@ private slots:
 	void SlotForScreenShotCancelled();
 
 	void SlotForLabel(QString text);
+#endif
+
+	void on_actionAbout_triggered();
+	void on_actionHelp_triggered();
+
+	void on_actionLightMode_triggered();
+	void on_actionDarkMode_triggered();
+	void on_actionBlackMode_triggered();
 
 private:
 	Ui::MyWhiteboardClass ui;
@@ -128,6 +129,9 @@ private:
 	void RestoreState();
 	void SaveState();
 
+#ifdef _VIEWER
+	void _RemoveMenus();
+#endif
 	QIcon _ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB = QColor());
 	void _LoadIcons();
 	void _SetupIconsForPenColors(ScreenMode sm);		// depend on mode
@@ -136,7 +140,8 @@ private:
 	void _LoadData(QString fileName);
 
 	void _CreateAndAddActions();
-	void _AddSaveAsVisibleMenu();
+#ifndef _VIEWER
+	void _AddSaveVisibleAsMenu();
 	bool _SaveIfYouWant(bool mustAsk = false);
 	bool _SaveFile();
 	bool _SaveBackgroundImage();
@@ -161,6 +166,7 @@ private:
 
 
 	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
+#endif
 
 	void _SetupMode(ScreenMode mode);
 };

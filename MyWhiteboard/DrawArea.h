@@ -76,11 +76,12 @@ public:
     void ClearBackground();
 
     int Load(QString name);
+#ifndef _VIEWER
     bool Save(QString name) { return  _history.Save(name); }
-
     bool OpenBackgroundImage(const QString& fileName);
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
     void SetBackgroundImage(QImage& image);
+#endif
 
     void SetMode(bool darkMode, QString color);
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
@@ -108,9 +109,11 @@ public slots:
     void NewData();
     void ClearCanvas();
     void ClearHistory();
+#ifndef _VIEWER
     void Print();
     void Undo();
     void Redo();
+#endif
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;
@@ -174,18 +177,20 @@ private:
     QRect   _canvasRect;
     QRect   _clippingRect;  // only need to draw here
 
+#ifndef _VIEWER
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
     QPoint   _rubber_origin;
     QRect   _rubberRect;        // used to select histoy items
     void  _RemoveRubberBand();
     void _InitiateDrawing(QEvent* event);
-
+#endif
     void _ClearCanvas();
 
+    void MoveToActualPosition(QRect rect);
+#ifndef _VIEWER
     bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
     QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
-
-    void MoveToActualPosition(QRect rect);
+#endif
 
     bool _DrawLineTo(QPoint endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
@@ -194,10 +199,12 @@ private:
     bool _ReplotItem(HistoryItem* pdrni); 
     void _Redraw();
     QColor _PenColor();
+#ifndef _VIEWER
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
 
     void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
+#endif
     void _SetOrigin(QPoint qp);  // sets new topleft and displays it on label
     void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, negative delta.x: scroll right
     void _ShiftAndDisplayBy(QPoint delta);
@@ -209,6 +216,7 @@ private:
     void _Down(int distance = 10);
     void _Left(int distance = 10);
     void _Right(int distance = 10);
-
+#ifndef _VIEWER
     void ShowCoordinates(QPoint& qp);
+#endif
 };
