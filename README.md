@@ -7,6 +7,8 @@ features usable in classrooms or for online lectures. It has a semi infinite
 canvas unlimited drawing, unlimited undo and redo, colored pens of different 
 width screen capture and more (see below).
 
+It contains a separate viewer that can only display the saved drawings.
+
 *Features*: 
 
    0. Works under Windows and Linux, and (I hope) on Macs too.
