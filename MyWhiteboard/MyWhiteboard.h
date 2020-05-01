@@ -38,7 +38,6 @@ private slots:
 #ifndef _VIEWER
 	void on_actionNew_triggered();
 
-	void on_actionLoad_triggered();
 	void on_actionSave_triggered();
 	void on_actionSaveAs_triggered();
 
@@ -74,6 +73,7 @@ private slots:
 
 	void SlotForLabel(QString text);
 #endif
+	void on_actionLoad_triggered();
 
 	void on_actionAbout_triggered();
 	void on_actionHelp_triggered();

@@ -124,8 +124,10 @@ void DrawArea::SetMode(bool darkMode, QString color)
 {
     _backgroundColor = color;
     _background.fill(_backgroundColor);
+#ifndef _VIEWER
     if (_isBackgroundSet)
             SetBackgroundImage(_loadedImage);
+#endif
     drawColors.SetDarkMode( _darkMode = darkMode);
     _Redraw();                  // because pen color changed!
 }
@@ -357,7 +359,9 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
 
 void DrawArea::mouseMoveEvent(QMouseEvent* event)
 {
+#ifndef _VIEWER
     ShowCoordinates(event->pos());
+#endif
     if ((event->buttons() & Qt::LeftButton) && _scribbling)
     {
         QPoint  dr = (event->pos() - _lastPointC);   // displacement vector
@@ -421,9 +425,10 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
         degv = degh = 0;
         dx = dy = 0;
 
+#ifndef _VIEWER
         if (_rubberBand)
             _RemoveRubberBand();
-
+#endif
     }
     else
         event->ignore();
@@ -723,8 +728,6 @@ void DrawArea::MoveToActualPosition(QRect rect)
 
 }
 
-#ifndef _VIEWER
-
 /*========================================================
  * TASK:    Draw line from '_lastPointC' to 'endPointC'
  * PARAMS:  endpointC : clanvas relative coordinate
@@ -743,10 +746,12 @@ void DrawArea::MoveToActualPosition(QRect rect)
   *-------------------------------------------------------*/
 bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
 {
-    bool result;
+    bool result = true;
+#ifndef _VIEWER
     if ( (result=_CanSavePoint(endPointC)) )     // i.e. must save point
     {
         _CorrectForDirection(endPointC); // when _startSet leaves only one coord moving
+#endif
                 // draw the line
         QPainter painter(&_canvas);
         painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
@@ -763,11 +768,13 @@ bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
         // this should be in an other thread to work, else everything stops
 //        if (!_pendown && !_scribbling && _delayedPlayback)
 //            SleepFor(5ms);
+#ifndef _VIEWER
     }
+#endif
     _lastPointC = endPointC;
     return result;
 }
-#endif
+
 void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTransparent)
 {
     if (image->size() == newSize)
@@ -1008,11 +1015,15 @@ void DrawArea::SetEraserCursor(QIcon *icon)
 void DrawArea::_SetOrigin(QPoint o)
 {
     _topLeft = o;
+#ifndef _VIEWER
     _RemoveRubberBand();
+#endif
     _canvasRect.moveTo(-_topLeft);
     _clippingRect = _canvasRect;
 
+#ifndef _VIEWER
     ShowCoordinates(_topLeft);
+#endif
 }
 
 

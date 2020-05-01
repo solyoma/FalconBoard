@@ -199,9 +199,9 @@ private:
     bool _ReplotItem(HistoryItem* pdrni); 
     void _Redraw();
     QColor _PenColor();
-#ifndef _VIEWER
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
+#ifndef _VIEWER
 
     void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
 #endif

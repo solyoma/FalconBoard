@@ -1,4 +1,4 @@
-#include "MyWhiteboard.h"
+﻿#include "MyWhiteboard.h"
 #include <QSpinBox>
 #include <QLabel>
 #include <QScreen>
@@ -8,7 +8,7 @@
 #include "DrawArea.h"
 
 #ifdef _VIEWER
-MyWhiteboard::_RemoveMenus()
+void MyWhiteboard::_RemoveMenus()
 {
     ui.actionSave->setVisible(false);
     ui.actionSaveAs->setVisible(false);
@@ -21,16 +21,19 @@ MyWhiteboard::_RemoveMenus()
     ui.action_Black->setVisible(false);
     ui.action_Red->setVisible(false);
     ui.action_Green->setVisible(false);
+    ui.action_Blue->setVisible(false);
     ui.action_Yellow->setVisible(false);
     ui.action_Eraser->setVisible(false);
     ui.action_Screenshot->setVisible(false);
 
     ui.actionClearCanvas->setVisible(false);
-    ui.actionClearBackground->setVisible(false);
+    ui.actionClearBackgroundImage->setVisible(false);
     ui.actionClearHistory->setVisible(false);
 
     ui.actionSaveData->setVisible(false);
     ui.actionSaveBackgroundImage->setVisible(false);
+
+    removeToolBar(ui.mainToolBar);
 }
 #endif
 
@@ -51,8 +54,9 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 
     QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents); // for tablet
 
+#ifndef _VIEWER
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &MyWhiteboard::SlotForPointerType);
-
+#endif
     RestoreState();
 
     _SetupIconsForPenColors(_screenMode);
@@ -232,8 +236,6 @@ void MyWhiteboard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::TextToToolbar, this, &MyWhiteboard::SlotForLabel);
 
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
-#else
-    removeToolBar(ui.mainToolBar);
 #endif
 }
 
@@ -497,12 +499,14 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
 
 void MyWhiteboard::closeEvent(QCloseEvent* event)
 {
-	if (_SaveIfYouWant())
+#ifndef _VIEWER
+    if (_SaveIfYouWant())
 	{
 		event->accept();
 	}
 	else
 		event->ignore();
+#endif
 	SaveState();        // TODO: set what to save state
 }
 
@@ -532,14 +536,18 @@ void MyWhiteboard::_LoadData(QString fileName)
     if (!fileName.isEmpty())
     {
         _drawArea->Load(fileName);
+#ifndef _VIEWER
         _SetPenKind();
+#endif
         _saveName = fileName;
     }
 }
 
 void MyWhiteboard::on_actionLoad_triggered()
 {
+#ifndef _VIEWER
     _SaveIfYouWant(true);   // must ask if data changed
+#endif
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Load Data"), 
                                                     _lastDir, // QDir::currentPath(),
@@ -547,18 +555,12 @@ void MyWhiteboard::on_actionLoad_triggered()
     _SaveLastDirectory(fileName);
     _LoadData(fileName);
 
+#ifndef _VIEWER
     if (_eraserOn)
         on_action_Eraser_triggered();
+#endif
 }
 
-#ifndef _VIEWER
-void MyWhiteboard::on_actionSave_triggered()
-{
-    if (_saveName.isEmpty())
-        on_actionSaveAs_triggered();
-    else
-        _SaveFile();
-}
 void MyWhiteboard::_SaveLastDirectory(QString fileName)
 {
     if (!fileName.isEmpty())
@@ -569,6 +571,14 @@ void MyWhiteboard::_SaveLastDirectory(QString fileName)
     }
 }
 
+#ifndef _VIEWER
+void MyWhiteboard::on_actionSave_triggered()
+{
+    if (_saveName.isEmpty())
+        on_actionSaveAs_triggered();
+    else
+        _SaveFile();
+}
 void MyWhiteboard::on_actionSaveAs_triggered()
 {
     QString initialPath = _lastDir + _lastFile; // QDir::currentPath() + "/untitled.mwb";
@@ -622,7 +632,7 @@ void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
         tr("<p>Based on Qt's <b>Scribble</b> example.</p>"
-            "<p>Enhanced in many ways by A. S�lyom (2020)"
+            "<p>Enhanced in many ways by A. Sólyom (2020)"
             "</p>"));
 }
 
