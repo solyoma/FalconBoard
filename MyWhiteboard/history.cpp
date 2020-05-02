@@ -30,7 +30,7 @@ void DrawnItem::clear()
 	type = heNone;
 }
 
-bool DrawnItem::IsExtension(QPoint& p, QPoint& p1, QPoint& p2) // vectors p->p1 and p1->p are parallel?
+bool DrawnItem::IsExtension(const QPoint& p, const QPoint& p1, const QPoint& p2) // vectors p->p1 and p1->p are parallel?
 {
 	//return false;       // DEBUG as it is not working yet
 

@@ -71,6 +71,9 @@ private slots:
 	void SlotForScreenshotReady(QRect geometry);
 	void SlotForScreenShotCancelled();
 
+	void SlotIncreaseBrushSize(int ds);
+	void SlotDecreaseBrushSize(int ds);
+
 	void SlotForLabel(QString text);
 #endif
 	void on_actionLoad_triggered();

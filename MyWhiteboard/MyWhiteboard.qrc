@@ -12,18 +12,6 @@
     <file>Resources/screenshot.png</file>
     <file>Resources/undo.png</file>
     <file>Resources/white.png</file>
-    <file>Resources/white_close.png</file>
-    <file>Resources/white_eraser.png</file>
-    <file>Resources/white_move.png</file>
-    <file>Resources/white_multi.png</file>
-    <file>Resources/white_new.png</file>
-    <file>Resources/white_open.png</file>
-    <file>Resources/white_redo.png</file>
-    <file>Resources/white_save.png</file>
-    <file>Resources/white_saveas.png</file>
-    <file>Resources/white_screenshot.png</file>
-    <file>Resources/white_undo.png</file>
-    <file>Resources/white_zoomrot.png</file>
     <file>Resources/zoomrot.png</file>
   </qresource>
 </RCC>

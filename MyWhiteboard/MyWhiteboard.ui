@@ -93,8 +93,8 @@
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_Clear"/>
-   <addaction name="menu_Help"/>
    <addaction name="menu_Options"/>
+   <addaction name="menu_Help"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -439,7 +439,7 @@
   <customwidget>
    <class>DrawArea</class>
    <extends>QWidget</extends>
-   <header location="global">DrawArea.h</header>
+   <header>DrawArea.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

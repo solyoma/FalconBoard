@@ -25,12 +25,12 @@ DrawArea::DrawArea(QWidget* parent)
 
 void DrawArea::SetPenColors()
 {
-    drawColors.SetDarkMode(false);         // use on light mode screen
+    drawColors.SetDarkMode(false);         // dark color  on light mode screen
     drawColors[penBlack] = Qt::black;
-    drawColors[penRed] =   Qt::darkRed;
-    drawColors[penGreen] = Qt::darkGreen;
-    drawColors[penBlue] =  Qt::darkBlue;
-    drawColors[penYellow] = Qt::darkYellow;
+    drawColors[penRed] =   Qt::red;
+    drawColors[penGreen] = "#007d1a";
+    drawColors[penBlue] =  Qt::blue;
+    drawColors[penYellow] = "#b704be";
     
     drawColors.SetDarkMode(true);          // use on dark mode screens
 	drawColors[penBlack] = Qt::white;
@@ -57,11 +57,11 @@ int DrawArea::Load(QString name)
 {
     int res = _history.Load(name, _tlMax);
     if (!res)
-        QMessageBox::about(this, tr("MyWhiteboard"), tr("Invalid file"));
+        QMessageBox::about(this, tr(WindowTitle), tr("Invalid file"));
     else if(res == -1)
-        QMessageBox::about(this, tr("MyWhiteboard"), tr("File not found"));
+        QMessageBox::about(this, tr(WindowTitle), tr("File not found"));
     else if(res < 0)
-        QMessageBox::about(this, tr("MyWhiteboard"), QString( tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res-1));
+        QMessageBox::about(this, tr(WindowTitle), QString( tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res-1));
     if(res && res != -1)    // TODO send message if read error
     {
         _topLeft = QPoint(0, 0);
@@ -284,25 +284,29 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         else
 #endif
         {
-			if (event->key() == Qt::Key_PageUp)
+			if (key == Qt::Key_PageUp)
 				_PageUp();
-			else  if (event->key() == Qt::Key_PageDown)
+			else  if (key == Qt::Key_PageDown)
 				_PageDown();
-			else  if (event->key() == Qt::Key_Home)
-				_Home(event->modifiers().testFlag(Qt::ControlModifier) );
-            else  if (event->key() == Qt::Key_End)
+			else  if (key == Qt::Key_Home)
+				_Home(mods.testFlag(Qt::ControlModifier) );
+            else  if (key == Qt::Key_End)
                 _End();
-            else if (event->key() == Qt::Key_Shift)
+            else if (key == Qt::Key_Shift)
 				_shiftKeyDown = true;
 
-            if (event->key() == Qt::Key_Up)
-                _Up(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
-            else if (event->key() == Qt::Key_Down)
-                _Down(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
-            else if (event->key() == Qt::Key_Left)
-                _Left(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
-            else if (event->key() == Qt::Key_Right)
-                _Right(event->modifiers().testFlag(Qt::ControlModifier) ? 100 : 10);
+            else if (key == Qt::Key_Up)
+                _Up(mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+            else if (key == Qt::Key_Down)
+                _Down(mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+            else if (key == Qt::Key_Left)
+                _Left(mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+            else if (key == Qt::Key_Right)
+                _Right(mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+            else if(key == Qt::Key_BracketRight )
+                emit IncreaseBrushSize(1);
+            else if(key == Qt::Key_BracketLeft )
+                emit DecreaseBrushSize(1);
 		}
     }
 }
@@ -401,7 +405,7 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
         return;
     }
 
-    int y  = _topLeft.y();
+    //int y  = _topLeft.y();
     static int dy = 0;                  
     static int dx = 0;
     static int degv = 0;
@@ -1093,7 +1097,7 @@ void DrawArea::_Right(int amount)
 }
 
 #ifndef _VIEWER
-void DrawArea::ShowCoordinates(QPoint& qp)
+void DrawArea::ShowCoordinates(const QPoint& qp)
 {
     emit TextToToolbar(QString("x:%1, y:%2").arg(qp.x()).arg(qp.y()));
 }

@@ -41,7 +41,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
     void clear();
 
-    static bool IsExtension(QPoint& p, QPoint& p1, QPoint& p2 = QPoint()); // vectors p->p1 and p1->p are parallel?
+    static bool IsExtension(const QPoint& p, const QPoint& p1, const QPoint& p2 = QPoint()); // vectors p->p1 and p1->p are parallel?
     void add(QPoint p);
 
     void add(int x, int y);
@@ -72,6 +72,7 @@ struct HistoryItem      // base class
     HistEvent type = heNone;
 
     HistoryItem(History* pHist) : pHist(pHist) {}
+    virtual ~HistoryItem() {}
 
     virtual DrawnItem* GetDrawable(int index = 0) const = 0; // returns pointer to the index-th DrawnItem
     virtual int Size() const { return 0; }         // size of stored scribbles or erases
@@ -135,7 +136,7 @@ struct HistoryPasteItem : HistoryItem
     QRect encompassingRect;
     DrawnItemVector pastedList;
 
-    HistoryPasteItem(History* pHist, DrawnItemVector& pastedList, QRect& rect, QPoint topLeft);
+    HistoryPasteItem(History* pHist, DrawnItemVector& pasteList, QRect& rect, QPoint topLeft);
 
     HistoryPasteItem(HistoryPasteItem& other);
     HistoryPasteItem& operator=(const HistoryPasteItem& other);

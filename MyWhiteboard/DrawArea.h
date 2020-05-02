@@ -12,8 +12,13 @@
 
 #include "history.h"
 
-
 using namespace std::chrono_literals;
+
+#ifdef _VIEWER
+    #define WindowTitle  "MyWhiteboard Viewer "
+#else
+    #define WindowTitle  "MyWhiteboard "
+#endif
 
 inline void SleepFor(std::chrono::milliseconds mseconds)
 {
@@ -50,7 +55,10 @@ public:
         _colors[3].kind = penBlue;
         _colors[4].kind = penYellow;
     }
-    void SetDarkMode(bool dark) { _dark = dark; }
+    void SetDarkMode(bool dark) 
+    { 
+        _dark = dark; 
+    }
     QColor &operator[](MyPenKind pk)
     { 
         int i = _penColorIndex(pk);
@@ -104,6 +112,8 @@ signals:
     void WantFocus();
     void PointerTypeChange(QTabletEvent::PointerType pt);
     void TextToToolbar(QString text);
+    void IncreaseBrushSize(int quantity);
+    void DecreaseBrushSize(int quantity);
 
 public slots:
     void NewData();
@@ -217,6 +227,6 @@ private:
     void _Left(int distance = 10);
     void _Right(int distance = 10);
 #ifndef _VIEWER
-    void ShowCoordinates(QPoint& qp);
+    void ShowCoordinates(const QPoint& qp);
 #endif
 };

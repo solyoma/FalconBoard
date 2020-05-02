@@ -1,34 +1,23 @@
-﻿#include "MyWhiteboard.h"
-#include <QSpinBox>
+﻿#include <QSpinBox>
 #include <QLabel>
 #include <QScreen>
 #include <QPainter>
 #include <QThread>
 #include <QSettings>
 #include "DrawArea.h"
+#include "MyWhiteboard.h"
 
 #ifdef _VIEWER
 void MyWhiteboard::_RemoveMenus()
 {
+    QList<QAction*> pMenuActions = ui.menuBar->actions();
+    ui.menuBar->removeAction(pMenuActions[1] ); // edit
+    ui.menuBar->removeAction(pMenuActions[2]);  // clear
     ui.actionSave->setVisible(false);
     ui.actionSaveAs->setVisible(false);
     ui.actionSaveVisible->setVisible(false);
     ui.actionLoadBackground->setVisible(false);
     ui.action_Print->setVisible(false);
-
-    ui.actionUndo->setVisible(false);
-    ui.actionRedo->setVisible(false);
-    ui.action_Black->setVisible(false);
-    ui.action_Red->setVisible(false);
-    ui.action_Green->setVisible(false);
-    ui.action_Blue->setVisible(false);
-    ui.action_Yellow->setVisible(false);
-    ui.action_Eraser->setVisible(false);
-    ui.action_Screenshot->setVisible(false);
-
-    ui.actionClearCanvas->setVisible(false);
-    ui.actionClearBackgroundImage->setVisible(false);
-    ui.actionClearHistory->setVisible(false);
 
     ui.actionSaveData->setVisible(false);
     ui.actionSaveBackgroundImage->setVisible(false);
@@ -234,8 +223,11 @@ void MyWhiteboard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::CanRedo, this, &MyWhiteboard::SlotForRedo);
     connect(_drawArea, &DrawArea::WantFocus, this, &MyWhiteboard::SlotForFocus);
     connect(_drawArea, &DrawArea::TextToToolbar, this, &MyWhiteboard::SlotForLabel);
+    connect(_drawArea, &DrawArea::IncreaseBrushSize, this, &MyWhiteboard::SlotIncreaseBrushSize);
+    connect(_drawArea, &DrawArea::DecreaseBrushSize, this, &MyWhiteboard::SlotDecreaseBrushSize);
 
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
+    
 #endif
 }
 
@@ -256,7 +248,7 @@ bool MyWhiteboard::_SaveIfYouWant(bool mustAsk)
         QMessageBox::StandardButton ret;
         if (!ui.actionSaveData->isChecked() || mustAsk || _saveName.isEmpty())
         {
-            ret = QMessageBox::warning(this, tr("MyWhiteboard"),
+            ret = QMessageBox::warning(this, tr(WindowTitle),
                 tr("Data have been modified.\n"
                     "Do you want to save your changes?"),
                 QMessageBox::Save | QMessageBox::Discard
@@ -399,7 +391,6 @@ void MyWhiteboard::_ConnectDisconnectScreenshotLabel(bool join )
 void MyWhiteboard::_SetupMode(ScreenMode mode)
 {
     QString ss,
-        sWhite = "white_",  // prefix for dark modes
         sPng = ".png";
 
     _screenMode = mode;
@@ -421,7 +412,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
     {
         default:
         case smSystem:
-            _drawArea->drawColors.SetDarkMode(true);   // light mode: dark colors
+            _drawArea->drawColors.SetDarkMode(false);   // light mode: dark colors
             ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]));
             ui.actionExit   ->setIcon(_iconExit   );
             ui.action_Eraser->setIcon(_iconEraser );
@@ -433,11 +424,10 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             ui.action_Screenshot->setIcon(_iconScreenShot);
             _sBackgroundColor = "#FFFFFF";
             _sTextColor = "#000000";
-            sWhite.clear();
             break;
         case smDark:
-            _drawArea->drawColors.SetDarkMode(false);
-            ui.action_Black->setIcon( _iconPen); // white
+            _drawArea->drawColors.SetDarkMode(true);
+            ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack])); // white
             ui.actionExit->setIcon(_ColoredIcon(_iconExit, _drawArea->drawColors[penBlack], QColor(Qt::white)));
             ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, _drawArea->drawColors[penBlack], QColor(Qt::white)));
             ui.actionNew->setIcon(_ColoredIcon(_iconNew  , _drawArea->drawColors[penBlack], QColor(Qt::white)));
@@ -450,8 +440,8 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             _sTextColor = "#E1E1E1";
             break;
         case smBlack:
-            ui.action_Black->setIcon(_iconPen);     // white
-            _drawArea->drawColors.SetDarkMode(false);
+            _drawArea->drawColors.SetDarkMode(true);
+            ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]));     // white
 
             ui.actionExit->setIcon(_ColoredIcon(_iconExit, _drawArea->drawColors[penBlack], QColor(Qt::white)));
             ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, _drawArea->drawColors[penBlack], QColor(Qt::white)));
@@ -466,15 +456,10 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             break;
     }
     if(_eraserOn)
-        _drawArea->SetEraserCursor(&ui.action_Eraser->icon());
-
-    //ui.actionExit   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[0] + sPng));
-    //ui.action_Eraser->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[1] + sPng));
-    //ui.actionNew    ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[2] + sPng));
-    //ui.actionLoad   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[3] + sPng));
-    //ui.actionRedo   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[4] + sPng));
-    //ui.actionUndo   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[7] + sPng));
-    //ui.actionSave   ->setIcon(QIcon(":/MyWhiteboard/Resources/" + sWhite + actions[5] + sPng));
+    {
+        QIcon icon = ui.action_Eraser->icon();
+        _drawArea->SetEraserCursor(&icon);
+    }
 
     if (mode != smSystem)
         ss = "* {\n" 
@@ -631,14 +616,15 @@ void MyWhiteboard::SaveVisibleAsTriggered()
 void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
-        tr("<p>Based on Qt's <b>Scribble</b> example.</p>"
-            "<p>Enhanced in many ways by A. Sólyom (2020)"
-            "</p>"));
+        tr("Open source White/blackboard application"
+            "<p>© A. Sólyom (2020)</p><br>"
+            "<p>https://github.com/solyoma/MyWhiteboard</p>"
+            "<p>Based on Qt's <b>Scribble</b> example.</p>"));
 }
 
 void MyWhiteboard::on_actionHelp_triggered()
 {
-    QMessageBox::about(this, tr("MyWhiteboard help"),
+    QMessageBox::about(this, tr(WindowTitle "help"),
         tr("<p><b>Move paper</b><br>")+
         tr("  with the mouse or pen while holding down the spacebar,<br>"
            "  using the arrow keys alone or with Ctrl.</p>")+
@@ -649,6 +635,7 @@ void MyWhiteboard::on_actionHelp_triggered()
         tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl End</p>")
 #ifndef _VIEWER
         +
+        tr("<p>Left and right bracket keys '[',']' change brush size</p>")+
         tr("<p><i>Select colors</i><br>&nbsp;&nbsp;Alt+1, ..., Alt+4</p>")+
         tr("<p><i>Draw rectangle</i> around selected area<br>&nbsp;&nbsp;R key")+
         tr("<p><i>Recolor selected</i><br>&nbsp;&nbsp;Ctrl+Alt+1, ..., Ctrl+Alt+4 </p>")+
@@ -684,7 +671,8 @@ void MyWhiteboard::on_action_Eraser_triggered()
 {
     _eraserOn = true;
     _drawArea->SetPenKind(_actPen = penEraser);
-    _drawArea->SetCursor(DrawArea::csEraser, &ui.action_Eraser->icon());
+    QIcon icon = ui.action_Eraser->icon();
+    _drawArea->SetCursor(DrawArea::csEraser, &icon);
     _SetPenWidth();
     _SelectPenForAction(ui.action_Eraser);
     SlotForFocus();
@@ -820,6 +808,16 @@ void MyWhiteboard::SlotForScreenShotCancelled()
     _ConnectDisconnectScreenshotLabel(false);
     delete plblScreen;
     plblScreen = nullptr;
+}
+
+void MyWhiteboard::SlotIncreaseBrushSize(int ds)
+{
+    _psbPenWidth->setValue(_psbPenWidth->value() + ds);
+}
+
+void MyWhiteboard::SlotDecreaseBrushSize(int ds)
+{
+    _psbPenWidth->setValue(_psbPenWidth->value() - ds);
 }
 
 void MyWhiteboard::SlotForLabel(QString text)
