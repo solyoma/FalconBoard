@@ -183,7 +183,7 @@ void DrawArea::InsertVertSpace(int heightInPixels)
 {
     int y = _rubberRect.y();
     _RemoveRubberBand();
-    _history.addInsertVertSpace(y, heightInPixels);
+    _history.addInsertVertSpace(y - _topLeft.y(), heightInPixels);
     _ClearCanvas();
     _Redraw();
 }
