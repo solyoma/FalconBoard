@@ -62,4 +62,5 @@ drawings, but cannot modify them.
   You only need to download the ZIP file and unpack it into any empty folder
   and you are ready to go.
   
-  If you have downloaded the ZIP already you 
+  If you have downloaded the ZIP already you need the release with the 
+  executables only. Unpack it in the same folder where the previous release are.
