@@ -24,7 +24,8 @@ drawings, but cannot modify them.
       the wheel on the mouse).
    6. Mark area by right button on mouse or tablet, and 
         - draw a rectangle by pressing the R key
-        - insert vertical space of 200 pixels by pressing F5
+        - insert vertical space by pressing F5. Magnitude is the height of the
+          selection
         - delete drawings completely inside
           this area with the Del or BackSpace keys.
         - copy / cut marked area and paste it at any position, even into new
@@ -63,4 +64,4 @@ drawings, but cannot modify them.
   and you are ready to go.
   
   If you have downloaded the ZIP already you need the release with the 
-  executables only. Unpack it in the same folder where the previous release are.
+  executables only. Undo/Redonpack it in the same folder where the previous release are.

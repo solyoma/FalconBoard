@@ -70,7 +70,9 @@ public:
     bool OpenBackgroundImage(const QString& fileName);
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
     void SetBackgroundImage(QImage& image);
-    void InsertVertSpace(int pixels);         // from top left of rubber band
+    void InsertVertSpace();         // from top left of rubber band with height of rubber rectangle
+    MyPenKind PenKindFromKey(int key);  // keyboard press/menu click
+    bool RecolorSelected(int key, bool SelectionAlreadyOk = false); // true: recolored
 #endif
 
     void SetMode(bool darkMode, QString color);

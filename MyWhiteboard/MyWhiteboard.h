@@ -49,11 +49,11 @@ private slots:
 
 	void on_actionUndo_triggered();
 	void on_actionRedo_triggered();
-	void on_action_Black_triggered() { _SetBlackPen(); _SetCursor(DrawArea::csPen); _SetPenWidth(); };
-	void on_action_Red_triggered()	 { _SetRedPen();   _SetCursor(DrawArea::csPen); _SetPenWidth(); };
-	void on_action_Green_triggered() { _SetGreenPen(); _SetCursor(DrawArea::csPen); _SetPenWidth(); };
-	void on_action_Blue_triggered()  { _SetBluePen();  _SetCursor(DrawArea::csPen); _SetPenWidth(); };
-	void on_action_Yellow_triggered() { _SetYellowPen();  _SetCursor(DrawArea::csPen); _SetPenWidth(); };
+	void on_action_Black_triggered() ;
+	void on_action_Red_triggered()	 ;
+	void on_action_Green_triggered() ;
+	void on_action_Blue_triggered()  ;
+	void on_action_Yellow_triggered();
 	void on_action_Eraser_triggered();
 	void on_action_Screenshot_triggered();
 

@@ -179,13 +179,38 @@ void DrawArea::SetEraserWidth(int newWidth)
 }
 
 #ifndef _VIEWER
-void DrawArea::InsertVertSpace(int heightInPixels)
+void DrawArea::InsertVertSpace()
 {
-    int y = _rubberRect.y();
     _RemoveRubberBand();
-    _history.addInsertVertSpace(y - _topLeft.y(), heightInPixels);
+    _history.addInsertVertSpace(_rubberRect.y() - _topLeft.y(), _rubberRect.height());
     _ClearCanvas();
     _Redraw();
+}
+MyPenKind DrawArea::PenKindFromKey(int key)
+{
+	switch (key)
+	{
+	    case Qt::Key_1: return penBlack;
+	    case Qt::Key_2: return penRed;
+	    case Qt::Key_3: return penGreen;
+	    case Qt::Key_4: return penBlue;
+	    case Qt::Key_5: return penYellow;
+        default: return penNone;
+	}
+}
+bool DrawArea::RecolorSelected(int key, bool SelectionAlreadyOk)
+{
+    if (!_rubberBand)
+        return false;
+    if(!SelectionAlreadyOk)
+        _history.CollectItemsInside(_rubberRect.translated(-_topLeft));
+
+    MyPenKind pk = PenKindFromKey(key);
+    HistoryItem* phi = _history.addRecolor(pk);
+    _RemoveRubberBand();
+    if (phi)
+        _Redraw();
+    return true;
 }
 #endif
 
@@ -246,13 +271,9 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                  bRemove = (bDelete | bCopy | bCut | bPaste) ||
                            (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt),
                  bCollected = false,
-                 bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4) &&
-                            (mods.testFlag(Qt::ControlModifier) && mods.testFlag(Qt::AltModifier));
+                 bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5);
 
-            if (bRemove)
-                _RemoveRubberBand();
-
-            if (bCut || bDelete || bCopy || bRecolor)
+            if (bDelete || bCopy || bRecolor)
             {
                 if ((bCollected = _history.CollectItemsInside(_rubberRect.translated(-_topLeft))))
                 {
@@ -282,20 +303,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit CanRedo(false);
 			}
             if (bRecolor)
-            {
-                MyPenKind pk;
-                switch (key)
-                {
-                    case Qt::Key_1:pk = penBlack;  break;
-                    case Qt::Key_2:pk = penRed;  break;
-                    case Qt::Key_3:pk = penGreen;  break;
-                    case Qt::Key_4:pk = penBlue;  break;
-                    case Qt::Key_5:pk = penYellow;  break;
-                }
-                HistoryItem* phi =_history.addRecolor(pk);
-                if(phi)
-                    _Redraw();
-            }
+                RecolorSelected(key, true);
 
             if (key == Qt::Key_R)    // draw rectangle
             {
@@ -322,6 +330,9 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit CanUndo(true);
                 emit CanRedo(false);
             }
+            if (bRemove)
+                _RemoveRubberBand();
+
         }
         else
 #endif
@@ -349,6 +360,13 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit IncreaseBrushSize(1);
             else if(key == Qt::Key_BracketLeft )
                 emit DecreaseBrushSize(1);
+#ifndef _VIEWER
+            else if (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5)
+            {
+                MyPenKind pk = PenKindFromKey(key);
+                SetPenKind(pk);
+            }
+#endif
 		}
     }
 }

@@ -638,10 +638,10 @@ void MyWhiteboard::on_actionHelp_triggered()
 #ifndef _VIEWER
         +
         tr("<p>Left and right bracket keys '[',']' change brush size</p>")+
-        tr("<p><i>Select colors</i><br>&nbsp;&nbsp;Alt+1, ..., Alt+4</p>")+
+        tr("<p><i>Select colors</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5, eraser: E</p>")+
         tr("<p><i>Draw rectangle</i> around selected area<br>&nbsp;&nbsp;R key")+
-        tr("Insert 200px vertical space from top of selected area - F5</p>")+
-        tr("<p><i>Recolor selected</i><br>&nbsp;&nbsp;Ctrl+Alt+1, ..., Ctrl+Alt+4 </p>")+
+        tr("Insert vertical space from top of selected area - F5</p>")+
+        tr("<p><i>Recolor selected</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5 </p>")+
         tr("<p><i>Copy selected</i><br>&nbsp;&nbsp;Ctrl+Ins, Ctrl+C</p>") +
         tr("<p><i>Cut selected</i><br>&nbsp;&nbsp;Ctrl+X, Shift+Del</p>") +
         tr("<p><i>Delete selected</i><br>&nbsp;&nbsp;Del, BackSpace</p>") +
@@ -671,6 +671,52 @@ void MyWhiteboard::on_actionBlackMode_triggered()
 }
 
 #ifndef _VIEWER
+void MyWhiteboard::on_action_Black_triggered() 
+{
+    if (!_drawArea->RecolorSelected(Qt::Key_1))
+    {
+        _SetBlackPen();
+        _SetCursor(DrawArea::csPen);
+        _SetPenWidth();
+    }
+};
+void MyWhiteboard::on_action_Red_triggered() 
+{
+    if (!_drawArea->RecolorSelected(Qt::Key_2))
+    {
+        _SetRedPen();
+        _SetCursor(DrawArea::csPen);
+        _SetPenWidth();
+    }
+};
+void MyWhiteboard::on_action_Green_triggered()
+{
+    if (!_drawArea->RecolorSelected(Qt::Key_3))
+    {
+        _SetGreenPen();
+        _SetCursor(DrawArea::csPen);
+        _SetPenWidth();
+    }
+};
+void MyWhiteboard::on_action_Blue_triggered()
+{
+    if (!_drawArea->RecolorSelected(Qt::Key_4))
+    {
+        _SetBluePen();
+        _SetCursor(DrawArea::csPen);
+        _SetPenWidth();
+    }
+};
+void MyWhiteboard::on_action_Yellow_triggered()
+{
+    if (!_drawArea->RecolorSelected(Qt::Key_5))
+    {
+        _SetYellowPen();
+        _SetCursor(DrawArea::csPen);
+        _SetPenWidth();
+    }
+};
+
 void MyWhiteboard::on_action_Eraser_triggered()
 {
     _eraserOn = true;
@@ -736,7 +782,7 @@ void MyWhiteboard::on_actionRedo_triggered()
 
 void MyWhiteboard::on_action_InsertVertSpace_triggered()
 {
-    _drawArea->InsertVertSpace(200);
+    _drawArea->InsertVertSpace();
 }
 
 void MyWhiteboard::SlotForRubberBandSelection(int on)
