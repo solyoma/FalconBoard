@@ -49,13 +49,13 @@ void DrawnItem::add(QPoint p)
 {
 
 	if (rect.isNull())
-		rect = QRect(p.x() - 4*penWidth, p.y() - 4*penWidth, 8 * penWidth, 8 * penWidth);      // single point
+		rect = QRect(p.x() - 2*penWidth, p.y() - 2*penWidth, 4 * penWidth, 4 * penWidth);      // single point
 	else if (!rect.contains(p))
 	{
-		if (rect.x() >= p.x() - penWidth) rect.setX(p.x() - 4*penWidth);
-		if (rect.y() >= p.y() - penWidth) rect.setY(p.y() - 4*penWidth);
-		if (rect.right() <= p.x() + penWidth) rect.setRight(p.x() + 6*penWidth + 1);
-		if (rect.bottom() <= p.y() + penWidth) rect.setBottom(p.y() + 6*penWidth + 1);
+		if (rect.x() >= p.x() - penWidth) rect.setX(p.x() - 2*penWidth);
+		if (rect.y() >= p.y() - penWidth) rect.setY(p.y() - 2*penWidth);
+		if (rect.right() <= p.x() + penWidth) rect.setRight(p.x() + 4*penWidth + 1);
+		if (rect.bottom() <= p.y() + penWidth) rect.setBottom(p.y() + 4*penWidth + 1);
 	}
 	// DEBUG
 	// qDebug("point: (%d, %d), rect: (l: %d, t: %d, w: %d, h: %d)", p.x(), p.y(), rect.x(), rect.y(), rect.width(), rect.height());
@@ -295,7 +295,7 @@ QRect HistoryPasteItem::Area() const
 { 
 	return encompassingRect; 
 }
-
+//---------------------------------------------------
 HistoryReColorItem::HistoryReColorItem(History* pHist, IntVector& selectedList, MyPenKind pk) : 
 	HistoryItem(pHist), selectedList(selectedList), pk(pk)
 {
@@ -340,6 +340,42 @@ HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem&& oth
 	pk = other.pk;
 	return *this;
 }
+//---------------------------------------------------
+
+HistoryInsertVertSpace::HistoryInsertVertSpace(History* pHist, int top, int pixelChange) : 
+	HistoryItem(pHist), from(top), heightInPixels(pixelChange)
+{
+	type = heVertSpace;
+	Redo();
+}
+
+HistoryInsertVertSpace::HistoryInsertVertSpace(const HistoryInsertVertSpace& other) : HistoryItem(other.pHist)
+{
+	*this = other;
+}
+HistoryInsertVertSpace& HistoryInsertVertSpace::operator=(const HistoryInsertVertSpace& other)
+{
+	type = heVertSpace;
+	from = other.from; heightInPixels = other.heightInPixels; pHist = other.pHist;
+	return *this;
+}
+
+bool HistoryInsertVertSpace::Undo()
+{
+	pHist->InserVertSpace(from, -heightInPixels);
+	return true;
+}
+
+bool HistoryInsertVertSpace::Redo()
+{
+	pHist->InserVertSpace(from, heightInPixels);
+	return true;
+}
+QRect HistoryInsertVertSpace::Area() const
+{
+	return QRect(0, from, 100, 100);
+}
+
 //--------------------------------------------
 bool HistoryReColorItem::Undo() 
 {
@@ -548,10 +584,9 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 
 //--------------------- Add Items ------------------------------------------
 
-HistoryItem* History::addClearCanvasItem()
+HistoryItem* History::addClearCanvas()
 {
-	HistoryClearCanvasItem* p = new HistoryClearCanvasItem(this);
-
+	HistoryClearCanvasItem* p = new HistoryClearCanvasItem(this); // any drawable item after a clear screen is above this one
 	return _AddItem(p);
 }
 
@@ -578,12 +613,6 @@ HistoryItem* History::addPastedItems(QPoint topLeft)
 	return _AddItem(p);
 }
 
-HistoryItem* History::addClearCanvas()
-{
-	HistoryClearCanvasItem* p = new HistoryClearCanvasItem(this); // any drawable item after a clear screen is above this one
-	return _AddItem(p);
-}
-
 HistoryItem* History::addRecolor(MyPenKind pk)
 {
 	if (!_nSelectedItemsList.size())
@@ -591,6 +620,32 @@ HistoryItem* History::addRecolor(MyPenKind pk)
 
 	HistoryReColorItem* p = new HistoryReColorItem(this, _nSelectedItemsList, pk);
 	return _AddItem(p);
+}
+
+HistoryItem* History::addInsertVertSpace(int y, int heightInPixels)
+{
+	HistoryInsertVertSpace* phi = new HistoryInsertVertSpace(this, y, heightInPixels);
+	return _AddItem(phi);
+}
+
+void History::InserVertSpace(int y, int heightInPixels)
+{
+	int i = _GetStartIndex();   // index of first item after a clear screen
+	if (i > 0) // there was a clear screen and we are after it
+		--i;
+
+	QPoint dy = QPoint(0, heightInPixels);
+	DrawnItem* pdrni;
+	for (; i < _endItem; ++i)
+	{
+		int index = -1;
+		while ((pdrni = _items[i]->GetDrawable(++index)) != nullptr)
+		{
+			if(pdrni->rect.y() >= y)
+				pdrni->Translate(dy);
+		}
+	}
+	_modified = true;
 }
 
 int History::SetFirstItemToDraw()

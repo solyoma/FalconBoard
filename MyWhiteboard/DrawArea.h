@@ -38,32 +38,11 @@ class DrawColors
         _clr() : kind(penNone), lightColor(QColor()), darkColor(QColor()) { }
     } _colors[5];
 
-    int _penColorIndex(MyPenKind pk)
-    {
-        for (int i = 0; i < _COLOR_COUNT; ++i)
-            if (_colors[i].kind == pk)
-                return i;
-        return -1;
-    }
-
+    int _penColorIndex(MyPenKind pk);
 public:
-    DrawColors()
-    {
-        _colors[0].kind = penBlack;
-        _colors[1].kind = penRed;
-        _colors[2].kind = penGreen;
-        _colors[3].kind = penBlue;
-        _colors[4].kind = penYellow;
-    }
-    void SetDarkMode(bool dark) 
-    { 
-        _dark = dark; 
-    }
-    QColor &operator[](MyPenKind pk)
-    { 
-        int i = _penColorIndex(pk);
-        return   (i < 0 ? _invalid : (_dark ? _colors[i].darkColor: _colors[i].lightColor) );
-    }
+    DrawColors();
+    void SetDarkMode(bool dark);
+    QColor& operator[](MyPenKind pk);
 };
 // ******************************************************
 
@@ -89,6 +68,7 @@ public:
     bool OpenBackgroundImage(const QString& fileName);
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
     void SetBackgroundImage(QImage& image);
+    void InsertVertSpace(int pixels);         // from top left of rubber band
 #endif
 
     void SetMode(bool darkMode, QString color);
@@ -98,6 +78,7 @@ public:
     void SetEraserWidth(int newWidth);
 
     void SetOrigin() { _topLeft = QPoint(); }
+
 
     bool IsModified() const { return  _history.IsModified(); }
     MyPenKind PenKind() const { return _myPenKind;  }
@@ -114,6 +95,7 @@ signals:
     void TextToToolbar(QString text);
     void IncreaseBrushSize(int quantity);
     void DecreaseBrushSize(int quantity);
+    void RubberBandSelection(bool on);  // used when a selection is active
 
 public slots:
     void NewData();

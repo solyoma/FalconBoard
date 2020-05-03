@@ -45,6 +45,7 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
 
 #ifndef _VIEWER
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &MyWhiteboard::SlotForPointerType);
+    connect(_drawArea, &DrawArea::RubberBandSelection, this, &MyWhiteboard::SlotForRubberBandSelection);
 #endif
     RestoreState();
 
@@ -427,30 +428,30 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             break;
         case smDark:
             _drawArea->drawColors.SetDarkMode(true);
-            ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack])); // white
-            ui.actionExit->setIcon(_ColoredIcon(_iconExit, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionNew->setIcon(_ColoredIcon(_iconNew  , _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionSave->setIcon(_ColoredIcon(_iconSave, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
+            ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
+            ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, QColor(Qt::white)));
+            ui.actionNew->setIcon(_ColoredIcon(_iconNew  , Qt::black, QColor(Qt::white)));
+            ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, Qt::black, QColor(Qt::white)));
+            ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, Qt::black, QColor(Qt::white)));
+            ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, Qt::black, QColor(Qt::white)));
+            ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, QColor(Qt::white)));
+            ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#282828";
             _sTextColor = "#E1E1E1";
             break;
         case smBlack:
             _drawArea->drawColors.SetDarkMode(true);
-            ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]));     // white
+            ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
 
-            ui.actionExit->setIcon(_ColoredIcon(_iconExit, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionNew->setIcon(_ColoredIcon(_iconNew, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.actionSave->setIcon(_ColoredIcon(_iconSave, _drawArea->drawColors[penBlack], QColor(Qt::white)));
-            ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, _drawArea->drawColors[penBlack], QColor(Qt::white)));
+            ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
+            ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, QColor(Qt::white)));
+            ui.actionNew->setIcon(_ColoredIcon(_iconNew, Qt::black, QColor(Qt::white)));
+            ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, Qt::black, QColor(Qt::white)));
+            ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, Qt::black, QColor(Qt::white)));
+            ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, Qt::black, QColor(Qt::white)));
+            ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, QColor(Qt::white)));
+            ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#191919";
             _sTextColor = "#CCCCCC";
             break;
@@ -617,6 +618,7 @@ void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
         tr("Open source White/blackboard application"
+            "<p>Version 1.1.1</p>"
             "<p>© A. Sólyom (2020)</p><br>"
             "<p>https://github.com/solyoma/MyWhiteboard</p>"
             "<p>Based on Qt's <b>Scribble</b> example.</p>"));
@@ -638,6 +640,7 @@ void MyWhiteboard::on_actionHelp_triggered()
         tr("<p>Left and right bracket keys '[',']' change brush size</p>")+
         tr("<p><i>Select colors</i><br>&nbsp;&nbsp;Alt+1, ..., Alt+4</p>")+
         tr("<p><i>Draw rectangle</i> around selected area<br>&nbsp;&nbsp;R key")+
+        tr("Insert 200px vertical space from top of selected area - F5</p>")+
         tr("<p><i>Recolor selected</i><br>&nbsp;&nbsp;Ctrl+Alt+1, ..., Ctrl+Alt+4 </p>")+
         tr("<p><i>Copy selected</i><br>&nbsp;&nbsp;Ctrl+Ins, Ctrl+C</p>") +
         tr("<p><i>Cut selected</i><br>&nbsp;&nbsp;Ctrl+X, Shift+Del</p>") +
@@ -646,7 +649,8 @@ void MyWhiteboard::on_actionHelp_triggered()
         tr("<p><i>Select</i> drawings with right button.</p>") +
         tr("<p>Selected drawings can be deleted, copied or cut out by keyboard shortcuts./p>") +
         tr("<p>To paste selection select destination with right button and use keyboard shortcut.</p>")+
-        tr("<p>Draw horizontal or vertical lines by holding down a Shift key while drawing.</p>")
+        tr("<p>Draw horizontal or vertical lines by holding down a Shift key while drawing.</p>")+
+        tr("<p>Take a screenshot of an area using the right mouse button - F4</p>")
 #endif
     );
 }
@@ -728,6 +732,16 @@ void MyWhiteboard::on_actionRedo_triggered()
         on_action_Eraser_triggered();
     else
         _SetCursor(DrawArea::csPen);
+}
+
+void MyWhiteboard::on_action_InsertVertSpace_triggered()
+{
+    _drawArea->InsertVertSpace(200);
+}
+
+void MyWhiteboard::SlotForRubberBandSelection(int on)
+{
+    ui.action_InsertVertSpace->setEnabled(on);
 }
 
 void MyWhiteboard::slotPenWidthChanged(int val)

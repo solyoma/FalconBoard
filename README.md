@@ -1,6 +1,6 @@
 # MyWhiteboard
 
-Last modified: May 2. 2020.
+Last modified: May 3. 2020.
 
 MyWhiteboard is a cross platform open source whiteboard / blackboard application 
 with unique features that makes it perfectly suited for classroom or for online 
@@ -10,7 +10,7 @@ redo, colored pens of different width, screen capture and more (see below).
 The project also contains a separate viewer that can only display saved 
 drawings, but cannot modify them.
 
-*Features* (Version 1.1.0): 
+*Features* (Version 1.1.1): 
 
    0. Works under Windows and Linux, and (I hope) on Macs too.
    1. System, dark and black view modes
@@ -24,6 +24,7 @@ drawings, but cannot modify them.
       the wheel on the mouse).
    6. Mark area by right button on mouse or tablet, and 
         - draw a rectangle by pressing the R key
+        - insert vertical space of 200 pixels by pressing F5
         - delete drawings completely inside
           this area with the Del or BackSpace keys.
         - copy / cut marked area and paste it at any position, even into new
@@ -38,8 +39,8 @@ drawings, but cannot modify them.
       the background to have illustrations to comment on.
   11. Horizontal and vertical line drawing (press and hold the Shift key).
   12. Visible area can be printed and saved in many different image formats.
-  13. Take a screenshot from any rectangular area of the desktop and load it 
-      as background image.
+  13. Take a screenshot with F4 from any rectangular area of the desktop and
+      load it as background image.
   14. Completely open source (GPL 3). 
       (I used some icons from PikaJian's Whitepad project 
        https://github.com/PikaJian, but no code was used from that project.)

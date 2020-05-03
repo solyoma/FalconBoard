@@ -14,6 +14,34 @@
 #endif
 #endif
 
+//----------------------------- DrawColors -------------------
+int DrawColors::_penColorIndex(MyPenKind pk)
+{
+	for (int i = 0; i < _COLOR_COUNT; ++i)
+		if (_colors[i].kind == pk)
+			return i;
+	return -1;
+}
+
+DrawColors::DrawColors()
+{
+	_colors[0].kind = penBlack;
+	_colors[1].kind = penRed;
+	_colors[2].kind = penGreen;
+	_colors[3].kind = penBlue;
+	_colors[4].kind = penYellow;
+}
+void DrawColors::SetDarkMode(bool dark)
+{
+	_dark = dark;
+}
+QColor& DrawColors::operator[](MyPenKind pk)
+{
+	int i = _penColorIndex(pk);
+	return   (i < 0 ? _invalid : (_dark ? _colors[i].darkColor : _colors[i].lightColor));
+}
+
+//----------------------------- DrawArea ---------------------
 DrawArea::DrawArea(QWidget* parent)
     : QWidget(parent)
 {
@@ -42,6 +70,9 @@ void DrawArea::SetPenColors()
 
 void DrawArea::ClearCanvas()
 {
+#ifndef _VIEWER
+    _RemoveRubberBand();
+#endif
     _history.addClearCanvas();
     _ClearCanvas();
 }
@@ -146,6 +177,17 @@ void DrawArea::SetEraserWidth(int newWidth)
 {
     _eraserWidth = newWidth;
 }
+
+#ifndef _VIEWER
+void DrawArea::InsertVertSpace(int heightInPixels)
+{
+    int y = _rubberRect.y();
+    _RemoveRubberBand();
+    _history.addInsertVertSpace(y, heightInPixels);
+    _ClearCanvas();
+    _Redraw();
+}
+#endif
 
 void DrawArea::NewData()
 {
@@ -355,6 +397,7 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
             _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
         _rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
         _rubberBand->show();
+        emit RubberBandSelection(true);
 #endif
     }
 
@@ -604,6 +647,7 @@ void DrawArea::_RemoveRubberBand()
         _rubberBand->hide();
         delete _rubberBand;
         _rubberBand = nullptr;
+        emit RubberBandSelection(false);
     }
 }
 
@@ -974,7 +1018,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 
     if (phi->type == heRecolor)
         _Redraw();
-    else if (phi->type == heItemsDeleted)
+    else if (phi->type == heItemsDeleted || heVertSpace)
     {
         _ClearCanvas();
         _Redraw();

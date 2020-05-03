@@ -10,6 +10,7 @@ enum HistEvent {
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
     heRecolor,         // save old color, set new color
+    heVertSpace,       // insert vertical space
     heVisibleCleared,  // visible image erased
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
@@ -74,7 +75,7 @@ struct HistoryItem      // base class
     HistoryItem(History* pHist) : pHist(pHist) {}
     virtual ~HistoryItem() {}
 
-    virtual DrawnItem* GetDrawable(int index = 0) const = 0; // returns pointer to the index-th DrawnItem
+    virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
     virtual int Size() const { return 0; }         // size of stored scribbles or erases
     virtual void SetVisibility(bool visible) { }
 
@@ -156,7 +157,6 @@ struct HistoryPasteItem : HistoryItem
 
     QRect Area() const override;
 };
-
 //--------------------------------------------
 struct HistoryReColorItem : HistoryItem
 {
@@ -174,6 +174,20 @@ struct HistoryReColorItem : HistoryItem
     HistoryReColorItem& operator=(const HistoryReColorItem&& other);
     QRect Area() const override;
     DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
+};
+
+//--------------------------------------------
+struct HistoryInsertVertSpace : HistoryItem
+{
+    int from = 0, heightInPixels = 0;
+
+    HistoryInsertVertSpace(History* pHist, int top, int pixelChange);
+    HistoryInsertVertSpace(const HistoryInsertVertSpace& other);
+    HistoryInsertVertSpace& operator=(const HistoryInsertVertSpace& other);
+
+    bool Undo() override;
+    bool Redo() override;
+    QRect Area() const override;
 };
 
 /*========================================================
@@ -252,12 +266,14 @@ public:
     bool CanRedo() const { return _redoAble; }
 
 //--------------------- Add Items ------------------------------------------
-    HistoryItem* addClearCanvasItem();
+    HistoryItem* addClearCanvas();
     HistoryItem* addDrawnItem(DrawnItem& dri);
     HistoryItem* addDeleteItems();                  // using 'this' and _nSelectedItemsList a
     HistoryItem* addPastedItems(QPoint topLeft);    // using 'this' and _copiedList 
-    HistoryItem* addClearCanvas();
     HistoryItem* addRecolor(MyPenKind pk);
+    HistoryItem* addInsertVertSpace(int y, int heightInPixels);
+// --------------------- drawing -----------------------------------
+    void InserVertSpace(int y, int heightInPixels);
 
     int SetFirstItemToDraw();
     QRect  Undo();        // returns top left after undo 

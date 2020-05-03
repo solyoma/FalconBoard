@@ -59,7 +59,8 @@ private slots:
 	void on_actionClearBackgroundImage_triggered();
 	void on_action_Print_triggered() { _drawArea->Print();  }
 
-	void on_action_Mark_triggered() {/*TODO*/ ; }
+	void on_action_InsertVertSpace_triggered();
+	void SlotForRubberBandSelection(int on);
 
 	void slotPenWidthChanged(int val);
 

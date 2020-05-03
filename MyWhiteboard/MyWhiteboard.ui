@@ -61,7 +61,7 @@
     <addaction name="separator"/>
     <addaction name="action_Screenshot"/>
     <addaction name="separator"/>
-    <addaction name="action_Mark"/>
+    <addaction name="action_InsertVertSpace"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -266,12 +266,18 @@
     <string>Ctrl+E</string>
    </property>
   </action>
-  <action name="action_Mark">
+  <action name="action_InsertVertSpace">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>&amp;Mark</string>
+    <string>&amp;Insert vertical space.</string>
+   </property>
+   <property name="toolTip">
+    <string>Insert vertical space.</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
   <action name="actionUndo">
@@ -431,6 +437,14 @@
    </property>
    <property name="shortcut">
     <string>Alt+5</string>
+   </property>
+  </action>
+  <action name="actionVertical_space">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Vertical space...</string>
    </property>
   </action>
  </widget>
