@@ -1,4 +1,6 @@
 #pragma once
+#ifndef _MYWHITEBOARD_H
+#define _MYWHITEBOARD_H
 
 #include <QtWidgets/QMainWindow>
 #include <QApplication>
@@ -174,3 +176,4 @@ private:
 
 	void _SetupMode(ScreenMode mode);
 };
+#endif

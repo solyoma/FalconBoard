@@ -1,4 +1,6 @@
 #pragma once
+#ifndef _DRAWAREA_H
+#define _DRAWAREA_H
 
 #include <QColor>
 #include <QImage>
@@ -212,3 +214,5 @@ private:
     void ShowCoordinates(const QPoint& qp);
 #endif
 };
+
+#endif

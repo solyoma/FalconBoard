@@ -1,4 +1,6 @@
 #pragma once
+#ifndef _SNIPPER_H
+#define SNIPPER_H
 
 #include <QRubberBand>
 #include <QLabel>
@@ -32,3 +34,5 @@ signals:
 	void SnipperCancelled();
 	void SnipperReady(QRect geometry);
 };
+
+#endif

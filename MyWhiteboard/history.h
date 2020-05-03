@@ -1,4 +1,6 @@
 #pragma once
+#ifndef _HISTORY_H
+#define _HISTORY_H
 
 #include <QtGui>
 #include <QFile>
@@ -289,3 +291,5 @@ public:
     const QRect& EncompassingRect() const { return _selectionRect; }
     const QVector<int> &Selected() const { return _nSelectedItemsList;  }
 };
+
+#endif
