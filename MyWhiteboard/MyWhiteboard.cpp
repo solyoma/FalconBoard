@@ -844,18 +844,18 @@ void MyWhiteboard::SlotForPointerType(QTabletEvent::PointerType pt)   // only se
     }
 }
 
-void MyWhiteboard::SlotForScreenshotReady(QRect geometry)
+void MyWhiteboard::SlotForScreenshotReady(QRect gmetry)
 {
     plblScreen->hide();
 
-    QSize size(geometry.width(), geometry.height());
-    QImage image(size, QImage::Format_ARGB32);
+    QImage image;
+    image =QImage(gmetry.size(), QImage::Format_ARGB32);
 
     QPainter *painter = new QPainter(&image);   // need to delete it before the label is deleted
-    painter->drawImage(QPoint(0,0), plblScreen->pixmap()->toImage(), geometry);
+    painter->drawImage(QPoint(0,0), plblScreen->pixmap()->toImage(), gmetry);
     delete painter;
+    _drawArea->AddBelowImage(image);
 
-    _drawArea->SetBackgroundImage(image);
     _ConnectDisconnectScreenshotLabel(false);
     delete plblScreen;
     plblScreen = nullptr;

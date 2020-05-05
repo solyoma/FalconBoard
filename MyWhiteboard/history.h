@@ -12,6 +12,7 @@ enum HistEvent {
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
     heRecolor,         // save old color, set new color
+    heScreenShot,
     heVertSpace,       // insert vertical space
     heVisibleCleared,  // visible image erased
     heBackgroundLoaded,     // an image loaded into _background
@@ -55,8 +56,69 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 };
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di);
-
 inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di);
+
+// ******************************************************
+// image to shown on background
+struct BelowImage {           // shown below the drawings
+    QImage image;              // image from the disk or from screenshot
+    QPoint topLeft;            // relative to (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
+    bool isVisible = true;
+            // canvasRect relative to (0,0)
+            // result: relative to image
+            // isNull() true when no intersection
+    QRect VisibleRect(const QRect& canvasRect) const
+    {
+        return QRect(topLeft, QSize(image.width(), image.height())).intersected(canvasRect);
+    }
+};
+
+inline QDataStream& operator<<(QDataStream& ofs, const BelowImage& bimg);
+inline QDataStream& operator>>(QDataStream& ifs, BelowImage& bimg);
+
+class  BelowImageList : public  QList<BelowImage>
+{
+    int _index = -1;
+    QRect _canvasRect;
+public:
+    void Add(QImage& image, QPoint pt)
+    {
+        BelowImage img;
+        img.image = image;
+        img.topLeft = pt;
+        (*this).push_back(img);
+    }
+
+    // canvasRect and result are relative to (0,0)
+    QRect VisibleRect(int index, const QRect& canvasRect) const
+    {
+        return (*this)[index].VisibleRect(canvasRect);
+    }
+
+    BelowImage* NextVisible()
+    {
+        if (_canvasRect.isNull())
+            return nullptr;
+
+        while (++_index < size())
+        {
+            if ((*this)[_index].isVisible)
+            {
+                if (!VisibleRect(_index, _canvasRect).isNull())
+                    return &(*this)[_index];
+            }
+        }
+        return nullptr;
+    }
+
+    BelowImage* FirstVisible(const QRect& canvasRect)
+    {
+        _index = -1;
+        _canvasRect = canvasRect;
+        return NextVisible();
+    }
+};
+
 
 //*********************************************************
 using DrawnItemVector = QVector<DrawnItem>;
@@ -192,6 +254,21 @@ struct HistoryInsertVertSpace : HistoryItem
     QRect Area() const override;
 };
 
+struct HistoryScreenShot : public HistoryItem
+{
+    int which;
+    bool isDeleted = false;
+
+    HistoryScreenShot(History* pHist, int which);
+    HistoryScreenShot(const HistoryScreenShot &other);
+    HistoryScreenShot& operator=(const HistoryScreenShot& other);
+    bool Undo() override;
+    bool Redo() override;
+    QRect Area() const override;
+    bool Hidden() const override;       // when the first element is hidden, all hidden
+    void SetVisibility(bool visible) override; // for all elements in list
+};
+
 /*========================================================
  * Class for storing history of editing
  *  contains a list of items drawn on screen, 
@@ -214,7 +291,6 @@ struct HistoryInsertVertSpace : HistoryItem
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-
     QVector<HistoryItem*> _items;
     int _actItem = -1;                  // in _items, index of actual history item, -1: no such item
     int _endItem = 0;                   // index until a redo can go (max value: _items.size()
@@ -239,8 +315,11 @@ class History  // stores all drawing sections and keeps track of undo and redo
     bool _IsSaveable(int i);
 
 public:
+    BelowImageList* pImages = nullptr;  // set in DrawArea constructor
+
     History() {}
     ~History();
+
     void clear();
     int size() const;
 
@@ -274,7 +353,8 @@ public:
     HistoryItem* addPastedItems(QPoint topLeft);    // using 'this' and _copiedList 
     HistoryItem* addRecolor(MyPenKind pk);
     HistoryItem* addInsertVertSpace(int y, int heightInPixels);
-// --------------------- drawing -----------------------------------
+    HistoryItem* addScreenShot(int index);
+    // --------------------- drawing -----------------------------------
     void InserVertSpace(int y, int heightInPixels);
 
     int SetFirstItemToDraw();

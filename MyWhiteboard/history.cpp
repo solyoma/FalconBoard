@@ -104,11 +104,11 @@ inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
 		ofs << (qint32)pt.x() << (qint32)pt.y();
 	return ofs;
 }
-
+		   // reads ONLY after the type is read in!
 inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 {
 	qint32 n;
-	ifs >> n; di.type = static_cast<HistEvent>(n);
+//	ifs >> n; di.type = static_cast<HistEvent>(n);
 	ifs >> n; di.penKind = (MyPenKind)n;
 	ifs >> n; di.penWidth = n;
 
@@ -122,6 +122,23 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 		ifs >> x >> y;
 		di.add(x, y);
 	}
+	return ifs;
+}
+
+inline QDataStream& operator<<(QDataStream& ofs, const BelowImage& bimg)
+{
+	ofs << (int)heScreenShot << bimg.topLeft.x() << bimg.topLeft.y();
+	ofs << bimg.image;
+
+	return ofs;
+}
+
+inline QDataStream& operator>>(QDataStream& ifs, BelowImage& bimg)
+{	 // type already read in
+	int x, y;
+	ifs >> x >> y;
+	bimg.topLeft = QPoint(x, y);
+	ifs >> bimg.image;
 	return ifs;
 }
 
@@ -403,6 +420,54 @@ bool HistoryReColorItem::Redo()
 	return true;
 }
 QRect HistoryReColorItem::Area() const  { return encompassingRectangle; }
+//--------------------------------------------
+
+HistoryScreenShot::HistoryScreenShot(History* pHist, int which) : HistoryItem(pHist), which(which)
+{
+	type = heScreenShot;
+}
+
+HistoryScreenShot::HistoryScreenShot(const HistoryScreenShot& other) : HistoryItem(pHist)
+{
+	*this = other;
+}
+
+HistoryScreenShot& HistoryScreenShot::operator=(const HistoryScreenShot& other)
+{
+	type = heScreenShot;
+	which = other.which;
+	isDeleted = other.isDeleted;
+	return *this;
+}
+
+bool HistoryScreenShot::Undo() // hide
+{
+	(*pHist->pImages)[which].isVisible = false;
+	isDeleted = true;
+	return true;
+}
+
+bool HistoryScreenShot::Redo() // show
+{
+	(*pHist->pImages)[which].isVisible = true;
+	isDeleted = false;
+	return true;
+}
+
+QRect HistoryScreenShot::Area() const
+{
+	return QRect((*pHist->pImages)[which].topLeft, (*pHist->pImages)[which].image.size());
+}
+
+bool HistoryScreenShot::Hidden() const
+{
+	return isDeleted;
+}
+
+void HistoryScreenShot::SetVisibility(bool visible)
+{
+	isDeleted = !Hidden();
+}
 
 
 /*========================================================
@@ -528,6 +593,11 @@ bool History::Save(QString name)
 		if (!_items[i]->Hidden())
 		{
 			int index=-1;
+			if (_items[i]->type == heScreenShot)
+			{
+				ofs << (*pImages)[((HistoryScreenShot*)_items[i])->which];
+				continue;
+			}
 			DrawnItem* pdrni;
 			while( (pdrni = _items[i]->GetDrawable(++index) ) != nullptr )
 			ofs << *pdrni;
@@ -560,9 +630,20 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 	lastPosition = QPoint(0, 0);
 
 	DrawnItem di;
-	int i = 0;
+	BelowImage bimg;
+	int i = 0, n;
 	while (!ifs.atEnd())
 	{
+		ifs >> n;	// HistEvent				
+		if ((HistEvent(n) == heScreenShot))
+		{
+			ifs >> bimg;
+			pImages->push_back(bimg);
+			HistoryScreenShot* phss = new HistoryScreenShot(this, pImages->size() - 1);
+			_AddItem(phss);
+			continue;
+		}
+
 		ifs >> di;
 		if (ifs.status() != QDataStream::Ok)
 			return -_items.size() - 1;
@@ -626,6 +707,12 @@ HistoryItem* History::addInsertVertSpace(int y, int heightInPixels)
 {
 	HistoryInsertVertSpace* phi = new HistoryInsertVertSpace(this, y, heightInPixels);
 	return _AddItem(phi);
+}
+
+HistoryItem* History::addScreenShot(int index)
+{
+	HistoryScreenShot* phss = new HistoryScreenShot(this, index);
+	return _AddItem(phss);
 }
 
 void History::InserVertSpace(int y, int heightInPixels)
@@ -764,3 +851,4 @@ void History::CopySelected()
 		_copiedRect = _selectionRect.translated(-_selectionRect.topLeft());
 	}
 }
+

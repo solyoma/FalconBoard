@@ -49,6 +49,7 @@ DrawArea::DrawArea(QWidget* parent)
     setAttribute(Qt::WA_TabletTracking);
     setCursor(Qt::CrossCursor);
     SetPenColors();
+    _history.pImages = &_belowImages;
 }
 
 void DrawArea::SetPenColors()
@@ -79,18 +80,21 @@ void DrawArea::ClearCanvas()
 
 void DrawArea::ClearBackground()
 {
-    _background.fill(_backgroundColor);
+    _background = QImage();
     _isBackgroundSet = false;
     update();
 }
 
 int DrawArea::Load(QString name)
 {
+    _belowImages.clear();
+
     int res = _history.Load(name, _tlMax);
+    QString qs = name.mid(name.lastIndexOf('/')+1);
     if (!res)
-        QMessageBox::about(this, tr(WindowTitle), tr("Invalid file"));
+        QMessageBox::about(this, tr(WindowTitle), QString( tr("'%1'\nInvalid file")).arg(qs));
     else if(res == -1)
-        QMessageBox::about(this, tr(WindowTitle), tr("File not found"));
+        QMessageBox::about(this, tr(WindowTitle), QString(tr("File\n'%1'\n not found")).arg(qs));
     else if(res < 0)
         QMessageBox::about(this, tr(WindowTitle), QString( tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res-1));
     if(res && res != -1)    // TODO send message if read error
@@ -114,52 +118,28 @@ int DrawArea::Load(QString name)
 #ifndef _VIEWER
 bool DrawArea::OpenBackgroundImage(const QString& fileName)
 {
-    if (!_loadedImage.load(fileName))
+    if (!_background.load(fileName))
         return false;
-
-    SetBackgroundImage(_loadedImage);
 
     return true;
 }
 
 bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 {
-    QImage visibleImage = _background;           
-    _ResizeImage(&visibleImage, size(), false);
-
-    QPainter painter(&visibleImage);
-    painter.drawImage(QPoint(0,0), _canvas);
-
-
+    QImage visibleImage = grab().toImage();
     if (visibleImage.save(fileName, fileFormat)) 
     {
         return true;
     }
     return false;
 }
-
-void DrawArea::SetBackgroundImage(QImage& loadedImage)
-{
-    QSize newSize = loadedImage.size().expandedTo(size());
-    _ResizeImage(&loadedImage, newSize, false); // background not transparent
-    _background = loadedImage;
-    if (!_background.isNull())
-    {
-        _isBackgroundSet = true;
-        _Redraw();
-    }
-    update();
-}
 #endif
+
 void DrawArea::SetMode(bool darkMode, QString color)
 {
     _backgroundColor = color;
-    _background.fill(_backgroundColor);
-#ifndef _VIEWER
-    if (_isBackgroundSet)
-            SetBackgroundImage(_loadedImage);
-#endif
-    drawColors.SetDarkMode( _darkMode = darkMode);
+     drawColors.SetDarkMode( _darkMode = darkMode);
+     _ClearCanvas();
     _Redraw();                  // because pen color changed!
 }
 
@@ -176,6 +156,20 @@ void DrawArea::SetPenWidth(int newWidth)
 void DrawArea::SetEraserWidth(int newWidth)
 {
     _eraserWidth = newWidth;
+}
+
+void DrawArea::AddBelowImage(QImage& image)
+{
+    BelowImage bimg;
+    bimg.image = image;
+    int x = (geometry().width() -  image.width()) / 2,
+        y = (geometry().height() - image.height()) / 2;
+
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    bimg.topLeft = QPoint(x, y) - _topLeft;
+    _belowImages.push_back(bimg);
+    _history.addScreenShot(_belowImages.size()-1);
 }
 
 #ifndef _VIEWER
@@ -337,6 +331,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         else
 #endif
         {
+            _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
+
 			if (key == Qt::Key_PageUp)
 				_PageUp();
 			else  if (key == Qt::Key_PageDown)
@@ -389,8 +385,9 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
             return;
         }
     }
-    _shiftKeyDown = false;
+    _shiftKeyDown = event->key() == Qt::Key_Shift;
     _startSet = false;
+    _altKeyDown = event->key() == Qt::Key_Alt;
     QWidget::keyReleaseEvent(event);
 }
 
@@ -405,6 +402,8 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
 #ifndef _VIEWER
         if (_rubberBand)
             _RemoveRubberBand();
+
+        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
 
         _InitiateDrawing(event);
     }
@@ -536,7 +535,19 @@ void DrawArea::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);             // show image on widget
     QRect dirtyRect = event->rect();
-    painter.drawImage(dirtyRect, _background, dirtyRect);
+    painter.fillRect(dirtyRect, _backgroundColor);             // bottom layer
+    if(!_background.isNull())                                  // background layer
+        painter.drawImage(dirtyRect, _background, dirtyRect);
+            // images below drawing
+    QRect r = dirtyRect.translated(-_topLeft);           // screen -> absolute coord
+    BelowImage* pimg = _belowImages.FirstVisible(r);     // pimg intersects r
+    while (pimg)
+    {
+        QRect intersectRect = pimg->VisibleRect(r);      // absolute
+        painter.drawImage(intersectRect.translated(_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
+        pimg = _belowImages.NextVisible();
+    }
+            // top of these the drawing
     painter.drawImage(dirtyRect, _canvas, dirtyRect);
 }
 
@@ -547,7 +558,6 @@ void DrawArea::resizeEvent(QResizeEvent* event)
         int newWidth =  qMax(width() + 128,  _canvas.width());
         int newHeight = qMax(height() + 128, _canvas.height());
         _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
-        _ResizeImage(&_background, QSize(newWidth, newHeight), false);
         update();
     }
     QWidget::resizeEvent(event);
@@ -824,6 +834,9 @@ bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
             Qt::RoundJoin));
         if (_erasemode)
             painter.setCompositionMode(QPainter::CompositionMode_Clear);
+        else
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
         painter.drawLine(_lastPointC, endPointC);
         int rad = (_actPenWidth / 2) + 2;
         update(QRect(_lastPointC, endPointC).normalized()

@@ -49,7 +49,7 @@ public:
 // ******************************************************
 
 class DrawArea : public QWidget
-{
+{       
     Q_OBJECT
 
 public:
@@ -69,7 +69,7 @@ public:
     bool Save(QString name) { return  _history.Save(name); }
     bool OpenBackgroundImage(const QString& fileName);
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
-    void SetBackgroundImage(QImage& image);
+//    void SetBackgroundImage(QImage& image);
     void InsertVertSpace();         // from top left of rubber band with height of rubber rectangle
     MyPenKind PenKindFromKey(int key);  // keyboard press/menu click
     bool RecolorSelected(int key, bool SelectionAlreadyOk = false); // true: recolored
@@ -82,6 +82,8 @@ public:
     void SetEraserWidth(int newWidth);
 
     void SetOrigin() { _topLeft = QPoint(); }
+
+    void AddBelowImage(QImage& image);
 
 
     bool IsModified() const { return  _history.IsModified(); }
@@ -125,6 +127,7 @@ protected:
     void tabletEvent(QTabletEvent* event) override;
 
 private:
+    History _history;               // every drawable element with undo/redo
             // key states used
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
     bool    _shiftKeyDown = false;  // used for constraints to draw horizontal vertical or slanted lines
@@ -149,9 +152,16 @@ private:
     std::chrono::milliseconds _msecs = 10ms;   // when delayed playback
     bool _delayedPlayback = false; // ???? to make it work not user drawing should be done in an other thread
    
-    QImage  _background,    // an image for background layer
-            _loadedImage,   // background image loaded from disk, or captured screen area will be copied onto _background
-            _canvas;        // transparent layr, draw on this then show background and this on the widget
+    // final image is shown on the widget in paintEvent(). 
+    // These images are the layers to display on the widget
+    // Layers from top to bottom:
+    //      _canvas         - transparent QImage with drawings
+    //      _belowImage(es) - non-transparent screenshots or image loaded from file
+    //      _background     - image loaded from file
+    //      the DrawArea widget - background color
+    BelowImageList _belowImages;    // one or more images from screenshots
+    QImage  _background,   
+            _canvas;        // transparent layer, draw on this then show background and this on the widget
                             // origin: (0,0) point on canvas first shown
     bool    _isBackgroundSet = false;      // an image has been loaded into _background
     bool    _fixedBackground = true; // background will not scroll with image
@@ -168,7 +178,7 @@ private:
     DrawnItem _lastDrawnItem;
     QCursor _savedCursor;
     bool _cursorSaved = false;
-    History _history;
+
 
     QRect   _canvasRect;
     QRect   _clippingRect;  // only need to draw here
