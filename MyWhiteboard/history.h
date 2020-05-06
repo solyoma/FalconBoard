@@ -13,11 +13,12 @@ enum HistEvent {
     heEraser,          // eraser used
     heRecolor,         // save old color, set new color
     heScreenShot,
+    heItemsDeleted,     // store the list of items deleted in this event
+    heSpaceDeleted,     // empty space is deleted
     heVertSpace,       // insert vertical space
     heVisibleCleared,  // visible image erased
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
-    heItemsDeleted,     // store the list of items deleted in this event
     heItemsPasted       // list of draw events added first drawn item is at index 'drawnItem'
                         // last one is at index 'lastDrawnIndex'
                         // Undo: set _indexLastDrawnItem to that given in previous history item
@@ -52,7 +53,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
     bool intersects(const QRect& arect) const;
 
-    void Translate(QPoint dr);
+    void Translate(QPoint dr, int minY);    // only if not deleted and top is above minY
 };
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di);
@@ -140,6 +141,7 @@ struct HistoryItem      // base class
     virtual ~HistoryItem() {}
 
     virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
+    virtual void Translate(QPoint p, int minY) { } // translates if top is >= minY
     virtual int Size() const { return 0; }         // size of stored scribbles or erases
     virtual void SetVisibility(bool visible) { }
 
@@ -178,13 +180,14 @@ struct HistoryDrawnItem : public HistoryItem
     DrawnItem* GetDrawable(int index = 0) const override;
     QRect Area() const override;
     int Size() const override { return 1; }
+    void Translate(QPoint p, int minY) override;
     // no new undo/redo needed
 };
 
 //--------------------------------------------
 struct HistoryDeleteItems : public HistoryItem
 {
-    IntVector deletedList;   // indexes to element in '*pDrawn'
+    IntVector deletedList;   // indexes to element in '*pHist'
     bool Undo() override;
     bool Redo() override;
     HistoryDeleteItems(History* pHist, IntVector& selected);
@@ -193,6 +196,24 @@ struct HistoryDeleteItems : public HistoryItem
     HistoryDeleteItems(HistoryDeleteItems&& other);
     HistoryDeleteItems& operator=(const HistoryDeleteItems&& other);
     DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
+};
+//--------------------------------------------
+// remove an empty rectangular region by moving
+// elements at the right to left, elements at the bottom up
+struct HistoryRemoveSpaceitem : HistoryItem // using _selectedRect
+{
+    IntVector modifiedList; // elements to be moved horizontally (elements on the right)
+                            // empty for vertical shift by delta
+    int first;              // index of first element just below the selection rectangle
+    int delta;              // translate with this amount. if 0?
+
+    bool Undo() override;
+    bool Redo() override;
+    HistoryRemoveSpaceitem(History* pHist, IntVector &toModify, int first, int distance);
+    HistoryRemoveSpaceitem(HistoryRemoveSpaceitem& other);
+    HistoryRemoveSpaceitem& operator=(const HistoryRemoveSpaceitem& other);
+    HistoryRemoveSpaceitem(HistoryRemoveSpaceitem&& other);
+    HistoryRemoveSpaceitem& operator=(const HistoryRemoveSpaceitem&& other);
 };
 
 //--------------------------------------------
@@ -218,6 +239,7 @@ struct HistoryPasteItem : HistoryItem
     bool Hidden() const override;       // when the first element is hidden, all hidden
     // bool IsSaveable() const override;
     void SetVisibility(bool visible) override; // for all elements in list
+    void Translate(QPoint p, int minY) override;
 
     QRect Area() const override;
 };
@@ -243,7 +265,7 @@ struct HistoryReColorItem : HistoryItem
 //--------------------------------------------
 struct HistoryInsertVertSpace : HistoryItem
 {
-    int from = 0, heightInPixels = 0;
+    int minY = 0, heightInPixels = 0;
 
     HistoryInsertVertSpace(History* pHist, int top, int pixelChange);
     HistoryInsertVertSpace(const HistoryInsertVertSpace& other);
@@ -254,6 +276,7 @@ struct HistoryInsertVertSpace : HistoryItem
     QRect Area() const override;
 };
 
+//--------------------------------------------
 struct HistoryScreenShot : public HistoryItem
 {
     int which;
@@ -296,10 +319,14 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _endItem = 0;                   // index until a redo can go (max value: _items.size()
 
     DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
-    QRect _copiedRect;               // encompassing rectangle for copied items used for paste operation
-    IntVector _nSelectedItemsList;      // indices into '_items', set when we want to delete a bunch of items all together
-    QRect _selectionRect;               // encompassing rectangle for selected items
+    QRect _copiedRect;                  // encompassing rectangle for copied items used for paste operation
 
+    IntVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band
+              _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
+              _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
+    int _nIndexOfFirstBelow;            // index of the first element that is below
+    QRect _selectionRect;               // encompassing rectangle for selected items OR rectangle in which there are no items
+                                        // when _nSelectedItemList is empty
 
     bool _modified = false;
 
@@ -354,7 +381,9 @@ public:
     HistoryItem* addRecolor(MyPenKind pk);
     HistoryItem* addInsertVertSpace(int y, int heightInPixels);
     HistoryItem* addScreenShot(int index);
+    HistoryItem* addRemoveSpaceItem(QRect &rect);
     // --------------------- drawing -----------------------------------
+    void Translate(int from, QPoint p, int minY);
     void InserVertSpace(int y, int heightInPixels);
 
     int SetFirstItemToDraw();

@@ -91,7 +91,10 @@ void MyWhiteboard::RestoreState()
 #endif
     qs = s.value("data", QString()).toString();
     if (!qs.isEmpty())
+    {
         _saveName = qs;      // only load on show()  _LoadData(qs);
+        setWindowTitle(_sWindowTitle + QString(" - %1").arg(_saveName));
+    }
     _lastDir  = s.value("lastDir",  "").toString();
     _lastFile = s.value("lastFile", "untitled.mwb").toString();
 
@@ -514,6 +517,7 @@ void MyWhiteboard::on_actionNew_triggered()
     _SaveIfYouWant(true);   // must ask if data changed
     _drawArea->NewData();
     _saveName.clear();
+    setWindowTitle(_sWindowTitle);
     _backgroundImageName.clear();
 }
 #endif
@@ -540,6 +544,7 @@ void MyWhiteboard::on_actionLoad_triggered()
                                                     tr("MyWhiteboard files (*.mwb);;All files (*)"));
     _SaveLastDirectory(fileName);
     _LoadData(fileName);
+    setWindowTitle(_sWindowTitle + QString(" - %1").arg(_saveName));
 
 #ifndef _VIEWER
     if (_eraserOn)

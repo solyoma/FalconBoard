@@ -89,8 +89,11 @@ bool DrawnItem::intersects(const QRect& arect) const
 	return rect.intersects(arect);
 }
 
-void DrawnItem::Translate(QPoint dr)
+void DrawnItem::Translate(QPoint dr, int minY )
 {
+	if (rect.y() < minY || isDeleted)
+		return;
+
 	for (int i = 0; i < points.size(); ++i)
 		points[i] = points[i] + dr;
 	rect.translate(dr);
@@ -203,6 +206,11 @@ QRect HistoryDrawnItem::Area() const
 	return drawnItem.rect; 
 }
 
+void HistoryDrawnItem::Translate(QPoint p, int minY)
+{
+	drawnItem.Translate(p, minY);
+}
+
 //--------------------------------------------
 bool HistoryDeleteItems::Undo() 
 {
@@ -245,12 +253,92 @@ HistoryDeleteItems& HistoryDeleteItems::operator=(const HistoryDeleteItems&& oth
 
 //--------------------------------------------
 
+/*========================================================
+ * TASK:
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
+bool HistoryRemoveSpaceitem::Redo()
+{
+	if (modifiedList.isEmpty())	 // vertical movement
+	{
+		int minY = (*pHist)[first]->Area().y();
+		pHist->Translate(first, QPoint(0, -delta), minY);	 // -delta < 0 move up
+	}
+	else	// horizontal movement
+	{
+		QPoint dr(-delta, 0);								// move left
+		for (int i : modifiedList)
+			(*pHist)[i]->Translate(dr, -1);
+	}
+	return true;
+}
+
+/*========================================================
+ * TASK:
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
+bool HistoryRemoveSpaceitem::Undo()
+{
+	if (modifiedList.isEmpty())	 // vertical movement
+	{
+		int minY = (*pHist)[first]->Area().y();
+		pHist->Translate(first, QPoint(0, delta), minY);	  //delte > 0 move down
+	}
+	else	// horizontal movement
+	{
+		QPoint dr(delta, 0);								 // delta >0 -> move right
+		for (int i : modifiedList)
+			(*pHist)[i]->Translate(dr, -1);
+	}
+	return true;
+}
+
+HistoryRemoveSpaceitem::HistoryRemoveSpaceitem(History* pHist, IntVector& toModify, int first, int distance) :
+	HistoryItem(pHist), modifiedList(toModify), first(first), delta(distance)
+{
+	type = heSpaceDeleted;
+	Redo();
+}
+
+HistoryRemoveSpaceitem::HistoryRemoveSpaceitem(HistoryRemoveSpaceitem& other) : HistoryItem(other.pHist)
+{
+	*this = other;
+}
+
+HistoryRemoveSpaceitem& HistoryRemoveSpaceitem::operator=(const HistoryRemoveSpaceitem& other)
+{
+	modifiedList = other.modifiedList;
+	first = other.first;
+	delta = other.delta;
+	return *this;
+}
+HistoryRemoveSpaceitem::HistoryRemoveSpaceitem(HistoryRemoveSpaceitem&& other) : HistoryItem(other.pHist)
+{
+	*this = other;
+}
+
+HistoryRemoveSpaceitem& HistoryRemoveSpaceitem::operator=(const HistoryRemoveSpaceitem&& other)
+{
+	modifiedList = other.modifiedList;
+	first = other.first;
+	delta = other.delta;
+	return *this;
+}
+
+//--------------------------------------------
+
 HistoryPasteItem::HistoryPasteItem(History* pHist, DrawnItemVector& toPasteList, QRect& rect, QPoint topLeft) : 
 		HistoryItem(pHist), pastedList(toPasteList), encompassingRect(rect)
 {
 	type = heItemsPasted;
 	for (DrawnItem& di : pastedList)
-		di.Translate(topLeft);
+		di.Translate(topLeft, -1);
 	encompassingRect.translate(topLeft);
 }
 
@@ -299,6 +387,15 @@ void HistoryPasteItem::SetVisibility(bool visible)
 {
 	for (DrawnItem& item : pastedList)
 		item.isDeleted = visible;
+}
+
+void HistoryPasteItem::Translate(QPoint p, int minY)
+{
+	for (DrawnItem& di : pastedList)
+		di.Translate(p, minY);
+
+	if(encompassingRect.y() >= minY)
+		encompassingRect.translate(p);
 }
 
 DrawnItem* HistoryPasteItem::GetDrawable(int index) const 
@@ -360,7 +457,7 @@ HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem&& oth
 //---------------------------------------------------
 
 HistoryInsertVertSpace::HistoryInsertVertSpace(History* pHist, int top, int pixelChange) : 
-	HistoryItem(pHist), from(top), heightInPixels(pixelChange)
+	HistoryItem(pHist), minY(top), heightInPixels(pixelChange)
 {
 	type = heVertSpace;
 	Redo();
@@ -373,24 +470,24 @@ HistoryInsertVertSpace::HistoryInsertVertSpace(const HistoryInsertVertSpace& oth
 HistoryInsertVertSpace& HistoryInsertVertSpace::operator=(const HistoryInsertVertSpace& other)
 {
 	type = heVertSpace;
-	from = other.from; heightInPixels = other.heightInPixels; pHist = other.pHist;
+	minY = other.minY; heightInPixels = other.heightInPixels; pHist = other.pHist;
 	return *this;
 }
 
 bool HistoryInsertVertSpace::Undo()
 {
-	pHist->InserVertSpace(from, -heightInPixels);
+	pHist->InserVertSpace(minY, -heightInPixels);
 	return true;
 }
 
 bool HistoryInsertVertSpace::Redo()
 {
-	pHist->InserVertSpace(from, heightInPixels);
+	pHist->InserVertSpace(minY, heightInPixels);
 	return true;
 }
 QRect HistoryInsertVertSpace::Area() const
 {
-	return QRect(0, from, 100, 100);
+	return QRect(0, minY, 100, 100);
 }
 
 //--------------------------------------------
@@ -644,6 +741,8 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 			continue;
 		}
 
+		di.type = (HistEvent)n;
+
 		ifs >> di;
 		if (ifs.status() != QDataStream::Ok)
 			return -_items.size() - 1;
@@ -660,7 +759,8 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 	}
 	_modified = false;
 	_endItem = _items.size();
-	return _actItem = _items.size() - 1;
+	_actItem = _endItem - 1;
+	return  _items.size();
 }
 
 //--------------------- Add Items ------------------------------------------
@@ -715,6 +815,27 @@ HistoryItem* History::addScreenShot(int index)
 	return _AddItem(phss);
 }
 
+HistoryItem* History::addRemoveSpaceItem(QRect& rect)
+{
+	bool bNothingAtRight = _nItemsRightOfList.isEmpty(),
+		 bNothingAtLeftAndRight = bNothingAtRight  && _nItemsLeftOfList.isEmpty(),
+		 bJustVerticalSpace = bNothingAtLeftAndRight && _nIndexOfFirstBelow != 0x7FFFFFFF;
+
+	if( (bNothingAtRight && !bNothingAtLeftAndRight) || (bNothingAtLeftAndRight && !bJustVerticalSpace) )
+		return nullptr;
+	
+	// Here _nIndexofFirstBelow is less than 0x7FFFFFFF
+	HistoryRemoveSpaceitem* phrs = new HistoryRemoveSpaceitem(this, _nItemsRightOfList, _nIndexOfFirstBelow, rect.height());
+	return _AddItem(phrs);
+}
+
+void History::Translate(int from, QPoint p, int minY) // from 'first' item to _actItem if they are visible and  >= minY
+{											
+	for (; from < _actItem; ++from)
+		_items[from]->Translate(p, minY);
+	_modified = true;
+}
+
 void History::InserVertSpace(int y, int heightInPixels)
 {
 	int i = _GetStartIndex();   // index of first item after a clear screen
@@ -722,17 +843,7 @@ void History::InserVertSpace(int y, int heightInPixels)
 		--i;
 
 	QPoint dy = QPoint(0, heightInPixels);
-	DrawnItem* pdrni;
-	for (; i < _endItem; ++i)
-	{
-		int index = -1;
-		while ((pdrni = _items[i]->GetDrawable(++index)) != nullptr)
-		{
-			if(pdrni->rect.y() >= y)
-				pdrni->Translate(dy);
-		}
-	}
-	_modified = true;
+	Translate(i, dy, y);
 }
 
 int History::SetFirstItemToDraw()
@@ -792,17 +903,42 @@ HistoryItem* History::Redo()   // returns item to redo
 /*========================================================
  * TASK:   collects visible items since the last clear 
  *			screen into '_nSelectedItemsList'
+ *			item indices for all items left of and
+ *			right of the selected rectangle into
+ *			lists '_nItemsLeftOf' and '_nItemsRightOf'
+ *			respectively
+ *			also sets index of first iem, which is 
+ *			completely below the selected region into
+ *			'_nIndexOfFirstBelow' and '-selectionRect'
  * PARAMS: rect: (0,0) relative rectangle
  * GLOBALS:
- * RETURNS:
+ * RETURNS:	size of selecetd item list + lists filled
  * REMARKS: - even pasted items require a single index
  *			- only selects items whose visible elements
  *			  are completely inside 'rect' (pasted items)
+ *			- '_selectionrect' is set even, when no items
+ *				are in '_nSelectedItemsList'. In thet case
+ *				it is set to equal rect
  *-------------------------------------------------------*/
 int History::CollectItemsInside(QRect rect) // only 
 {
 
+	auto rightOfRect = [](QRect rect, QRect other) -> bool
+	{
+	  return  (rect.y() < other.y() && rect.y() + rect.height() > other.y() + other.height()) &&
+				 (rect.x() + rect.width() < other.x());
+	};
+	auto leftOfRect = [](QRect rect, QRect other) -> bool
+	{
+	  return (rect.y() < other.y() && rect.y() + rect.height() > other.y() + other.height()) &&
+				 (rect.x() > other.x() + other.width());
+
+	};
+
 	_nSelectedItemsList.clear();
+	_nItemsRightOfList.clear();
+	_nItemsLeftOfList.clear();
+	_nIndexOfFirstBelow = 0x7FFFFFFF;
 
 	_selectionRect = QRect();     // minimum size of selection (0,0) relative!
 		// just check scribbles after the last clear screen
@@ -810,12 +946,24 @@ int History::CollectItemsInside(QRect rect) // only
 	{
 		const HistoryItem* item = _items[i];
 		const DrawnItem* pdrni = item->GetDrawable(0);
-		if (pdrni && (rect.contains(item->Area(), true)))    // union of rects in a pasted item
-		{                       // here must be an item for drawing or pasting (others are undrawable)
-			_nSelectedItemsList.push_back(i);				 // index in _items 
-			_selectionRect = _selectionRect.united(item->Area());
+		if (pdrni)
+		{
+			if (rect.contains(item->Area(), true))    // union of rects in a pasted item
+			{                       // here must be an item for drawing or pasting (others are undrawable)
+				_nSelectedItemsList.push_back(i);				 // index in _items 
+				_selectionRect = _selectionRect.united(item->Area());
+			}
+			else if ( rightOfRect(rect, item->Area()))
+				_nItemsRightOfList.push_back(i);
+			else if (leftOfRect(rect, item->Area()))
+				_nItemsLeftOfList.push_back(i);
+			if (i < _nIndexOfFirstBelow && pdrni->rect.y() > rect.y()+rect.height() )
+				_nIndexOfFirstBelow = i;
 		}
 	}
+	if (_nSelectedItemsList.isEmpty())		// save for removing empty space
+		_selectionRect = rect;
+
 	return _nSelectedItemsList.size();
 }
 
@@ -844,7 +992,7 @@ void History::CopySelected()
 			while (pdrni)
 			{
 				_copiedItems.push_back(*pdrni);
-				_copiedItems[ _copiedItems.size()-1 ].Translate(-_selectionRect.topLeft());
+				_copiedItems[ _copiedItems.size()-1 ].Translate( -_selectionRect.topLeft(), -1);
 				pdrni = item->GetDrawable(++index);
 			}
 		}

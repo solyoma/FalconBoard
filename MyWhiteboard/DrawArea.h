@@ -169,7 +169,7 @@ private:
     bool _darkMode = false;
     QColor _backgroundColor = Qt::white;
 
-    QPoint  _topLeft,   // actual top left of infinite canvas, relative to origin  either 0 or negative values
+    QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _tlMax,     // maximum value of top left of page with drawing on it
             _lastMove;  // value of last canvas moveme
 

@@ -91,6 +91,12 @@ private slots:
 private:
 	Ui::MyWhiteboardClass ui;
 
+	QString _sWindowTitle =
+#ifdef _VIEWER
+		"MyWhiteboard Viewer";
+#else
+		"MyWhiteboard";
+#endif
 	bool _busy = false;
 	bool _firstShown = false;	// main window was shown first
 

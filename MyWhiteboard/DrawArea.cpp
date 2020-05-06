@@ -167,7 +167,7 @@ void DrawArea::AddBelowImage(QImage& image)
 
     if (x < 0) x = 0;
     if (y < 0) y = 0;
-    bimg.topLeft = QPoint(x, y) - _topLeft;
+    bimg.topLeft = QPoint(x, y) + _topLeft;
     _belowImages.push_back(bimg);
     _history.addScreenShot(_belowImages.size()-1);
 }
@@ -176,7 +176,7 @@ void DrawArea::AddBelowImage(QImage& image)
 void DrawArea::InsertVertSpace()
 {
     _RemoveRubberBand();
-    _history.addInsertVertSpace(_rubberRect.y() - _topLeft.y(), _rubberRect.height());
+    _history.addInsertVertSpace(_rubberRect.y() + _topLeft.y(), _rubberRect.height());
     _ClearCanvas();
     _Redraw();
 }
@@ -197,7 +197,7 @@ bool DrawArea::RecolorSelected(int key, bool SelectionAlreadyOk)
     if (!_rubberBand)
         return false;
     if(!SelectionAlreadyOk)
-        _history.CollectItemsInside(_rubberRect.translated(-_topLeft));
+        _history.CollectItemsInside(_rubberRect.translated(_topLeft));
 
     MyPenKind pk = PenKindFromKey(key);
     HistoryItem* phi = _history.addRecolor(pk);
@@ -233,7 +233,7 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
 //                                                  _clippingRect.translated(-_topLeft).width(), _clippingRect.translated(-_topLeft).height());
 // /DEBUG            
 
-        painter.fillRect(_clippingRect.translated(-_topLeft), qRgba(255, 255, 255, 0));
+        painter.fillRect(_clippingRect.translated(_topLeft), qRgba(255, 255, 255, 0));
     }
     update();
 }
@@ -269,25 +269,33 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
             if (bDelete || bCopy || bRecolor)
             {
-                if ((bCollected = _history.CollectItemsInside(_rubberRect.translated(-_topLeft))))
+                if ((bCollected = _history.CollectItemsInside(_rubberRect.translated(_topLeft))) && !bDelete)
                 {
                     _history.CopySelected();
                     _scribblesCopied = true;        // never remove selected list
                 }
             }
-
+                // if !bCollected then history's _selectedList is empty, but _selectionRect is the rubberRect
             if ((bCut || bDelete) && bCollected)
             {
                 _history.addDeleteItems();
                 _ClearCanvas();
                 _Redraw();
             }
+            else if (bDelete && !bCollected)     // delete on empty area
+            {
+                if (_history.addRemoveSpaceItem(_rubberRect))     // there was something (not delete below the last item
+                {
+                    _ClearCanvas();
+                    _Redraw();
+                }
+            }
 
 			if (bPaste)
 			{           // _history's copied item list is valid, each item is canvas relative
 				
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
-				QPoint dr = _rubberRect.translated(-_topLeft).topLeft(); 
+				QPoint dr = _rubberRect.translated(_topLeft).topLeft(); 
 
                 HistoryItem* phi = _history.addPastedItems(dr);
                 if(phi)
@@ -306,19 +314,19 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _lastDrawnItem.clear();
                 _lastDrawnItem.type = heScribble;
                 _actPenWidth = _penWidth;
-                _lastDrawnItem.add(_lastPointC - _topLeft);
+                _lastDrawnItem.add(_lastPointC + _topLeft);
                 if (_DrawLineTo(r.topRight()) )
-                    _lastDrawnItem.add(_lastPointC - _topLeft);
+                    _lastDrawnItem.add(_lastPointC + _topLeft);
                 if (_DrawLineTo(r.bottomRight()))
-                    _lastDrawnItem.add(_lastPointC - _topLeft);
+                    _lastDrawnItem.add(_lastPointC + _topLeft);
                 if (_DrawLineTo(r.bottomLeft()))
-                    _lastDrawnItem.add(_lastPointC - _topLeft);
+                    _lastDrawnItem.add(_lastPointC + _topLeft);
                 if (_DrawLineTo(r.topLeft()))
-                    _lastDrawnItem.add(_lastPointC - _topLeft);
+                    _lastDrawnItem.add(_lastPointC + _topLeft);
 
                 _lastDrawnItem.penKind = _myPenKind;
                 _lastDrawnItem.penWidth = _actPenWidth;
-//                _lastDrawnItem.add(_lastPointC - _topLeft);
+//                _lastDrawnItem.add(_lastPointC + _topLeft);
 
                 _history.addDrawnItem(_lastDrawnItem);
                 emit CanUndo(true);
@@ -444,7 +452,7 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
         else
         {
             if(_DrawLineTo(event->pos()) )
-                _lastDrawnItem.add(_lastPointC - _topLeft);
+                _lastDrawnItem.add(_lastPointC + _topLeft);
         }
 #endif
     }
@@ -539,12 +547,12 @@ void DrawArea::paintEvent(QPaintEvent* event)
     if(!_background.isNull())                                  // background layer
         painter.drawImage(dirtyRect, _background, dirtyRect);
             // images below drawing
-    QRect r = dirtyRect.translated(-_topLeft);           // screen -> absolute coord
+    QRect r = dirtyRect.translated(_topLeft);           // screen -> absolute coord
     BelowImage* pimg = _belowImages.FirstVisible(r);     // pimg intersects r
     while (pimg)
     {
         QRect intersectRect = pimg->VisibleRect(r);      // absolute
-        painter.drawImage(intersectRect.translated(_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
+        painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
         pimg = _belowImages.NextVisible();
     }
             // top of these the drawing
@@ -562,7 +570,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
     }
     QWidget::resizeEvent(event);
 
-    _canvasRect = QRect(0, 0, geometry().width(), geometry().height() ).translated(-_topLeft);     // 0,0 relative rectangle
+    _canvasRect = QRect(0, 0, geometry().width(), geometry().height() ).translated(_topLeft);     // 0,0 relative rectangle
     _clippingRect = _canvasRect;
 }
 
@@ -635,7 +643,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                 else
                 {
                     if(_DrawLineTo(event->pos()) )
-                        _lastDrawnItem.add(_lastPointC - _topLeft);
+                        _lastDrawnItem.add(_lastPointC + _topLeft);
                 }
 #endif
             }
@@ -710,7 +718,7 @@ void DrawArea::_InitiateDrawing(QEvent* event)
 
     _lastDrawnItem.penKind = _myPenKind;
     _lastDrawnItem.penWidth = _actPenWidth;
-    _lastDrawnItem.add(_lastPointC - _topLeft);
+    _lastDrawnItem.add(_lastPointC + _topLeft);
 }
 
 
@@ -753,7 +761,7 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
             dx = abs(x - x0),
             dy = abs(y0 - y);
 
-        if (dx < 5 && dy < 5)
+        if (dx < 4 && dy < 4)
             return false;
 
         if (dx > dy)
@@ -784,8 +792,8 @@ QPoint DrawArea::_CorrectForDirection(QPoint &newpC)     // newpC canvas relativ
 #endif
 void DrawArea::MoveToActualPosition(QRect rect)
 {
-    int l = -_topLeft.x(),
-        t = -_topLeft.y();
+    int l = _topLeft.x(),
+        t = _topLeft.y();
 
     if (!rect.isNull() && rect.isValid() && !_canvasRect.intersects(rect)) // try to put at the middle of the screen
     {
@@ -794,9 +802,9 @@ void DrawArea::MoveToActualPosition(QRect rect)
         if (rect.y() < t || rect.y() > t + _canvasRect.height())
             t = rect.y() - (_canvasRect.height() - rect.height()) / 2;
 
-        if (-l != _topLeft.x() || -t != _topLeft.y())
+        if (l != _topLeft.x() || t != _topLeft.y())
         {
-            _SetOrigin(QPoint(-l, -t));
+            _SetOrigin(QPoint(l, t));
             _ClearCanvas();
             _Redraw();
         }
@@ -842,7 +850,7 @@ bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
         update(QRect(_lastPointC, endPointC).normalized()
             .adjusted(-rad, -rad, +rad, +rad));
 
-        if (_topLeft.x()< _tlMax.x() || _topLeft.y() < _tlMax.y())     // last page of drawing
+        if (_topLeft.x()> _tlMax.x() || _topLeft.y() > _tlMax.y())     // last page of drawing
             _tlMax = _topLeft;
         // this should be in an other thread to work, else everything stops
 //        if (!_pendown && !_scribbling && _delayedPlayback)
@@ -968,7 +976,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
                 {
         if (pdrni->isDeleted)
             return;          
-        if (_tlMax.x() > _topLeft.x() || _tlMax.y() > _topLeft.y())
+        if (_tlMax.x() < _topLeft.x() || _tlMax.y() < _topLeft.y())
             _tlMax = _topLeft;
 
         if (!pdrni->intersects(_clippingRect))   // if the clipping rectangle has no intersection with         
@@ -984,12 +992,12 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         //}
         // /DEBUG            
 
-        _lastPointC = pdrni->points[0] + _topLeft;
+        _lastPointC = pdrni->points[0] - _topLeft;
         _myPenKind = pdrni->penKind;
         _actPenWidth = pdrni->penWidth;
         _erasemode = pdrni->type == heEraser ? true : false;
         for (int i = 1; i < pdrni->points.size(); ++i)
-            _DrawLineTo(pdrni->points[i] + _topLeft);
+            _DrawLineTo(pdrni->points[i] - _topLeft);
 
     };
 
@@ -1097,7 +1105,7 @@ void DrawArea::_SetOrigin(QPoint o)
 #ifndef _VIEWER
     _RemoveRubberBand();
 #endif
-    _canvasRect.moveTo(-_topLeft);
+    _canvasRect.moveTo(_topLeft);
     _clippingRect = _canvasRect;
 
 #ifndef _VIEWER
@@ -1105,15 +1113,14 @@ void DrawArea::_SetOrigin(QPoint o)
 #endif
 }
 
-
-void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
+void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, positive delta.x: scroll right
 {
-    QPoint o = _topLeft;           // origin
+    QPoint o = _topLeft;       // origin of screen top left relative to "paper"
 
-    o += delta;                // calculate new origin
-    if (o.x() > 0)
+    o -= delta;                // calculate new screen origin
+    if (o.x() < 0)
         o.setX(0);
-    if (o.y() > 0)
+    if (o.y() < 0)
         o.setY(0);
 
     _SetOrigin(o);
@@ -1136,7 +1143,7 @@ void DrawArea::_PageDown()
 }
 void DrawArea::_Home(bool toTop)
 {
-    QPoint pt = -_topLeft;
+    QPoint pt = _topLeft;
 
     if(!toTop)
         pt.setY(0);   // do not move in y direction
