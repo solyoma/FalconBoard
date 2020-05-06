@@ -623,7 +623,7 @@ void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
         tr("Open source White/blackboard application"
-            "<p>Version 1.1.1</p>"
+            "<p>Version 1.1.2</p>"
             "<p>© A. Sólyom (2020)</p><br>"
             "<p>https://github.com/solyoma/MyWhiteboard</p>"
             "<p>Based on Qt's <b>Scribble</b> example.</p>"));

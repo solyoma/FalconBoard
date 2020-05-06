@@ -31,6 +31,9 @@
 *.out
 *.app
 
+#mixed
+*.zip
+
 #Microsoft specific
 GeneratedFiles/
 x64/
