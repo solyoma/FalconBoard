@@ -29,7 +29,7 @@ enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser, penYel
 struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 {                   
     HistEvent type = heNone;
-    bool isDeleted = false;
+    bool isVisible = true;
 
     MyPenKind penKind = penBlack;
     int penWidth =1;
@@ -68,9 +68,14 @@ struct BelowImage {           // shown below the drawings
             // canvasRect relative to (0,0)
             // result: relative to image
             // isNull() true when no intersection
-    QRect VisibleRect(const QRect& canvasRect) const
+    QRect Area(const QRect& canvasRect) const
     {
         return QRect(topLeft, QSize(image.width(), image.height())).intersected(canvasRect);
+    }
+    void Translate(QPoint p, int minY)
+    {
+        if(topLeft.y() >= minY)
+            topLeft += p;
     }
 };
 
@@ -91,9 +96,9 @@ public:
     }
 
     // canvasRect and result are relative to (0,0)
-    QRect VisibleRect(int index, const QRect& canvasRect) const
+    QRect Area(int index, const QRect& canvasRect) const
     {
-        return (*this)[index].VisibleRect(canvasRect);
+        return (*this)[index].Area(canvasRect);
     }
 
     BelowImage* NextVisible()
@@ -105,7 +110,7 @@ public:
         {
             if ((*this)[_index].isVisible)
             {
-                if (!VisibleRect(_index, _canvasRect).isNull())
+                if (!Area(_index, _canvasRect).isNull())
                     return &(*this)[_index];
             }
         }
@@ -117,6 +122,13 @@ public:
         _index = -1;
         _canvasRect = canvasRect;
         return NextVisible();
+    }
+
+    void Translate(int which, QPoint p, int minY)
+    {
+        if (which < 0 || which >= size() || (*this)[which].isVisible)
+            return;
+        (*this)[which].Translate(p, minY);
     }
 };
 
@@ -141,13 +153,15 @@ struct HistoryItem      // base class
     virtual ~HistoryItem() {}
 
     virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
+
+    virtual bool Translatable() const { return false;  }
     virtual void Translate(QPoint p, int minY) { } // translates if top is >= minY
     virtual int Size() const { return 0; }         // size of stored scribbles or erases
     virtual void SetVisibility(bool visible) { }
 
     // function prototypes for easier access
-    virtual bool Undo() { return true; }        // returns if process is complete, false: move to previous item
-    virtual bool Redo() { return true; }        // returns if process is complete, false: move to next item
+    virtual int Undo() { return 1; }        // returns # of items it changed
+    virtual int Redo() { return 1; }        // returns # of items it changed
     virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
     virtual bool Hidden() const { return true; }    // must not draw it
     virtual bool IsSaveable() const  { return ! Hidden(); }    // use when items may be deleetd
@@ -180,6 +194,7 @@ struct HistoryDrawnItem : public HistoryItem
     DrawnItem* GetDrawable(int index = 0) const override;
     QRect Area() const override;
     int Size() const override { return 1; }
+    bool Translatable() const override { return drawnItem.isVisible; }
     void Translate(QPoint p, int minY) override;
     // no new undo/redo needed
 };
@@ -188,8 +203,8 @@ struct HistoryDrawnItem : public HistoryItem
 struct HistoryDeleteItems : public HistoryItem
 {
     IntVector deletedList;   // indexes to element in '*pHist'
-    bool Undo() override;
-    bool Redo() override;
+    int Undo() override;
+    int Redo() override;
     HistoryDeleteItems(History* pHist, IntVector& selected);
     HistoryDeleteItems(HistoryDeleteItems& other);
     HistoryDeleteItems& operator=(const HistoryDeleteItems& other);
@@ -207,8 +222,8 @@ struct HistoryRemoveSpaceitem : HistoryItem // using _selectedRect
     int first;              // index of first element just below the selection rectangle
     int delta;              // translate with this amount. if 0?
 
-    bool Undo() override;
-    bool Redo() override;
+    int Undo() override;
+    int Redo() override;
     HistoryRemoveSpaceitem(History* pHist, IntVector &toModify, int first, int distance);
     HistoryRemoveSpaceitem(HistoryRemoveSpaceitem& other);
     HistoryRemoveSpaceitem& operator=(const HistoryRemoveSpaceitem& other);
@@ -231,14 +246,15 @@ struct HistoryPasteItem : HistoryItem
 
     int Size() const override { return pastedList.size(); }
 
-    bool Undo() override;
-    bool Redo() override;
+    int Undo() override;
+    int Redo() override;
 
     DrawnItem* GetDrawable(int index = 0) const override;
 
     bool Hidden() const override;       // when the first element is hidden, all hidden
     // bool IsSaveable() const override;
     void SetVisibility(bool visible) override; // for all elements in list
+    bool Translatable() const override { return !Hidden(); }
     void Translate(QPoint p, int minY) override;
 
     QRect Area() const override;
@@ -251,8 +267,8 @@ struct HistoryReColorItem : HistoryItem
     MyPenKind pk;                           
     QRect encompassingRectangle;            // to scroll here when undo/redo
 
-    bool Undo() override;
-    bool Redo() override;
+    int Undo() override;
+    int Redo() override;
     HistoryReColorItem(History* pHist, IntVector &selectedList, MyPenKind pk);
     HistoryReColorItem(HistoryReColorItem& other);
     HistoryReColorItem& operator=(const HistoryReColorItem& other);
@@ -271,25 +287,27 @@ struct HistoryInsertVertSpace : HistoryItem
     HistoryInsertVertSpace(const HistoryInsertVertSpace& other);
     HistoryInsertVertSpace& operator=(const HistoryInsertVertSpace& other);
 
-    bool Undo() override;
-    bool Redo() override;
+    int Undo() override;
+    int Redo() override;
     QRect Area() const override;
 };
 
 //--------------------------------------------
-struct HistoryScreenShot : public HistoryItem
+struct HistoryScreenShotItem : public HistoryItem
 {
     int which;
-    bool isDeleted = false;
+    bool isVisible = true;
 
-    HistoryScreenShot(History* pHist, int which);
-    HistoryScreenShot(const HistoryScreenShot &other);
-    HistoryScreenShot& operator=(const HistoryScreenShot& other);
-    bool Undo() override;
-    bool Redo() override;
+    HistoryScreenShotItem(History* pHist, int which);
+    HistoryScreenShotItem(const HistoryScreenShotItem &other);
+    HistoryScreenShotItem& operator=(const HistoryScreenShotItem& other);
+    int Undo() override;
+    int Redo() override;
     QRect Area() const override;
     bool Hidden() const override;       // when the first element is hidden, all hidden
     void SetVisibility(bool visible) override; // for all elements in list
+    bool Translatable() const override { return isVisible; }
+    void Translate(QPoint p, int minY) override;
 };
 
 /*========================================================
@@ -319,6 +337,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _endItem = 0;                   // index until a redo can go (max value: _items.size()
 
     DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
+    BelowImageList   _copiedImages;
     QRect _copiedRect;                  // encompassing rectangle for copied items used for paste operation
 
     IntVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band

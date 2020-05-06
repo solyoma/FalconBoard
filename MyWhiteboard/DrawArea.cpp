@@ -100,13 +100,14 @@ int DrawArea::Load(QString name)
     if(res && res != -1)    // TODO send message if read error
     {
         _topLeft = QPoint(0, 0);
+
         if (_tlMax.x() < width())
             _tlMax.setX(0);
         else
             _tlMax.rx() = width()/2;
-        _tlMax.ry() -= (height() - 100);
+        _tlMax.ry() -= height()/2;
 
-        _tlMax = -_tlMax;
+//        _tlMax = -_tlMax;
         _ClearCanvas();
         _Redraw();
     }
@@ -275,7 +276,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                     _scribblesCopied = true;        // never remove selected list
                 }
             }
-                // if !bCollected then history's _selectedList is empty, but _selectionRect is the rubberRect
+                // if !bCollected then history's _selectedList is empty, but the rubberRect is set into _selectionRect
             if ((bCut || bDelete) && bCollected)
             {
                 _history.addDeleteItems();
@@ -551,7 +552,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
     BelowImage* pimg = _belowImages.FirstVisible(r);     // pimg intersects r
     while (pimg)
     {
-        QRect intersectRect = pimg->VisibleRect(r);      // absolute
+        QRect intersectRect = pimg->Area(r);      // absolute
         painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
         pimg = _belowImages.NextVisible();
     }
@@ -974,7 +975,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
 
     auto plot = [&]()   // lambda to plot point pointed by pdrni
                 {
-        if (pdrni->isDeleted)
+        if (!pdrni->isVisible)
             return;          
         if (_tlMax.x() < _topLeft.x() || _tlMax.y() < _topLeft.y())
             _tlMax = _topLeft;

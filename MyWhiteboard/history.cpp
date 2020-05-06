@@ -91,7 +91,7 @@ bool DrawnItem::intersects(const QRect& arect) const
 
 void DrawnItem::Translate(QPoint dr, int minY )
 {
-	if (rect.y() < minY || isDeleted)
+	if (rect.y() < minY || !isVisible)
 		return;
 
 	for (int i = 0; i < points.size(); ++i)
@@ -174,12 +174,12 @@ HistoryDrawnItem::HistoryDrawnItem(const HistoryDrawnItem&& other) : HistoryItem
 
 void HistoryDrawnItem::SetVisibility(bool visible)
 {
-	drawnItem.isDeleted = !visible;
+	drawnItem.isVisible = visible;
 }
 
 bool HistoryDrawnItem::Hidden() const
 { 
-	return drawnItem.isDeleted; 
+	return !drawnItem.isVisible; 
 }
 
 HistoryDrawnItem& HistoryDrawnItem::operator=(const HistoryDrawnItem& other)
@@ -212,19 +212,19 @@ void HistoryDrawnItem::Translate(QPoint p, int minY)
 }
 
 //--------------------------------------------
-bool HistoryDeleteItems::Undo() 
+int  HistoryDeleteItems::Undo() 
 {
 	for (auto i : deletedList)
 		(*pHist)[i]->SetVisibility(true);
 	//        hidden = false;
-	return true;
+	return 1;
 }
-bool HistoryDeleteItems::Redo() 
+int  HistoryDeleteItems::Redo() 
 {
 	for (auto i : deletedList)
 		(*pHist)[i]->SetVisibility(false);
 	//        hidden = true;
-	return true;
+	return 1;
 }
 //    bool Hidden() const  { return hidden; }
 HistoryDeleteItems::HistoryDeleteItems(History* pHist, IntVector& selected) : HistoryItem(pHist), deletedList(selected)
@@ -260,7 +260,7 @@ HistoryDeleteItems& HistoryDeleteItems::operator=(const HistoryDeleteItems&& oth
  * RETURNS:
  * REMARKS: -
  *-------------------------------------------------------*/
-bool HistoryRemoveSpaceitem::Redo()
+int  HistoryRemoveSpaceitem::Redo()
 {
 	if (modifiedList.isEmpty())	 // vertical movement
 	{
@@ -273,7 +273,7 @@ bool HistoryRemoveSpaceitem::Redo()
 		for (int i : modifiedList)
 			(*pHist)[i]->Translate(dr, -1);
 	}
-	return true;
+	return 1;
 }
 
 /*========================================================
@@ -283,7 +283,7 @@ bool HistoryRemoveSpaceitem::Redo()
  * RETURNS:
  * REMARKS: -
  *-------------------------------------------------------*/
-bool HistoryRemoveSpaceitem::Undo()
+int  HistoryRemoveSpaceitem::Undo()
 {
 	if (modifiedList.isEmpty())	 // vertical movement
 	{
@@ -296,7 +296,7 @@ bool HistoryRemoveSpaceitem::Undo()
 		for (int i : modifiedList)
 			(*pHist)[i]->Translate(dr, -1);
 	}
-	return true;
+	return 1;
 }
 
 HistoryRemoveSpaceitem::HistoryRemoveSpaceitem(History* pHist, IntVector& toModify, int first, int distance) :
@@ -365,28 +365,28 @@ HistoryPasteItem& HistoryPasteItem::operator=(const HistoryPasteItem&& other)
 	return *this;
 }
 
-bool HistoryPasteItem::Undo() 
+int  HistoryPasteItem::Undo() 
 {
 	for (DrawnItem& di : pastedList)
-		di.isDeleted = true;
+		di.isVisible = false;
 	return true;
 }
-bool HistoryPasteItem::Redo() 
+int  HistoryPasteItem::Redo() 
 {
 	for (DrawnItem& di : pastedList)
-		di.isDeleted = false;
+		di.isVisible = true;
 	return true;
 }
 
 bool HistoryPasteItem::Hidden() const
 {
-	return !pastedList.size() || pastedList[0].isDeleted;;
+	return !pastedList.size() || !pastedList[0].isVisible;;
 }
 
 void HistoryPasteItem::SetVisibility(bool visible)
 {
 	for (DrawnItem& item : pastedList)
-		item.isDeleted = visible;
+		item.isVisible = visible;
 }
 
 void HistoryPasteItem::Translate(QPoint p, int minY)
@@ -402,7 +402,7 @@ DrawnItem* HistoryPasteItem::GetDrawable(int index) const
 {
 	if (index < 0 || index >= pastedList.size())
 		return nullptr;
-	return pastedList[index].isDeleted ? nullptr : const_cast<DrawnItem *>(&pastedList[index]);
+	return pastedList[index].isVisible ? const_cast<DrawnItem *>(&pastedList[index]) : nullptr;
 }
 
 QRect HistoryPasteItem::Area() const  
@@ -474,13 +474,13 @@ HistoryInsertVertSpace& HistoryInsertVertSpace::operator=(const HistoryInsertVer
 	return *this;
 }
 
-bool HistoryInsertVertSpace::Undo()
+int  HistoryInsertVertSpace::Undo()
 {
 	pHist->InserVertSpace(minY, -heightInPixels);
 	return true;
 }
 
-bool HistoryInsertVertSpace::Redo()
+int  HistoryInsertVertSpace::Redo()
 {
 	pHist->InserVertSpace(minY, heightInPixels);
 	return true;
@@ -491,7 +491,7 @@ QRect HistoryInsertVertSpace::Area() const
 }
 
 //--------------------------------------------
-bool HistoryReColorItem::Undo() 
+int  HistoryReColorItem::Undo() 
 {
 	for (int i : selectedList)
 	{
@@ -502,7 +502,7 @@ bool HistoryReColorItem::Undo()
 	}
 	return true;
 }
-bool HistoryReColorItem::Redo() 
+int  HistoryReColorItem::Redo() 
 {
 	for (int i : selectedList)
 	{
@@ -519,51 +519,57 @@ bool HistoryReColorItem::Redo()
 QRect HistoryReColorItem::Area() const  { return encompassingRectangle; }
 //--------------------------------------------
 
-HistoryScreenShot::HistoryScreenShot(History* pHist, int which) : HistoryItem(pHist), which(which)
+HistoryScreenShotItem::HistoryScreenShotItem(History* pHist, int which) : HistoryItem(pHist), which(which)
 {
 	type = heScreenShot;
 }
 
-HistoryScreenShot::HistoryScreenShot(const HistoryScreenShot& other) : HistoryItem(pHist)
+HistoryScreenShotItem::HistoryScreenShotItem(const HistoryScreenShotItem& other) : HistoryItem(pHist)
 {
 	*this = other;
 }
 
-HistoryScreenShot& HistoryScreenShot::operator=(const HistoryScreenShot& other)
+HistoryScreenShotItem& HistoryScreenShotItem::operator=(const HistoryScreenShotItem& other)
 {
 	type = heScreenShot;
 	which = other.which;
-	isDeleted = other.isDeleted;
+	isVisible = other.isVisible;
 	return *this;
 }
 
-bool HistoryScreenShot::Undo() // hide
+int  HistoryScreenShotItem::Undo() // hide
 {
 	(*pHist->pImages)[which].isVisible = false;
-	isDeleted = true;
+	isVisible = false;
 	return true;
 }
 
-bool HistoryScreenShot::Redo() // show
+int  HistoryScreenShotItem::Redo() // show
 {
 	(*pHist->pImages)[which].isVisible = true;
-	isDeleted = false;
+	isVisible = true;
 	return true;
 }
 
-QRect HistoryScreenShot::Area() const
+QRect HistoryScreenShotItem::Area() const
 {
 	return QRect((*pHist->pImages)[which].topLeft, (*pHist->pImages)[which].image.size());
 }
 
-bool HistoryScreenShot::Hidden() const
+bool HistoryScreenShotItem::Hidden() const
 {
-	return isDeleted;
+	return !isVisible;
 }
 
-void HistoryScreenShot::SetVisibility(bool visible)
+void HistoryScreenShotItem::SetVisibility(bool visible)
 {
-	isDeleted = !Hidden();
+	isVisible = visible;
+	(*pHist->pImages)[which].isVisible = visible;
+}
+
+void HistoryScreenShotItem::Translate(QPoint p, int minY)
+{
+	(*pHist->pImages)[which].Translate(p, minY);
 }
 
 
@@ -692,7 +698,7 @@ bool History::Save(QString name)
 			int index=-1;
 			if (_items[i]->type == heScreenShot)
 			{
-				ofs << (*pImages)[((HistoryScreenShot*)_items[i])->which];
+				ofs << (*pImages)[((HistoryScreenShotItem*)_items[i])->which];
 				continue;
 			}
 			DrawnItem* pdrni;
@@ -736,8 +742,15 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 		{
 			ifs >> bimg;
 			pImages->push_back(bimg);
-			HistoryScreenShot* phss = new HistoryScreenShot(this, pImages->size() - 1);
+
+			int n = pImages->size() - 1;
+			HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, n);
 			_AddItem(phss);
+			if ((*pImages)[n].topLeft.y() > lastPosition.y())	// for END only the greatest y coordinate counts
+			{
+				lastPosition.setX((*pImages)[n].topLeft.x());	// x is always set for left of last item shown
+				lastPosition.setY((*pImages)[n].topLeft.y());
+			}
 			continue;
 		}
 
@@ -752,10 +765,11 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 		HistoryItem *phi = addDrawnItem(di);
 		di = ((HistoryDrawnItem*)phi)->drawnItem;
 
-		if (di.rect.x() > lastPosition.x())
-			lastPosition.setX(di.rect.x());
 		if (di.rect.y() > lastPosition.y())
+		{
+			lastPosition.setX(di.rect.x());
 			lastPosition.setY(di.rect.y());
+		}
 	}
 	_modified = false;
 	_endItem = _items.size();
@@ -811,7 +825,7 @@ HistoryItem* History::addInsertVertSpace(int y, int heightInPixels)
 
 HistoryItem* History::addScreenShot(int index)
 {
-	HistoryScreenShot* phss = new HistoryScreenShot(this, index);
+	HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, index);
 	return _AddItem(phss);
 }
 
@@ -825,7 +839,7 @@ HistoryItem* History::addRemoveSpaceItem(QRect& rect)
 		return nullptr;
 	
 	// Here _nIndexofFirstBelow is less than 0x7FFFFFFF
-	HistoryRemoveSpaceitem* phrs = new HistoryRemoveSpaceitem(this, _nItemsRightOfList, _nIndexOfFirstBelow, rect.height());
+	HistoryRemoveSpaceitem* phrs = new HistoryRemoveSpaceitem(this, _nItemsRightOfList, _nIndexOfFirstBelow, _nItemsRightOfList.size() ? rect.width() : rect.height());
 	return _AddItem(phrs);
 }
 
@@ -945,8 +959,9 @@ int History::CollectItemsInside(QRect rect) // only
 	for (int i = _GetStartIndex(); i <= _actItem; ++i)
 	{
 		const HistoryItem* item = _items[i];
-		const DrawnItem* pdrni = item->GetDrawable(0);
-		if (pdrni)
+//		const DrawnItem* pdrni = item->GetDrawable(0);
+//		if (pdrni)
+		if( item->Translatable() )
 		{
 			if (rect.contains(item->Area(), true))    // union of rects in a pasted item
 			{                       // here must be an item for drawing or pasting (others are undrawable)
@@ -957,7 +972,7 @@ int History::CollectItemsInside(QRect rect) // only
 				_nItemsRightOfList.push_back(i);
 			else if (leftOfRect(rect, item->Area()))
 				_nItemsLeftOfList.push_back(i);
-			if (i < _nIndexOfFirstBelow && pdrni->rect.y() > rect.y()+rect.height() )
+			if (i < _nIndexOfFirstBelow && item->Area().y() > rect.y()+rect.height() )
 				_nIndexOfFirstBelow = i;
 		}
 	}
@@ -983,17 +998,26 @@ void History::CopySelected()
 	if (!_nSelectedItemsList.isEmpty())
 	{
 		_copiedItems.clear();
+		_copiedImages.clear();
 
 		for (int i :_nSelectedItemsList)  // indices of visible items selected
 		{
 			const HistoryItem* item = _items[i];
-			int index = 0; // index in source
-			const DrawnItem* pdrni = item->GetDrawable();
-			while (pdrni)
+			if (item->type == heScreenShot)
 			{
-				_copiedItems.push_back(*pdrni);
-				_copiedItems[ _copiedItems.size()-1 ].Translate( -_selectionRect.topLeft(), -1);
-				pdrni = item->GetDrawable(++index);
+				BelowImage* pbmi = &(*pImages)[dynamic_cast<const HistoryScreenShotItem*>(item)->which ] ;
+				_copiedImages.push_back(*pbmi);
+			}
+			else
+			{
+				int index = 0; // index in source
+				const DrawnItem* pdrni = item->GetDrawable();
+				while (pdrni)
+				{
+					_copiedItems.push_back(*pdrni);
+					_copiedItems[_copiedItems.size() - 1].Translate(-_selectionRect.topLeft(), -1);
+					pdrni = item->GetDrawable(++index);
+				}
 			}
 		}
 		_copiedRect = _selectionRect.translated(-_selectionRect.topLeft());
