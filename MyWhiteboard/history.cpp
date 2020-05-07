@@ -42,7 +42,7 @@ bool DrawnItem::IsExtension(const QPoint& p, const QPoint& p1, const QPoint& p2)
 
 	// the two vectors point in the same direction when vpp.y()/vpp.x() == vp.y()/vp.x()
 	// i.e to avoid checking for zeros in divison: 
-	return vpp.y() * vp.x() == vp.y() * vpp.x();
+	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && (vp.x()*vpp.x() > 0);
 }
 
 void DrawnItem::add(QPoint p)
