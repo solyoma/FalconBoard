@@ -644,6 +644,7 @@ void History::clear()
 		delete _items[i];
 
 	_items.clear();
+	pImages->Clear();
 	_actItem = -1;
 	_endItem = 0;
 

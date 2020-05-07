@@ -130,6 +130,11 @@ public:
             return;
         (*this)[which].Translate(p, minY);
     }
+
+    void Clear()
+    {
+        QList<BelowImage>::clear();
+    }
 };
 
 
