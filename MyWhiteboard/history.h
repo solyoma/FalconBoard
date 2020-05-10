@@ -25,6 +25,8 @@ enum HistEvent {
                         // Redo: set _indexLastDrawnItem to 'lastDrawnIndex'
                 };
 enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser, penYellow };
+enum MyRotation { rotNone, rotR90, rotL90, rot180, rotFlipH, rotFlipV};
+enum MyLayer { mlyBackgroundImage, mlyDrawnItem, mlyScreenShot};
 
 struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 {                   
@@ -54,6 +56,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     bool intersects(const QRect& arect) const;
 
     void Translate(QPoint dr, int minY);    // only if not deleted and top is above minY
+    void Rotate(MyRotation rot, QRect inThisrectangle);
 };
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di);
@@ -76,6 +79,20 @@ struct BelowImage {           // shown below the drawings
     {
         if(topLeft.y() >= minY)
             topLeft += p;
+    }
+    void Rotate(MyRotation rot, QRect encRect)
+    {
+        QTransform transform;
+        int deg;
+        switch (rot)
+        {
+            case rotR90: transform.rotate(270); image = image.transformed(transform,Qt::SmoothTransformation); break;
+            case rotL90: transform.rotate(90);  image = image.transformed(transform,Qt::SmoothTransformation); break;
+            case rot180: transform.rotate(180); image = image.transformed(transform,Qt::SmoothTransformation); break;
+            case rotFlipH: image = image.mirrored(true, false); break;
+            case rotFlipV: image = image.mirrored(false, true); break;
+            default: break;
+        }
     }
 };
 
@@ -130,6 +147,13 @@ public:
             return;
         (*this)[which].Translate(p, minY);
     }
+    void Rotate(int which, MyRotation rot, QRect encRect)
+    {
+        if (which < 0 || which >= size() || (*this)[which].isVisible)
+            return;
+        (*this)[which].Rotate(rot, encRect);
+    }
+
 
     void Clear()
     {
@@ -161,6 +185,7 @@ struct HistoryItem      // base class
 
     virtual bool Translatable() const { return false;  }
     virtual void Translate(QPoint p, int minY) { } // translates if top is >= minY
+    virtual void Rotate(MyRotation rot, QRect encRect) { ; }      // rotation or flip
     virtual int Size() const { return 0; }         // size of stored scribbles or erases
     virtual void SetVisibility(bool visible) { }
 
@@ -169,7 +194,7 @@ struct HistoryItem      // base class
     virtual int Redo() { return 1; }        // returns # of items it changed
     virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
     virtual bool Hidden() const { return true; }    // must not draw it
-    virtual bool IsSaveable() const  { return ! Hidden(); }    // use when items may be deleetd
+    virtual bool IsSaveable() const  { return ! Hidden(); }    // use when items may be hidden
 };
 
 
@@ -201,6 +226,7 @@ struct HistoryDrawnItem : public HistoryItem
     int Size() const override { return 1; }
     bool Translatable() const override { return drawnItem.isVisible; }
     void Translate(QPoint p, int minY) override;
+    void Rotate(MyRotation rot, QRect encRect) override;
     // no new undo/redo needed
 };
 
@@ -261,6 +287,7 @@ struct HistoryPasteItem : HistoryItem
     void SetVisibility(bool visible) override; // for all elements in list
     bool Translatable() const override { return !Hidden(); }
     void Translate(QPoint p, int minY) override;
+    void Rotate(MyRotation rot, QRect encRect) override;
 
     QRect Area() const override;
 };
@@ -313,6 +340,23 @@ struct HistoryScreenShotItem : public HistoryItem
     void SetVisibility(bool visible) override; // for all elements in list
     bool Translatable() const override { return isVisible; }
     void Translate(QPoint p, int minY) override;
+    void Rotate(MyRotation rot, QRect encRect) override;
+};
+//--------------------------------------------
+struct HistoryRotationItem : HistoryItem
+{
+    MyRotation rot;
+    int deg = 0;
+    bool flipH = false;
+    bool flipV = false;
+    IntVector nSelectedItemList;
+    QRect encRect;         // encompassing rectangle: all items inside
+
+    HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList);
+    HistoryRotationItem(const HistoryRotationItem& other);
+    HistoryRotationItem& operator=(const HistoryRotationItem& other);
+    int Undo() override;
+    int Redo() override;
 };
 
 /*========================================================
@@ -348,7 +392,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     IntVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band
               _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
               _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
-    int _nIndexOfFirstBelow;            // index of the first element that is below
+    int _nIndexOfFirstBelow;            // index of the first drawable (not image) element that is below a given y 
     QRect _selectionRect;               // encompassing rectangle for selected items OR rectangle in which there are no items
                                         // when _nSelectedItemList is empty
 
@@ -405,9 +449,11 @@ public:
     HistoryItem* addRecolor(MyPenKind pk);
     HistoryItem* addInsertVertSpace(int y, int heightInPixels);
     HistoryItem* addScreenShot(int index);
+    HistoryItem* addRotationItem(MyRotation rot);
     HistoryItem* addRemoveSpaceItem(QRect &rect);
     // --------------------- drawing -----------------------------------
     void Translate(int from, QPoint p, int minY);
+    void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void InserVertSpace(int y, int heightInPixels);
 
     int SetFirstItemToDraw();
@@ -422,7 +468,7 @@ public:
     const QVector<DrawnItem>& CopiedItems() const { return _copiedItems;  }
     int CopiedCount() const { return _copiedItems.size();  }
     const QRect& EncompassingRect() const { return _selectionRect; }
-    const QVector<int> &Selected() const { return _nSelectedItemsList;  }
+    const IntVector &Selected() const { return _nSelectedItemsList;  }
 };
 
 #endif

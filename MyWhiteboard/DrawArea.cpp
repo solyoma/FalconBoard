@@ -213,6 +213,7 @@ void DrawArea::NewData()
 {
     ClearHistory();
     ClearBackground();
+    _erasemode = false; // previous last operation mightr be an erease
 }
 
 void DrawArea::_ClearCanvas() // uses _clippingRect
@@ -266,9 +267,16 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                  bRemove = (bDelete | bCopy | bCut | bPaste) ||
                            (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt),
                  bCollected = false,
-                 bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5);
+                 bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5),
 
-            if (bDelete || bCopy || bRecolor)
+                 bRotate  = (key == Qt::Key_0 ||  // rotate right by 90 degrees
+                             key == Qt::Key_8 ||  // rotate by 180 degrees
+                             key == Qt::Key_9 ||  // rotate left by 90 degrees
+                             key == Qt::Key_H ||  // flip horizontally
+                             (key == Qt::Key_V && !mods)       // flip vertically when no modifier keys pressed
+                            );
+
+            if (bDelete || bCopy || bRecolor || bRotate)
             {
                 if ((bCollected = _history.CollectItemsInside(_rubberRect.translated(_topLeft))) && !bDelete)
                 {
@@ -308,6 +316,27 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
             if (bRecolor)
                 RecolorSelected(key, true);
 
+            if (bRotate && bCollected)
+            {
+                MyRotation rot = rotNone;
+                switch (key)
+                {
+                    case Qt::Key_0:rot = rotL90; break;
+                    case Qt::Key_8: rot = rot180; break;
+                    case Qt::Key_9: rot = rotR90; break;
+                    case Qt::Key_H: rot = rotFlipH; break;
+                    case Qt::Key_V: rot = rotFlipV; break;
+                }
+                if (rot != rotNone)
+                {
+                    _history.addRotationItem(rot);
+                    _ClearCanvas();
+                    _Redraw();
+					emit CanUndo(true);
+					emit CanRedo(false);
+                }
+            }
+
             if (key == Qt::Key_R)    // draw rectangle
             {
                 QRect r = _rubberRect;
@@ -330,6 +359,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 //                _lastDrawnItem.add(_lastPointC + _topLeft);
 
                 _history.addDrawnItem(_lastDrawnItem);
+
                 emit CanUndo(true);
                 emit CanRedo(false);
             }
