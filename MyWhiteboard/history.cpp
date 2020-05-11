@@ -9,7 +9,7 @@ DrawnItem& DrawnItem::operator=(const DrawnItem& di)
 	penKind = di.penKind;
 	penWidth = di.penWidth;
 	points = di.points;
-	rect = di.rect;
+	bndRect = di.bndRect;
 	return *this;
 }
 
@@ -19,14 +19,14 @@ DrawnItem& DrawnItem::operator=(const DrawnItem&& di)  noexcept
 	penKind = di.penKind;
 	penWidth = di.penWidth;
 	points = di.points;
-	rect = di.rect;
+	bndRect = di.bndRect;
 	return *this;
 }
 
 void DrawnItem::clear()
 {
 	points.clear();
-	rect = QRect();
+	bndRect = QRect();
 	type = heNone;
 }
 
@@ -48,14 +48,14 @@ bool DrawnItem::IsExtension(const QPoint& p, const QPoint& p1, const QPoint& p2)
 void DrawnItem::add(QPoint p)
 {
 
-	if (rect.isNull())
-		rect = QRect(p.x() - 2 * penWidth, p.y() - 2 * penWidth, 4 * penWidth, 4 * penWidth);      // single point
-	else if (!rect.contains(p))
+	if (bndRect.isNull())
+		bndRect = QRect(p.x() - 2 * penWidth, p.y() - 2 * penWidth, 4 * penWidth, 4 * penWidth);      // single point
+	else if (!bndRect.contains(p))
 	{
-		if (rect.x() >= p.x() - penWidth) rect.setX(p.x() - 2 * penWidth);
-		if (rect.y() >= p.y() - penWidth) rect.setY(p.y() - 2 * penWidth);
-		if (rect.right() <= p.x() + penWidth) rect.setRight(p.x() + 4 * penWidth + 1);
-		if (rect.bottom() <= p.y() + penWidth) rect.setBottom(p.y() + 4 * penWidth + 1);
+		if (bndRect.x() >= p.x() - penWidth)		bndRect.setX(p.x() - 2 * penWidth);
+		if (bndRect.y() >= p.y() - penWidth)		bndRect.setY(p.y() - 2 * penWidth);
+		if (bndRect.right() <= p.x() + penWidth)	bndRect.setRight(p.x() + 4 * penWidth + 1);
+		if (bndRect.bottom() <= p.y() + penWidth)	bndRect.setBottom(p.y() + 4 * penWidth + 1);
 	}
 	// DEBUG
 	// qDebug("point: (%d, %d), rect: (l: %d, t: %d, w: %d, h: %d)", p.x(), p.y(), rect.x(), rect.y(), rect.width(), rect.height());
@@ -86,17 +86,17 @@ void DrawnItem::add(int x, int y)
 
 bool DrawnItem::intersects(const QRect& arect) const
 {
-	return rect.intersects(arect);
+	return bndRect.intersects(arect);
 }
 
 void DrawnItem::Translate(QPoint dr, int minY)
 {
-	if (rect.y() < minY || !isVisible)
+	if (bndRect.y() < minY || !isVisible)
 		return;
 
 	for (int i = 0; i < points.size(); ++i)
 		points[i] = points[i] + dr;
-	rect.translate(dr);
+	bndRect.translate(dr);
 }
 
 void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the center of encRect
@@ -104,8 +104,8 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 	int erx = encRect.x(), ery = encRect.y(),
 		erw = encRect.width(),
 		erh = encRect.height();
-					// item rectangle
-	int rx = rect.x(), ry = rect.y(), rw = rect.width(), rh = rect.height();	
+					// item bndRectangle
+	int rx = bndRect.x(), ry = bndRect.y(), rw = bndRect.width(), rh = bndRect.height();	
 				   // modify encompassing rectangle and create a big and a little square
 				   // for rotation with sides erb and erl respectively
 		 
@@ -119,8 +119,8 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 
 	auto SwapWH = [&](QRect& r)
 	{
-		rect.setWidth(rect.height());
-		rect.setHeight(rw);
+		bndRect.setWidth(bndRect.height());
+		bndRect.setHeight(rw);
 	};
 
 	auto RotR90 = [&](QPoint& p)
@@ -158,13 +158,13 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 		case rotR90:
 			for (QPoint& p : points)
 				RotR90(p);
-			RotRectR90(rect);
+			RotRectR90(bndRect);
 			SwapWH(encRect);
 			break;
 		case rotL90:
 			for (QPoint& p : points)
 				RotL90(p);
-			RotRectL90(rect);
+			RotRectL90(bndRect);
 			SwapWH(encRect);
 			break;
 		case rot180:
@@ -178,12 +178,12 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 		case rotFlipH:
 			for (QPoint& p : points)
 				p.setX(erw - p.x() + 2 * erx);
-			rect.setX(erw + 2 * erx - rx - rw);		  // new item x: original top righ (rx + rw)
+			bndRect.setX(erw + 2 * erx - rx - rw);		  // new item x: original top righ (rx + rw)
 			break;
 		case rotFlipV:
 			for (QPoint& p : points)
 				p.setY(erh - p.y() + 2 * ery);
-			rect.setY(erh + 2 * ery - ry - rh);		  // new item x: original bottom left (ry + rh)
+			bndRect.setY(erh + 2 * ery - ry - rh);		  // new item x: original bottom left (ry + rh)
 			break;
 		default:
 			break;
@@ -208,7 +208,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 
 	qint32 x, y;
 	di.points.clear();
-	di.rect = QRect(0, 0, 0, 0);
+	di.bndRect = QRect(0, 0, 0, 0);
 
 	ifs >> n;
 	while (n--)
@@ -294,7 +294,7 @@ DrawnItem* HistoryDrawnItem::GetDrawable(int index) const
 
 QRect HistoryDrawnItem::Area() const
 {
-	return drawnItem.rect;
+	return drawnItem.bndRect;
 }
 
 void HistoryDrawnItem::Translate(QPoint p, int minY)
@@ -308,25 +308,23 @@ void HistoryDrawnItem::Rotate(MyRotation rot, QRect encRect)
 }
 
 //--------------------------------------------
-int  HistoryDeleteItems::Undo()
+int  HistoryDeleteItems::Undo()	  // reveal items
 {
 	for (auto i : deletedList)
 		(*pHist)[i]->SetVisibility(true);
-	//        hidden = false;
 	return 1;
 }
-int  HistoryDeleteItems::Redo()
+int  HistoryDeleteItems::Redo()	// hide items
 {
 	for (auto i : deletedList)
 		(*pHist)[i]->SetVisibility(false);
-	//        hidden = true;
-	return 1;
+	return 0;
 }
-//    bool Hidden() const  { return hidden; }
+
 HistoryDeleteItems::HistoryDeleteItems(History* pHist, IntVector& selected) : HistoryItem(pHist), deletedList(selected)
 {
 	type = heItemsDeleted;
-	Redo();         // and mark them
+	Redo();         // hide them
 }
 HistoryDeleteItems::HistoryDeleteItems(HistoryDeleteItems& other) : HistoryDeleteItems(other.pHist, other.deletedList) {}
 HistoryDeleteItems& HistoryDeleteItems::operator=(const HistoryDeleteItems& other)
@@ -369,7 +367,7 @@ int  HistoryRemoveSpaceitem::Redo()
 		for (int i : modifiedList)
 			(*pHist)[i]->Translate(dr, -1);
 	}
-	return 1;
+	return 0;
 }
 
 /*========================================================
@@ -429,88 +427,109 @@ HistoryRemoveSpaceitem& HistoryRemoveSpaceitem::operator=(const HistoryRemoveSpa
 
 //--------------------------------------------
 
-HistoryPasteItem::HistoryPasteItem(History* pHist, DrawnItemVector& toPasteList, QRect& rect, QPoint topLeft) :
-	HistoryItem(pHist), pastedList(toPasteList), encompassingRect(rect)
+HistoryPasteItemBottom::HistoryPasteItemBottom(History* pHist, int index, int count) :
+	HistoryItem(pHist), index(index), count(count)
 {
-	type = heItemsPasted;
-	for (DrawnItem& di : pastedList)
-		di.Translate(topLeft, -1);
-	encompassingRect.translate(topLeft);
+	type = heItemsPastedBottom;
 }
 
-HistoryPasteItem::HistoryPasteItem(HistoryPasteItem& other) : HistoryItem(other.pHist)
+HistoryPasteItemBottom::HistoryPasteItemBottom(HistoryPasteItemBottom& other) :
+	HistoryItem(pHist), index(other.index), count(other.count)
 {
-	*this = other;
+	type = heItemsPastedBottom;
 }
-HistoryPasteItem& HistoryPasteItem::operator=(const HistoryPasteItem& other)
+
+HistoryPasteItemBottom& HistoryPasteItemBottom::operator=(const HistoryPasteItemBottom& other)
 {
-	type = heItemsPasted;
-	pastedList = other.pastedList;
-	encompassingRect = other.encompassingRect;
-	return *this;
-}
-HistoryPasteItem::HistoryPasteItem(HistoryPasteItem&& other) : HistoryItem(other.pHist)
-{
-	*this = other;
-}
-HistoryPasteItem& HistoryPasteItem::operator=(const HistoryPasteItem&& other)
-{
-	type = heItemsPasted;
-	pastedList = other.pastedList;
-	encompassingRect = other.encompassingRect;
+	type = heItemsPastedBottom;
+	index = other.index;
+	count = other.count;
 	return *this;
 }
 
-int  HistoryPasteItem::Undo()
+int HistoryPasteItemBottom::Redo()		// only for bottom item: make items above this visible
 {
-	for (DrawnItem& di : pastedList)
-		di.isVisible = false;
-	return true;
-}
-int  HistoryPasteItem::Redo()
-{
-	for (DrawnItem& di : pastedList)
-		di.isVisible = true;
-	return true;
-}
+	for (int i = 1; i <= count; ++i) //0th element is this
+		(*pHist)[index + i]->SetVisibility(true);
 
-bool HistoryPasteItem::Hidden() const
+	return count + 1;	// we are at bottom item -> change stack pointer to top item
+}
+//--------------------------------------------
+HistoryPasteItemTop::HistoryPasteItemTop(History* pHist, int index, int count, QRect& rect) :
+	HistoryItem(pHist), indexOfBottomItem(index), count(count), boundingRect(rect)
 {
-	return !pastedList.size() || !pastedList[0].isVisible;;
+	type = heItemsPastedTop;
 }
 
-void HistoryPasteItem::SetVisibility(bool visible)
+HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop& other) : 
+	HistoryItem(other.pHist)
 {
-	for (DrawnItem& item : pastedList)
-		item.isVisible = visible;
+	*this = other;
+}
+HistoryPasteItemTop& HistoryPasteItemTop::operator=(const HistoryPasteItemTop& other)
+{
+	type = heItemsPastedTop;
+	indexOfBottomItem = other.indexOfBottomItem;
+	count = other.count;
+	boundingRect = other.boundingRect;
+	return *this;
+}
+HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop&& other) : HistoryItem(other.pHist)
+{
+	*this = other;
+}
+HistoryPasteItemTop& HistoryPasteItemTop::operator=(const HistoryPasteItemTop&& other)
+{
+	type = heItemsPastedTop;
+	indexOfBottomItem = other.indexOfBottomItem;
+	count = other.count;
+	boundingRect = other.boundingRect;
+	return *this;
 }
 
-void HistoryPasteItem::Translate(QPoint p, int minY)
+int  HistoryPasteItemTop::Undo() // only for top item
 {
-	for (DrawnItem& di : pastedList)
-		di.Translate(p, minY);
-
-	if (encompassingRect.y() >= minY)
-		encompassingRect.translate(p);
+	SetVisibility(false);
+		
+	return count + 2;	// decrease actual pointer below bottom item
 }
 
-void HistoryPasteItem::Rotate(MyRotation rot, QRect encRect)
+bool HistoryPasteItemTop::Hidden() const
 {
-	for (auto& p : pastedList)
-		p.Rotate(rot, encRect);
-
+	return (*pHist)[indexOfBottomItem]->Hidden();
 }
 
-DrawnItem* HistoryPasteItem::GetDrawable(int index) const
+void HistoryPasteItemTop::SetVisibility(bool visible)
 {
-	if (index < 0 || index >= pastedList.size())
+	for (int i = 1; i <= count; ++i)
+		(*pHist)[indexOfBottomItem + i]->SetVisibility(visible);
+}
+
+void HistoryPasteItemTop::Translate(QPoint p, int minY)
+{
+	for (int i = 1; i <= count; ++i)
+		(*pHist)[indexOfBottomItem + i]->Translate(p, minY);
+
+	if (boundingRect.y() >= minY)
+		boundingRect.translate(p);
+}
+
+void HistoryPasteItemTop::Rotate(MyRotation rot, QRect encRect)
+{
+	for (int i = 1; i <= count; ++i)
+		(*pHist)[indexOfBottomItem + i]->Rotate(rot, encRect);
+}
+
+DrawnItem* HistoryPasteItemTop::GetDrawable(int which) const
+{
+	if (which < 0 || which >= count)
 		return nullptr;
-	return pastedList[index].isVisible ? const_cast<DrawnItem*>(&pastedList[index]) : nullptr;
+	return (*pHist)[indexOfBottomItem + 1 + which]->GetDrawable(0);
 }
 
-QRect HistoryPasteItem::Area() const
+QRect HistoryPasteItemTop::Area() const
 {
-	return encompassingRect;
+	return boundingRect;
 }
 //---------------------------------------------------
 HistoryReColorItem::HistoryReColorItem(History* pHist, IntVector& selectedList, MyPenKind pk) :
@@ -521,7 +540,7 @@ HistoryReColorItem::HistoryReColorItem(History* pHist, IntVector& selectedList, 
 	int n = 0;						  // set size for penKind array and get encompassing rectangle
 	for (int i : selectedList)
 	{
-		encompassingRectangle = encompassingRectangle.united((*pHist)[i]->Area());
+		boundingRectangle = boundingRectangle.united((*pHist)[i]->Area());
 		n += (*pHist)[i]->Size();
 	}
 	penKindList.resize(n);
@@ -580,13 +599,13 @@ HistoryInsertVertSpace& HistoryInsertVertSpace::operator=(const HistoryInsertVer
 int  HistoryInsertVertSpace::Undo()
 {
 	pHist->InserVertSpace(minY, -heightInPixels);
-	return true;
+	return 1;
 }
 
 int  HistoryInsertVertSpace::Redo()
 {
 	pHist->InserVertSpace(minY, heightInPixels);
-	return true;
+	return 0;
 }
 QRect HistoryInsertVertSpace::Area() const
 {
@@ -603,7 +622,7 @@ int  HistoryReColorItem::Undo()
 		while ((pdri = (*pHist)[i]->GetDrawable(index)))
 			pdri->penKind = penKindList[index++];
 	}
-	return true;
+	return 1;
 }
 int  HistoryReColorItem::Redo()
 {
@@ -617,9 +636,9 @@ int  HistoryReColorItem::Redo()
 			pdri->penKind = pk;
 		}
 	}
-	return true;
+	return 0;
 }
-QRect HistoryReColorItem::Area() const { return encompassingRectangle; }
+QRect HistoryReColorItem::Area() const { return boundingRectangle; }
 //--------------------------------------------
 
 HistoryScreenShotItem::HistoryScreenShotItem(History* pHist, int which) : HistoryItem(pHist), which(which)
@@ -644,14 +663,14 @@ int  HistoryScreenShotItem::Undo() // hide
 {
 	(*pHist->pImages)[which].isVisible = false;
 	isVisible = false;
-	return true;
+	return 1;
 }
 
 int  HistoryScreenShotItem::Redo() // show
 {
 	(*pHist->pImages)[which].isVisible = true;
 	isVisible = true;
-	return true;
+	return 0;
 }
 
 QRect HistoryScreenShotItem::Area() const
@@ -874,10 +893,10 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 		HistoryItem* phi = addDrawnItem(di);
 		di = ((HistoryDrawnItem*)phi)->drawnItem;
 
-		if (di.rect.y() > lastPosition.y())
+		if (di.bndRect.y() > lastPosition.y())
 		{
-			lastPosition.setX(di.rect.x());
-			lastPosition.setY(di.rect.y());
+			lastPosition.setX(di.bndRect.x());
+			lastPosition.setY(di.bndRect.y());
 		}
 	}
 	_modified = false;
@@ -908,12 +927,25 @@ HistoryItem* History::addDeleteItems()
 	return _AddItem(p);
 }
 
-HistoryItem* History::addPastedItems(QPoint topLeft)
+HistoryItem* History::addPastedItems(QPoint topLeft)			   // tricky
 {
 	if (!_copiedItems.size())
 		return nullptr;          // do not add an empty list
-
-	HistoryPasteItem* p = new HistoryPasteItem(this, _copiedItems, _copiedRect, topLeft);
+  // add bottom item
+	int indexOfBottomItem = _actItem+1;
+	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, indexOfBottomItem, _copiedItems.size());
+	_AddItem(pb);		  
+  // Add drawable items
+	HistoryDrawnItem* pdri;
+	for (DrawnItem di : _copiedItems)	// do not modify copied item list
+	{
+		di.Translate(topLeft, 0);
+		pdri = new HistoryDrawnItem(this, di);
+		_AddItem(pdri);
+	}
+  // finish by adding top item
+	QRect rect = _copiedRect.translated(topLeft);
+	HistoryPasteItemTop* p = new HistoryPasteItemTop(this, indexOfBottomItem, _copiedItems.size(), rect);
 	return _AddItem(p);
 }
 
@@ -991,13 +1023,17 @@ int History::SetFirstItemToDraw()
 QRect  History::Undo()        // returns top left after undo 
 {
 	QRect rect;            // rectangle containing element ( (1,1) - not set)
-
+	int delta = 0;			// change actItem by this amount
 	if (_actItem >= 0)    // undoable
 	{
-		_items[_actItem]->Undo();
+		delta = _items[_actItem]->Undo();
 		rect = _items[_actItem]->Area();     // area of undo
 
-		--_actItem;
+		_actItem -= delta;
+		//  MUST NOT BE THIS
+		if (_actItem < -1)
+			throw("FATAL");
+
 		_index = _GetStartIndex();            // we may have just redone a clear screen
 
 		_redoAble = true;
@@ -1027,9 +1063,13 @@ HistoryItem* History::Redo()   // returns item to redo
 		return nullptr;
 	}
 
-	HistoryItem* phi = _items[++_actItem]; // in principle this should not go above
+	HistoryItem* phi = _items[++_actItem]; // in principle this should not go above '_endItem'
+
 	if (phi)
-		phi->Redo();
+	{
+		_actItem += phi->Redo();	// for pasted items this is the number of items to jump over + 1
+		phi = _items[_actItem];
+	}
 
 	_redoAble = _actItem < _endItem - 1;
 

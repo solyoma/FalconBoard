@@ -65,7 +65,7 @@ void DrawArea::SetPenColors()
 	drawColors[penBlack] = Qt::white;
 	drawColors[penRed] = Qt::red;
 	drawColors[penGreen] = Qt::green;
-	drawColors[penBlue] = Qt::blue;
+	drawColors[penBlue] = "#82dbfc";
 	drawColors[penYellow] = Qt::yellow;
 }
 
@@ -442,8 +442,14 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
 
         _scribbling = true;
 #ifndef _VIEWER
-        if (_rubberBand)
+        if (_rubberBand )
+        {
+            if (_rubberRect.contains(event->pos()))          // create sprite
+            {
+
+            }
             _RemoveRubberBand();
+        }
 
         _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
 
@@ -573,24 +579,38 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 #endif
 }
 
+
+/*========================================================
+ * TASK:    system paint event. Paints all layers
+ * PARAMS:  event
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - layers:
+ *                  top     sprite layer     ARGB
+ *                          _canvas          ARGB
+ *                          screenshots
+ *                  bottom  background image if any
+ *          - paint these in bottom to top order on this widget                  
+ *-------------------------------------------------------*/
 void DrawArea::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);             // show image on widget
     QRect dirtyRect = event->rect();
-    painter.fillRect(dirtyRect, _backgroundColor);             // bottom layer
-    if(!_background.isNull())                                  // background layer
+    painter.fillRect(dirtyRect, _backgroundColor);             // draw on here
+    if(!_background.isNull())                                  // bottom : background layer
         painter.drawImage(dirtyRect, _background, dirtyRect);
             // images below drawing
     QRect r = dirtyRect.translated(_topLeft);           // screen -> absolute coord
-    BelowImage* pimg = _belowImages.FirstVisible(r);     // pimg intersects r
-    while (pimg)
+    BelowImage* pimg = _belowImages.FirstVisible(r);    // pimg intersects r
+    while (pimg)                                               // image layer
     {
         QRect intersectRect = pimg->Area(r);      // absolute
         painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
         pimg = _belowImages.NextVisible();
     }
             // top of these the drawing
-    painter.drawImage(dirtyRect, _canvas, dirtyRect);
+    painter.drawImage(dirtyRect, _canvas, dirtyRect);          // canvas layer
+//  painter.drawImage(dirtyRect, _sprite, dirtyRect);          // sprite layer: dirtyRect: actual area below sprite 
 }
 
 void DrawArea::resizeEvent(QResizeEvent* event)
@@ -1051,7 +1071,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             break;
         case heItemsDeleted:    // nothing to do
             break;
-        case heItemsPasted:
+        case heItemsPastedTop:
             pdrni = phi->GetDrawable();
             for (int i = 1; pdrni; ++i)
             {

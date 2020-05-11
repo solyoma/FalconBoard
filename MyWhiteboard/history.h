@@ -7,6 +7,8 @@
 #include <QDataStream>
 #include <QIODevice>
 
+const QString sVersion = "1.1.2";
+
 enum HistEvent {
     heNone,
     heScribble,        // series of points from start to finish of scribble
@@ -19,7 +21,8 @@ enum HistEvent {
     heVisibleCleared,  // visible image erased
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
-    heItemsPasted       // list of draw events added first drawn item is at index 'drawnItem'
+    heItemsPastedBottom,// list of draw events added first drawn item is at index 'drawnItem'
+    heItemsPastedTop    // list of draw events added first drawn item is at index 'drawnItem'
                         // last one is at index 'lastDrawnIndex'
                         // Undo: set _indexLastDrawnItem to that given in previous history item
                         // Redo: set _indexLastDrawnItem to 'lastDrawnIndex'
@@ -36,7 +39,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     MyPenKind penKind = penBlack;
     int penWidth =1;
     QVector<QPoint> points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
-    QRect rect;                     // top left-bttom right coordinates of encapsulating rectangle
+    QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
                                     // not saved on disk, recreated on read
 
     DrawnItem(HistEvent he = heNone) noexcept;       // default constructor
@@ -190,8 +193,8 @@ struct HistoryItem      // base class
     virtual void SetVisibility(bool visible) { }
 
     // function prototypes for easier access
-    virtual int Undo() { return 1; }        // returns # of items it changed
-    virtual int Redo() { return 1; }        // returns # of items it changed
+    virtual int Undo() { return 1; }        // returns amount _actItem in History need to be changed (go below 1 item)
+    virtual int Redo() { return 0; }        // returns amount _actItem in History need to be changed (after ++_actItem still add this to it)
     virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
     virtual bool Hidden() const { return true; }    // must not draw it
     virtual bool IsSaveable() const  { return ! Hidden(); }    // use when items may be hidden
@@ -263,28 +266,44 @@ struct HistoryRemoveSpaceitem : HistoryItem // using _selectedRect
 };
 
 //--------------------------------------------
-struct HistoryPasteItem : HistoryItem
+// When pasting items into _items: 
+//      first comes a HistoryPasteItemBottom, 
+//          then HistoryDrawnItems items above it
+//            and finished with a HistoryPasteItemTop
+struct HistoryPasteItemBottom : HistoryItem
 {
-    QRect encompassingRect;
-    DrawnItemVector pastedList;
+    int index;          // in pHist
+    int count;          // of items pasted above this item
 
-    HistoryPasteItem(History* pHist, DrawnItemVector& pasteList, QRect& rect, QPoint topLeft);
+    HistoryPasteItemBottom(History* pHist, int index, int count);
 
-    HistoryPasteItem(HistoryPasteItem& other);
-    HistoryPasteItem& operator=(const HistoryPasteItem& other);
-    HistoryPasteItem(HistoryPasteItem&& other);
-    HistoryPasteItem& operator=(const HistoryPasteItem&& other);
+    HistoryPasteItemBottom(HistoryPasteItemBottom& other);
+    HistoryPasteItemBottom& operator=(const HistoryPasteItemBottom& other);
+    int Redo() override;    // only for bottom item: reveal this many items above this one
+};
 
-    int Size() const override { return pastedList.size(); }
+struct HistoryPasteItemTop : HistoryItem
+{
+    int indexOfBottomItem;
+    int count;          // of items pasted
+    QRect boundingRect;
 
-    int Undo() override;
-    int Redo() override;
+    HistoryPasteItemTop(History* pHist, int index, int count, QRect& rect);
 
-    DrawnItem* GetDrawable(int index = 0) const override;
+    HistoryPasteItemTop(HistoryPasteItemTop& other);
+    HistoryPasteItemTop& operator=(const HistoryPasteItemTop& other);
+    HistoryPasteItemTop(HistoryPasteItemTop&& other);
+    HistoryPasteItemTop& operator=(const HistoryPasteItemTop&& other);
 
-    bool Hidden() const override;       // when the first element is hidden, all hidden
+    int Size() const override { return count; }
+
+    int Undo() override;    // only for top item: hide 'count' items below this one
+
+    DrawnItem* GetDrawable(int index = 0) const override; // only for top get (count - index)-th below this one
+
+    bool Hidden() const override;       // only for top: when the first element is hidden, all hidden
     // bool IsSaveable() const override;
-    void SetVisibility(bool visible) override; // for all elements in list
+    void SetVisibility(bool visible) override; // for all elements 
     bool Translatable() const override { return !Hidden(); }
     void Translate(QPoint p, int minY) override;
     void Rotate(MyRotation rot, QRect encRect) override;
@@ -297,7 +316,7 @@ struct HistoryReColorItem : HistoryItem
     IntVector selectedList;                 // indexes  to elements in '*pHist'
     QVector<MyPenKind> penKindList;         // colors for elements in selectedList
     MyPenKind pk;                           
-    QRect encompassingRectangle;            // to scroll here when undo/redo
+    QRect boundingRectangle;            // to scroll here when undo/redo
 
     int Undo() override;
     int Redo() override;
@@ -467,7 +486,7 @@ public:
     void CopySelected();      // copies selected scribbles into array. origin will be relative to (0,0)
     const QVector<DrawnItem>& CopiedItems() const { return _copiedItems;  }
     int CopiedCount() const { return _copiedItems.size();  }
-    const QRect& EncompassingRect() const { return _selectionRect; }
+    const QRect& boundingRect() const { return _selectionRect; }
     const IntVector &Selected() const { return _nSelectedItemsList;  }
 };
 

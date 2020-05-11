@@ -54,7 +54,6 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
     ui.centralWidget->setFocus();
 }
 
-static const QString sVersion = "1.0";
 void MyWhiteboard::RestoreState()
 {
     QSettings s("MyWhiteboard.ini", QSettings::IniFormat);
@@ -622,9 +621,9 @@ void MyWhiteboard::SaveVisibleAsTriggered()
 void MyWhiteboard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About MyWhiteboard"),
-        tr("Open source White/blackboard application"
-            "<p>Version 1.1.3</p>"
-            "<p>© A. Sólyom (2020)</p><br>"
+        QString(tr("Open source White/blackboard application")+
+            tr("<p>Version ")+ sVersion+ "</p>")+
+            tr("<p>© A. Sólyom (2020)</p><br>"
             "<p>https://github.com/solyoma/MyWhiteboard</p>"
             "<p>Based on Qt's <b>Scribble</b> example.</p>"));
 }
