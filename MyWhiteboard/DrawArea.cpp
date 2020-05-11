@@ -113,6 +113,7 @@ int DrawArea::Load(QString name)
     }
     emit CanUndo(true);
     emit CanRedo(false);
+    update();
     return res;
 }
 
@@ -880,6 +881,7 @@ bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
             painter.setCompositionMode(QPainter::CompositionMode_Clear);
         else
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        painter.setRenderHint(QPainter::Antialiasing);
 
         painter.drawLine(_lastPointC, endPointC);
         int rad = (_actPenWidth / 2) + 2;
