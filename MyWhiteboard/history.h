@@ -8,6 +8,13 @@
 #include <QIODevice>
 
 const QString sVersion = "1.1.2";
+const QString sWindowTitle =
+#ifdef _VIEWER
+"MyWhiteboard Viewer";
+#else
+"MyWhiteboard";
+#endif
+
 
 enum HistEvent {
     heNone,
@@ -18,7 +25,7 @@ enum HistEvent {
     heItemsDeleted,     // store the list of items deleted in this event
     heSpaceDeleted,     // empty space is deleted
     heVertSpace,       // insert vertical space
-    heVisibleCleared,  // visible image erased
+    heClearCanvas,  // visible image erased
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
     heItemsPastedBottom,// list of draw events added first drawn item is at index 'drawnItem'
@@ -52,9 +59,10 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     void clear();
 
     static bool IsExtension(const QPoint& p, const QPoint& p1, const QPoint& p2 = QPoint()); // vectors p->p1 and p1->p are parallel?
-    void add(QPoint p);
 
-    void add(int x, int y);
+    void add(QPoint p);          // add point w.o. modifying bounding rectangle
+    void add(int x, int y);      // - " - 
+    void SetBoundingRectangle(); // use after all points added
 
     bool intersects(const QRect& arect) const;
 
@@ -205,7 +213,7 @@ struct HistoryItem      // base class
 //--------------------------------------------
 struct HistoryClearCanvasItem : HistoryItem
 {
-    DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
+    HistEvent type = heClearCanvas;
     HistoryClearCanvasItem(History* pHist);
 };
 
@@ -272,6 +280,7 @@ struct HistoryRemoveSpaceitem : HistoryItem // using _selectedRect
 //            and finished with a HistoryPasteItemTop
 struct HistoryPasteItemBottom : HistoryItem
 {
+    HistEvent type = heItemsPastedBottom;
     int index;          // in pHist
     int count;          // of items pasted above this item
 
@@ -284,6 +293,7 @@ struct HistoryPasteItemBottom : HistoryItem
 
 struct HistoryPasteItemTop : HistoryItem
 {
+    HistEvent type = heItemsPastedTop;
     int indexOfBottomItem;
     int count;          // of items pasted
     QRect boundingRect;
@@ -436,6 +446,7 @@ public:
 
     void clear();
     int size() const;
+    int SelectedSize() const { return _nSelectedItemsList.size(); }
 
     HistoryItem* operator[](int index);
 
@@ -486,7 +497,7 @@ public:
     void CopySelected();      // copies selected scribbles into array. origin will be relative to (0,0)
     const QVector<DrawnItem>& CopiedItems() const { return _copiedItems;  }
     int CopiedCount() const { return _copiedItems.size();  }
-    const QRect& boundingRect() const { return _selectionRect; }
+    const QRect& BoundingRect() const { return _selectionRect; }
     const IntVector &Selected() const { return _nSelectedItemsList;  }
 };
 

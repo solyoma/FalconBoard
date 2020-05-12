@@ -279,7 +279,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
             if (bDelete || bCopy || bRecolor || bRotate)
             {
-                if ((bCollected = _history.CollectItemsInside(_rubberRect.translated(_topLeft))) && !bDelete)
+                if ((bCollected = _history.SelectedSize()) && !bDelete)
                 {
                     _history.CopySelected();
                     _scribblesCopied = true;        // never remove selected list
@@ -357,7 +357,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
                 _lastDrawnItem.penKind = _myPenKind;
                 _lastDrawnItem.penWidth = _actPenWidth;
-//                _lastDrawnItem.add(_lastPointC + _topLeft);
 
                 _history.addDrawnItem(_lastDrawnItem);
 
@@ -571,7 +570,13 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
     else if (_rubberBand)
     {
         if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
+        {
             _rubberRect = _rubberBand->geometry();
+            bool b = _history.CollectItemsInside(_rubberRect.translated(_topLeft));
+            if (_history.SelectedSize())
+                _rubberBand->setGeometry(_history.BoundingRect());
+            _rubberRect = _history.BoundingRect();
+        }
         else
             _RemoveRubberBand();
         event->accept();
@@ -972,14 +977,14 @@ void DrawArea::_Redraw()
     MyPenKind savekind = _myPenKind;
     bool saveEraseMode = _erasemode;
 
-    _history.SetFirstItemToDraw();
-    while (_ReplotItem(_history.GetOneStep()))
-        ;
-
+    if (_history.SetFirstItemToDraw() >= 0)
+    {
+        while (_ReplotItem(_history.GetOneStep()))
+            ;
+    }
     SetPenWidth(savewidth);
     SetPenKind(savekind);
     saveEraseMode = _erasemode;
-
 }
 
 QColor DrawArea::_PenColor()
@@ -1066,7 +1071,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             if( (pdrni = phi->GetDrawable(0)))
                 plot();
             break;
-        case heVisibleCleared:
+        case heClearCanvas:
             _ClearCanvas();
             break;
         case heItemsDeleted:    // nothing to do

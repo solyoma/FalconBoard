@@ -1,4 +1,6 @@
 #include "history.h"
+#include <QMessageBox>
+#include <QMainWindow>
 
 DrawnItem::DrawnItem(HistEvent he) noexcept : type(he) {}
 DrawnItem::DrawnItem(const DrawnItem& di) { *this = di; }
@@ -47,41 +49,50 @@ bool DrawnItem::IsExtension(const QPoint& p, const QPoint& p1, const QPoint& p2)
 
 void DrawnItem::add(QPoint p)
 {
-
-	if (bndRect.isNull())
-		bndRect = QRect(p.x() - 2 * penWidth, p.y() - 2 * penWidth, 4 * penWidth, 4 * penWidth);      // single point
-	else if (!bndRect.contains(p))
-	{
-		if (bndRect.x() >= p.x() - penWidth)		bndRect.setX(p.x() - 2 * penWidth);
-		if (bndRect.y() >= p.y() - penWidth)		bndRect.setY(p.y() - 2 * penWidth);
-		if (bndRect.right() <= p.x() + penWidth)	bndRect.setRight(p.x() + 4 * penWidth + 1);
-		if (bndRect.bottom() <= p.y() + penWidth)	bndRect.setBottom(p.y() + 4 * penWidth + 1);
-	}
-	// DEBUG
-	// qDebug("point: (%d, %d), rect: (l: %d, t: %d, w: %d, h: %d)", p.x(), p.y(), rect.x(), rect.y(), rect.width(), rect.height());
-	// /DEBUG            
-
 	int n = points.size() - 1;
-
-
-	if (n < 0)
+	                    // we need at least one point already in the array
+	// if a point just extends the line in the same direction (IsExtension())
+	// as the previous point was from the one before it
+	// then do not add a new point, just modify the coordinates of the middle point
+	// (n 0: 1 point, >0: at least 2 points are already in the array
+	if (n > 0 && IsExtension(p, points[n], points[n - 1]))  // then the two vector points in the same direction
+		points[n] = p;                            // so continuation
+	else
 		points.push_back(p);
-	else                      // we need at least one point already in the array
-	{   // if a point just extends the line in the same direction (IsExtension())
-		// as the previous point was from the one before it
-		// then do not add a new point, just modify the coordintes
-		// (n 0: 1 point, >0: at least 2 points are already in the array
-		if (n > 0 && IsExtension(p, points[n], points[n - 1]))  // then the two vector points in the same direction
-			points[n] = p;                            // so continuation
-		else
-			points.push_back(p);
-	}
 }
 
 void DrawnItem::add(int x, int y)
 {
 	QPoint p(x, y);
 	add(p);
+}
+
+void DrawnItem::SetBoundingRectangle()
+{
+	bndRect = QRect();
+	if (points.isEmpty())
+		return;
+								 // add first point
+	QPoint& p = points[0];
+	int w = penWidth / 2;
+	QRect pointRect = QRect(p.x() - w, p.y() - w, penWidth, penWidth);      // single point
+	bndRect = pointRect;
+
+	for (auto& p : points)
+		bndRect = bndRect.united(QRect(p.x() - w, p.y() - w, penWidth, penWidth));
+
+	//else if (!bndRect.contains(p))
+	//{
+	//	if (bndRect.x() >= p.x() - penWidth)		bndRect.setX(p.x() - 2 * penWidth);
+	//	if (bndRect.y() >= p.y() - penWidth)		bndRect.setY(p.y() - 2 * penWidth);
+	//	if (bndRect.right() <= p.x() + penWidth)	bndRect.setRight(p.x() + 4 * penWidth + 1);
+	//	if (bndRect.bottom() <= p.y() + penWidth)	bndRect.setBottom(p.y() + 4 * penWidth + 1);
+	//}
+	// DEBUG
+	// qDebug("point: (%d, %d), rect: (l: %d, t: %d, w: %d, h: %d)", p.x(), p.y(), rect.x(), rect.y(), rect.width(), rect.height());
+	// /DEBUG            
+
+
 }
 
 bool DrawnItem::intersects(const QRect& arect) const
@@ -216,6 +227,9 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 		ifs >> x >> y;
 		di.add(x, y);
 	}
+
+	di.SetBoundingRectangle();
+
 	return ifs;
 }
 
@@ -243,7 +257,7 @@ inline QDataStream& operator>>(QDataStream& ifs, BelowImage& bimg)
  //--------------------------------------------
 HistoryClearCanvasItem::HistoryClearCanvasItem(History* pHist) : HistoryItem(pHist)
 {
-	type = heVisibleCleared;
+	type = heClearCanvas;
 }
 
 //--------------------------------------------
@@ -252,6 +266,7 @@ HistoryDrawnItem::HistoryDrawnItem(History* pHist, DrawnItem& dri) : HistoryItem
 {
 	type = dri.type;
 	drawnItem = dri;
+	drawnItem.SetBoundingRectangle();
 }
 
 HistoryDrawnItem::HistoryDrawnItem(const HistoryDrawnItem& other) : HistoryItem(other.pHist)
@@ -699,6 +714,83 @@ void HistoryScreenShotItem::Rotate(MyRotation rot, QRect encRect)
 	(*pHist->pImages)[which].Rotate(rot, encRect);
 }
 
+//---------------------------------------------------------
+
+HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList) :
+	HistoryItem(pHist), rot(rotation), nSelectedItemList(selList), encRect(rect)
+{
+	switch (rot)
+	{
+		case rotR90:
+			deg = -90;
+			break;
+		case rotL90:
+			deg = 90;
+			break;
+		case rot180:
+			deg = 180;
+			break;
+		case rotFlipH:
+			flipH = true;
+			break;
+		case rotFlipV:
+			flipV = true;
+			break;
+	}
+	encRect = encRect;
+	Redo();
+}
+
+HistoryRotationItem::HistoryRotationItem(const HistoryRotationItem& other) :
+	HistoryItem(other.pHist), rot(other.rot), nSelectedItemList(other.nSelectedItemList)
+{
+	deg = other.deg;
+	flipV = other.flipV;
+	flipH = other.flipH;
+	encRect = other.encRect;
+}
+
+HistoryRotationItem& HistoryRotationItem::operator=(const HistoryRotationItem& other)
+{
+	pHist = other.pHist;
+	nSelectedItemList = other.nSelectedItemList;
+	deg = other.deg;
+	flipV = other.flipV;
+	flipH = other.flipH;
+	encRect = other.encRect;
+
+	return *this;
+}
+
+int HistoryRotationItem::Undo()
+{
+	MyRotation rotation = rot;
+	switch (rot)
+	{
+		case rotR90:
+			rotation = rotL90;
+			break;
+		case rotL90:
+			rotation = rotR90;
+			break;
+		case rot180:
+		case rotFlipH:
+		case rotFlipV:
+			break;
+	}
+	for (int n : nSelectedItemList)
+		(*pHist)[n]->Rotate(rotation, encRect);
+	return 1;
+}
+
+int HistoryRotationItem::Redo()
+{
+	for (int n : nSelectedItemList)
+		(*pHist)[n]->Rotate(rot, encRect);
+	return 0;
+}
+
+
 
 /*========================================================
  * TASK:	add a new item to the history list
@@ -741,17 +833,41 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 	return _items[_actItem];
 }
 
-int History::_GetStartIndex()        // find first drawable item in '_items' after a clear screen 
+
+/*========================================================
+ * TASK:   find first drawable and visible history item 
+ * PARAMS:
+ * GLOBALS:	_items
+ * RETURNS:	index of first displayable item or -1 if no items
+ * REMARKS: - because the order of the items is independent
+ *				of the position of the item we must always 
+ *				check all items until either run out of items
+ *				or found HistoryVisibleCleared item
+ *-------------------------------------------------------*/
+int History::_GetStartIndex()        // in '_items' after a clear screen 
 {									 // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
 	if (_actItem < 0)
 		return -1;
 
 	int i = _actItem;
 	for (; i >= 0; --i)
-		if (_items[i]->type == heVisibleCleared)
-			return i + 1;
-	// there were no items to show
-	return 0;
+	{
+		if (_items[i]->type == heClearCanvas)
+			break;
+	}
+	if (i < 0)		// no clear canvas
+		++i;
+
+	if (_items[i]->type == heClearCanvas)
+		++i;	// to first item after the clear paper
+
+	while (i <= _actItem && _items[i]->Hidden())
+		++i;
+
+	if (i > _actItem)
+		i = -1;
+
+	return i;		// 
 }
 
 bool History::_IsSaveable(int i)
@@ -800,6 +916,14 @@ HistoryItem* History::operator[](int index)
  *-------------------------------------------------------*/
 bool History::Save(QString name)
 {
+	// only save after last clear screen op.
+	int i = _GetStartIndex();   // index of first visible item after a clear screen
+	if (i < 0)					// no elements or no visible elements
+	{
+		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
+		return false;;
+	}
+
 	QFile f(name + ".tmp");
 	f.open(QIODevice::WriteOnly);
 
@@ -808,10 +932,6 @@ bool History::Save(QString name)
 
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
-	// only save after last clear screen op.
-	int i = _GetStartIndex();   // index of first item after a clear screen
-	if (i >= 0) // there was a clear screen and we are after it
-		--i;
 	// each 
 	while (++i < _endItem)
 	{
@@ -1008,8 +1128,8 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 void History::InserVertSpace(int y, int heightInPixels)
 {
 	int i = _GetStartIndex();   // index of first item after a clear screen
-	if (i > 0) // there was a clear screen and we are after it
-		--i;
+	if (i < 0) // there was a clear screen and we are after it
+		return;;
 
 	QPoint dy = QPoint(0, heightInPixels);
 	Translate(i, dy, y);
@@ -1057,7 +1177,7 @@ HistoryItem* History::Redo()   // returns item to redo
 {
 	if (!_redoAble)
 		return nullptr;
-	if (_actItem == _endItem - 1)
+	if (_actItem >= _endItem - 1)
 	{
 		_redoAble = false;
 		return nullptr;
@@ -1119,7 +1239,11 @@ int History::CollectItemsInside(QRect rect) // only
 
 	_selectionRect = QRect();     // minimum size of selection (0,0) relative!
 		// just check scribbles after the last clear screen
-	for (int i = _GetStartIndex(); i <= _actItem; ++i)
+	int i = _GetStartIndex();
+	if (i < 0)	// nothing to collect
+		return 0;
+
+	for (; i <= _actItem; ++i)
 	{
 		const HistoryItem* item = _items[i];
 		if (item->Translatable())
@@ -1183,78 +1307,4 @@ void History::CopySelected()
 		}
 		_copiedRect = _selectionRect.translated(-_selectionRect.topLeft());
 	}
-}
-
-HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList) :
-	HistoryItem(pHist), rot(rotation), nSelectedItemList(selList), encRect(rect)
-{
-	switch (rot)
-	{
-		case rotR90:
-			deg = -90;
-			break;
-		case rotL90:
-			deg = 90;
-			break;
-		case rot180:
-			deg = 180;
-			break;
-		case rotFlipH:
-			flipH = true;
-			break;
-		case rotFlipV:
-			flipV = true;
-			break;
-	}
-	encRect = encRect;
-	Redo();
-}
-
-HistoryRotationItem::HistoryRotationItem(const HistoryRotationItem& other) :
-	HistoryItem(other.pHist), rot(other.rot), nSelectedItemList(other.nSelectedItemList)
-{
-	deg = other.deg;
-	flipV = other.flipV;
-	flipH = other.flipH;
-	encRect = other.encRect;
-}
-
-HistoryRotationItem& HistoryRotationItem::operator=(const HistoryRotationItem& other)
-{
-	pHist = other.pHist;
-	nSelectedItemList = other.nSelectedItemList;
-	deg = other.deg;
-	flipV = other.flipV;
-	flipH = other.flipH;
-	encRect = other.encRect;
-
-	return *this;
-}
-
-int HistoryRotationItem::Undo()
-{
-	MyRotation rotation = rot;
-	switch (rot)
-	{
-		case rotR90:
-			rotation = rotL90;
-			break;
-		case rotL90:
-			rotation = rotR90;
-			break;
-		case rot180:
-		case rotFlipH:
-		case rotFlipV:
-			break;
-	}
-	for (int n : nSelectedItemList)
-		(*pHist)[n]->Rotate(rotation, encRect);
-	return 1;
-}
-
-int HistoryRotationItem::Redo()
-{
-	for (int n : nSelectedItemList)
-		(*pHist)[n]->Rotate(rot, encRect);
-	return 1;
 }
