@@ -72,7 +72,7 @@ public:
 //    void SetBackgroundImage(QImage& image);
     void InsertVertSpace();         // from top left of rubber band with height of rubber rectangle
     MyPenKind PenKindFromKey(int key);  // keyboard press/menu click
-    bool RecolorSelected(int key, bool SelectionAlreadyOk = false); // true: recolored
+    bool RecolorSelected(int key); // true: recolored
 #endif
 
     void SetMode(bool darkMode, QString color);
@@ -198,7 +198,8 @@ private:
     QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
 #endif
 
-    bool _DrawLineTo(QPoint endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
+    bool _DrawFreehandLineTo(QPoint endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
+    void _DrawLineTo(QPoint endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 

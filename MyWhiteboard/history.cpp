@@ -130,8 +130,9 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 
 	auto SwapWH = [&](QRect& r)
 	{
-		bndRect.setWidth(bndRect.height());
-		bndRect.setHeight(rw);
+		int w = r.width();
+		r.setWidth(r.height());
+		r.setHeight(w);
 	};
 
 	auto RotR90 = [&](QPoint& p)
@@ -443,15 +444,13 @@ HistoryRemoveSpaceitem& HistoryRemoveSpaceitem::operator=(const HistoryRemoveSpa
 //--------------------------------------------
 
 HistoryPasteItemBottom::HistoryPasteItemBottom(History* pHist, int index, int count) :
-	HistoryItem(pHist), index(index), count(count)
+	HistoryItem(pHist, heItemsPastedBottom), index(index), count(count)
 {
-	type = heItemsPastedBottom;
 }
 
 HistoryPasteItemBottom::HistoryPasteItemBottom(HistoryPasteItemBottom& other) :
-	HistoryItem(pHist), index(other.index), count(other.count)
+	HistoryItem(pHist, heItemsPastedBottom), index(other.index), count(other.count)
 {
-	type = heItemsPastedBottom;
 }
 
 HistoryPasteItemBottom& HistoryPasteItemBottom::operator=(const HistoryPasteItemBottom& other)
@@ -471,9 +470,8 @@ int HistoryPasteItemBottom::Redo()		// only for bottom item: make items above th
 }
 //--------------------------------------------
 HistoryPasteItemTop::HistoryPasteItemTop(History* pHist, int index, int count, QRect& rect) :
-	HistoryItem(pHist), indexOfBottomItem(index), count(count), boundingRect(rect)
+	HistoryItem(pHist, heItemsPastedTop), indexOfBottomItem(index), count(count), boundingRect(rect)
 {
-	type = heItemsPastedTop;
 }
 
 HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop& other) : 
@@ -591,6 +589,33 @@ HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem&& oth
 	pk = other.pk;
 	return *this;
 }
+int  HistoryReColorItem::Undo()
+{
+	for (int i : selectedList)
+	{
+		int index = 0;
+		DrawnItem* pdri;
+		while ((pdri = (*pHist)[i]->GetDrawable(index)))
+			pdri->penKind = penKindList[index++];
+	}
+	return 1;
+}
+int  HistoryReColorItem::Redo()
+{
+	for (int i : selectedList)
+	{
+		int index = 0;
+		DrawnItem* pdri;
+		while ((pdri = (*pHist)[i]->GetDrawable(index)))
+		{
+			penKindList[index++] = pdri->penKind;
+			pdri->penKind = pk;
+		}
+	}
+	return 0;
+}
+QRect HistoryReColorItem::Area() const { return boundingRectangle; }
+
 //---------------------------------------------------
 
 HistoryInsertVertSpace::HistoryInsertVertSpace(History* pHist, int top, int pixelChange) :
@@ -627,33 +652,6 @@ QRect HistoryInsertVertSpace::Area() const
 	return QRect(0, minY, 100, 100);
 }
 
-//--------------------------------------------
-int  HistoryReColorItem::Undo()
-{
-	for (int i : selectedList)
-	{
-		int index = 0;
-		DrawnItem* pdri;
-		while ((pdri = (*pHist)[i]->GetDrawable(index)))
-			pdri->penKind = penKindList[index++];
-	}
-	return 1;
-}
-int  HistoryReColorItem::Redo()
-{
-	for (int i : selectedList)
-	{
-		int index = 0;
-		DrawnItem* pdri;
-		while ((pdri = (*pHist)[i]->GetDrawable(index)))
-		{
-			penKindList[index++] = pdri->penKind;
-			pdri->penKind = pk;
-		}
-	}
-	return 0;
-}
-QRect HistoryReColorItem::Area() const { return boundingRectangle; }
 //--------------------------------------------
 
 HistoryScreenShotItem::HistoryScreenShotItem(History* pHist, int which) : HistoryItem(pHist), which(which)

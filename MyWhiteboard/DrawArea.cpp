@@ -108,7 +108,6 @@ int DrawArea::Load(QString name)
         _tlMax.ry() -= height()/2;
 
 //        _tlMax = -_tlMax;
-        _ClearCanvas();
         _Redraw();
     }
     emit CanUndo(true);
@@ -141,7 +140,6 @@ void DrawArea::SetMode(bool darkMode, QString color)
 {
     _backgroundColor = color;
      drawColors.SetDarkMode( _darkMode = darkMode);
-     _ClearCanvas();
     _Redraw();                  // because pen color changed!
 }
 
@@ -179,7 +177,6 @@ void DrawArea::InsertVertSpace()
 {
     _RemoveRubberBand();
     _history.addInsertVertSpace(_rubberRect.y() + _topLeft.y(), _rubberRect.height());
-    _ClearCanvas();
     _Redraw();
 }
 MyPenKind DrawArea::PenKindFromKey(int key)
@@ -194,16 +191,16 @@ MyPenKind DrawArea::PenKindFromKey(int key)
         default: return penNone;
 	}
 }
-bool DrawArea::RecolorSelected(int key, bool SelectionAlreadyOk)
+bool DrawArea::RecolorSelected(int key)
 {
     if (!_rubberBand)
         return false;
-    if(!SelectionAlreadyOk)
+    if(!_history.SelectedSize())
         _history.CollectItemsInside(_rubberRect.translated(_topLeft));
 
     MyPenKind pk = PenKindFromKey(key);
     HistoryItem* phi = _history.addRecolor(pk);
-    _RemoveRubberBand();
+//    _RemoveRubberBand();
     if (phi)
         _Redraw();
     return true;
@@ -289,14 +286,12 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
             if ((bCut || bDelete) && bCollected)
             {
                 _history.addDeleteItems();
-                _ClearCanvas();
                 _Redraw();
             }
             else if (bDelete && !bCollected)     // delete on empty area
             {
                 if (_history.addRemoveSpaceItem(_rubberRect))     // there was something (not delete below the last item
                 {
-                    _ClearCanvas();
                     _Redraw();
                 }
             }
@@ -315,7 +310,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit CanRedo(false);
 			}
             if (bRecolor)
-                RecolorSelected(key, true);
+                RecolorSelected(key);
 
             if (bRotate && bCollected)
             {
@@ -331,29 +326,36 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 if (rot != rotNone)
                 {
                     _history.addRotationItem(rot);
-                    _ClearCanvas();
                     _Redraw();
 					emit CanUndo(true);
 					emit CanRedo(false);
                 }
             }
 
-            if (key == Qt::Key_R)    // draw rectangle
+            if (key == Qt::Key_R)    // draw rectangle with margin or w,o, margin with Shift
             {
-                QRect r = _rubberRect;
-                _firstPointC = _lastPointC = r.topLeft();
+                _actPenWidth = _penWidth;
                 _lastDrawnItem.clear();
                 _lastDrawnItem.type = heScribble;
-                _actPenWidth = _penWidth;
-                _lastDrawnItem.add(_lastPointC + _topLeft);
-                if (_DrawLineTo(r.topRight()) )
-                    _lastDrawnItem.add(_lastPointC + _topLeft);
-                if (_DrawLineTo(r.bottomRight()))
-                    _lastDrawnItem.add(_lastPointC + _topLeft);
-                if (_DrawLineTo(r.bottomLeft()))
-                    _lastDrawnItem.add(_lastPointC + _topLeft);
-                if (_DrawLineTo(r.topLeft()))
-                    _lastDrawnItem.add(_lastPointC + _topLeft);
+
+                int margin = mods.testFlag(Qt::ShiftModifier) ? 0 : 3*_actPenWidth;
+
+                int x1, y1, x2, y2, x3, y3, x4, y4;
+                x1 = _rubberRect.x()-margin;                y1 = _rubberRect.y() - margin;
+                x2 = x1 + _rubberRect.width() + 2 * margin; y2 = y1;
+                x3 = x2;                                    y3 = y1 + _rubberRect.height() + 2 * margin;
+                x4 = x1;                                    y4 = y3;
+
+                _firstPointC = _lastPointC = QPoint(x1, y1);
+                _lastDrawnItem.add(QPoint(x1,y1) + _topLeft);
+                _DrawLineTo(QPoint(x2, y2));
+                _lastDrawnItem.add(QPoint(x2, y2) + _topLeft);
+                _DrawLineTo(QPoint(x3, y3));
+                _lastDrawnItem.add(QPoint(x3, y3) + _topLeft);
+                _DrawLineTo(QPoint(x4, y4));
+                _lastDrawnItem.add(QPoint(x4, y4) + _topLeft);
+                _DrawLineTo(QPoint(x1, y1));
+                _lastDrawnItem.add(QPoint(x1, y1) + _topLeft);
 
                 _lastDrawnItem.penKind = _myPenKind;
                 _lastDrawnItem.penWidth = _actPenWidth;
@@ -482,7 +484,6 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
         if (_spaceBarDown)
         {
             _ShiftOrigin(dr);
-            _ClearCanvas();
             _Redraw();
 
             _lastPointC = event->pos();
@@ -490,7 +491,7 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
 #ifndef _VIEWER
         else
         {
-            if(_DrawLineTo(event->pos()) )
+            if(_DrawFreehandLineTo(event->pos()) )
                 _lastDrawnItem.add(_lastPointC + _topLeft);
         }
 #endif
@@ -552,7 +553,7 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
         if (!_spaceBarDown)
         {
 #ifndef _VIEWER
-            _DrawLineTo(event->pos());
+            _DrawFreehandLineTo(event->pos());
 
             _history.addDrawnItem(_lastDrawnItem);
 
@@ -574,8 +575,8 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
             _rubberRect = _rubberBand->geometry();
             bool b = _history.CollectItemsInside(_rubberRect.translated(_topLeft));
             if (_history.SelectedSize())
-                _rubberBand->setGeometry(_history.BoundingRect());
-            _rubberRect = _history.BoundingRect();
+                _rubberBand->setGeometry(_history.BoundingRect().translated(-_topLeft));
+            _rubberRect = _history.BoundingRect().translated(-_topLeft);
         }
         else
             _RemoveRubberBand();
@@ -692,7 +693,6 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                     if (counter >= REFRESH_LIMIT)
                     {
                         counter = 0;
-                        _ClearCanvas();
                         _Redraw();
                     }
                     _ShiftOrigin(dr);
@@ -701,7 +701,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
 #ifndef _VIEWER
                 else
                 {
-                    if(_DrawLineTo(event->pos()) )
+                    if(_DrawFreehandLineTo(event->pos()) )
                         _lastDrawnItem.add(_lastPointC + _topLeft);
                 }
 #endif
@@ -867,7 +867,6 @@ void DrawArea::MoveToActualPosition(QRect rect)
         if (l != _topLeft.x() || t != _topLeft.y())
         {
             _SetOrigin(QPoint(l, t));
-            _ClearCanvas();
             _Redraw();
         }
     }
@@ -876,7 +875,37 @@ void DrawArea::MoveToActualPosition(QRect rect)
 
 /*========================================================
  * TASK:    Draw line from '_lastPointC' to 'endPointC'
- * PARAMS:  endpointC : clanvas relative coordinate
+ *          using _DrawLineTo
+ * PARAMS:  endpointC : canvas relative coordinate
+ * GLOBALS:
+ * RETURNS: if the line was drawn and you must save _lastPointC
+ *          false otherwise
+ * REMARKS: - save _lastPointC after calling this function
+ *              during user drawing
+ *          - sets the new actual canvas relative position
+ *            in '_lastPointC
+ *          - does modify _endPointC if the shift key
+ *              is pressed when drawing
+ *          - when _shiftKeyDown
+ *              does not draw the point until a direction
+ *                  was established
+  *-------------------------------------------------------*/
+bool DrawArea::_DrawFreehandLineTo(QPoint endPointC)
+{
+    bool result = true;
+#ifndef _VIEWER
+    if ((result = _CanSavePoint(endPointC)))     // i.e. must save point
+    {
+        _CorrectForDirection(endPointC); // when _startSet leaves only one coord moving
+        _DrawLineTo(endPointC);
+    }
+#endif
+    return result;
+}
+
+/*========================================================
+ * TASK:    Draw line from '_lastPointC' to 'endPointC'
+ * PARAMS:  endpointC : canvas relative coordinate
  * GLOBALS:
  * RETURNS: if the line was drawn and you must save _lastPointC
  *          false otherwise
@@ -890,39 +919,28 @@ void DrawArea::MoveToActualPosition(QRect rect)
  *              does not draw the point until a direction 
  *                  was established
   *-------------------------------------------------------*/
-bool DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
+void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
 {
-    bool result = true;
-#ifndef _VIEWER
-    if ( (result=_CanSavePoint(endPointC)) )     // i.e. must save point
-    {
-        _CorrectForDirection(endPointC); // when _startSet leaves only one coord moving
-#endif
-                // draw the line
-        QPainter painter(&_canvas);
-        painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
-            Qt::RoundJoin));
-        if (_erasemode)
-            painter.setCompositionMode(QPainter::CompositionMode_Clear);
-        else
-            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter.setRenderHint(QPainter::Antialiasing);
+    QPainter painter(&_canvas);
+    painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
+        Qt::RoundJoin));
+    if (_erasemode)
+        painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    else
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter.setRenderHint(QPainter::Antialiasing);
 
-        painter.drawLine(_lastPointC, endPointC);
-        int rad = (_actPenWidth / 2) + 2;
-        update(QRect(_lastPointC, endPointC).normalized()
-            .adjusted(-rad, -rad, +rad, +rad));
+    painter.drawLine(_lastPointC, endPointC);
+    int rad = (_actPenWidth / 2) + 2;
+    update(QRect(_lastPointC, endPointC).normalized()
+        .adjusted(-rad, -rad, +rad, +rad));
 
-        if (_topLeft.x()> _tlMax.x() || _topLeft.y() > _tlMax.y())     // last page of drawing
-            _tlMax = _topLeft;
+    if (_topLeft.x()> _tlMax.x() || _topLeft.y() > _tlMax.y())     // last page of drawing
+        _tlMax = _topLeft;
         // this should be in an other thread to work, else everything stops
 //        if (!_pendown && !_scribbling && _delayedPlayback)
 //            SleepFor(5ms);
-#ifndef _VIEWER
-    }
-#endif
     _lastPointC = endPointC;
-    return result;
 }
 
 void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTransparent)
@@ -979,12 +997,13 @@ void DrawArea::_Redraw()
 
     if (_history.SetFirstItemToDraw() >= 0)
     {
+        _ClearCanvas();
         while (_ReplotItem(_history.GetOneStep()))
             ;
     }
     SetPenWidth(savewidth);
     SetPenKind(savekind);
-    saveEraseMode = _erasemode;
+    _erasemode = saveEraseMode;
 }
 
 QColor DrawArea::_PenColor()
@@ -1118,11 +1137,8 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
     MoveToActualPosition(phi->Area());
 // ??    _clippingRect = phi->Area();
 
-    if (phi->type == heRecolor)
-        _Redraw();
-    else if (phi->type == heItemsDeleted || heVertSpace)
+    if (phi->type == heItemsDeleted || phi->type == heVertSpace || phi->type == heRecolor)
     {
-        _ClearCanvas();
         _Redraw();
     }
     else    // heScribble, heEraser
@@ -1191,7 +1207,6 @@ void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, positive
 void DrawArea::_ShiftAndDisplayBy(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
 {
     _ShiftOrigin(delta);
-    _ClearCanvas();
     _Redraw();
 }
 void DrawArea::_PageUp()
@@ -1216,7 +1231,6 @@ void DrawArea::_End()
 {
     _topLeft = _tlMax;
     _SetOrigin(_topLeft);
-    _ClearCanvas();
     _Redraw();
 }
 

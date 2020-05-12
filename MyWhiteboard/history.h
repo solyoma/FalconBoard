@@ -187,9 +187,9 @@ struct History; // forward
 struct HistoryItem      // base class
 {
     History* pHist;
-    HistEvent type = heNone;
+    HistEvent type;
 
-    HistoryItem(History* pHist) : pHist(pHist) {}
+    HistoryItem(History* pHist, HistEvent typ=heNone) : pHist(pHist), type(typ) {}
     virtual ~HistoryItem() {}
 
     virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
@@ -280,7 +280,6 @@ struct HistoryRemoveSpaceitem : HistoryItem // using _selectedRect
 //            and finished with a HistoryPasteItemTop
 struct HistoryPasteItemBottom : HistoryItem
 {
-    HistEvent type = heItemsPastedBottom;
     int index;          // in pHist
     int count;          // of items pasted above this item
 
@@ -293,7 +292,6 @@ struct HistoryPasteItemBottom : HistoryItem
 
 struct HistoryPasteItemTop : HistoryItem
 {
-    HistEvent type = heItemsPastedTop;
     int indexOfBottomItem;
     int count;          // of items pasted
     QRect boundingRect;
