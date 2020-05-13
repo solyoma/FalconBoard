@@ -96,6 +96,9 @@ void MyWhiteboard::RestoreState()
     }
     _lastDir  = s.value("lastDir",  "").toString();
     _lastFile = s.value("lastFile", "untitled.mwb").toString();
+    _sImageName = s.value("bckgrnd", "").toString();
+    if (!_sImageName.isEmpty() && !_drawArea->OpenBackgroundImage(_sImageName))
+        _sImageName.clear();
 
 }
 
@@ -119,6 +122,7 @@ void MyWhiteboard::SaveState()
     s.setValue("data", _saveName);
     s.setValue("lastDir", _lastDir);
     s.setValue("lastFile", _lastFile);
+    s.setValue("bckgrnd", _sImageName);
 }
 
 void MyWhiteboard::_LoadIcons()
@@ -415,8 +419,8 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
     {
         default:
         case smSystem:
-            _drawArea->drawColors.SetDarkMode(false);   // light mode: dark colors
-            ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]));
+            // already set : _drawArea->drawColors.SetDarkMode(false);   // light mode: dark colors
+            // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]));
             ui.actionExit   ->setIcon(_iconExit   );
             ui.action_Eraser->setIcon(_iconEraser );
             ui.actionNew    ->setIcon(_iconNew    );
@@ -429,8 +433,8 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             _sTextColor = "#000000";
             break;
         case smDark:
-            _drawArea->drawColors.SetDarkMode(true);
-            ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
+            // already set : _drawArea->drawColors.SetDarkMode(true);
+            // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
             ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
             ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, QColor(Qt::white)));
             ui.actionNew->setIcon(_ColoredIcon(_iconNew  , Qt::black, QColor(Qt::white)));
@@ -443,8 +447,8 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             _sTextColor = "#E1E1E1";
             break;
         case smBlack:
-            _drawArea->drawColors.SetDarkMode(true);
-            ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
+            // already set : _drawArea->drawColors.SetDarkMode(true);
+            // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
 
             ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
             ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, QColor(Qt::white)));

@@ -338,7 +338,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _lastDrawnItem.clear();
                 _lastDrawnItem.type = heScribble;
 
-                int margin = mods.testFlag(Qt::ShiftModifier) ? 0 : 3*_actPenWidth;
+                int margin = /* !mods.testFlag(Qt::ShiftModifier)*/ _history.SelectedSize() ? 3*_actPenWidth : 0;
 
                 int x1, y1, x2, y2, x3, y3, x4, y4;
                 x1 = _rubberRect.x()-margin;                y1 = _rubberRect.y() - margin;
@@ -575,8 +575,10 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
             _rubberRect = _rubberBand->geometry();
             bool b = _history.CollectItemsInside(_rubberRect.translated(_topLeft));
             if (_history.SelectedSize())
+            {
                 _rubberBand->setGeometry(_history.BoundingRect().translated(-_topLeft));
-            _rubberRect = _history.BoundingRect().translated(-_topLeft);
+                _rubberRect = _rubberBand->geometry(); // _history.BoundingRect().translated(-_topLeft);
+            }
         }
         else
             _RemoveRubberBand();
@@ -714,7 +716,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
         {
             if (!_spaceBarDown)
             {
-                _DrawLineTo(event->pos());
+                _DrawFreehandLineTo(event->pos());
 
                 _history.addDrawnItem(_lastDrawnItem);
 
@@ -1137,12 +1139,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
     MoveToActualPosition(phi->Area());
 // ??    _clippingRect = phi->Area();
 
-    if (phi->type == heItemsDeleted || phi->type == heVertSpace || phi->type == heRecolor)
-    {
-        _Redraw();
-    }
-    else    // heScribble, heEraser
-        _ReplotItem(phi);
+    _Redraw();
 
     _clippingRect = _canvasRect;
 

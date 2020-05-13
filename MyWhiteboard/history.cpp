@@ -2,6 +2,16 @@
 #include <QMessageBox>
 #include <QMainWindow>
 
+
+static void SwapWH(QRect& r)
+{
+	int w = r.width();
+	r.setWidth(r.height());
+	r.setHeight(w);
+
+}
+
+
 DrawnItem::DrawnItem(HistEvent he) noexcept : type(he) {}
 DrawnItem::DrawnItem(const DrawnItem& di) { *this = di; }
 DrawnItem::DrawnItem(const DrawnItem&& di) { *this = di; }
@@ -120,24 +130,20 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 				   // modify encompassing rectangle and create a big and a little square
 				   // for rotation with sides erb and erl respectively
 		 
-		// if rotR90  -> x' = erx + ery + erh - y,	y' = ery - erx + x
-		// if rotL90  -> x' = erx - ery + y,		y' = erx + ery + erw - x
+		// if h >= w d+ = erh else d+ = erw
+		// if h >= w d- = erw else d- = erh
+		// if rotR90  -> x' = erx + ery + (d+) - y,	y' = ery - erx + x
+		// if rotL90  -> x' = erx - ery + y,		y' = erx + ery + (d-) - x
 		// rot180     -> x' = 2*erx + erw - x,		y' = 2*ery + erh - y
 
-	int x, y;
+	int x, y, d;
 	int A = erx + ery,
 		B = erx - ery;
 
-	auto SwapWH = [&](QRect& r)
-	{
-		int w = r.width();
-		r.setWidth(r.height());
-		r.setHeight(w);
-	};
-
 	auto RotR90 = [&](QPoint& p)
 	{
-		x = A + erh - p.y();
+		d = erh >= erw ? erw : erh;
+		x = A + d - p.y();
 		y = -B + p.x();
 		p.setX(x); p.setY(y);
 	};
@@ -146,11 +152,12 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 	{
 		QPoint p = QPoint(r.x(), r.y() + r.height()); // bottom left will be top left after rotation
 		RotR90(p);
-		r.setTopLeft(p);
-		SwapWH(r);
+		QSize size = QSize(r.height(), r.width());
+		r = QRect(p, size);		// swap height and with
 	};
 	auto RotL90 = [&](QPoint& p)
 	{
+		d = erh >= erw ? erw : erh;
 		x = B + p.y();
 		y = A + erw - p.x();
 		p.setX(x); p.setY(y);
@@ -159,8 +166,8 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 	{
 		QPoint p = QPoint(r.x() + r.width(), r.y()); // top right will be top left after rotation
 		RotL90(p);
-		r.setTopLeft(p);
-		SwapWH(r);
+		QSize size = QSize(r.height(), r.width());
+		r = QRect(p, size);		// swap height and with
 	};
 
 	QPoint tl;	// top left of transformed item rectangle
@@ -171,13 +178,11 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 			for (QPoint& p : points)
 				RotR90(p);
 			RotRectR90(bndRect);
-			SwapWH(encRect);
 			break;
 		case rotL90:
 			for (QPoint& p : points)
 				RotL90(p);
 			RotRectL90(bndRect);
-			SwapWH(encRect);
 			break;
 		case rot180:
 			for (QPoint& p : points)
@@ -778,6 +783,8 @@ int HistoryRotationItem::Undo()
 	}
 	for (int n : nSelectedItemList)
 		(*pHist)[n]->Rotate(rotation, encRect);
+	SwapWH(encRect);
+
 	return 1;
 }
 
@@ -785,6 +792,7 @@ int HistoryRotationItem::Redo()
 {
 	for (int n : nSelectedItemList)
 		(*pHist)[n]->Rotate(rot, encRect);
+	SwapWH(encRect);
 	return 0;
 }
 
