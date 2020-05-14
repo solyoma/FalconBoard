@@ -594,8 +594,15 @@ void DrawArea::_DrawGrid(QPainter& painter)
     if (!_bGridOn)
         return;
     int x, y;
-    x = _nGridSpacing - (_topLeft.x() % _nGridSpacing);
-    y = _nGridSpacing - (_topLeft.y() % _nGridSpacing);
+    if (_gridIsFixed)
+    {
+        x = _nGridSpacing; y = _nGridSpacing;
+    }
+    else
+    {
+        x = _nGridSpacing - (_topLeft.x() % _nGridSpacing);
+        y = _nGridSpacing - (_topLeft.y() % _nGridSpacing);
+    }
 
     painter.setPen(QPen(_gridColor, 2, Qt::SolidLine));
     for (; y <= height(); y += _nGridSpacing)
@@ -1194,8 +1201,9 @@ void DrawArea::SetEraserCursor(QIcon *icon)
     _erasemode = true;
 }
 
-void DrawArea::SetGridOn(bool on)
+void DrawArea::SetGridOn(bool on, bool fixed)
 {
+    _gridIsFixed = fixed;
     _bGridOn = on;
     _Redraw();
 }

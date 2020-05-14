@@ -93,7 +93,7 @@ public:
     void SetCursor(CursorShape cs, QIcon* icon = nullptr);
     void SetEraserCursor(QIcon *icon = nullptr);
 
-    void SetGridOn(bool on);
+    void SetGridOn(bool on, bool fixed);
 
 signals:
     void CanUndo(bool state);     // state: true -> can undo
@@ -175,6 +175,7 @@ private:
         _textColor = "#000000";
                                 // grid 
     bool   _bGridOn = false;
+    bool   _gridIsFixed = false;
     int    _nGridSpacing = 64;
     QColor _gridColor = "#d0d0d0";
 

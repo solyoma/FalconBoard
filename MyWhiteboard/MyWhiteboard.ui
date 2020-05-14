@@ -84,6 +84,7 @@
      <string>&amp;Options</string>
     </property>
     <addaction name="actionGrid"/>
+    <addaction name="actionFixedGrid"/>
     <addaction name="separator"/>
     <addaction name="actionLightMode"/>
     <addaction name="actionDarkMode"/>
@@ -458,6 +459,14 @@
    </property>
    <property name="text">
     <string>Grid</string>
+   </property>
+  </action>
+  <action name="actionFixedGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fixed Grid</string>
    </property>
   </action>
  </widget>

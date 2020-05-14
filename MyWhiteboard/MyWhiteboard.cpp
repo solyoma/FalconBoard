@@ -73,9 +73,13 @@ void MyWhiteboard::RestoreState()
         case 's': // default on form
         default: break;
     }
+    int n = s.value("grid", 0).toInt();
+    ui.actionGrid->setChecked(n & 1);
+    ui.actionFixedGrid->setChecked(n & 2);
+    _drawArea->SetGridOn(n & 1, n & 2);
 
 #ifndef _VIEWER
-    int n = s.value("size", 3).toInt();
+    n = s.value("size", 3).toInt();
     _penWidth = n;
     _psbPenWidth->setValue(n);
     n = s.value("esize", 30).toInt();
@@ -111,6 +115,7 @@ void MyWhiteboard::SaveState()
 
     s.setValue("version", sVersion);
     s.setValue("mode", _screenMode == smSystem ? "s" :_screenMode == smDark ? "d" : "b");
+    s.setValue("grid", (ui.actionGrid->isChecked() ? 1 : 0 ) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
 #ifndef _VIEWER
     s.setValue("size", _penWidth);
     s.setValue("esize", _eraserWidth);
@@ -446,7 +451,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#282828";
             _sTextColor = "#E1E1E1";
-            _sGridColor = "#282828";
+            _sGridColor = "#202020";
             break;
         case smBlack:
             // already set : _drawArea->drawColors.SetDarkMode(true);
@@ -683,7 +688,12 @@ void MyWhiteboard::on_actionBlackMode_triggered()
 
 void MyWhiteboard::on_actionGrid_triggered()
 {
-    _drawArea->SetGridOn(ui.actionGrid->isChecked());
+    _drawArea->SetGridOn(ui.actionGrid->isChecked(), ui.actionFixedGrid->isChecked());
+}
+
+void MyWhiteboard::on_actionFixedGrid_triggered()
+{
+    _drawArea->SetGridOn(ui.actionGrid->isChecked(), ui.actionFixedGrid->isChecked());
 }
 
 #ifndef _VIEWER

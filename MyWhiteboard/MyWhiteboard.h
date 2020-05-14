@@ -51,6 +51,7 @@ private slots:
 	void on_actionRedo_triggered();
 
 	void on_actionGrid_triggered();
+	void on_actionFixedGrid_triggered();
 	void on_action_Black_triggered() ;
 	void on_action_Red_triggered()	 ;
 	void on_action_Green_triggered() ;
