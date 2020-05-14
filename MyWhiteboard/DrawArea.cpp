@@ -136,9 +136,10 @@ bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 }
 #endif
 
-void DrawArea::SetMode(bool darkMode, QString color)
+void DrawArea::SetMode(bool darkMode, QString color, QString sGridColor)
 {
     _backgroundColor = color;
+    _gridColor = sGridColor;
      drawColors.SetDarkMode( _darkMode = darkMode);
     _Redraw();                  // because pen color changed!
 }
@@ -588,6 +589,22 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 }
 
 
+void DrawArea::_DrawGrid(QPainter& painter)
+{
+    if (!_bGridOn)
+        return;
+    int x, y;
+    x = _nGridSpacing - (_topLeft.x() % _nGridSpacing);
+    y = _nGridSpacing - (_topLeft.y() % _nGridSpacing);
+
+    painter.setPen(QPen(_gridColor, 2, Qt::SolidLine));
+    for (; y <= height(); y += _nGridSpacing)
+        painter.drawLine(0, y, width(), y);
+    for (; x <= width(); x += _nGridSpacing)
+        painter.drawLine(x, 0, x, height());
+}
+
+
 /*========================================================
  * TASK:    system paint event. Paints all layers
  * PARAMS:  event
@@ -607,6 +624,8 @@ void DrawArea::paintEvent(QPaintEvent* event)
     painter.fillRect(dirtyRect, _backgroundColor);             // draw on here
     if(!_background.isNull())                                  // bottom : background layer
         painter.drawImage(dirtyRect, _background, dirtyRect);
+    if (_bGridOn)
+        _DrawGrid(painter);
             // images below drawing
     QRect r = dirtyRect.translated(_topLeft);           // screen -> absolute coord
     BelowImage* pimg = _belowImages.FirstVisible(r);    // pimg intersects r
@@ -1173,6 +1192,12 @@ void DrawArea::SetEraserCursor(QIcon *icon)
     }
     setCursor(_eraserCursor);
     _erasemode = true;
+}
+
+void DrawArea::SetGridOn(bool on)
+{
+    _bGridOn = on;
+    _Redraw();
 }
 
 void DrawArea::_SetOrigin(QPoint o)

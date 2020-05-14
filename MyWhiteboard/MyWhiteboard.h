@@ -49,6 +49,8 @@ private slots:
 
 	void on_actionUndo_triggered();
 	void on_actionRedo_triggered();
+
+	void on_actionGrid_triggered();
 	void on_action_Black_triggered() ;
 	void on_action_Red_triggered()	 ;
 	void on_action_Green_triggered() ;
@@ -127,6 +129,8 @@ private:
 
 	QString _sBackgroundColor = "#FFFFFF",
 			_sTextColor = "#000000";
+
+	QString _sGridColor = "#d0d0d0";
 
 	ScreenMode _screenMode = smSystem;
 

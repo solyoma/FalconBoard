@@ -83,6 +83,8 @@
     <property name="title">
      <string>&amp;Options</string>
     </property>
+    <addaction name="actionGrid"/>
+    <addaction name="separator"/>
     <addaction name="actionLightMode"/>
     <addaction name="actionDarkMode"/>
     <addaction name="actionBlackMode"/>
@@ -377,7 +379,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>System</string>
+    <string>System colors</string>
    </property>
   </action>
   <action name="actionDarkMode">
@@ -448,6 +450,14 @@
    </property>
    <property name="text">
     <string>Vertical space...</string>
+   </property>
+  </action>
+  <action name="actionGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grid</string>
    </property>
   </action>
  </widget>

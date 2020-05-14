@@ -431,6 +431,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             ui.action_Screenshot->setIcon(_iconScreenShot);
             _sBackgroundColor = "#FFFFFF";
             _sTextColor = "#000000";
+            _sGridColor = "#d0d0d0";
             break;
         case smDark:
             // already set : _drawArea->drawColors.SetDarkMode(true);
@@ -445,6 +446,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#282828";
             _sTextColor = "#E1E1E1";
+            _sGridColor = "#282828";
             break;
         case smBlack:
             // already set : _drawArea->drawColors.SetDarkMode(true);
@@ -458,8 +460,9 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, Qt::black, QColor(Qt::white)));
             ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, QColor(Qt::white)));
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
-            _sBackgroundColor = "#191919";
+            _sBackgroundColor = "#000000";
             _sTextColor = "#CCCCCC";
+            _sGridColor = "#202020";
             break;
     }
     if(_eraserOn)
@@ -486,7 +489,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
 
     setStyleSheet(ss);
 
-    _drawArea->SetMode(mode != smSystem, _sBackgroundColor);
+    _drawArea->SetMode(mode != smSystem, _sBackgroundColor, _sGridColor);
 }
 
 void MyWhiteboard::closeEvent(QCloseEvent* event)
@@ -678,8 +681,13 @@ void MyWhiteboard::on_actionBlackMode_triggered()
     _SetupMode(smBlack);
 }
 
+void MyWhiteboard::on_actionGrid_triggered()
+{
+    _drawArea->SetGridOn(ui.actionGrid->isChecked());
+}
+
 #ifndef _VIEWER
-void MyWhiteboard::on_action_Black_triggered() 
+void MyWhiteboard::on_action_Black_triggered()
 {
     if (!_drawArea->RecolorSelected(Qt::Key_1))
     {

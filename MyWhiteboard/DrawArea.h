@@ -75,7 +75,7 @@ public:
     bool RecolorSelected(int key); // true: recolored
 #endif
 
-    void SetMode(bool darkMode, QString color);
+    void SetMode(bool darkMode, QString color, QString gridColor);
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
     void SetPenKind(MyPenKind newKind);
     void SetPenWidth(int newWidth);
@@ -92,6 +92,8 @@ public:
 
     void SetCursor(CursorShape cs, QIcon* icon = nullptr);
     void SetEraserCursor(QIcon *icon = nullptr);
+
+    void SetGridOn(bool on);
 
 signals:
     void CanUndo(bool state);     // state: true -> can undo
@@ -155,8 +157,10 @@ private:
     // final image is shown on the widget in paintEvent(). 
     // These images are the layers to display on the widget
     // Layers from top to bottom:
+    //      _sprite         - only when moving graphs by the mouse, transparent image just holds the sprite
     //      _canvas         - transparent QImage with drawings
     //      _belowImage(es) - non-transparent screenshots or image loaded from file
+    //      _grid           - not an image. Just drawn after background when it must be shown moves together with the canvas window
     //      _background     - image loaded from file
     //      the DrawArea widget - background color
     BelowImageList _belowImages;    // one or more images from screenshots
@@ -167,7 +171,12 @@ private:
     bool    _fixedBackground = true; // background will not scroll with image
 
     bool _darkMode = false;
-    QColor _backgroundColor = Qt::white;
+    QColor  _backgroundColor = "#FFFFFF",
+        _textColor = "#000000";
+                                // grid 
+    bool   _bGridOn = false;
+    int    _nGridSpacing = 64;
+    QColor _gridColor = "#d0d0d0";
 
     QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _tlMax,     // maximum value of top left of page with drawing on it
@@ -205,6 +214,7 @@ private:
 
     bool _ReplotItem(HistoryItem* pdrni); 
     void _Redraw();
+    void _DrawGrid(QPainter &painter);
     QColor _PenColor();
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
