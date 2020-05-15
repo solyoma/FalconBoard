@@ -1,6 +1,7 @@
 #include "history.h"
 #include <QMessageBox>
 #include <QMainWindow>
+#include <algorithm>
 
 
 static void SwapWH(QRect& r)
@@ -10,7 +11,6 @@ static void SwapWH(QRect& r)
 	r.setHeight(w);
 
 }
-
 
 DrawnItem::DrawnItem(HistEvent he) noexcept : type(he) {}
 DrawnItem::DrawnItem(const DrawnItem& di) { *this = di; }
@@ -120,7 +120,7 @@ void DrawnItem::Translate(QPoint dr, int minY)
 	bndRect.translate(dr);
 }
 
-void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the center of encRect
+void DrawnItem::Rotate(MyRotation rotation, QRect encRect)	// rotate around the center of encRect
 {
 	int erx = encRect.x(), ery = encRect.y(),
 		erw = encRect.width(),
@@ -142,7 +142,7 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 
 	auto RotR90 = [&](QPoint& p)
 	{
-		d = erh >= erw ? erw : erh;
+		d = (erh >= erw) ? (rot == rotNone ? erh : erw) : (rot == rotNone ? erw : erh);
 		x = A + d - p.y();
 		y = -B + p.x();
 		p.setX(x); p.setY(y);
@@ -157,7 +157,7 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 	};
 	auto RotL90 = [&](QPoint& p)
 	{
-		d = erh >= erw ? erw : erh;
+		d = (erh >= erw) ? (rot == rotNone ? erw : erh) : (rot == rotNone ? erh : erw);
 		x = B + p.y();
 		y = A + erw - p.x();
 		p.setX(x); p.setY(y);
@@ -172,7 +172,7 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 
 	QPoint tl;	// top left of transformed item rectangle
 
-	switch (rot)
+	switch (rotation)
 	{
 		case rotR90:
 			for (QPoint& p : points)
@@ -205,6 +205,12 @@ void DrawnItem::Rotate(MyRotation rot, QRect encRect)	// rotate around the cente
 		default:
 			break;
 	}
+
+	if (rot == rotNone)		// save rotation for undo
+		rot = rotation;
+	else
+		rot = rotNone;		// undone: no rotation set yet
+
 }
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
@@ -259,6 +265,23 @@ inline QDataStream& operator>>(QDataStream& ifs, BelowImage& bimg)
 /*========================================================
  * One history element
  *-------------------------------------------------------*/
+
+bool HistoryItem::operator<(const HistoryItem& other)
+{
+	if (!IsSaveable() || Hidden())
+		return false;
+	if (!other.IsSaveable() || other.Hidden())
+		return true;
+
+	if (TopLeft().y() < other.TopLeft().y())
+		return true;
+	else if (TopLeft().y() == other.TopLeft().y() )
+	{
+		if (TopLeft().x() < other.TopLeft().x())
+			return true;
+	}
+	return false;
+}
 
  //--------------------------------------------
 HistoryClearCanvasItem::HistoryClearCanvasItem(History* pHist) : HistoryItem(pHist)
@@ -691,6 +714,11 @@ int  HistoryScreenShotItem::Redo() // show
 	return 0;
 }
 
+QPoint HistoryScreenShotItem::TopLeft() const
+{
+	return (*pHist->pImages)[which].topLeft;
+}
+
 QRect HistoryScreenShotItem::Area() const
 {
 	return QRect((*pHist->pImages)[which].topLeft, (*pHist->pImages)[which].image.size());
@@ -722,24 +750,6 @@ void HistoryScreenShotItem::Rotate(MyRotation rot, QRect encRect)
 HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList) :
 	HistoryItem(pHist), rot(rotation), nSelectedItemList(selList), encRect(rect)
 {
-	switch (rot)
-	{
-		case rotR90:
-			deg = -90;
-			break;
-		case rotL90:
-			deg = 90;
-			break;
-		case rot180:
-			deg = 180;
-			break;
-		case rotFlipH:
-			flipH = true;
-			break;
-		case rotFlipV:
-			flipV = true;
-			break;
-	}
 	encRect = encRect;
 	Redo();
 }
@@ -747,7 +757,6 @@ HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QR
 HistoryRotationItem::HistoryRotationItem(const HistoryRotationItem& other) :
 	HistoryItem(other.pHist), rot(other.rot), nSelectedItemList(other.nSelectedItemList)
 {
-	deg = other.deg;
 	flipV = other.flipV;
 	flipH = other.flipH;
 	encRect = other.encRect;
@@ -757,7 +766,6 @@ HistoryRotationItem& HistoryRotationItem::operator=(const HistoryRotationItem& o
 {
 	pHist = other.pHist;
 	nSelectedItemList = other.nSelectedItemList;
-	deg = other.deg;
 	flipV = other.flipV;
 	flipH = other.flipH;
 	encRect = other.encRect;
@@ -881,6 +889,19 @@ bool History::_IsSaveable(int i)
 	return _items[i]->IsSaveable();
 }
 
+std::vector<HistoryItem*> History::_SortByYX(int from)
+{
+	int i0 = _GetStartIndex();	// first after a clear canvas
+	if (i0 < 0)
+		return std::vector<HistoryItem*>();					// if no elements
+
+	std::vector<HistoryItem*> itemsToSort(_actItem -i0 + 1);
+	for ( int i = i0  ; i <= _actItem; ++i)
+		itemsToSort[i-i0] = _items[i];
+	std::sort(itemsToSort.begin(), itemsToSort.end(), [](HistoryItem* hil, HistoryItem* hir)->int {return *hil < *hir; });
+	return itemsToSort;
+}
+
 History::~History()
 {
 	for (int i = 0; i < _items.size(); ++i)
@@ -923,12 +944,16 @@ HistoryItem* History::operator[](int index)
 bool History::Save(QString name)
 {
 	// only save after last clear screen op.
+
+
 	int i = _GetStartIndex();   // index of first visible item after a clear screen
 	if (i < 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
 		return false;;
 	}
+
+	std::vector<HistoryItem*> toBeSavedList =  _SortByYX(i);
 
 	QFile f(name + ".tmp");
 	f.open(QIODevice::WriteOnly);
@@ -938,8 +963,29 @@ bool History::Save(QString name)
 
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
+#if 1
+	for (auto& ph : toBeSavedList)
+	{
+		if (ofs.status() != QDataStream::Ok)
+		{
+			f.remove();
+			return false;
+		}
+		if (ph->Hidden())		// hidden elements are at end of list
+			break;
+		int index = -1;
+		if (ph->type == heScreenShot)
+		{
+			ofs << (*pImages)[((HistoryScreenShotItem*)ph)->which];
+			continue;
+		}
+		DrawnItem* pdrni;
+		while ((pdrni = ph->GetDrawable(++index)) != nullptr)
+			ofs << *pdrni;
+	}
+#else
 	// each 
-	while (++i < _endItem)
+	while (++i < _actItem)
 	{
 		if (ofs.status() != QDataStream::Ok)
 		{
@@ -960,6 +1006,7 @@ bool History::Save(QString name)
 				ofs << *pdrni;
 		}
 	}
+#endif
 	_modified = false;
 	if (QFile::exists(name + "~"))
 		QFile::remove(QString(name + "~"));

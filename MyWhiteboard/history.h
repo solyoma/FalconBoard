@@ -46,6 +46,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     MyPenKind penKind = penBlack;
     int penWidth =1;
     QVector<QPoint> points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
+    MyRotation rot = rotNone;       // used only when rotation item added
     QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
                                     // not saved on disk, recreated on read
 
@@ -192,6 +193,7 @@ struct HistoryItem      // base class
     HistoryItem(History* pHist, HistEvent typ=heNone) : pHist(pHist), type(typ) {}
     virtual ~HistoryItem() {}
 
+    virtual QPoint TopLeft() const { return QPoint(); }
     virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
 
     virtual bool Translatable() const { return false;  }
@@ -205,7 +207,9 @@ struct HistoryItem      // base class
     virtual int Redo() { return 0; }        // returns amount _actItem in History need to be changed (after ++_actItem still add this to it)
     virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
     virtual bool Hidden() const { return true; }    // must not draw it
-    virtual bool IsSaveable() const  { return ! Hidden(); }    // use when items may be hidden
+    virtual bool IsSaveable() const  { return !Hidden(); }    // use when items may be hidden
+
+    virtual bool operator<(const HistoryItem& other);
 };
 
 
@@ -231,7 +235,8 @@ struct HistoryDrawnItem : public HistoryItem
 
     HistoryDrawnItem& operator=(const HistoryDrawnItem& other);
     HistoryDrawnItem& operator=(const HistoryDrawnItem&& other);
-//    bool IsSaveable() const override;
+
+    QPoint TopLeft() const override { return drawnItem.bndRect.topLeft(); }
     DrawnItem* GetDrawable(int index = 0) const override;
     QRect Area() const override;
     int Size() const override { return 1; }
@@ -316,6 +321,7 @@ struct HistoryPasteItemTop : HistoryItem
     void Translate(QPoint p, int minY) override;
     void Rotate(MyRotation rot, QRect encRect) override;
 
+    QPoint TopLeft() const override { return boundingRect.topLeft(); }
     QRect Area() const override;
 };
 //--------------------------------------------
@@ -362,6 +368,7 @@ struct HistoryScreenShotItem : public HistoryItem
     HistoryScreenShotItem& operator=(const HistoryScreenShotItem& other);
     int Undo() override;
     int Redo() override;
+    QPoint TopLeft() const override;
     QRect Area() const override;
     bool Hidden() const override;       // when the first element is hidden, all hidden
     void SetVisibility(bool visible) override; // for all elements in list
@@ -373,7 +380,6 @@ struct HistoryScreenShotItem : public HistoryItem
 struct HistoryRotationItem : HistoryItem
 {
     MyRotation rot;
-    int deg = 0;
     bool flipH = false;
     bool flipV = false;
     IntVector nSelectedItemList;
@@ -435,6 +441,8 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _GetStartIndex();               // find first drawable item in '_items' after a clear screen 
                                         // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
     bool _IsSaveable(int i);
+
+    std::vector<HistoryItem*> _SortByYX(int from);                   // sort _items in ascending y then x before save
 
 public:
     BelowImageList* pImages = nullptr;  // set in DrawArea constructor

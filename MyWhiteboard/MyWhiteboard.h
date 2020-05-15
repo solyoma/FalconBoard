@@ -19,7 +19,7 @@
 
 #include "ui_MyWhiteboard.h"
 
-class DrawArea;
+//class DrawArea;
 
 const int HISTORY_DEPTH = 20;
 
@@ -37,6 +37,8 @@ protected:
 	void showEvent(QShowEvent* event) override;
 
 private slots:
+	void on_actionGrid_triggered();
+	void on_actionFixedGrid_triggered();
 #ifndef _VIEWER
 	void on_actionNew_triggered();
 
@@ -50,8 +52,6 @@ private slots:
 	void on_actionUndo_triggered();
 	void on_actionRedo_triggered();
 
-	void on_actionGrid_triggered();
-	void on_actionFixedGrid_triggered();
 	void on_action_Black_triggered() ;
 	void on_action_Red_triggered()	 ;
 	void on_action_Green_triggered() ;

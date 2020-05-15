@@ -101,9 +101,10 @@ void MyWhiteboard::RestoreState()
     _lastDir  = s.value("lastDir",  "").toString();
     _lastFile = s.value("lastFile", "untitled.mwb").toString();
     _sImageName = s.value("bckgrnd", "").toString();
+#ifndef _VIEWER
     if (!_sImageName.isEmpty() && !_drawArea->OpenBackgroundImage(_sImageName))
         _sImageName.clear();
-
+#endif
 }
 
 void MyWhiteboard::SaveState()
