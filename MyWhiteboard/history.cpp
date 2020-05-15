@@ -12,6 +12,8 @@ static void SwapWH(QRect& r)
 
 }
 
+//-------------------------------------------------
+
 DrawnItem::DrawnItem(HistEvent he) noexcept : type(he) {}
 DrawnItem::DrawnItem(const DrawnItem& di) { *this = di; }
 DrawnItem::DrawnItem(const DrawnItem&& di) { *this = di; }
@@ -245,7 +247,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 	return ifs;
 }
 
-inline QDataStream& operator<<(QDataStream& ofs, const BelowImage& bimg)
+inline QDataStream& operator<<(QDataStream& ofs, const ScreenShotImage& bimg)
 {
 	ofs << (int)heScreenShot << bimg.topLeft.x() << bimg.topLeft.y();
 	ofs << bimg.image;
@@ -253,13 +255,102 @@ inline QDataStream& operator<<(QDataStream& ofs, const BelowImage& bimg)
 	return ofs;
 }
 
-inline QDataStream& operator>>(QDataStream& ifs, BelowImage& bimg)
+inline QDataStream& operator>>(QDataStream& ifs, ScreenShotImage& bimg)
 {	 // type already read in
 	int x, y;
 	ifs >> x >> y;
 	bimg.topLeft = QPoint(x, y);
 	ifs >> bimg.image;
 	return ifs;
+}
+
+
+//------------------------------------------------
+
+
+QRect ScreenShotImage::Area(const QRect& canvasRect) const
+{
+	return QRect(topLeft, QSize(image.width(), image.height())).intersected(canvasRect);
+}
+
+void ScreenShotImage::Translate(QPoint p, int minY)
+{
+	if (topLeft.y() >= minY)
+		topLeft += p;
+
+}
+
+void ScreenShotImage::Rotate(MyRotation rot, QRect encRect)
+{
+	QTransform transform;
+	int deg;
+	switch (rot)
+	{
+		case rotR90: transform.rotate(270); image = image.transformed(transform, Qt::SmoothTransformation); break;
+		case rotL90: transform.rotate(90);  image = image.transformed(transform, Qt::SmoothTransformation); break;
+		case rot180: transform.rotate(180); image = image.transformed(transform, Qt::SmoothTransformation); break;
+		case rotFlipH: image = image.mirrored(true, false); break;
+		case rotFlipV: image = image.mirrored(false, true); break;
+		default: break;
+	}
+}
+
+// ---------------------------------------------
+
+void ScreenShotImageList::Add(QImage& image, QPoint pt)
+{
+	ScreenShotImage img;
+	img.image = image;
+	img.topLeft = pt;
+	(*this).push_back(img);
+}
+
+QRect ScreenShotImageList::Area(int index, const QRect& canvasRect) const
+{
+	return (*this)[index].Area(canvasRect);
+}
+
+ScreenShotImage* ScreenShotImageList::NextVisible()
+{
+	if (_canvasRect.isNull())
+		return nullptr;
+
+	while (++_index < size())
+	{
+		if ((*this)[_index].isVisible)
+		{
+			if (!Area(_index, _canvasRect).isNull())
+				return &(*this)[_index];
+		}
+	}
+	return nullptr;
+}
+
+ScreenShotImage* ScreenShotImageList::FirstVisible(const QRect& canvasRect)
+{
+	_index = -1;
+	_canvasRect = canvasRect;
+	return NextVisible();
+}
+
+void ScreenShotImageList::Translate(int which, QPoint p, int minY)
+{
+	if (which < 0 || which >= size() || (*this)[which].isVisible)
+		return;
+	(*this)[which].Translate(p, minY);
+}
+
+void ScreenShotImageList::Rotate(int which, MyRotation rot, QRect encRect)
+{
+	if (which < 0 || which >= size() || (*this)[which].isVisible)
+		return;
+	(*this)[which].Rotate(rot, encRect);
+}
+
+
+void ScreenShotImageList::Clear()
+{
+	QList<ScreenShotImage>::clear();
 }
 
 /*========================================================
@@ -696,21 +787,24 @@ HistoryScreenShotItem& HistoryScreenShotItem::operator=(const HistoryScreenShotI
 {
 	type = heScreenShot;
 	which = other.which;
-	isVisible = other.isVisible;
 	return *this;
+}
+
+HistoryScreenShotItem::~HistoryScreenShotItem()
+{
+	// remove image from memory, but leave empty screenshot item in screenshot list
+//	(*pHist->pImages)[which].image = QImage();
 }
 
 int  HistoryScreenShotItem::Undo() // hide
 {
 	(*pHist->pImages)[which].isVisible = false;
-	isVisible = false;
 	return 1;
 }
 
 int  HistoryScreenShotItem::Redo() // show
 {
 	(*pHist->pImages)[which].isVisible = true;
-	isVisible = true;
 	return 0;
 }
 
@@ -726,12 +820,16 @@ QRect HistoryScreenShotItem::Area() const
 
 bool HistoryScreenShotItem::Hidden() const
 {
-	return !isVisible;
+	return !(*pHist->pImages)[which].isVisible;
+}
+
+bool HistoryScreenShotItem::Translatable() const
+{
+	return !Hidden();
 }
 
 void HistoryScreenShotItem::SetVisibility(bool visible)
 {
-	isVisible = visible;
 	(*pHist->pImages)[which].isVisible = visible;
 }
 
@@ -1034,7 +1132,7 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 	lastPosition = QPoint(0, 0);
 
 	DrawnItem di;
-	BelowImage bimg;
+	ScreenShotImage bimg;
 	int i = 0, n;
 	while (!ifs.atEnd())
 	{
@@ -1102,12 +1200,21 @@ HistoryItem* History::addDeleteItems()
 
 HistoryItem* History::addPastedItems(QPoint topLeft)			   // tricky
 {
-	if (!_copiedItems.size())
+	if (!_copiedItems.size() && !_copiedImages.size())
 		return nullptr;          // do not add an empty list
   // add bottom item
 	int indexOfBottomItem = _actItem+1;
-	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, indexOfBottomItem, _copiedItems.size());
+	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, indexOfBottomItem, _copiedItems.size() + _copiedImages.size());
 	_AddItem(pb);		  
+	// Add screenshots
+	for (ScreenShotImage si : _copiedImages)
+	{
+		pImages->push_back(si);
+		int n = pImages->size() - 1;
+		(*pImages)[n].Translate(topLeft, -1);
+		HistoryScreenShotItem* p = new HistoryScreenShotItem(this, n);
+		_AddItem(p);
+	}
   // Add drawable items
 	HistoryDrawnItem* pdri;
 	for (DrawnItem di : _copiedItems)	// do not modify copied item list
@@ -1118,7 +1225,7 @@ HistoryItem* History::addPastedItems(QPoint topLeft)			   // tricky
 	}
   // finish by adding top item
 	QRect rect = _copiedRect.translated(topLeft);
-	HistoryPasteItemTop* p = new HistoryPasteItemTop(this, indexOfBottomItem, _copiedItems.size(), rect);
+	HistoryPasteItemTop* p = new HistoryPasteItemTop(this, indexOfBottomItem, _copiedItems.size() + _copiedImages.size(), rect);
 	return _AddItem(p);
 }
 
@@ -1155,13 +1262,13 @@ HistoryItem* History::addRemoveSpaceItem(QRect& rect)
 {
 	bool bNothingAtRight = _nItemsRightOfList.isEmpty(),
 		bNothingAtLeftAndRight = bNothingAtRight && _nItemsLeftOfList.isEmpty(),
-		bJustVerticalSpace = bNothingAtLeftAndRight && _nIndexOfFirstBelow != 0x7FFFFFFF;
+		bJustVerticalSpace = bNothingAtLeftAndRight && _nIndexOfFirstScreenShot != 0x7FFFFFFF;
 
 	if ((bNothingAtRight && !bNothingAtLeftAndRight) || (bNothingAtLeftAndRight && !bJustVerticalSpace))
 		return nullptr;
 
-	// Here _nIndexofFirstBelow is less than 0x7FFFFFFF
-	HistoryRemoveSpaceitem* phrs = new HistoryRemoveSpaceitem(this, _nItemsRightOfList, _nIndexOfFirstBelow, _nItemsRightOfList.size() ? rect.width() : rect.height());
+	// Here _nIndexofFirstScreenShot is less than 0x7FFFFFFF
+	HistoryRemoveSpaceitem* phrs = new HistoryRemoveSpaceitem(this, _nItemsRightOfList, _nIndexOfFirstScreenShot, _nItemsRightOfList.size() ? rect.width() : rect.height());
 	return _AddItem(phrs);
 }
 
@@ -1259,7 +1366,7 @@ HistoryItem* History::Redo()   // returns item to redo
  *			respectively
  *			also sets index of first iem, which is
  *			completely below the selected region into
- *			'_nIndexOfFirstBelow' and '-selectionRect'
+ *			'_nIndexOfFirstScreenShot' and '-selectionRect'
  * PARAMS: rect: (0,0) relative rectangle
  * GLOBALS:
  * RETURNS:	size of selecetd item list + lists filled
@@ -1288,7 +1395,7 @@ int History::CollectItemsInside(QRect rect) // only
 	_nSelectedItemsList.clear();
 	_nItemsRightOfList.clear();
 	_nItemsLeftOfList.clear();
-	_nIndexOfFirstBelow = 0x7FFFFFFF;
+	_nIndexOfFirstScreenShot = 0x7FFFFFFF;
 
 	_selectionRect = QRect();     // minimum size of selection (0,0) relative!
 		// just check scribbles after the last clear screen
@@ -1310,8 +1417,8 @@ int History::CollectItemsInside(QRect rect) // only
 				_nItemsRightOfList.push_back(i);
 			else if (leftOfRect(rect, item->Area()))
 				_nItemsLeftOfList.push_back(i);
-			if (i < _nIndexOfFirstBelow && item->Area().y() > rect.y() + rect.height())
-				_nIndexOfFirstBelow = i;
+			if (i < _nIndexOfFirstScreenShot && item->Area().y() > rect.y() + rect.height())
+				_nIndexOfFirstScreenShot = i;
 		}
 	}
 	if (_nSelectedItemsList.isEmpty())		// save for removing empty space
@@ -1343,8 +1450,9 @@ void History::CopySelected()
 			const HistoryItem* item = _items[i];
 			if (item->type == heScreenShot)
 			{
-				BelowImage* pbmi = &(*pImages)[dynamic_cast<const HistoryScreenShotItem*>(item)->which];
+				ScreenShotImage* pbmi = &(*pImages)[dynamic_cast<const HistoryScreenShotItem*>(item)->which];
 				_copiedImages.push_back(*pbmi);
+				_copiedImages[_copiedImages.size() - 1].Translate(-_selectionRect.topLeft(), -1);
 			}
 			else
 			{

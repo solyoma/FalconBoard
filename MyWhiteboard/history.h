@@ -76,103 +76,35 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di);
 
 // ******************************************************
 // image to shown on background
-struct BelowImage {           // shown below the drawings
+struct ScreenShotImage {           // shown below the drawings
     QImage image;              // image from the disk or from screenshot
     QPoint topLeft;            // relative to (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
     bool isVisible = true;
             // canvasRect relative to (0,0)
             // result: relative to image
             // isNull() true when no intersection
-    QRect Area(const QRect& canvasRect) const
-    {
-        return QRect(topLeft, QSize(image.width(), image.height())).intersected(canvasRect);
-    }
-    void Translate(QPoint p, int minY)
-    {
-        if(topLeft.y() >= minY)
-            topLeft += p;
-    }
-    void Rotate(MyRotation rot, QRect encRect)
-    {
-        QTransform transform;
-        int deg;
-        switch (rot)
-        {
-            case rotR90: transform.rotate(270); image = image.transformed(transform,Qt::SmoothTransformation); break;
-            case rotL90: transform.rotate(90);  image = image.transformed(transform,Qt::SmoothTransformation); break;
-            case rot180: transform.rotate(180); image = image.transformed(transform,Qt::SmoothTransformation); break;
-            case rotFlipH: image = image.mirrored(true, false); break;
-            case rotFlipV: image = image.mirrored(false, true); break;
-            default: break;
-        }
-    }
+    QRect Area(const QRect& canvasRect) const;
+    void Translate(QPoint p, int minY);
+    void Rotate(MyRotation rot, QRect encRect);
 };
 
-inline QDataStream& operator<<(QDataStream& ofs, const BelowImage& bimg);
-inline QDataStream& operator>>(QDataStream& ifs, BelowImage& bimg);
+inline QDataStream& operator<<(QDataStream& ofs, const ScreenShotImage& bimg);
+inline QDataStream& operator>>(QDataStream& ifs, ScreenShotImage& bimg);
 
-class  BelowImageList : public  QList<BelowImage>
+class  ScreenShotImageList : public  QList<ScreenShotImage>
 {
     int _index = -1;
     QRect _canvasRect;
 public:
-    void Add(QImage& image, QPoint pt)
-    {
-        BelowImage img;
-        img.image = image;
-        img.topLeft = pt;
-        (*this).push_back(img);
-    }
-
+    void Add(QImage& image, QPoint pt);
     // canvasRect and result are relative to (0,0)
-    QRect Area(int index, const QRect& canvasRect) const
-    {
-        return (*this)[index].Area(canvasRect);
-    }
-
-    BelowImage* NextVisible()
-    {
-        if (_canvasRect.isNull())
-            return nullptr;
-
-        while (++_index < size())
-        {
-            if ((*this)[_index].isVisible)
-            {
-                if (!Area(_index, _canvasRect).isNull())
-                    return &(*this)[_index];
-            }
-        }
-        return nullptr;
-    }
-
-    BelowImage* FirstVisible(const QRect& canvasRect)
-    {
-        _index = -1;
-        _canvasRect = canvasRect;
-        return NextVisible();
-    }
-
-    void Translate(int which, QPoint p, int minY)
-    {
-        if (which < 0 || which >= size() || (*this)[which].isVisible)
-            return;
-        (*this)[which].Translate(p, minY);
-    }
-    void Rotate(int which, MyRotation rot, QRect encRect)
-    {
-        if (which < 0 || which >= size() || (*this)[which].isVisible)
-            return;
-        (*this)[which].Rotate(rot, encRect);
-    }
-
-
-    void Clear()
-    {
-        QList<BelowImage>::clear();
-    }
+    QRect Area(int index, const QRect& canvasRect) const;
+    ScreenShotImage* NextVisible();
+    ScreenShotImage* FirstVisible(const QRect& canvasRect);
+    void Translate(int which, QPoint p, int minY);
+    void Rotate(int which, MyRotation rot, QRect encRect);
+    void Clear();
 };
-
 
 //*********************************************************
 using DrawnItemVector = QVector<DrawnItem>;
@@ -361,18 +293,18 @@ struct HistoryInsertVertSpace : HistoryItem
 struct HistoryScreenShotItem : public HistoryItem
 {
     int which;
-    bool isVisible = true;
 
     HistoryScreenShotItem(History* pHist, int which);
     HistoryScreenShotItem(const HistoryScreenShotItem &other);
     HistoryScreenShotItem& operator=(const HistoryScreenShotItem& other);
+    ~HistoryScreenShotItem();
     int Undo() override;
     int Redo() override;
     QPoint TopLeft() const override;
     QRect Area() const override;
     bool Hidden() const override;       // when the first element is hidden, all hidden
     void SetVisibility(bool visible) override; // for all elements in list
-    bool Translatable() const override { return isVisible; }
+    bool Translatable() const override;
     void Translate(QPoint p, int minY) override;
     void Rotate(MyRotation rot, QRect encRect) override;
 };
@@ -419,13 +351,13 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _endItem = 0;                   // index until a redo can go (max value: _items.size()
 
     DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
-    BelowImageList   _copiedImages;
+    ScreenShotImageList   _copiedImages;
     QRect _copiedRect;                  // encompassing rectangle for copied items used for paste operation
 
     IntVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band
               _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
               _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
-    int _nIndexOfFirstBelow;            // index of the first drawable (not image) element that is below a given y 
+    int _nIndexOfFirstScreenShot;            // index of the first drawable (not image) element that is below a given y 
     QRect _selectionRect;               // encompassing rectangle for selected items OR rectangle in which there are no items
                                         // when _nSelectedItemList is empty
 
@@ -445,7 +377,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     std::vector<HistoryItem*> _SortByYX(int from);                   // sort _items in ascending y then x before save
 
 public:
-    BelowImageList* pImages = nullptr;  // set in DrawArea constructor
+    ScreenShotImageList* pImages = nullptr;  // set in DrawArea constructor
 
     History() {}
     ~History();

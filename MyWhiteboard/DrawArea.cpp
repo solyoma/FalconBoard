@@ -159,9 +159,9 @@ void DrawArea::SetEraserWidth(int newWidth)
     _eraserWidth = newWidth;
 }
 
-void DrawArea::AddBelowImage(QImage& image)
+void DrawArea::AddScreenShotImage(QImage& image)
 {
-    BelowImage bimg;
+    ScreenShotImage bimg;
     bimg.image = image;
     int x = (geometry().width() -  image.width()) / 2,
         y = (geometry().height() - image.height()) / 2;
@@ -171,6 +171,8 @@ void DrawArea::AddBelowImage(QImage& image)
     bimg.topLeft = QPoint(x, y) + _topLeft;
     _belowImages.push_back(bimg);
     _history.addScreenShot(_belowImages.size()-1);
+    emit CanUndo(true);
+    emit CanRedo(false);
 }
 
 #ifndef _VIEWER
@@ -299,7 +301,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 			if (bPaste)
 			{           // _history's copied item list is valid, each item is canvas relative
-				
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
 				QPoint dr = _rubberRect.translated(_topLeft).topLeft(); 
 
@@ -635,7 +636,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
         _DrawGrid(painter);
             // images below drawing
     QRect r = dirtyRect.translated(_topLeft);           // screen -> absolute coord
-    BelowImage* pimg = _belowImages.FirstVisible(r);    // pimg intersects r
+    ScreenShotImage* pimg = _belowImages.FirstVisible(r);    // pimg intersects r
     while (pimg)                                               // image layer
     {
         QRect intersectRect = pimg->Area(r);      // absolute

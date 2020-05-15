@@ -83,7 +83,7 @@ public:
 
     void SetOrigin() { _topLeft = QPoint(); }
 
-    void AddBelowImage(QImage& image);
+    void AddScreenShotImage(QImage& image);
 
 
     bool IsModified() const { return  _history.IsModified(); }
@@ -163,7 +163,7 @@ private:
     //      _grid           - not an image. Just drawn after background when it must be shown moves together with the canvas window
     //      _background     - image loaded from file
     //      the DrawArea widget - background color
-    BelowImageList _belowImages;    // one or more images from screenshots
+    ScreenShotImageList _belowImages;    // one or more images from screenshots
     QImage  _background,   
             _canvas;        // transparent layer, draw on this then show background and this on the widget
                             // origin: (0,0) point on canvas first shown

@@ -881,7 +881,7 @@ void MyWhiteboard::SlotForScreenshotReady(QRect gmetry)
     QPainter *painter = new QPainter(&image);   // need to delete it before the label is deleted
     painter->drawImage(QPoint(0,0), plblScreen->pixmap()->toImage(), gmetry);
     delete painter;
-    _drawArea->AddBelowImage(image);
+    _drawArea->AddScreenShotImage(image);
 
     _ConnectDisconnectScreenshotLabel(false);
     delete plblScreen;
