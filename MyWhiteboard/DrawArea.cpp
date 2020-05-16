@@ -1,6 +1,7 @@
 #include "DrawArea.h"
 #include "DrawArea.h"
 
+#include <QApplication>
 #include <QMouseEvent>
 
 #include <QPainter>
@@ -279,7 +280,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
             if (bDelete || bCopy || bRecolor || bRotate)
             {
-                if ((bCollected = _history.SelectedSize()) && !bDelete)
+                if ((bCollected = _history.SelectedSize()) && !bDelete && !bRotate)
                 {
                     _history.CopySelected();
                     _scribblesCopied = true;        // never remove selected list
@@ -447,10 +448,17 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
 #ifndef _VIEWER
         if (_rubberBand )
         {
-            if (_rubberRect.contains(event->pos()))          // create sprite
+            if (_history.SelectedSize() &&  _rubberRect.contains(event->pos()))         
             {
-
+                if (_CreateSprite(event->pos(), _rubberRect))
+                {
+                    _history.addDeleteItems(_pSprite);
+                    _Redraw();
+//                    QApplication::processEvents();
+                }
+                
             }
+
             _RemoveRubberBand();
         }
 
@@ -466,6 +474,8 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
         _rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
         _rubberBand->show();
         emit RubberBandSelection(true);
+#else
+    _lastPointC = event->pos();     // used for moving the canvas around
 #endif
     }
 
@@ -483,18 +493,28 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
         if (!dr.manhattanLength())
             return;
 
-        if (_spaceBarDown)
+#ifndef _VIEWER
+        if (_pSprite)     // move sprite
         {
-            _ShiftOrigin(dr);
-            _Redraw();
-
+            MoveSprite(dr);
             _lastPointC = event->pos();
         }
-#ifndef _VIEWER
         else
         {
-            if(_DrawFreehandLineTo(event->pos()) )
-                _lastDrawnItem.add(_lastPointC + _topLeft);
+#endif
+            if (_spaceBarDown)
+            {
+                _ShiftOrigin(dr);
+                _Redraw();
+
+                _lastPointC = event->pos();
+            }
+#ifndef _VIEWER
+            else
+            {
+                if (_DrawFreehandLineTo(event->pos()))
+                    _lastDrawnItem.add(_lastPointC + _topLeft);
+            }
         }
 #endif
     }
@@ -552,20 +572,31 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton && _scribbling) 
     {
-        if (!_spaceBarDown)
-        {
 #ifndef _VIEWER
-            _DrawFreehandLineTo(event->pos());
-
-            _history.addDrawnItem(_lastDrawnItem);
-
-            emit CanUndo(true);
-            emit CanRedo(false);
-#endif
+        if (_pSprite)
+        {
+            _PasteSprite();
+            _Redraw();
         }
         else
-            _RestoreCursor();
+        {
+#endif
+            if (!_spaceBarDown)
+            {
+#ifndef _VIEWER
+                _DrawFreehandLineTo(event->pos());
 
+                _history.addDrawnItem(_lastDrawnItem);
+
+                emit CanUndo(true);
+                emit CanRedo(false);
+#endif
+            }
+            else
+                _RestoreCursor();
+#ifndef _VIEWER
+        }
+#endif
         _scribbling = false;
         _startSet = false;
     }
@@ -645,7 +676,8 @@ void DrawArea::paintEvent(QPaintEvent* event)
     }
             // top of these the drawing
     painter.drawImage(dirtyRect, _canvas, dirtyRect);          // canvas layer
-//  painter.drawImage(dirtyRect, _sprite, dirtyRect);          // sprite layer: dirtyRect: actual area below sprite 
+    if(_pSprite)
+        painter.drawImage(dirtyRect.translated(_pSprite->topLeft), _pSprite->image, dirtyRect);  // sprite layer: dirtyRect: actual area below sprite 
 }
 
 void DrawArea::resizeEvent(QResizeEvent* event)
@@ -1290,5 +1322,99 @@ void DrawArea::_Right(int amount)
 void DrawArea::ShowCoordinates(const QPoint& qp)
 {
     emit TextToToolbar(QString("x:%1, y:%2").arg(qp.x()).arg(qp.y()));
+}
+
+// ****************************** Sprite ******************************
+
+/*========================================================
+ * TASK:    Create a new sprite using lists of selected 
+ *          items and images
+ * PARAMS:  event position and _rubberRect position; both
+ *          relative to _topLeft
+ * GLOBALS: _topLeft, _pSprite
+ * RETURNS: _pSprite
+ * REMARKS: - _nSelectedList is used to create the other lists
+ *            which leaves previously copied items intact
+ *              so paste operation still pastes the non sprite
+ *              data
+ *-------------------------------------------------------*/
+Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect)
+{
+    _pSprite = new Sprite(&_history);       // copies selected items into lists
+    _pSprite->topLeft = rect.topLeft();     // sprite top left
+    _pSprite->dp = pos - rect.topLeft();    // cursor position rel. to sprite
+    _pSprite->image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32);
+    _pSprite->image.fill(qRgba(255, 255, 255, 0));     // transparent
+
+    QPainter painter(&_pSprite->image);
+    QRect sr, tr;   // source & target
+    for (ScreenShotImage& si : _pSprite->images)
+    {
+        tr = _pSprite->rect;        // (0,0, width, height)
+        sr = si.image.rect();       // -"-
+
+        if (sr.width() > tr.width())
+            sr.setWidth(tr.width());
+        if (sr.height() > tr.height())
+            sr.setHeight(tr.height());
+        if (sr.width() < tr.width())
+            tr.setWidth(sr.width());
+        if (tr.height() < sr.height())
+            tr.setHeight(sr.height());
+
+        painter.drawImage(tr, si.image, sr);
+    }
+        // save color and line width
+    MyPenKind pk = _myPenKind;
+    int pw = _actPenWidth;
+    bool em = _erasemode;
+
+
+    for (auto& di : _pSprite->items)
+    {
+        _myPenKind = di.penKind;
+        _actPenWidth = di.penWidth;
+        _erasemode = di.type == heEraser ? true : false;
+        painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
+                            Qt::RoundJoin));
+        QPoint p0 = di.points[0];        // sprite relative coordinates
+        for (auto &p : di.points)
+        {
+            painter.drawLine(p0, p);
+            p0 = p;
+        }
+    }
+    // create border to see the rectangle
+    painter.setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin)) ;
+    painter.drawLine(0, 0, _pSprite->rect.width(), 0);
+    painter.drawLine(_pSprite->rect.width(), 0, _pSprite->rect.width(), _pSprite->rect.height());
+    painter.drawLine(_pSprite->rect.width(), _pSprite->rect.height(), 0, _pSprite->rect.height());
+    painter.drawLine(0, _pSprite->rect.height(), 0, 0);
+
+    // restore data
+    _myPenKind = pk;
+    _actPenWidth = pw;
+    _erasemode = em;
+
+    return _pSprite;
+}
+
+void DrawArea::MoveSprite(QPoint dr)
+{
+        QRect updateRect = _pSprite->rect.translated(_pSprite->topLeft);      // original rectangle
+        _pSprite->topLeft += dr;
+//        updateRect = updateRect.united(_pSprite->rect.translated(_pSprite->topLeft)); // + new rectangle
+//            update(updateRect);
+        update();
+//            QApplication::processEvents();
+}
+void DrawArea::_PasteSprite()
+{
+    Sprite* ps = _pSprite;
+    _pSprite = nullptr;             // so the next paint event finds no sprite
+    _history.addPastedItems(ps->topLeft + _topLeft, ps);  // add at real position
+    QRect updateRect = ps->rect.translated(ps->topLeft);      // original rectangle
+    update(updateRect);
+    delete ps;
 }
 #endif

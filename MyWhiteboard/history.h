@@ -324,6 +324,26 @@ struct HistoryRotationItem : HistoryItem
     int Redo() override;
 };
 
+
+// ******************************************************
+class History;
+        // declare here so that CopySelected can use it, but 
+        // create and use it in 'DrawArea'
+struct Sprite
+{
+    Sprite(History* ph);
+
+    History* pHist;
+    QPoint topLeft;     // top,left: position of sprite rel. to top left of visible area of canvas
+    QPoint dp;          // relative to top left of sprite: cursor coordinates when the sprite is selected
+    QImage image;       // image of the sprite to paint over the canvas
+    QRect rect;         // selection rectangle 0,0, width,height
+
+    IntVector nSelectedItemsList;    // indices into '_items', that are completely inside the rubber band
+    DrawnItemVector       items;      // each point of items[..] is relative to top-left of sprite (0,0)
+    ScreenShotImageList   images;     // image top left is relative to top left of sprite (0,0)
+};
+
 /*========================================================
  * Class for storing history of editing
  *  contains a list of items drawn on screen, 
@@ -351,16 +371,15 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _endItem = 0;                   // index until a redo can go (max value: _items.size()
 
     DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
-    ScreenShotImageList   _copiedImages;
-    QRect _copiedRect;                  // encompassing rectangle for copied items used for paste operation
+    ScreenShotImageList   _copiedImages;// copy images on _nSeelctedList to this
+    QRect _copiedRect;                  // bounding rectangle for copied items used for paste operation
 
     IntVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band
               _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
               _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
     int _nIndexOfFirstScreenShot;            // index of the first drawable (not image) element that is below a given y 
-    QRect _selectionRect;               // encompassing rectangle for selected items OR rectangle in which there are no items
+    QRect _selectionRect;               // bounding rectangle for selected items OR rectangle in which there are no items
                                         // when _nSelectedItemList is empty
-
     bool _modified = false;
 
     int _index = -1;                    // start writing undo records from here
@@ -412,8 +431,8 @@ public:
 //--------------------- Add Items ------------------------------------------
     HistoryItem* addClearCanvas();
     HistoryItem* addDrawnItem(DrawnItem& dri);
-    HistoryItem* addDeleteItems();                  // using 'this' and _nSelectedItemsList a
-    HistoryItem* addPastedItems(QPoint topLeft);    // using 'this' and _copiedList 
+    HistoryItem* addDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
+    HistoryItem* addPastedItems(QPoint topLeft, Sprite *pSprite=nullptr);    // using 'this' and either '_copiedList'  or  pSprite->... lists
     HistoryItem* addRecolor(MyPenKind pk);
     HistoryItem* addInsertVertSpace(int y, int heightInPixels);
     HistoryItem* addScreenShot(int index);
@@ -431,8 +450,9 @@ public:
     HistoryItem* GetOneStep();
 
     int CollectItemsInside(QRect rect);
+    void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
+                                                    // do the same with images
 
-    void CopySelected();      // copies selected scribbles into array. origin will be relative to (0,0)
     const QVector<DrawnItem>& CopiedItems() const { return _copiedItems;  }
     int CopiedCount() const { return _copiedItems.size();  }
     const QRect& BoundingRect() const { return _selectionRect; }

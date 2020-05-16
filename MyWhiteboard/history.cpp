@@ -196,13 +196,13 @@ void DrawnItem::Rotate(MyRotation rotation, QRect encRect)	// rotate around the 
 			break;
 		case rotFlipH:
 			for (QPoint& p : points)
-				p.setX(erw - p.x() + 2 * erx);
-			bndRect.setX(erw + 2 * erx - rx - rw);		  // new item x: original top righ (rx + rw)
+				p.setX(erw + 2 * erx - p.x());
+			bndRect = QRect(erw + 2 * erx - rx - rw, ry, rw, rh);		  // new item x: original top righ (rx + rw)
 			break;
 		case rotFlipV:
 			for (QPoint& p : points)
 				p.setY(erh - p.y() + 2 * ery);
-			bndRect.setY(erh + 2 * ery - ry - rh);		  // new item x: original bottom left (ry + rh)
+			bndRect = QRect(rx, erh + 2 * ery - ry - rh, rw, rh);		  // new item x: original bottom left (ry + rh)
 			break;
 		default:
 			break;
@@ -1190,24 +1190,30 @@ HistoryItem* History::addDrawnItem(DrawnItem& itm)           // may be after an 
 	return _AddItem(p);
 }
 
-HistoryItem* History::addDeleteItems()
+HistoryItem* History::addDeleteItems(Sprite * pSprite)
 {
-	if (!_nSelectedItemsList.size())
+	IntVector* pList = pSprite ? &pSprite->nSelectedItemsList : &_nSelectedItemsList;
+
+	if (!pList->size())
 		return nullptr;          // do not add an empty list
-	HistoryDeleteItems* p = new HistoryDeleteItems(this, _nSelectedItemsList);
+	HistoryDeleteItems* p = new HistoryDeleteItems(this, *pList);
 	return _AddItem(p);
 }
 
-HistoryItem* History::addPastedItems(QPoint topLeft)			   // tricky
+HistoryItem* History::addPastedItems(QPoint topLeft, Sprite *pSprite)			   // tricky
 {
-	if (!_copiedItems.size() && !_copiedImages.size())
+	DrawnItemVector       *pCopiedItems = pSprite ? &pSprite->items : &_copiedItems;      
+	ScreenShotImageList	  *pCopiedImages = pSprite ? &pSprite->images : &_copiedImages;
+	QRect				  *pCopiedRect = pSprite ? &pSprite->rect : &_copiedRect;
+
+	if (!pCopiedItems->size() && !pCopiedImages->size())
 		return nullptr;          // do not add an empty list
   // add bottom item
 	int indexOfBottomItem = _actItem+1;
-	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, indexOfBottomItem, _copiedItems.size() + _copiedImages.size());
+	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, indexOfBottomItem, pCopiedItems->size() + pCopiedImages->size());
 	_AddItem(pb);		  
 	// Add screenshots
-	for (ScreenShotImage si : _copiedImages)
+	for (ScreenShotImage si : *pCopiedImages)
 	{
 		pImages->push_back(si);
 		int n = pImages->size() - 1;
@@ -1217,15 +1223,15 @@ HistoryItem* History::addPastedItems(QPoint topLeft)			   // tricky
 	}
   // Add drawable items
 	HistoryDrawnItem* pdri;
-	for (DrawnItem di : _copiedItems)	// do not modify copied item list
+	for (DrawnItem di : *pCopiedItems)	// do not modify copied item list
 	{
 		di.Translate(topLeft, 0);
 		pdri = new HistoryDrawnItem(this, di);
 		_AddItem(pdri);
 	}
   // finish by adding top item
-	QRect rect = _copiedRect.translated(topLeft);
-	HistoryPasteItemTop* p = new HistoryPasteItemTop(this, indexOfBottomItem, _copiedItems.size() + _copiedImages.size(), rect);
+	QRect rect = pCopiedRect->translated(topLeft);
+	HistoryPasteItemTop* p = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->size() + pCopiedImages->size(), rect);
 	return _AddItem(p);
 }
 
@@ -1294,6 +1300,13 @@ void History::InserVertSpace(int y, int heightInPixels)
 	QPoint dy = QPoint(0, heightInPixels);
 	Translate(i, dy, y);
 }
+
+//void History::ClearSprite()
+//{
+//	_spriteImages.clear();
+//	_spriteItems.clear();
+//	_spriteRect = QRect();
+//}
 
 int History::SetFirstItemToDraw()
 {
@@ -1438,12 +1451,17 @@ int History::CollectItemsInside(QRect rect) // only
  *				will be (0,0)
  *			- '_selectionRect''s top left will also be (0,0)
  *-------------------------------------------------------*/
-void History::CopySelected()
+void History::CopySelected(Sprite *sprite)
 {
+	DrawnItemVector* pCopiedItems = sprite ? &sprite->items : &_copiedItems;
+	ScreenShotImageList *pCopiedImages = sprite ? &sprite->images : &_copiedImages;
+	if (sprite)
+		sprite->nSelectedItemsList = _nSelectedItemsList;
+
 	if (!_nSelectedItemsList.isEmpty())
 	{
-		_copiedItems.clear();
-		_copiedImages.clear();
+		pCopiedItems ->clear();
+		pCopiedImages->clear();
 
 		for (int i : _nSelectedItemsList)  // indices of visible items selected
 		{
@@ -1451,8 +1469,8 @@ void History::CopySelected()
 			if (item->type == heScreenShot)
 			{
 				ScreenShotImage* pbmi = &(*pImages)[dynamic_cast<const HistoryScreenShotItem*>(item)->which];
-				_copiedImages.push_back(*pbmi);
-				_copiedImages[_copiedImages.size() - 1].Translate(-_selectionRect.topLeft(), -1);
+				pCopiedImages->push_back(*pbmi);
+				(*pCopiedImages)[pCopiedImages->size() - 1].Translate( -_selectionRect.topLeft(), -1);
 			}
 			else
 			{
@@ -1460,12 +1478,20 @@ void History::CopySelected()
 				const DrawnItem* pdrni = item->GetDrawable();
 				while (pdrni)
 				{
-					_copiedItems.push_back(*pdrni);
-					_copiedItems[_copiedItems.size() - 1].Translate(-_selectionRect.topLeft(), -1);
+					pCopiedItems->push_back(*pdrni);
+					(*pCopiedItems)[pCopiedItems->size() - 1].Translate( -_selectionRect.topLeft(), -1);
 					pdrni = item->GetDrawable(++index);
 				}
 			}
 		}
-		_copiedRect = _selectionRect.translated(-_selectionRect.topLeft());
+		_copiedRect = _selectionRect.translated( - _selectionRect.topLeft());
+
+		if (sprite)
+			sprite->rect = _copiedRect;	// (0,0, width, height)
 	}
+}
+
+Sprite::Sprite(History* ph) :pHist(ph) 
+{ 
+	ph->CopySelected(this); 
 }

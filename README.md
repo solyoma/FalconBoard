@@ -4,38 +4,41 @@ Last modified: May 5. 2020.
 
 MyWhiteboard is a cross platform open source whiteboard / blackboard application 
 with unique features that makes it perfectly suited for classroom or for online 
-lectures. It has a semi infinite canvas, unlimited drawing, unlimited undo and 
+lectures. It has a semi infinite canvas, unlimited drawings, unlimited undo and 
 redo, colored pens of different width, screen capture and more (see below).
 
-The project also contains a separate viewer that can only display saved 
+The project also contains a separate viewer that only displays saved 
 drawings, but cannot modify them.
 
-*Features* (Version 1.1.2): 
+*Features* (Version 1.1.3): 
 
    0. Works under Windows and Linux, and (I hope) on Macs too.
    1. System, dark and black view modes
-   2. Freehand drawing with four different (black/white, red, green, blue) 
-      colored pens.
-   3. Pen and eraser pen width is adjustable separately between 1 and 300 pixels.
-   4. Unlimited Undo/Redo.
-   5. "Unlimited" scrolling of page by keyboard (PgUp,PgDown,Home,Left,Right
+   2. Usable with the mouse and with a graphics tablet. (No Android or iOS 
+        versions yet.)
+   3. Freehand drawing with five different (black/white, red, green, 
+        blue/lighterblue, yellow/agenta) colored pens.
+   4. Pen and eraser pen width is adjustable separately between 1 and 300 pixels.
+   5. Unlimited Undo/Redo.
+   6. "Unlimited" scrolling of page by keyboard (PgUp,PgDown,Home,Left,Right
        alone or together with Ctrl for faster movement)
       mouse or graphics tablet (press and hold space while using them or used
       the wheel on the mouse).
-   6. Mark area by right button on mouse or tablet, and 
-        - draw a rectangle by pressing the R key
+   7. Mark an area with the right button on mouse or tablet, then 
+        - click inside the area to move the marked items around on the screen,
+          release the button to paste it to that position.
+        - draw a rectangle around by pressing the R key
         - insert vertical space by pressing F5. Magnitude is the height of the
           selection
-        - delete drawings completely inside
+        - delete drawings completely inside selection
           this area with the Del or BackSpace keys.
-        - if the selected area is empty delete empty space. 
+        - if the selected area is empty delete empty space from the right 
+          or from below. 
         - copy / cut marked area and paste it at any position, even into new
           documents during the same session (screenshots excluded yet).
         - drawings completely under marked area can be re-colored.
-   7. Usable with the mouse and with a graphics tablet. (No Android or iOS 
-        versions yet.)
    8. Keyboard shortcuts to most functions (See Help).
-   8. Optional saving and loading sessions, option to autosave data and 
+   9. Optional saving and loading sessions, option to autosave data and 
       background image on exit.
   10. Loading a background image: all you draw are on a different layer above 
       the background to have illustrations to comment on.

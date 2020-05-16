@@ -167,6 +167,9 @@ private:
     QImage  _background,   
             _canvas;        // transparent layer, draw on this then show background and this on the widget
                             // origin: (0,0) point on canvas first shown
+    // to move selected area around
+    Sprite * _pSprite = nullptr;         // copy of elements in _rubberRect to move around
+
     bool    _isBackgroundSet = false;      // an image has been loaded into _background
     bool    _fixedBackground = true; // background will not scroll with image
 
@@ -236,6 +239,9 @@ private:
     void _Right(int distance = 10);
 #ifndef _VIEWER
     void ShowCoordinates(const QPoint& qp);
+    Sprite * _CreateSprite(QPoint cursorPos, QRect& rect);
+    void MoveSprite(QPoint pt);
+    void _PasteSprite();
 #endif
 };
 
