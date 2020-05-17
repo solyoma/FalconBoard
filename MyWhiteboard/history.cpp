@@ -898,7 +898,8 @@ int HistoryRotationItem::Redo()
 {
 	for (int n : nSelectedItemList)
 		(*pHist)[n]->Rotate(rot, encRect);
-	SwapWH(encRect);
+	if(rot != rotFlipH && rot != rotFlipV)
+		SwapWH(encRect);
 	return 0;
 }
 

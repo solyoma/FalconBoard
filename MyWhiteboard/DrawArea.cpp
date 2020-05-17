@@ -621,6 +621,141 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 }
 
 
+void DrawArea::tabletEvent(QTabletEvent* event)
+{
+    QTabletEvent::PointerType pointerT = event->pointerType();
+
+    auto mb = event->buttons();
+
+    switch (event->type())
+    {
+        case QEvent::TabletPress:
+            if (event->pressure())   // message comes here for pen buttons even without the pen touching the tablet
+            {
+#ifndef _VIEWER
+                if (_rubberBand)
+                {
+                    if (_history.SelectedSize() && _rubberRect.contains(event->pos()))
+                    {
+                        if (_CreateSprite(event->pos(), _rubberRect))
+                        {
+                            _history.addDeleteItems(_pSprite);
+                            _Redraw();
+        //                    QApplication::processEvents();
+                        }
+
+                    }
+                }
+                _RemoveRubberBand();
+#endif
+                if (!_pendown)
+                {
+                    if (_spaceBarDown)
+                        _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
+                    _pendown = true;
+                    emit PointerTypeChange(pointerT);
+#ifndef _VIEWER
+                    _InitiateDrawing(event);
+#endif
+                }
+            }
+            event->accept();
+            break;
+        case QEvent::TabletMove:
+#ifndef Q_OS_IOS
+//        if (event->device() == QTabletEvent::RotationStylus)
+//            updateCursor(event);
+#endif
+            if (_pendown)
+            {
+                static QPoint lastpos;
+                static int counter; // only refresh screen when this is REFRESH_LIMIT
+                                    // because tablet events frequency is large
+                const int REFRESH_LIMIT = 10;
+                QPoint pos = event->pos();
+                if (lastpos == pos)
+                {
+                    event->accept();
+                    break;
+                }
+                else
+                {
+                    lastpos = pos;
+                }
+
+                QPoint  dr = (pos - _lastPointC);   // displacement vector
+                if (dr.manhattanLength())
+                {
+
+#ifndef _VIEWER
+                    if (_pSprite)     // move sprite
+                    {
+                        MoveSprite(dr);
+                        _lastPointC = event->pos();
+                    }
+                    else
+                    {
+#endif
+                        if (_spaceBarDown)
+                        {
+                            ++counter;
+                            if (counter >= REFRESH_LIMIT)
+                            {
+                                counter = 0;
+                                _Redraw();
+                            }
+                            _ShiftOrigin(dr);
+                            _lastPointC = event->pos();
+                        }
+#ifndef _VIEWER
+                        else
+                        {
+                            if (_DrawFreehandLineTo(event->pos()))
+                                _lastDrawnItem.add(_lastPointC + _topLeft);
+                        }
+                    }
+#endif
+                }
+            }
+            event->accept();
+            break;
+        case QEvent::TabletRelease:
+            if (_pendown)// && event->buttons() == Qt::NoButton)
+            {
+#ifndef _VIEWER
+                if (_pSprite)
+                {
+                    _PasteSprite();
+                    _Redraw();
+                }
+                else
+                {
+#endif
+                    if (!_spaceBarDown)
+                    {
+                        _DrawFreehandLineTo(event->pos());
+
+                        _history.addDrawnItem(_lastDrawnItem);
+
+                        emit CanUndo(true);
+                        emit CanRedo(false);
+                    }
+                    else
+                        _RestoreCursor();
+#ifndef _VIEWER
+                }
+#endif
+                _pendown = false;
+                    _startSet = false;
+            }
+            event->accept();
+            break;
+        default:
+            event->ignore();
+            break;
+    }
+}
+
 void DrawArea::_DrawGrid(QPainter& painter)
 {
     if (!_bGridOn)
@@ -694,107 +829,6 @@ void DrawArea::resizeEvent(QResizeEvent* event)
     _canvasRect = QRect(0, 0, geometry().width(), geometry().height() ).translated(_topLeft);     // 0,0 relative rectangle
     _clippingRect = _canvasRect;
 }
-
-void DrawArea::tabletEvent(QTabletEvent* event)
-{
-    QTabletEvent::PointerType pointerT = event->pointerType();
-
-    auto mb = event->buttons();
-
-    switch (event->type()) 
-    {
-        case QEvent::TabletPress:
-            if (event->pressure())   // message comes here for pen buttons even without the pen touching the tablet
-            {
-                if (!_pendown)
-                {
-                    if (_spaceBarDown)
-                        _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
-                    _pendown = true;
-                    emit PointerTypeChange(pointerT);
-#ifndef _VIEWER
-                    _InitiateDrawing(event);
-#endif
-                }
-#ifndef _VIEWER
-                if (_rubberBand)
-                    _RemoveRubberBand();
-#endif
-            }
-            event->accept();
-            break;
-    case QEvent::TabletMove:
-#ifndef Q_OS_IOS
-//        if (event->device() == QTabletEvent::RotationStylus)
-//            updateCursor(event);
-#endif
-        if (_pendown)
-        {
-            static QPoint lastpos;
-            static int counter; // only refresh screen when this is REFRESH_LIMIT
-                                // because tablet events frequency is large
-            const int REFRESH_LIMIT = 10;
-            QPoint pos = event->pos();
-            if (lastpos == pos)
-            {
-                event->accept();
-                break;
-            }
-            else
-            {
-                lastpos = pos;
-            }
-
-            QPoint  dr = (pos - _lastPointC);   // displacement vector
-            if (dr.manhattanLength())
-            {
-                if (_spaceBarDown)
-                {
-                    ++counter;
-                    if (counter >= REFRESH_LIMIT)
-                    {
-                        counter = 0;
-                        _Redraw();
-                    }
-                    _ShiftOrigin(dr);
-                    _lastPointC = event->pos();
-                }
-#ifndef _VIEWER
-                else
-                {
-                    if(_DrawFreehandLineTo(event->pos()) )
-                        _lastDrawnItem.add(_lastPointC + _topLeft);
-                }
-#endif
-            }
-        }
-        event->accept();
-        break;
-    case QEvent::TabletRelease:
-        if (_pendown)// && event->buttons() == Qt::NoButton)
-        {
-            if (!_spaceBarDown)
-            {
-                _DrawFreehandLineTo(event->pos());
-
-                _history.addDrawnItem(_lastDrawnItem);
-
-                emit CanUndo(true);
-                emit CanRedo(false);
-            }
-            else
-                _RestoreCursor();
-            _pendown = false;
-            _startSet = false;
-        }
-        event->accept();
-        break;
-    default:
-        event->ignore();
-        break;
-    }
-}
-
 #ifndef _VIEWER
 void DrawArea::_RemoveRubberBand()
 {
@@ -1056,9 +1090,9 @@ void DrawArea::_Redraw()
     MyPenKind savekind = _myPenKind;
     bool saveEraseMode = _erasemode;
 
+    _ClearCanvas();
     if (_history.SetFirstItemToDraw() >= 0)
     {
-        _ClearCanvas();
         while (_ReplotItem(_history.GetOneStep()))
             ;
     }
@@ -1180,9 +1214,10 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
         MoveToActualPosition(rect); 
 //        _clippingRect = rect;
         _ClearCanvas();
-        
-        while(_ReplotItem(_history.GetOneStep()) )
-            ;
+
+        _Redraw();
+        //while(_ReplotItem(_history.GetOneStep()) )
+        //    ;
         _clippingRect = _canvasRect;
         emit CanRedo(true);
     }
@@ -1375,8 +1410,15 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect)
         _myPenKind = di.penKind;
         _actPenWidth = di.penWidth;
         _erasemode = di.type == heEraser ? true : false;
+
+        if(_erasemode)
+            painter.setCompositionMode(QPainter::CompositionMode_Clear);
+        else 
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
         painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
                             Qt::RoundJoin));
+
         QPoint p0 = di.points[0];        // sprite relative coordinates
         for (auto &p : di.points)
         {
@@ -1385,6 +1427,8 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect)
         }
     }
     // create border to see the rectangle
+    if (_erasemode)
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter.setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin)) ;
     painter.drawLine(0, 0, _pSprite->rect.width(), 0);
     painter.drawLine(_pSprite->rect.width(), 0, _pSprite->rect.width(), _pSprite->rect.height());
@@ -1403,7 +1447,11 @@ void DrawArea::MoveSprite(QPoint dr)
 {
         QRect updateRect = _pSprite->rect.translated(_pSprite->topLeft);      // original rectangle
         _pSprite->topLeft += dr;
-//        updateRect = updateRect.united(_pSprite->rect.translated(_pSprite->topLeft)); // + new rectangle
+        if( _pSprite->topLeft.y() < 0)
+           _pSprite->topLeft.setY(0);
+        if (_pSprite->topLeft.x() < 0)
+               _pSprite->topLeft.setX(0);
+    //        updateRect = updateRect.united(_pSprite->rect.translated(_pSprite->topLeft)); // + new rectangle
 //            update(updateRect);
         update();
 //            QApplication::processEvents();

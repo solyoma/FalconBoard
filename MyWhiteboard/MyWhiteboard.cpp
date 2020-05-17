@@ -504,11 +504,13 @@ void MyWhiteboard::closeEvent(QCloseEvent* event)
     if (_SaveIfYouWant())
 	{
 		event->accept();
+#endif
+	    SaveState();        // viewer: always
+#ifndef _VIEWER
 	}
 	else
 		event->ignore();
 #endif
-	SaveState();        // TODO: set what to save state
 }
 
 void MyWhiteboard::showEvent(QShowEvent* event)
