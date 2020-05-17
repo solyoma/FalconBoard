@@ -1445,7 +1445,7 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect)
 
 void DrawArea::MoveSprite(QPoint dr)
 {
-        QRect updateRect = _pSprite->rect.translated(_pSprite->topLeft);      // original rectangle
+//        QRect updateRect = _pSprite->rect.translated(_pSprite->topLeft);      // original rectangle
         _pSprite->topLeft += dr;
         if( _pSprite->topLeft.y() < 0)
            _pSprite->topLeft.setY(0);

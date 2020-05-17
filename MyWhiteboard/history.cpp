@@ -283,7 +283,6 @@ void ScreenShotImage::Translate(QPoint p, int minY)
 void ScreenShotImage::Rotate(MyRotation rot, QRect encRect)
 {
 	QTransform transform;
-	int deg;
 	switch (rot)
 	{
 		case rotR90: transform.rotate(270); image = image.transformed(transform, Qt::SmoothTransformation); break;
@@ -568,7 +567,7 @@ HistoryPasteItemBottom::HistoryPasteItemBottom(History* pHist, int index, int co
 }
 
 HistoryPasteItemBottom::HistoryPasteItemBottom(HistoryPasteItemBottom& other) :
-	HistoryItem(pHist, heItemsPastedBottom), index(other.index), count(other.count)
+	HistoryItem(other.pHist, heItemsPastedBottom), index(other.index), count(other.count)
 {
 }
 
@@ -778,7 +777,7 @@ HistoryScreenShotItem::HistoryScreenShotItem(History* pHist, int which) : Histor
 	type = heScreenShot;
 }
 
-HistoryScreenShotItem::HistoryScreenShotItem(const HistoryScreenShotItem& other) : HistoryItem(pHist)
+HistoryScreenShotItem::HistoryScreenShotItem(const HistoryScreenShotItem& other) : HistoryItem(other.pHist)
 {
 	*this = other;
 }
@@ -885,6 +884,7 @@ int HistoryRotationItem::Undo()
 		case rot180:
 		case rotFlipH:
 		case rotFlipV:
+		default:
 			break;
 	}
 	for (int n : nSelectedItemList)
