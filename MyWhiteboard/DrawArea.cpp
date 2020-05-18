@@ -1385,7 +1385,7 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect)
     QRect sr, tr;   // source & target
     for (ScreenShotImage& si : _pSprite->images)
     {
-        tr = _pSprite->rect;        // (0,0, width, height)
+        tr = QRect(si.topLeft, _pSprite->rect.size() );        // (0,0, width, height)
         sr = si.image.rect();       // -"-
 
         if (sr.width() > tr.width())
