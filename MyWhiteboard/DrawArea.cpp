@@ -746,8 +746,9 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                 }
 #endif
                 _pendown = false;
-                    _startSet = false;
+                _startSet = false;
             }
+            emit PointerTypeChange(QTabletEvent::Cursor);
             event->accept();
             break;
         default:
