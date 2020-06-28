@@ -389,13 +389,13 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_shiftKeyDown = true;
 
             else if (key == Qt::Key_Up)
-                _Up(mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Up(mods.testFlag(Qt::ControlModifier) ? 100 : 20);
             else if (key == Qt::Key_Down)
-                _Down(mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Down(mods.testFlag(Qt::ControlModifier) ? 100 : 20);
             else if (key == Qt::Key_Left)
-                _Left(mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Left(mods.testFlag(Qt::ControlModifier) ? 100 : 20);
             else if (key == Qt::Key_Right)
-                _Right(mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Right(mods.testFlag(Qt::ControlModifier) ? 100 : 20);
             else if(key == Qt::Key_BracketRight )
                 emit IncreaseBrushSize(1);
             else if(key == Qt::Key_BracketLeft )
