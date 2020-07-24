@@ -1,5 +1,6 @@
 #include "DrawArea.h"
 #include "DrawArea.h"
+#include "DrawArea.h"
 
 #include <QApplication>
 #include <QMouseEvent>
@@ -70,12 +71,30 @@ void DrawArea::SetPenColors()
 	drawColors[penYellow] = Qt::yellow;
 }
 
-void DrawArea::ClearCanvas()
+void DrawArea::ClearRoll()
 {
 #ifndef _VIEWER
     _RemoveRubberBand();
 #endif
-    _history.addClearCanvas();
+    _history.addClearRoll();
+    _ClearCanvas();
+}
+
+void DrawArea::ClearVisibleScreen()
+{
+#ifndef _VIEWER
+    _RemoveRubberBand();
+#endif
+    _history.addClearVisibleScreen(_topLeft, _canvasRect.height() + 1);
+    _ClearCanvas();
+}
+
+void DrawArea::ClearDown()
+{
+#ifndef _VIEWER
+    _RemoveRubberBand();
+#endif
+    _history.addClearDown(_topLeft);
     _ClearCanvas();
 }
 
@@ -242,6 +261,13 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
     update();
 }
 
+
+void DrawArea::ChangePenColorByKeyboard(int key)
+{
+    MyPenKind pk = PenKindFromKey(key);
+    SetPenKind(pk);
+}
+
 void DrawArea::keyPressEvent(QKeyEvent* event)
 {
     if (!_scribbling && !_pendown && event->key() == Qt::Key_Space)
@@ -313,7 +339,10 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit CanRedo(false);
 			}
             if (bRecolor)
+            {
+                ChangePenColorByKeyboard(key);
                 RecolorSelected(key);
+            }
 
             if (bRotate && bCollected)
             {
@@ -402,10 +431,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit DecreaseBrushSize(1);
 #ifndef _VIEWER
             else if (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5)
-            {
-                MyPenKind pk = PenKindFromKey(key);
-                SetPenKind(pk);
-            }
+                ChangePenColorByKeyboard(key);
 #endif
 		}
     }
@@ -439,7 +465,7 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 
 void DrawArea::mousePressEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton && !_pendown)  // even when using a pen some mouse message still appear
+    if (event->button() == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
     {
         if (_spaceBarDown)
             _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
@@ -1092,7 +1118,7 @@ void DrawArea::_Redraw()
     bool saveEraseMode = _erasemode;
 
     _ClearCanvas();
-    if (_history.SetFirstItemToDraw() >= 0)
+    if (_history.SetFirstItemToDraw(_topLeft) >= 0)
     {
         while (_ReplotItem(_history.GetOneStep()))
             ;
@@ -1145,7 +1171,7 @@ void DrawArea::_RestoreCursor()
 
 bool DrawArea::_ReplotItem(HistoryItem* phi)
 {
-    if (!phi)
+    if (!phi || phi->TopLeft().y() > (_topLeft.y() + _clippingRect.height()))
         return false;
 
     DrawnItem* pdrni;     // used when we must draw something onto the screen
@@ -1186,9 +1212,6 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             if( (pdrni = phi->GetDrawable(0)))
                 plot();
             break;
-        case heClearCanvas:
-            _ClearCanvas();
-            break;
         case heItemsDeleted:    // nothing to do
             break;
         case heItemsPastedTop:
@@ -1211,14 +1234,14 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 {
     if (_history.CanUndo())
     {
+        _RemoveRubberBand();
+
         QRect rect = _history.Undo();
         MoveToActualPosition(rect); 
 //        _clippingRect = rect;
         _ClearCanvas();
 
         _Redraw();
-        //while(_ReplotItem(_history.GetOneStep()) )
-        //    ;
         _clippingRect = _canvasRect;
         emit CanRedo(true);
     }
@@ -1231,6 +1254,8 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
     if (!phi)
         return;
 
+    _RemoveRubberBand();
+
     MoveToActualPosition(phi->Area());
 // ??    _clippingRect = phi->Area();
 
@@ -1240,6 +1265,11 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 
     emit CanUndo(_history.CanUndo() );
     emit CanRedo(_history.CanRedo());
+}
+void DrawArea::ChangePenColorSlot(int key)
+{
+
+    ChangePenColorByKeyboard(key);
 }
 #endif
 void DrawArea::SetCursor(CursorShape cs, QIcon* icon)
@@ -1457,12 +1487,22 @@ void DrawArea::MoveSprite(QPoint dr)
         update();
 //            QApplication::processEvents();
 }
+
+/*========================================================
+ * TASK:    pastes images and scribbles on screen
+ * PARAMS:  NONE
+ * GLOBALS: _history, _pSprite
+ * RETURNS: none
+ * REMARKS: - in this case on top of history list _items is a
+ *            HistorydeleteItem, which is moved above 
+ *              the HistoryPasteItemBottom mark item
+ *-------------------------------------------------------*/
 void DrawArea::_PasteSprite()
 {
     Sprite* ps = _pSprite;
     _pSprite = nullptr;             // so the next paint event finds no sprite
-    _history.addPastedItems(ps->topLeft + _topLeft, ps);  // add at real position
-    QRect updateRect = ps->rect.translated(ps->topLeft);      // original rectangle
+    _history.addPastedItems(ps->topLeft + _topLeft, ps);    // add at window relative position: top left = (0,0)
+    QRect updateRect = ps->rect.translated(ps->topLeft);    // original rectangle
     update(updateRect);
     delete ps;
 }

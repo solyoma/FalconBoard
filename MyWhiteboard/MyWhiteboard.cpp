@@ -777,9 +777,19 @@ void MyWhiteboard::on_action_Screenshot_triggered()
     plblScreen->show();
 }
 
-void MyWhiteboard::on_actionClearCanvas_triggered()
+void MyWhiteboard::on_actionClearRoll_triggered()
 {
-    _drawArea->ClearCanvas();
+    _drawArea->ClearRoll();
+}
+
+void MyWhiteboard::on_actionClearThisScreen_triggered()
+{
+    _drawArea->ClearVisibleScreen();    // from _topLeft
+}
+
+void MyWhiteboard::on_actionClearDownward_triggered()
+{
+    _drawArea->ClearDown(); // from _topLeft
 }
 
 void MyWhiteboard::on_actionClearBackgroundImage_triggered()

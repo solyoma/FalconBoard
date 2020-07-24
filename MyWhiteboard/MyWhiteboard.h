@@ -60,7 +60,10 @@ private slots:
 	void on_action_Eraser_triggered();
 	void on_action_Screenshot_triggered();
 
-	void on_actionClearCanvas_triggered();
+	void on_actionClearRoll_triggered();
+	void on_actionClearThisScreen_triggered();
+	void on_actionClearDownward_triggered();
+
 	void on_actionClearBackgroundImage_triggered();
 	void on_action_Print_triggered() { _drawArea->Print();  }
 
@@ -90,6 +93,12 @@ private slots:
 	void on_actionLightMode_triggered();
 	void on_actionDarkMode_triggered();
 	void on_actionBlackMode_triggered();
+
+#ifndef _VIEWER
+   signals:
+	   void DrawPenColorBy(int key);
+
+#endif
 
 private:
 	Ui::MyWhiteboardClass ui;

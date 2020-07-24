@@ -2,6 +2,9 @@
 #ifndef _HISTORY_H
 #define _HISTORY_H
 
+
+#include <algorithm>
+
 #include <QtGui>
 #include <QFile>
 #include <QDataStream>
@@ -22,10 +25,10 @@ enum HistEvent {
     heEraser,          // eraser used
     heRecolor,         // save old color, set new color
     heScreenShot,
-    heItemsDeleted,     // store the list of items deleted in this event
-    heSpaceDeleted,     // empty space is deleted
-    heVertSpace,       // insert vertical space
-    heClearCanvas,  // visible image erased
+    heItemsDeleted,         // store the list of items deleted in this event
+    heSpaceDeleted,         // empty space is deleted
+    heVertSpace,            // insert vertical space
+    heClearCanvas,          // visible image erased
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
     heItemsPastedBottom,// list of draw events added first drawn item is at index 'drawnItem'
@@ -73,6 +76,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di);
 inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di);
+
 
 // ******************************************************
 // image to shown on background
@@ -135,22 +139,15 @@ struct HistoryItem      // base class
     virtual void SetVisibility(bool visible) { }
 
     // function prototypes for easier access
+    virtual int RedoCount() const { return 1; } // how many elements from _redo must be moved back to _items
     virtual int Undo() { return 1; }        // returns amount _actItem in History need to be changed (go below 1 item)
     virtual int Redo() { return 0; }        // returns amount _actItem in History need to be changed (after ++_actItem still add this to it)
     virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
+    virtual bool IsDrawable() const { return false; }
     virtual bool Hidden() const { return true; }    // must not draw it
     virtual bool IsSaveable() const  { return !Hidden(); }    // use when items may be hidden
 
     virtual bool operator<(const HistoryItem& other);
-};
-
-
-
-//--------------------------------------------
-struct HistoryClearCanvasItem : HistoryItem
-{
-    HistEvent type = heClearCanvas;
-    HistoryClearCanvasItem(History* pHist);
 };
 
 //--------------------------------------------
@@ -175,13 +172,14 @@ struct HistoryDrawnItem : public HistoryItem
     bool Translatable() const override { return drawnItem.isVisible; }
     void Translate(QPoint p, int minY) override;
     void Rotate(MyRotation rot, QRect encRect) override;
+    bool IsDrawable() const override { return true; }
     // no new undo/redo needed
 };
 
 //--------------------------------------------
 struct HistoryDeleteItems : public HistoryItem
 {
-    IntVector deletedList;   // indexes to element in '*pHist'
+    IntVector deletedList;   // absolute indexes of drawable elements in '*pHist'
     int Undo() override;
     int Redo() override;
     HistoryDeleteItems(History* pHist, IntVector& selected);
@@ -211,26 +209,33 @@ struct HistoryRemoveSpaceitem : HistoryItem // using _selectedRect
 };
 
 //--------------------------------------------
-// When pasting items into _items: 
-//      first comes a HistoryPasteItemBottom, 
-//          then HistoryDrawnItems items above it
-//            and finished with a HistoryPasteItemTop
+// When pasting items into _items from bottom up 
+//   'HistoryPasteItemBottom' item (its absolute index is in  
+//          HistoryPasteItemTop::indexOfBottomItem
+//   'HistoryDrawnItems' items athat were pasted
+//   'HistoryPasteItemTop' item
 struct HistoryPasteItemBottom : HistoryItem
 {
     int index;          // in pHist
     int count;          // of items pasted above this item
+                        // these items came in one group in *pHist's '_items'
+    int moved = 0;              // 0: copy / paste, 1: moved with mouse / pen
+                                //  in both bottom and top items
 
     HistoryPasteItemBottom(History* pHist, int index, int count);
 
     HistoryPasteItemBottom(HistoryPasteItemBottom& other);
     HistoryPasteItemBottom& operator=(const HistoryPasteItemBottom& other);
-    int Redo() override;    // only for bottom item: reveal this many items above this one
+    int RedoCount() const override { return count + moved + 2; }
 };
 
 struct HistoryPasteItemTop : HistoryItem
 {
-    int indexOfBottomItem;
-    int count;          // of items pasted
+    int indexOfBottomItem;      // abs. index of 'HistoryPastItemBottom' item
+    int count;                  // of items pasted  
+                                // these items came in one group in *pHist's '_items'
+    int moved = 0;              // 0: copy / paste, 1: moved with mouse / pen
+                                //  in both bottom and top items
     QRect boundingRect;
 
     HistoryPasteItemTop(History* pHist, int index, int count, QRect& rect);
@@ -241,8 +246,6 @@ struct HistoryPasteItemTop : HistoryItem
     HistoryPasteItemTop& operator=(const HistoryPasteItemTop&& other);
 
     int Size() const override { return count; }
-
-    int Undo() override;    // only for top item: hide 'count' items below this one
 
     DrawnItem* GetDrawable(int index = 0) const override; // only for top get (count - index)-th below this one
 
@@ -255,6 +258,9 @@ struct HistoryPasteItemTop : HistoryItem
 
     QPoint TopLeft() const override { return boundingRect.topLeft(); }
     QRect Area() const override;
+
+    int Undo() override;    // only for top item: hide 'count' items below this one
+    int Redo() override;    // only for top item: reveal count items
 };
 //--------------------------------------------
 struct HistoryReColorItem : HistoryItem
@@ -307,6 +313,7 @@ struct HistoryScreenShotItem : public HistoryItem
     bool Translatable() const override;
     void Translate(QPoint p, int minY) override;
     void Rotate(MyRotation rot, QRect encRect) override;
+    bool IsDrawable() const override { return true; }
 };
 //--------------------------------------------
 struct HistoryRotationItem : HistoryItem
@@ -344,34 +351,44 @@ struct Sprite
     ScreenShotImageList   images;     // image top left is relative to top left of sprite (0,0)
 };
 
+using HistoryItemVector = QVector<HistoryItem*>;
+
 /*========================================================
  * Class for storing history of editing
- *  contains a list of items drawn on screen, 
- *      screen deletion, item deleteion, canvas movement
- *  contains 
- *      list of history item
- *      list of drawn objects
- *           later history items point to later 'drawnList' items
- *           then earlier history items!
+ *  contains data for items drawn on screen, 
+ *      item deleteion, canvas movement, etc
  *
- *      list of screen clearing event indices
- *      _actItem: index of the the last history item adedd
- *          new items are added after this index
+ *     _items:   generalized list of all items
+ *          members are accessed by either added order
+ *              or ordered by first y then x coordinates of
+ *              their top left rectangle
+ *     _actItem: index of the the last history item added.
+ *              At the same time index of the last element that
+ *              must be processed when drawing
+ *               new items are added after this index
  *          during undo: this index is decreased, at redo 
  *              it is increased
  *          if a new item is added after an undo it will be inserted
  *              after this position i.e. other existing items in
- *              '_items' will be invalid, similarly all items put
- *              into '_drawnItems' will also be invalid
+ *              '_items' will be invalid
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    QVector<HistoryItem*> _items;
-    int _actItem = -1;                  // in _items, index of actual history item, -1: no such item
-    int _endItem = 0;                   // index until a redo can go (max value: _items.size()
+    HistoryItemVector _items,           // items in the order added
+                                        // drawable elements on this list may be either visible or hidden
+                      _redo;           // items after undo
+                                        // drawable elements on this list may be either visible or hidden
+    IntVector   _yxOrder;               // indices into _items ordered by y then x    
+                                        // same size as the number of drwable items in _itemss
+                                        // undrawable items have no indices in here
+    friend class _yitems;
+    int _yindex = -1;                   // index in ordered item list
+                                        // used for iteration
+
+    int _indexOfFirstVisible = -1;      // in _yxorder
 
     DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
-    ScreenShotImageList   _copiedImages;// copy images on _nSeelctedList to this
+    ScreenShotImageList   _copiedImages;// copy images on _nSelectedList to this
     QRect _copiedRect;                  // bounding rectangle for copied items used for paste operation
 
     IntVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band
@@ -382,33 +399,42 @@ class History  // stores all drawing sections and keeps track of undo and redo
                                         // when _nSelectedItemList is empty
     bool _modified = false;
 
-    int _index = -1;                    // start writing undo records from here
-
-
-    bool _redoAble = false;             // set to true if no new drawing occured after an undo
-
     HistoryItem* _AddItem(HistoryItem* p);
 
-    int _GetStartIndex();               // find first drawable item in '_items' after a clear screen 
+    int _YIndexForFirstAfter(QPoint &topLeft);               // first visible drawable item in '_items' or -1
                                         // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
     bool _IsSaveable(int i);
 
-    std::vector<HistoryItem*> _SortByYX(int from);                   // sort _items in ascending y then x before save
+    int _YIndexForXY(QPoint xy);        // index of top-left-most element in _items, using '_yOrder' (binary search)
+    QPoint _XYForIndex(int index)       // y coord of (physical) index-th element no check if thisa is valid!
+    {
+        return _items[index]->TopLeft();
+    }
+    int _YIndexForIndex(int index);      // returns index in _yxOrder
+    void _push_back(HistoryItem* pi);
+
+    HistoryItem* _yitems(int yindex) const
+    { 
+        if(yindex < 0 || yindex >= _yxOrder.size() )
+            return nullptr;
+        return _items[_yxOrder[yindex]]; 
+    }
 
 public:
     ScreenShotImageList* pImages = nullptr;  // set in DrawArea constructor
 
     History() {}
+    History(const History& o);
+    History(const History&& o);
     ~History();
 
     void clear();
     int size() const;
     int SelectedSize() const { return _nSelectedItemsList.size(); }
 
-    HistoryItem* operator[](int index);
+    HistoryItem* operator[](int index);   // index: absolute index
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
-
 
     /*========================================================
      * TASK:    save actual visible drawn items
@@ -425,11 +451,28 @@ public:
 
     int Load(QString name, QPoint &lastPosition);  // returns _ites.size() when Ok, -items.size()-1 when read error
     bool IsModified() const { return _modified & CanUndo(); }
-    bool CanUndo() const { return _actItem >= 0; }
-    bool CanRedo() const { return _redoAble; }
+    bool CanUndo() const { return _items.size(); }
+    bool CanRedo() const { return _redo.size(); }
+
+    HistoryItem* operator[](int index) const { return _items[index]; }                  // index: physical index in _items
+    HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder
+    {
+        return _yitems(yindex);
+    }
+    void ReplaceItem(int index, HistoryItem* pi);     // index: in '_items'
+    void RemoveItemsStartingAt(int index);
+
+    int YIndexOfTopmost(QPoint& topLeft);
+    HistoryItem* TopmostItem(QPoint& topLeft);            // in ordered vector
+
+    HistoryItem* NextVisibleItem();
+    IntVector VisibleItemsBelow(QPoint topLeft, int height = 0x7fffffff);
+
 
 //--------------------- Add Items ------------------------------------------
-    HistoryItem* addClearCanvas();
+    HistoryItem* addClearRoll();
+    HistoryItem* addClearVisibleScreen(QPoint &topLeft, int height);
+    HistoryItem* addClearDown(QPoint& topLeft);
     HistoryItem* addDrawnItem(DrawnItem& dri);
     HistoryItem* addDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
     HistoryItem* addPastedItems(QPoint topLeft, Sprite *pSprite=nullptr);    // using 'this' and either '_copiedList'  or  pSprite->... lists
@@ -443,15 +486,15 @@ public:
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void InserVertSpace(int y, int heightInPixels);
 
-    int SetFirstItemToDraw();
-    QRect  Undo();        // returns top left after undo 
+    int SetFirstItemToDraw(QPoint &topLeft);
+    QRect        Undo();        // returns top left after undo 
     HistoryItem* Redo();
 
     HistoryItem* GetOneStep();
 
     int CollectItemsInside(QRect rect);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
-                                                    // do the same with images
+                                                             // do the same with images
 
     const QVector<DrawnItem>& CopiedItems() const { return _copiedItems;  }
     int CopiedCount() const { return _copiedItems.size();  }

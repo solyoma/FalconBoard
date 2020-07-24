@@ -41,6 +41,8 @@
     <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="actionSaveVisible"/>
+    <addaction name="separator"/>
+    <addaction name="actionPage_Setup"/>
     <addaction name="action_Print"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -74,7 +76,10 @@
     <property name="title">
      <string>&amp;Clear</string>
     </property>
-    <addaction name="actionClearCanvas"/>
+    <addaction name="actionClearRoll"/>
+    <addaction name="actionClearThisScreen"/>
+    <addaction name="actionClearDownward"/>
+    <addaction name="separator"/>
     <addaction name="actionClearBackgroundImage"/>
     <addaction name="separator"/>
     <addaction name="actionClearHistory"/>
@@ -246,12 +251,12 @@
     <string>Ctrl+P</string>
    </property>
   </action>
-  <action name="actionClearCanvas">
+  <action name="actionClearRoll">
    <property name="text">
-    <string>C&amp;lear</string>
+    <string>C&amp;lear Roll</string>
    </property>
    <property name="toolTip">
-    <string>Clear Whiteboard except background image.</string>
+    <string>Clear whole Whiteboard except background image.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Del</string>
@@ -318,7 +323,7 @@
   </action>
   <action name="actionClearHistory">
    <property name="text">
-    <string>Clear History</string>
+    <string>Clear &amp;History (no undo)</string>
    </property>
   </action>
   <action name="actionNew">
@@ -357,7 +362,7 @@
   </action>
   <action name="actionClearBackgroundImage">
    <property name="text">
-    <string>Clear Background</string>
+    <string>Clear Bac&amp;kground</string>
    </property>
   </action>
   <action name="action_Screenshot">
@@ -467,6 +472,35 @@
    </property>
    <property name="text">
     <string>Fixed Grid</string>
+   </property>
+  </action>
+  <action name="actionClearThisScreen">
+   <property name="text">
+    <string>Clear Visible &amp;Screen</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear Visible Screen. Anything left or right of visible screen remains visible.</string>
+   </property>
+  </action>
+  <action name="actionClearUpward">
+   <property name="text">
+    <string>Clear Visible Screen and &amp;Above</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear Visible Screen and Above. Only a visible screen wide vertical band is cleared.</string>
+   </property>
+  </action>
+  <action name="actionClearDownward">
+   <property name="text">
+    <string>Clear Visible Screen and &amp;Below</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear Visible Screen and Below.  Only a visible screen wide vertical band is cleared.</string>
+   </property>
+  </action>
+  <action name="actionPage_Setup">
+   <property name="text">
+    <string>Pa&amp;ge Setup...</string>
    </property>
   </action>
  </widget>

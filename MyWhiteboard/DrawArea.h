@@ -107,12 +107,16 @@ signals:
 
 public slots:
     void NewData();
-    void ClearCanvas();
+    void ClearRoll();
+    void ClearVisibleScreen();
+    void ClearDown();
     void ClearHistory();
 #ifndef _VIEWER
+    void PageSetup() { /* !!!!!*/ } 
     void Print();
     void Undo();
     void Redo();
+    void ChangePenColorSlot(int key);
 #endif
 
 protected:
@@ -127,6 +131,9 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
 
     void tabletEvent(QTabletEvent* event) override;
+
+private:
+    void ChangePenColorByKeyboard(int key);
 
 private:
     History _history;               // every drawable element with undo/redo
@@ -184,7 +191,7 @@ private:
 
     QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _tlMax,     // maximum value of top left of page with drawing on it
-            _lastMove;  // value of last canvas moveme
+            _lastMove;  // value of last canvas move 
 
     QPoint  _firstPointC, // canvas relative first point drawn
             _lastPointC; // canvas relative last point drawn relative to visible image

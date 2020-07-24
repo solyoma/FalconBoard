@@ -373,18 +373,11 @@ bool HistoryItem::operator<(const HistoryItem& other)
 	return false;
 }
 
- //--------------------------------------------
-HistoryClearCanvasItem::HistoryClearCanvasItem(History* pHist) : HistoryItem(pHist)
-{
-	type = heClearCanvas;
-}
-
 //--------------------------------------------
 // type heScribble, heEraser
 HistoryDrawnItem::HistoryDrawnItem(History* pHist, DrawnItem& dri) : HistoryItem(pHist), drawnItem(dri)
 {
 	type = dri.type;
-	drawnItem = dri;
 	drawnItem.SetBoundingRectangle();
 }
 
@@ -579,13 +572,6 @@ HistoryPasteItemBottom& HistoryPasteItemBottom::operator=(const HistoryPasteItem
 	return *this;
 }
 
-int HistoryPasteItemBottom::Redo()		// only for bottom item: make items above this visible
-{
-	for (int i = 1; i <= count; ++i) //0th element is this
-		(*pHist)[index + i]->SetVisibility(true);
-
-	return count + 1;	// we are at bottom item -> change stack pointer to top item
-}
 //--------------------------------------------
 HistoryPasteItemTop::HistoryPasteItemTop(History* pHist, int index, int count, QRect& rect) :
 	HistoryItem(pHist, heItemsPastedTop), indexOfBottomItem(index), count(count), boundingRect(rect)
@@ -618,11 +604,21 @@ HistoryPasteItemTop& HistoryPasteItemTop::operator=(const HistoryPasteItemTop&& 
 	return *this;
 }
 
-int  HistoryPasteItemTop::Undo() // only for top item
+int  HistoryPasteItemTop::Undo() // elements are in _items
 {
 	SetVisibility(false);
-		
-	return count + 2;	// decrease actual pointer below bottom item
+	if (moved)	// then the first item above the bottom item is a history delete item
+		(*pHist)[indexOfBottomItem + 1]->Undo();
+	return count + moved + 2;	// decrease actual pointer below bottom item
+}
+
+int HistoryPasteItemTop::Redo()		// elements copied back to '_items' already
+{
+	if (moved)	// then the first item above the bottom item is a history delete item
+		(*pHist)[indexOfBottomItem + 1]->Redo();
+	SetVisibility(true);
+
+	return count + moved + 1;	// we are at bottom item -> change stack pointer to top item
 }
 
 bool HistoryPasteItemTop::Hidden() const
@@ -633,7 +629,7 @@ bool HistoryPasteItemTop::Hidden() const
 void HistoryPasteItemTop::SetVisibility(bool visible)
 {
 	for (int i = 1; i <= count; ++i)
-		(*pHist)[indexOfBottomItem + i]->SetVisibility(visible);
+		(*pHist)[indexOfBottomItem + moved + i]->SetVisibility(visible);
 }
 
 void HistoryPasteItemTop::Translate(QPoint p, int minY)
@@ -904,6 +900,145 @@ int HistoryRotationItem::Redo()
 }
 
 
+//********************************** History class ****************************
+History::History(const History& o)					
+{
+	_yindex = o._yindex;
+	_items = o._items;
+	_yxOrder = o._yxOrder;
+}
+
+History::History(const History&& o)
+{
+	_yindex = o._yindex;
+	_items = o._items;
+	_yxOrder = o._yxOrder;
+}
+
+History::~History()
+{
+	clear();
+}
+
+
+int History::_YIndexForXY(QPoint xy)          // index of top-left-most element in _items, using '_yOrder' (binary search)
+{
+	IntVector::iterator it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), 0,     // 0: in place of 'right' - not used
+											  [&](const int left, const int right)	   // left: _yorder[xxx]
+											  {
+												  QPoint pt = ((const HistoryItem*)_items[left])->TopLeft();
+												  if (pt.y() < xy.y())
+													  return true;
+												  else if ((pt.y() == xy.y()))
+													  return pt.x() < xy.x();
+												  else
+													  return false;
+											  });
+	return (it - _yxOrder.begin());
+}
+int History::_YIndexForIndex(int index)      // index: in unordered array, returns yindex in _yxOrder
+{
+	QPoint pt = _items[index]->TopLeft();
+	return _YIndexForXY(pt);
+}
+
+void History::ReplaceItem(int index, HistoryItem* pi)     // index: in '_items'
+{
+	int yindex = _YIndexForIndex(index);    // must exist
+	delete _items[index];   // was new'd
+	_items[index] = pi;
+	_yxOrder.remove(yindex);
+	int yi = _YIndexForXY(pi->TopLeft());
+	_yxOrder.insert(yi, index);
+}
+
+void History::RemoveItemsStartingAt(int index)  // index: into _items
+{
+	for (int j = index; j < _items.size(); ++j)
+	{
+		int yindex = _YIndexForIndex(j);    // must exist
+		delete _items[j];
+		_items[j] = nullptr;
+		_yxOrder.remove(yindex);
+	}
+
+}
+
+/*========================================================
+ * TASK: pushes new element into _items and insert corresponding
+ *		index (if applicable) into _yxOrder
+ * PARAMS:		pointer to existing item
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - does not modify the _redo vector like _AddItem does
+ *-------------------------------------------------------*/
+void History::_push_back(HistoryItem* pi)
+{
+	int s = _items.size();					 // hysical index to put into _yxOrder 
+	_items.push_back(pi);					 // always append
+
+	if (pi->IsDrawable())	// Only drawable elements are put into _yxOrder
+	{
+		int yi = _YIndexForXY(pi->TopLeft());    // yi either to element with same x,y values or the one which is higher or at the right
+		if (yi == _yxOrder.size() )  // all elements were at xy less than for this one
+			_yxOrder.push_back(s);
+		else          // the yi-th element has the larger y , or same and larger x coordinate
+			_yxOrder.insert(yi, s);
+	}
+}
+
+int History::YIndexOfTopmost(QPoint& topLeft)
+{
+	int yi = _YIndexForXY(topLeft);
+	if (yi < 0)
+		return -1;
+
+	--yi;		// incremented before use
+	int s = _yxOrder.size();
+	HistoryItem* phi = nullptr;
+	while (++yi < s)
+	{
+		phi = atYIndex(yi);
+		if (!phi->Hidden())
+			return yi;          // found
+	}
+	return -1;                  // all hidden
+}
+HistoryItem* History::TopmostItem(QPoint& topLeft)            // in ordered vector
+{
+	_yindex = _YIndexForXY(topLeft) - 1;          // incremented in 'NextVisibleItem()'
+	return NextVisibleItem();
+}
+
+HistoryItem* History::NextVisibleItem() // indexLimit is set up in Topmost()
+{
+	int s = _yxOrder.size();
+	HistoryItem* phi = nullptr;
+	while (++_yindex < s)
+	{
+		phi = atYIndex(_yindex);
+		if (!phi->Hidden())
+			return phi;
+	}
+	return nullptr;  // nothing
+}
+
+IntVector History::VisibleItemsBelow(QPoint topLeft, int height)
+{
+	IntVector iv;
+	if (height != 0x7fffffff)
+		height += topLeft.y();
+
+	HistoryItem* pi = TopmostItem(topLeft);
+	while (pi && pi->TopLeft().y() < height)
+	{
+		iv.push_back(_yxOrder[_yindex]);    // absolute indices
+		pi = NextVisibleItem();
+	}
+
+	return iv;
+}
+
 
 /*========================================================
  * TASK:	add a new item to the history list
@@ -918,32 +1053,16 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 	if (!p)
 		return nullptr;
 
-	_nSelectedItemsList.clear();	// no valid selection after new item
-	_selectionRect = QRect();
+	// _nSelectedItemsList.clear();	// no valid selection after new item
+	// _selectionRect = QRect();
 
-	if (++_actItem == _items.size())
-	{
-		_items.push_back(p);
-		_endItem = _actItem + 1;
-	}
-	else                            // overwrite previous last undone item
-	{
-		delete _items[_actItem];   // was new'd
-		_items[_actItem] = p;
-		_endItem = _actItem + 1;   // no redo after this
-		// DEBUG
-												// and delete above this (just to see anywhere else if I have some problems)
-		for (int j = _actItem + 1; j < _items.size(); ++j)
-		{
-			delete _items[j];
-			_items[j] = nullptr;
-		}
-		// /DEBUG
-	}
-	_redoAble = false;
+	_push_back(p);
+
+	_redo.clear();	// no undo after new item addade
+
 	_modified = true;
 
-	return _items[_actItem];
+	return _items[ _items.size() -1 ];		// always the last element
 }
 
 
@@ -957,30 +1076,11 @@ HistoryItem* History::_AddItem(HistoryItem* p)
  *				check all items until either run out of items
  *				or found HistoryVisibleCleared item
  *-------------------------------------------------------*/
-int History::_GetStartIndex()        // in '_items' after a clear screen 
+int History::_YIndexForFirstAfter(QPoint &topLeft)        // in '_items' after a clear screen 
 {									 // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
-	if (_actItem < 0)
+	if (!_items.size())
 		return -1;
-
-	int i = _actItem;
-	for (; i >= 0; --i)
-	{
-		if (_items[i]->type == heClearCanvas)
-			break;
-	}
-	if (i < 0)		// no clear canvas
-		++i;
-
-	if (_items[i]->type == heClearCanvas)
-		++i;	// to first item after the clear paper
-
-	while (i <= _actItem && _items[i]->Hidden())
-		++i;
-
-	if (i > _actItem)
-		i = -1;
-
-	return i;		// 
+	return YIndexOfTopmost(topLeft);
 }
 
 bool History::_IsSaveable(int i)
@@ -988,43 +1088,29 @@ bool History::_IsSaveable(int i)
 	return _items[i]->IsSaveable();
 }
 
-std::vector<HistoryItem*> History::_SortByYX(int from)
+void History::clear()		// does not clear lists of copied items and screen snippets
 {
-	int i0 = _GetStartIndex();	// first after a clear canvas
-	if (i0 < 0)
-		return std::vector<HistoryItem*>();					// if no elements
-
-	std::vector<HistoryItem*> itemsToSort(_actItem -i0 + 1);
-	for ( int i = i0  ; i <= _actItem; ++i)
-		itemsToSort[i-i0] = _items[i];
-	std::sort(itemsToSort.begin(), itemsToSort.end(), [](HistoryItem* hil, HistoryItem* hir)->int {return *hil < *hir; });
-	return itemsToSort;
-}
-
-History::~History()
-{
-	for (int i = 0; i < _items.size(); ++i)
-		delete _items[i];
-}
-
-void History::clear()
-{
-	for (int i = 0; i < _items.size(); ++i)
-		delete _items[i];
+	for (auto i : _items)
+		delete i;
+	for (auto i : _redo)
+		delete i;
 
 	_items.clear();
+	_redo.clear();
+	_yxOrder.clear();
 	pImages->Clear();
-	_actItem = -1;
-	_endItem = 0;
 
-	_redoAble = false;
 	_modified = false;
 }
-int History::size() const { return _items.size(); }
 
-HistoryItem* History::operator[](int index)
+int History::size() const 
+{ 
+	return _items.size(); 
+}
+
+HistoryItem* History::operator[](int index)	// absolute index
 {
-	if (index < 0 || index >= _endItem)
+	if (index < 0 || index >= _items.size())
 		return nullptr;
 	return _items[index];
 }
@@ -1044,15 +1130,12 @@ bool History::Save(QString name)
 {
 	// only save after last clear screen op.
 
-
-	int i = _GetStartIndex();   // index of first visible item after a clear screen
-	if (i < 0)					// no elements or no visible elements
+	int yi = _YIndexForFirstAfter(QPoint(0,0) );   // index of first visible item
+	if (yi < 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
 		return false;;
 	}
-
-	std::vector<HistoryItem*> toBeSavedList =  _SortByYX(i);
 
 	QFile f(name + ".tmp");
 	f.open(QIODevice::WriteOnly);
@@ -1062,16 +1145,18 @@ bool History::Save(QString name)
 
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
-#if 1
-	for (auto& ph : toBeSavedList)
+	for (int yi =0; yi < _yxOrder.size(); ++yi )
 	{
+		HistoryItem* ph = atYIndex(yi);		// ordered by y then x coordinate
+		if (ph->Hidden())		// hidden elements are not saved
+			continue;
+
 		if (ofs.status() != QDataStream::Ok)
 		{
 			f.remove();
 			return false;
 		}
-		if (ph->Hidden())		// hidden elements are at end of list
-			break;
+
 		int index = -1;
 		if (ph->type == heScreenShot)
 		{
@@ -1082,30 +1167,6 @@ bool History::Save(QString name)
 		while ((pdrni = ph->GetDrawable(++index)) != nullptr)
 			ofs << *pdrni;
 	}
-#else
-	// each 
-	while (++i < _actItem)
-	{
-		if (ofs.status() != QDataStream::Ok)
-		{
-			f.remove();
-			return false;
-		}
-
-		if (!_items[i]->Hidden())
-		{
-			int index = -1;
-			if (_items[i]->type == heScreenShot)
-			{
-				ofs << (*pImages)[((HistoryScreenShotItem*)_items[i])->which];
-				continue;
-			}
-			DrawnItem* pdrni;
-			while ((pdrni = _items[i]->GetDrawable(++index)) != nullptr)
-				ofs << *pdrni;
-		}
-	}
-#endif
 	_modified = false;
 	if (QFile::exists(name + "~"))
 		QFile::remove(QString(name + "~"));
@@ -1128,8 +1189,8 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 	if (id != MAGIC_ID)
 		return 0;
 
-	_items.clear();
-	_actItem = -1;
+	clear();
+	
 	lastPosition = QPoint(0, 0);
 
 	DrawnItem di;
@@ -1163,7 +1224,6 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 		++i;
 
 		HistoryItem* phi = addDrawnItem(di);
-		di = ((HistoryDrawnItem*)phi)->drawnItem;
 
 		if (di.bndRect.y() > lastPosition.y())
 		{
@@ -1172,17 +1232,27 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 		}
 	}
 	_modified = false;
-	_endItem = _items.size();
-	_actItem = _endItem - 1;
 	return  _items.size();
 }
 
 //--------------------- Add Items ------------------------------------------
 
-HistoryItem* History::addClearCanvas()
+HistoryItem* History::addClearRoll()
 {
-	HistoryClearCanvasItem* p = new HistoryClearCanvasItem(this); // any drawable item after a clear screen is above this one
+	return addClearDown(QPoint( 0, 0) );
+}
+
+HistoryItem* History::addClearVisibleScreen(QPoint& topLeft, int height)
+{
+	IntVector tobeDeleted = VisibleItemsBelow(topLeft);
+
+	HistoryDeleteItems* p = new HistoryDeleteItems(this, tobeDeleted);
 	return _AddItem(p);
+}
+
+HistoryItem* History::addClearDown(QPoint& topLeft)
+{
+	return addClearVisibleScreen(topLeft, 0x7fffffff);
 }
 
 HistoryItem* History::addDrawnItem(DrawnItem& itm)           // may be after an undo, so
@@ -1191,7 +1261,15 @@ HistoryItem* History::addDrawnItem(DrawnItem& itm)           // may be after an 
 	return _AddItem(p);
 }
 
-HistoryItem* History::addDeleteItems(Sprite * pSprite)
+
+/*========================================================
+ * TASK:	hides visible items on list
+ * PARAMS:	pSprite: NULL   - use _nSelectedItemList
+ *					 exists - use its selection list
+ * RETURNS: pointer to delete item on _items
+ * REMARKS: 
+ *-------------------------------------------------------*/
+HistoryItem* History::addDeleteItems(Sprite* pSprite)
 {
 	IntVector* pList = pSprite ? &pSprite->nSelectedItemsList : &_nSelectedItemsList;
 
@@ -1209,11 +1287,25 @@ HistoryItem* History::addPastedItems(QPoint topLeft, Sprite *pSprite)			   // tr
 
 	if (!pCopiedItems->size() && !pCopiedImages->size())
 		return nullptr;          // do not add an empty list
-  // add bottom item
-	int indexOfBottomItem = _actItem+1;
+  // ------------add bottom item
+
+	HistoryDeleteItems* phd = nullptr;
+	if (pSprite)	// then on top of _items there is a HistoryDeleteItems
+	{
+		phd = (HistoryDeleteItems * ) _items[_items.size() - 1];	// pointer to HistoryDeleteItems
+		_items.pop_back();
+	}
+	// -------------- add the bottom item --------
+	int indexOfBottomItem = _items.size();
 	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, indexOfBottomItem, pCopiedItems->size() + pCopiedImages->size());
-	_AddItem(pb);		  
-	// Add screenshots
+	_AddItem(pb);
+	if (pSprite)
+	{
+		pb->moved = 1;
+		_AddItem(phd);
+	}
+
+	//----------- add screenshots
 	for (ScreenShotImage si : *pCopiedImages)
 	{
 		pImages->push_back(si);
@@ -1222,7 +1314,7 @@ HistoryItem* History::addPastedItems(QPoint topLeft, Sprite *pSprite)			   // tr
 		HistoryScreenShotItem* p = new HistoryScreenShotItem(this, n);
 		_AddItem(p);
 	}
-  // Add drawable items
+  // ------------ add drawable items
 	HistoryDrawnItem* pdri;
 	for (DrawnItem di : *pCopiedItems)	// do not modify copied item list
 	{
@@ -1230,10 +1322,13 @@ HistoryItem* History::addPastedItems(QPoint topLeft, Sprite *pSprite)			   // tr
 		pdri = new HistoryDrawnItem(this, di);
 		_AddItem(pdri);
 	}
-  // finish by adding top item
+  // ------------Add top item
 	QRect rect = pCopiedRect->translated(topLeft);
-	HistoryPasteItemTop* p = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->size() + pCopiedImages->size(), rect);
-	return _AddItem(p);
+	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->size() + pCopiedImages->size(), rect);
+	if (pSprite)
+		pt->moved = 1;		// mark it moved
+
+	return _AddItem(pt);
 }
 
 HistoryItem* History::addRecolor(MyPenKind pk)
@@ -1279,9 +1374,12 @@ HistoryItem* History::addRemoveSpaceItem(QRect& rect)
 	return _AddItem(phrs);
 }
 
-void History::Translate(int from, QPoint p, int minY) // from 'first' item to _actItem if they are visible and  >= minY
+
+//********************************************************************* History ***********************************
+
+void History::Translate(int from, QPoint p, int minY) // from 'first' item to _actItem if they are visible and  top is >= minY
 {
-	for (; from < _actItem; ++from)
+	for (; from < _items.size(); ++from)
 		_items[from]->Translate(p, minY);
 	_modified = true;
 }
@@ -1294,7 +1392,7 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 
 void History::InserVertSpace(int y, int heightInPixels)
 {
-	int i = _GetStartIndex();   // index of first item after a clear screen
+	int i = _YIndexForFirstAfter(QPoint(0,y) );
 	if (i < 0) // there was a clear screen and we are after it
 		return;;
 
@@ -1309,79 +1407,105 @@ void History::InserVertSpace(int y, int heightInPixels)
 //	_spriteRect = QRect();
 //}
 
-int History::SetFirstItemToDraw()
+int History::SetFirstItemToDraw(QPoint& topLeft)
 {
-	return _index = _GetStartIndex();    // sets _index to first item after last clear screen
+	return _yindex = _YIndexForFirstAfter(topLeft);    // sets _index to first item after last clear screen
 }
 
-QRect  History::Undo()        // returns top left after undo 
+QRect  History::Undo()      // returns top left after undo 
 {
-	QRect rect;            // rectangle containing element ( (1,1) - not set)
-	int delta = 0;			// change actItem by this amount
-	if (_actItem >= 0)    // undoable
+	int actItem = _items.size();
+	if (!actItem)
+		return QRect();
+
+	// ------------- first Undo top item
+	HistoryItem* phi = _items[--actItem];
+	int count	= phi->Undo();		// it will affect this many elements (copy / paste )
+	QRect rect	=  phi->Area();     // area of undo
+
+	// -------------then move item(s) to _redo list
+	while (count--)
 	{
-		delta = _items[_actItem]->Undo();
-		rect = _items[_actItem]->Area();     // area of undo
+		phi = _items[ actItem ];	// here so index is never negative 
+		_redo.push_back(phi);
 
-		_actItem -= delta;
-		//  MUST NOT BE THIS
-		if (_actItem < -1)
-			throw("FATAL");
+		// only drawable elements are in _yxOrder!
+		if (phi->IsDrawable())
+		{
+			int yi = _YIndexForIndex(actItem);
+			_yxOrder.remove(yi);
+		}
 
-		_index = _GetStartIndex();            // we may have just redone a clear screen
-
-		_redoAble = true;
-		_modified = true;
+		_items.pop_back();	// we need _items for removing the yindex
+		--actItem;
 	}
-	else
-		_redoAble = false;
+
+	_yindex = _YIndexForFirstAfter( QPoint(0,0));            // we may have just undone a clear screen
+
+	_modified = true;
 
 	return rect;
 }
 
 HistoryItem* History::GetOneStep()
 {
-	if (_actItem < 0 || _index > _actItem)
+	if (_yindex >= _yxOrder.size())
 		return nullptr;
 
-	return  _items[_index++];
-}
+	HistoryItem* pi;
+	while ((pi = atYIndex(_yindex++)) != nullptr && (pi->Hidden()))
+		;
 
-HistoryItem* History::Redo()   // returns item to redo
-{
-	if (!_redoAble)
-		return nullptr;
-	if (_actItem >= _endItem - 1)
-	{
-		_redoAble = false;
-		return nullptr;
-	}
-
-	HistoryItem* phi = _items[++_actItem]; // in principle this should not go above '_endItem'
-
-	if (phi)
-	{
-		_actItem += phi->Redo();	// for pasted items this is the number of items to jump over + 1
-		phi = _items[_actItem];
-	}
-
-	_redoAble = _actItem < _endItem - 1;
-
-	return phi;
+	return pi;
 }
 
 
 /*========================================================
- * TASK:   collects visible items since the last clear
- *			screen into '_nSelectedItemsList'
- *			item indices for all items left of and
+ * TASK:	Redo changes to history
+ * PARAMS:	none
+ * GLOBALS:	_items, _redo
+ * RETURNS:	pointer to top element after redo
+ * REMARKS: first element moved back from _redo list to 
+ *			_items, then the element Redo() function is called
+ *-------------------------------------------------------*/
+HistoryItem* History::Redo()   // returns item to redone
+{
+	int actItem = _redo.size();
+	if (!actItem)
+		return nullptr;
+
+	HistoryItem* phi = _redo[--actItem];
+
+	int count = phi->RedoCount();
+
+	while (count--)
+	{
+		phi = _redo[ actItem-- ];
+
+		_push_back(phi);
+		_redo.pop_back();
+	}
+	phi->Redo();
+	
+	_modified = true;
+
+	return phi;
+}
+
+/*========================================================
+ * TASK:   collects indices from _yxOrder for drawable 
+ *			items that are inside a rectangular area
+ *			into '_nSelectedItemsList', 
+ *
+ *			item indices for all items at left and
  *			right of the selected rectangle into
  *			lists '_nItemsLeftOf' and '_nItemsRightOf'
  *			respectively
- *			also sets index of first iem, which is
+ *
+ *			also sets index of the first item, which is
  *			completely below the selected region into
  *			'_nIndexOfFirstScreenShot' and '-selectionRect'
- * PARAMS: rect: (0,0) relative rectangle
+ * PARAMS:	rect: (0,0) relative rectangle
  * GLOBALS:
  * RETURNS:	size of selecetd item list + lists filled
  * REMARKS: - even pasted items require a single index
@@ -1412,27 +1536,29 @@ int History::CollectItemsInside(QRect rect) // only
 	_nIndexOfFirstScreenShot = 0x7FFFFFFF;
 
 	_selectionRect = QRect();     // minimum size of selection (0,0) relative!
-		// just check scribbles after the last clear screen
-	int i = _GetStartIndex();
-	if (i < 0)	// nothing to collect
+	
+	// first add images to list
+
+	int yi = _YIndexForFirstAfter(rect.topLeft());		 // in _yxOrder
+	if (yi < 0)	// nothing to collect
 		return 0;
 
-	for (; i <= _actItem; ++i)
+	for (; yi < _yxOrder.size(); ++yi)
 	{
-		const HistoryItem* item = _items[i];
-		if (item->Translatable())
+		const HistoryItem* pitem = _yitems(yi);
+		if (pitem->Translatable())
 		{
-			if (rect.contains(item->Area(), true))    // union of rects in a pasted item
+			if (rect.contains(pitem->Area(), true))    // union of rects in a pasted item
 			{                       // here must be an item for drawing or pasting (others are undrawable)
-				_nSelectedItemsList.push_back(i);				 // index in _items 
-				_selectionRect = _selectionRect.united(item->Area());
+				_nSelectedItemsList.push_back( _yxOrder[yi] );				 // index in _items !
+				_selectionRect = _selectionRect.united(pitem->Area());
 			}
-			else if (rightOfRect(rect, item->Area()))
-				_nItemsRightOfList.push_back(i);
-			else if (leftOfRect(rect, item->Area()))
-				_nItemsLeftOfList.push_back(i);
-			if (i < _nIndexOfFirstScreenShot && item->Area().y() > rect.y() + rect.height())
-				_nIndexOfFirstScreenShot = i;
+			else if (rightOfRect(rect, pitem->Area()))
+				_nItemsRightOfList.push_back(yi);
+			else if (leftOfRect(rect, pitem->Area()))
+				_nItemsLeftOfList.push_back(yi);
+			if (yi < _nIndexOfFirstScreenShot && pitem->Area().y() > rect.y() + rect.height())
+				_nIndexOfFirstScreenShot = yi;
 		}
 	}
 	if (_nSelectedItemsList.isEmpty())		// save for removing empty space
@@ -1445,10 +1571,12 @@ int History::CollectItemsInside(QRect rect) // only
 /*========================================================
  * TASK:   copies selected scribbles into '_copiedItems'
  *
- * PARAMS:
+ * PARAMS:	sprite: possible null pointer to sprite
  * GLOBALS:
  * RETURNS:
- * REMARKS: - origin of drawables in '_copiedItems'
+ * REMARKS: - if sprite is null copies items into 
+ *				'_copiedItems' else into the sprite
+ *			- origin of drawables in '_copiedItems'
  *				will be (0,0)
  *			- '_selectionRect''s top left will also be (0,0)
  *-------------------------------------------------------*/
@@ -1464,7 +1592,7 @@ void History::CopySelected(Sprite *sprite)
 		pCopiedItems ->clear();
 		pCopiedImages->clear();
 
-		for (int i : _nSelectedItemsList)  // indices of visible items selected
+		for (int i : _nSelectedItemsList)  // absolute indices of visible items selected
 		{
 			const HistoryItem* item = _items[i];
 			if (item->type == heScreenShot)
