@@ -7,7 +7,7 @@
 
 #include <QPainter>
 #include <QPrinter>
-//#include <QPrintInfo>
+
 #include <QMessageBox>
 
 #if defined(QT_PRINTSUPPORT_LIB)
@@ -90,7 +90,7 @@ void DrawArea::ClearVisibleScreen()
 #ifndef _VIEWER
     _RemoveRubberBand();
 #endif
-    _history.addClearVisibleScreen(_topLeft, _canvasRect.height() + 1);
+    _history.addClearVisibleScreen();
     _ClearCanvas();
 }
 
@@ -99,7 +99,7 @@ void DrawArea::ClearDown()
 #ifndef _VIEWER
     _RemoveRubberBand();
 #endif
-    _history.addClearDown(_topLeft);
+    _history.addClearDown();
     _ClearCanvas();
 }
 
@@ -114,7 +114,7 @@ int DrawArea::Load(QString name)
 {
     _belowImages.clear();
 
-    int res = _history.Load(name, _tlMax);
+    int res = _history.Load(name);
     QString qs = name.mid(name.lastIndexOf('/')+1);
     if (!res)
         QMessageBox::about(this, tr(WindowTitle), QString( tr("'%1'\nInvalid file")).arg(qs));
@@ -125,14 +125,6 @@ int DrawArea::Load(QString name)
     if(res && res != -1)    // TODO send message if read error
     {
         _topLeft = QPoint(0, 0);
-
-        if (_tlMax.x() < width())
-            _tlMax.setX(0);
-        else
-            _tlMax.rx() = width()/2;
-        _tlMax.ry() -= height()/2;
-
-//        _tlMax = -_tlMax;
         _Redraw();
     }
     emit CanUndo(true);
@@ -881,6 +873,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
         int newWidth =  qMax(width() + 128,  _canvas.width());
         int newHeight = qMax(height() + 128, _canvas.height());
         _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
+        _history.SetClippingRect(QRect(_topLeft, QSize(newWidth, newHeight)));
         update();
     }
     QWidget::resizeEvent(event);
@@ -1089,11 +1082,6 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
     update(QRect(_lastPointC, endPointC).normalized()
         .adjusted(-rad, -rad, +rad, +rad));
 
-    if (_topLeft.x()> _tlMax.x() || _topLeft.y() > _tlMax.y())     // last page of drawing
-        _tlMax = _topLeft;
-        // this should be in an other thread to work, else everything stops
-//        if (!_pendown && !_scribbling && _delayedPlayback)
-//            SleepFor(5ms);
     _lastPointC = endPointC;
 }
 
@@ -1117,7 +1105,6 @@ void DrawArea::ClearHistory()
     _history.clear();
     _ClearCanvas();
     _SetOrigin(QPoint() );  // new _topLeft and _canvasRect
-    _tlMax = QPoint();
 
     emit CanUndo(false);
     emit CanRedo(false);
@@ -1220,7 +1207,7 @@ void DrawArea::_Redraw()
     bool saveEraseMode = _erasemode;
 
     _ClearCanvas();
-    if (_history.SetFirstItemToDraw(_topLeft) >= 0)
+    if (_history.SetFirstItemToDraw() >= 0)
     {
         while (_ReplotItem(_history.GetOneStep()))
             ;
@@ -1280,12 +1267,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
 
     auto plot = [&]()   // lambda to plot point pointed by pdrni
                 {
-        if (!pdrni->isVisible)
-            return;          
-        if (_tlMax.x() < _topLeft.x() || _tlMax.y() < _topLeft.y())
-            _tlMax = _topLeft;
-
-        if (!pdrni->intersects(_clippingRect))   // if the clipping rectangle has no intersection with         
+        if (!pdrni->isVisible || !pdrni->intersects(_clippingRect))   // if the clipping rectangle has no intersection with         
             return;                              // the scribble
 
         // DEBUG
@@ -1423,6 +1405,7 @@ void DrawArea::_SetOrigin(QPoint o)
 #endif
     _canvasRect.moveTo(_topLeft);
     _clippingRect = _canvasRect;
+    _history.SetClippingRect(_canvasRect);
 
 #ifndef _VIEWER
     ShowCoordinates(_topLeft);
@@ -1466,33 +1449,29 @@ void DrawArea::_Home(bool toTop)
 }
 void DrawArea::_End()
 {
-    _topLeft = _tlMax;
+    _topLeft = _history.BottomRightVisible();
     _SetOrigin(_topLeft);
     _Redraw();
 }
 
 void DrawArea::_Up(int amount)
 {
-    QPoint pt(0, 1);
-    while(amount--)
-        _ShiftAndDisplayBy(pt);
+    QPoint pt(0, amount);
+    _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Down(int amount)
 {
-    QPoint pt(0, -1);
-    while (amount--)
-        _ShiftAndDisplayBy(pt);
+    QPoint pt(0, -amount);
+    _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Left(int amount)
 {
-    QPoint pt(-1,0);
-    while (amount--)
+    QPoint pt(amount,0);
         _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Right(int amount)
 {
-    QPoint pt(1,0);
-    while (amount--)
+    QPoint pt(-amount,0);
         _ShiftAndDisplayBy(pt);
 }
 

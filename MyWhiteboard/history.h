@@ -384,6 +384,9 @@ class History  // stores all drawing sections and keeps track of undo and redo
     friend class _yitems;
     int _yindex = -1;                   // index in ordered item list
                                         // used for iteration
+    QRect _clpRect;                     // clipping rectangle for selecting points to draw
+                                        // before searching operations set this when it is changed
+    QStack<QRect> _savedClps;           // clipRect saves
 
     int _indexOfFirstVisible = -1;      // in _yxorder
 
@@ -401,11 +404,13 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     HistoryItem* _AddItem(HistoryItem* p);
 
-    int _YIndexForFirstAfter(QPoint &topLeft);               // first visible drawable item in '_items' or -1
+    int _YIndexForFirstVisible(bool onlyY = false);       // first visible drawable item in '_items' or -1 check area or only the y value
                                         // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
     bool _IsSaveable(int i);
 
-    int _YIndexForXY(QPoint xy);        // index of top-left-most element in _items, using '_yOrder' (binary search)
+    int _YIndexForXY(QPoint topLeft);        // index of top-left-most element below xy (y larger or equal to xy.y) 
+                                        // in _items, using '_yOrder' (binary search)
+    int _YIndexWhichInside();// index of top most element whose area includes point xy
     QPoint _XYForIndex(int index)       // y coord of (physical) index-th element no check if thisa is valid!
     {
         return _items[index]->TopLeft();
@@ -419,6 +424,8 @@ class History  // stores all drawing sections and keeps track of undo and redo
             return nullptr;
         return _items[_yxOrder[yindex]]; 
     }
+    void _SaveClippingRect();
+    void _RestoreClippingRect();
 
 public:
     ScreenShotImageList* pImages = nullptr;  // set in DrawArea constructor
@@ -427,6 +434,8 @@ public:
     History(const History& o);
     History(const History&& o);
     ~History();
+
+    void SetClippingRect(QRect& rect) { _clpRect = rect;  }
 
     void clear();
     int size() const;
@@ -449,7 +458,7 @@ public:
      *-------------------------------------------------------*/
     bool Save(QString name);
 
-    int Load(QString name, QPoint &lastPosition);  // returns _ites.size() when Ok, -items.size()-1 when read error
+    int Load(QString name);         // returns _ites.size() when Ok, -items.size()-1 when read error
     bool IsModified() const { return _modified & CanUndo(); }
     bool CanUndo() const { return _items.size(); }
     bool CanRedo() const { return _redo.size(); }
@@ -462,17 +471,19 @@ public:
     void ReplaceItem(int index, HistoryItem* pi);     // index: in '_items'
     void RemoveItemsStartingAt(int index);
 
-    int YIndexOfTopmost(QPoint& topLeft);
-    HistoryItem* TopmostItem(QPoint& topLeft);            // in ordered vector
+    int YIndexOfTopmost(bool onlyY = false);
+    HistoryItem* TopmostItem();            // in ordered vector
 
     HistoryItem* NextVisibleItem();
-    IntVector VisibleItemsBelow(QPoint topLeft, int height = 0x7fffffff);
+    IntVector VisibleItemsBelow(int height = 0x7fffffff);
+
+    QPoint BottomRightVisible() const;      // returns bottom right coordinate of last visible item
 
 
 //--------------------- Add Items ------------------------------------------
     HistoryItem* addClearRoll();
-    HistoryItem* addClearVisibleScreen(QPoint &topLeft, int height);
-    HistoryItem* addClearDown(QPoint& topLeft);
+    HistoryItem* addClearVisibleScreen();
+    HistoryItem* addClearDown();
     HistoryItem* addDrawnItem(DrawnItem& dri);
     HistoryItem* addDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
     HistoryItem* addPastedItems(QPoint topLeft, Sprite *pSprite=nullptr);    // using 'this' and either '_copiedList'  or  pSprite->... lists
@@ -486,7 +497,7 @@ public:
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void InserVertSpace(int y, int heightInPixels);
 
-    int SetFirstItemToDraw(QPoint &topLeft);
+    int SetFirstItemToDraw();
     QRect        Undo();        // returns top left after undo 
     HistoryItem* Redo();
 

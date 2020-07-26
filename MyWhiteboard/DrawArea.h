@@ -209,7 +209,6 @@ private:
     QColor _pageGuideColor = "#e0e0e0";    // - " - r 
 
     QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
-            _tlMax,     // maximum value of top left of page with drawing on it
             _lastMove;  // value of last canvas move 
 
     QPoint  _firstPointC, // canvas relative first point drawn

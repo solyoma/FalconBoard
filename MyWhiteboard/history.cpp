@@ -900,6 +900,16 @@ int HistoryRotationItem::Redo()
 }
 
 
+void History::_SaveClippingRect()
+{
+	_savedClps.push(_clpRect);
+}
+
+void History::_RestoreClippingRect()
+{
+	_clpRect = _savedClps.pop();
+}
+
 //********************************** History class ****************************
 History::History(const History& o)					
 {
@@ -920,21 +930,74 @@ History::~History()
 	clear();
 }
 
-
-int History::_YIndexForXY(QPoint xy)          // index of top-left-most element in _items, using '_yOrder' (binary search)
+/*========================================================
+ * TASK:	Fet index of top-left-most element at or below xy.y
+ *			in _items, using '_yOrder' (binary search)
+ * PARAMS:	xy  - limiting point 
+ * GLOBALS:
+ * RETURNS: index of first element (>0) in ordered list _yxOrder
+ *			which is at the same height or below xy
+ * REMARKS: - y inreses downwards
+ *-------------------------------------------------------*/
+int History::_YIndexForXY(QPoint xy)
 {
 	IntVector::iterator it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), 0,     // 0: in place of 'right' - not used
 											  [&](const int left, const int right)	   // left: _yorder[xxx]
 											  {
 												  QPoint pt = ((const HistoryItem*)_items[left])->TopLeft();
 												  if (pt.y() < xy.y())
-													  return true;
-												  else if ((pt.y() == xy.y()))
-													  return pt.x() < xy.x();
+													  return true;					   // pt.y is below xy.y
+												  else if ((pt.y() == xy.y()))		   // or when they are the same 
+													  return pt.x() < xy.x();		   // pt is either left (true) or right (false) of xy
 												  else
-													  return false;
+													  return false;					   // pt.y is above xy.y
 											  });
 	return (it - _yxOrder.begin());
+}
+
+/*========================================================
+ * TASK:	Get index of first element whose area
+ *			intersects the clipping rectangle
+ * PARAMS:	none
+ * GLOBALS:	_yxOrde, _items
+ * RETURNS: index of element or -1
+ * REMARKS: 
+ *-------------------------------------------------------*/
+int History::_YIndexWhichInside()
+{
+	int i0 = _YIndexForXY(_clpRect.topLeft() );		// any number of items above this may be OK
+	int inc = 0,									// should test all elements above the i-th one but I only do it for max 100
+		i1 = -1,
+		i2 = -1;
+
+	if (i0 >= _yxOrder.size())
+		return -1;
+
+	HistoryItem	*pl = _yitems(i0), 	// pointers before and after selected
+				*pg = pl;	
+
+	if (pg && !pg->Hidden() && pg->Area().intersects(_clpRect))
+		i1 = i0;
+	else if (pl && !pg->Hidden() && pg->Area().intersects(_clpRect))
+		i2 = i0;
+
+	while (inc < 100)
+	{
+		pl = i0 - inc >= 0 ? _yitems(i0 - inc) : nullptr;
+		pg = i0 + inc  < _yxOrder.size() ? _yitems(i0 + inc) : nullptr;
+		if ( pl && !pl->Hidden() && pl->Area().intersects(_clpRect)) 
+			i1 = i0 - inc;
+		else if (i2 < 0 && pg && !pg->Hidden() && pg->Area().intersects(_clpRect)) // only check those that come after if not found already
+			i2 = i0 + inc;
+		++inc;
+	}
+
+	if (i1 > 0)
+		return i1;
+	else if (i2 > 0)
+		return i2;
+	else
+		return i1; // -1
 }
 int History::_YIndexForIndex(int index)      // index: in unordered array, returns yindex in _yxOrder
 {
@@ -987,9 +1050,14 @@ void History::_push_back(HistoryItem* pi)
 	}
 }
 
-int History::YIndexOfTopmost(QPoint& topLeft)
+int History::YIndexOfTopmost(bool onlyY)
 {
-	int yi = _YIndexForXY(topLeft);
+	int yi;
+	if (onlyY)
+		return _YIndexForXY(_clpRect.topLeft());
+	else
+		yi = _YIndexWhichInside();
+
 	if (yi < 0)
 		return -1;
 
@@ -1004,9 +1072,9 @@ int History::YIndexOfTopmost(QPoint& topLeft)
 	}
 	return -1;                  // all hidden
 }
-HistoryItem* History::TopmostItem(QPoint& topLeft)            // in ordered vector
+HistoryItem* History::TopmostItem()            // in ordered vector
 {
-	_yindex = _YIndexForXY(topLeft) - 1;          // incremented in 'NextVisibleItem()'
+	_yindex = _YIndexForXY(_clpRect.topLeft()) - 1;          // incremented in 'NextVisibleItem()'
 	return NextVisibleItem();
 }
 
@@ -1023,13 +1091,13 @@ HistoryItem* History::NextVisibleItem() // indexLimit is set up in Topmost()
 	return nullptr;  // nothing
 }
 
-IntVector History::VisibleItemsBelow(QPoint topLeft, int height)
+IntVector History::VisibleItemsBelow(int height)
 {
 	IntVector iv;
 	if (height != 0x7fffffff)
-		height += topLeft.y();
+		height += _clpRect.y();
 
-	HistoryItem* pi = TopmostItem(topLeft);
+	HistoryItem* pi = TopmostItem();
 	while (pi && pi->TopLeft().y() < height)
 	{
 		iv.push_back(_yxOrder[_yindex]);    // absolute indices
@@ -1037,6 +1105,22 @@ IntVector History::VisibleItemsBelow(QPoint topLeft, int height)
 	}
 
 	return iv;
+}
+
+QPoint History::BottomRightVisible() const
+{
+	QPoint pt;
+
+	if (!_yxOrder.isEmpty())
+	{
+		int ix = _yxOrder.size() - 1;
+		HistoryItem* phi;
+		while (ix >= 0 && (phi = _yitems(ix))->Hidden())
+			--ix;
+		if (ix >= 0)
+			pt = phi->Area().topLeft();
+	}
+	return pt;
 }
 
 
@@ -1071,16 +1155,15 @@ HistoryItem* History::_AddItem(HistoryItem* p)
  * PARAMS:
  * GLOBALS:	_items
  * RETURNS:	index of first displayable item or -1 if no items
- * REMARKS: - because the order of the items is independent
- *				of the position of the item we must always 
- *				check all items until either run out of items
- *				or found HistoryVisibleCleared item
+ * REMARKS: - item is displayable if it is visible and 
+ *			  the its area contains topLeft's top (y)
+ *			  and the left of its area is
  *-------------------------------------------------------*/
-int History::_YIndexForFirstAfter(QPoint &topLeft)        // in '_items' after a clear screen 
+int History::_YIndexForFirstVisible(bool onlyY)        // in '_items' after a clear screen 
 {									 // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
 	if (!_items.size())
 		return -1;
-	return YIndexOfTopmost(topLeft);
+	return YIndexOfTopmost(onlyY);
 }
 
 bool History::_IsSaveable(int i)
@@ -1130,7 +1213,11 @@ bool History::Save(QString name)
 {
 	// only save after last clear screen op.
 
-	int yi = _YIndexForFirstAfter(QPoint(0,0) );   // index of first visible item
+	_SaveClippingRect();
+
+	_clpRect.setTopLeft(QPoint(0, 0));
+
+	int yi = _YIndexForFirstVisible( );   // index of first visible item
 	if (yi < 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
@@ -1141,7 +1228,10 @@ bool History::Save(QString name)
 	f.open(QIODevice::WriteOnly);
 
 	if (!f.isOpen())
+	{
+		_RestoreClippingRect();
 		return false;   // can't write file
+	}
 
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
@@ -1154,6 +1244,7 @@ bool History::Save(QString name)
 		if (ofs.status() != QDataStream::Ok)
 		{
 			f.remove();
+			_RestoreClippingRect();
 			return false;
 		}
 
@@ -1173,10 +1264,13 @@ bool History::Save(QString name)
 	QFile::rename(name, QString(name + "~"));
 
 	f.rename(name);
+
+	_RestoreClippingRect();
+
 	return true;
 }
 
-int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() when Ok, -items.size()-1 when read error
+int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-1 when read error
 {
 	QFile f(name);
 	f.open(QIODevice::ReadOnly);
@@ -1191,8 +1285,6 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 
 	clear();
 	
-	lastPosition = QPoint(0, 0);
-
 	DrawnItem di;
 	ScreenShotImage bimg;
 	int i = 0, n;
@@ -1207,11 +1299,6 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 			int n = pImages->size() - 1;
 			HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, n);
 			_AddItem(phss);
-			if ((*pImages)[n].topLeft.y() > lastPosition.y())	// for END only the greatest y coordinate counts
-			{
-				lastPosition.setX((*pImages)[n].topLeft.x());	// x is always set for left of last item shown
-				lastPosition.setY((*pImages)[n].topLeft.y());
-			}
 			continue;
 		}
 
@@ -1225,11 +1312,6 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 
 		HistoryItem* phi = addDrawnItem(di);
 
-		if (di.bndRect.y() > lastPosition.y())
-		{
-			lastPosition.setX(di.bndRect.x());
-			lastPosition.setY(di.bndRect.y());
-		}
 	}
 	_modified = false;
 	return  _items.size();
@@ -1239,20 +1321,28 @@ int History::Load(QString name, QPoint& lastPosition)  // returns _ites.size() w
 
 HistoryItem* History::addClearRoll()
 {
-	return addClearDown(QPoint( 0, 0) );
+	_SaveClippingRect();
+	_clpRect = QRect(0, 0, 0x7fffffff, 0x7fffffff);
+	HistoryItem* pi = addClearVisibleScreen();
+	_RestoreClippingRect();
+	return pi;
 }
 
-HistoryItem* History::addClearVisibleScreen(QPoint& topLeft, int height)
+HistoryItem* History::addClearVisibleScreen()
 {
-	IntVector tobeDeleted = VisibleItemsBelow(topLeft);
+	IntVector tobeDeleted = VisibleItemsBelow();
 
 	HistoryDeleteItems* p = new HistoryDeleteItems(this, tobeDeleted);
 	return _AddItem(p);
 }
 
-HistoryItem* History::addClearDown(QPoint& topLeft)
+HistoryItem* History::addClearDown()
 {
-	return addClearVisibleScreen(topLeft, 0x7fffffff);
+	_SaveClippingRect();
+	_clpRect.setHeight(0x7fffffff);
+	HistoryItem *pi = addClearVisibleScreen();
+	_RestoreClippingRect();
+	return pi;
 }
 
 HistoryItem* History::addDrawnItem(DrawnItem& itm)           // may be after an undo, so
@@ -1392,9 +1482,12 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 
 void History::InserVertSpace(int y, int heightInPixels)
 {
-	int i = _YIndexForFirstAfter(QPoint(0,y) );
-	if (i < 0) // there was a clear screen and we are after it
-		return;;
+	
+	int i = _YIndexForFirstVisible();
+if (!i)
+{
+	return;;
+}
 
 	QPoint dy = QPoint(0, heightInPixels);
 	Translate(i, dy, y);
@@ -1407,9 +1500,9 @@ void History::InserVertSpace(int y, int heightInPixels)
 //	_spriteRect = QRect();
 //}
 
-int History::SetFirstItemToDraw(QPoint& topLeft)
+int History::SetFirstItemToDraw()
 {
-	return _yindex = _YIndexForFirstAfter(topLeft);    // sets _index to first item after last clear screen
+	return _yindex = _YIndexForFirstVisible();    // sets _index to first item after last clear screen
 }
 
 QRect  History::Undo()      // returns top left after undo 
@@ -1440,8 +1533,11 @@ QRect  History::Undo()      // returns top left after undo
 		--actItem;
 	}
 
-	_yindex = _YIndexForFirstAfter( QPoint(0,0));            // we may have just undone a clear screen
+//	_SaveClippingRect();
+// ????	_clpRect.setTop()
+	_yindex = _YIndexForFirstVisible();
 
+// ????	_RestoreClippingRect();
 	_modified = true;
 
 	return rect;
@@ -1539,7 +1635,10 @@ int History::CollectItemsInside(QRect rect) // only
 	
 	// first add images to list
 
-	int yi = _YIndexForFirstAfter(rect.topLeft());		 // in _yxOrder
+	_SaveClippingRect();
+	_clpRect = rect;
+	int yi = _YIndexForFirstVisible(true);		 // in _yxOrder, only using y coordinate (no check for intersection here
+	_RestoreClippingRect();
 	if (yi < 0)	// nothing to collect
 		return 0;
 
