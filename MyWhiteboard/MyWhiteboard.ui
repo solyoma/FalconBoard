@@ -88,13 +88,13 @@
     <property name="title">
      <string>&amp;Options</string>
     </property>
-    <addaction name="actionGrid"/>
-    <addaction name="actionFixedGrid"/>
-    <addaction name="actionShowPageGuides"/>
-    <addaction name="separator"/>
     <addaction name="actionLightMode"/>
     <addaction name="actionDarkMode"/>
     <addaction name="actionBlackMode"/>
+    <addaction name="separator"/>
+    <addaction name="actionGrid"/>
+    <addaction name="actionFixedGrid"/>
+    <addaction name="actionShowPageGuides"/>
     <addaction name="separator"/>
     <addaction name="actionSaveData"/>
     <addaction name="actionSaveBackgroundImage"/>

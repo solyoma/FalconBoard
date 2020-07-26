@@ -78,7 +78,7 @@ public:
     bool RecolorSelected(int key); // true: recolored
 #endif
 
-    void SetMode(bool darkMode, QString color, QString gridColor);
+    void SetMode(bool darkMode, QString color, QString gridColor, QString pageGuideColor);
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
     void SetPenKind(MyPenKind newKind);
     void SetPenWidth(int newWidth);
@@ -141,14 +141,18 @@ private:
     void ChangePenColorByKeyboard(int key);
 #endif
 private:
-    History _history;               // every drawable element with undo/redo
+    History _history;              // every drawable element with undo/redo
            // page setup
-    int _pageHeight = 0,            // not 0: printer page height in dots, calculated by page dialog
-        _pageWidth = 0;             // not 0: printer page width in dots
-    float _ppi = 96;                // pixels per screen incs
-    bool _portrait = true;          // print orientation
-    bool _bShowPages = false;       // els draw line on page breaks depending on _pageHeight and _pageWidth
-    QString _printerName;           // last selected printer, usually the default one not saved between sessions
+    int _screenWidth = 1920,       // screen width ==> _pageWidth (portrait) / _pageHeight (landscape)  
+        _screenHeight = 1080;
+    float _ppi = 96;               // pixels per screen inches
+    float _magn = 1.29166663;      // magnification factor for print: 1 print pixel = _magn screen pixel (for A4 and HD)
+        // printer
+    int _dpi = 300;                // printer resolution: dots / inch approx 118 dots/cm
+    int _pageHeight = 3508,        // not 0: printer page height in dots, calculated by page dialog  (A4, portrait)
+        _pageWidth  = 2480;        // not 0: printer page width in dots                              (A4, portrait)
+    bool _portrait = true;         // print orientation
+    QString _printerName;          // last selected printer, usually the default one not saved between sessions
 
             // key states used
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
@@ -199,10 +203,10 @@ private:
                                 // grid 
     bool   _bGridOn = false;
     bool   _gridIsFixed = false;
-    bool   _bPageGuidesOn = false;
+    bool   _bPageGuidesOn = false;       // true: draw line on page breaks depending on _pageHeight and _pageWidth
     int    _nGridSpacing = 64;
     QColor _gridColor = "#d0d0d0";  // for white system color scheme
-    QColor _pageGuideColor = "#b0b0b0";    // - " - r 
+    QColor _pageGuideColor = "#e0e0e0";    // - " - r 
 
     QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _tlMax,     // maximum value of top left of page with drawing on it

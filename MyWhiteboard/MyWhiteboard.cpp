@@ -442,6 +442,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             _sBackgroundColor = "#FFFFFF";
             _sTextColor = "#000000";
             _sGridColor = "#d0d0d0";
+            _sPageGuideColor = "#e0e0e0";
             break;
         case smDark:
             // already set : _drawArea->drawColors.SetDarkMode(true);
@@ -457,6 +458,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             _sBackgroundColor = "#282828";
             _sTextColor = "#E1E1E1";
             _sGridColor = "#202020";
+            _sPageGuideColor = "#404040";
             break;
         case smBlack:
             // already set : _drawArea->drawColors.SetDarkMode(true);
@@ -473,6 +475,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
             _sBackgroundColor = "#000000";
             _sTextColor = "#CCCCCC";
             _sGridColor = "#202020";
+            _sPageGuideColor = "#303030";
             break;
     }
     if(_eraserOn)
@@ -499,7 +502,7 @@ void MyWhiteboard::_SetupMode(ScreenMode mode)
 
     setStyleSheet(ss);
 
-    _drawArea->SetMode(mode != smSystem, _sBackgroundColor, _sGridColor);
+    _drawArea->SetMode(mode != smSystem, _sBackgroundColor, _sGridColor, _sPageGuideColor);
 }
 
 void MyWhiteboard::closeEvent(QCloseEvent* event)

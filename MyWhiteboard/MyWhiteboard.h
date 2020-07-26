@@ -142,7 +142,8 @@ private:
 	QString _sBackgroundColor = "#FFFFFF",
 			_sTextColor = "#000000";
 
-	QString _sGridColor = "#d0d0d0";
+	QString _sGridColor = "#d0d0d0",
+		    _sPageGuideColor = "#e0e0e0";
 
 	ScreenMode _screenMode = smSystem;
 

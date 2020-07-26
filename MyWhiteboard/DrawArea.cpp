@@ -6,6 +6,8 @@
 #include <QMouseEvent>
 
 #include <QPainter>
+#include <QPrinter>
+//#include <QPrintInfo>
 #include <QMessageBox>
 
 #if defined(QT_PRINTSUPPORT_LIB)
@@ -159,10 +161,11 @@ bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 }
 #endif
 
-void DrawArea::SetMode(bool darkMode, QString color, QString sGridColor)
+void DrawArea::SetMode(bool darkMode, QString color, QString sGridColor, QString sPageGuideColor)
 {
     _backgroundColor = color;
     _gridColor = sGridColor;
+    _pageGuideColor = sPageGuideColor;
      drawColors.SetDarkMode( _darkMode = darkMode);
     _Redraw();                  // because pen color changed!
 }
@@ -811,12 +814,24 @@ void DrawArea::_DrawGrid(QPainter& painter)
 
 void DrawArea::_DrawPageGuides(QPainter& painter)
 {
-    if (!_bShowPages)
+    if (!_bPageGuidesOn)
         return;
 
-    int x = _topLeft.x() + width(), 
-        y = _topLeft.y() + height();
-    if(  )
+    int sh = (int)(std::round(_pageHeight / _magn));     // screen height of printed page
+
+    int nxp = _topLeft.x() / _screenWidth,
+        nyp = _topLeft.y() / sh,
+        nx  = (_topLeft.x() + width())/_screenWidth, 
+        ny  = (_topLeft.y() + height())/sh,
+        x=height(), y;
+
+    painter.setPen(QPen(_pageGuideColor, 2, Qt::DotLine));
+    if (nx - nxp > 0)     // x - guide
+        for(x = nxp + 1 * _screenWidth - _topLeft.x(); x < width(); x += _screenWidth )
+                painter.drawLine(x, 0, x, height());
+    if (ny - nyp > 0)    // y - guide
+        for (y = nyp + 1 * sh - _topLeft.y(); y < height(); y += sh)
+            painter.drawLine(0, y, width(), y);
 }
 
 
@@ -852,6 +867,9 @@ void DrawArea::paintEvent(QPaintEvent* event)
     }
             // top of these the drawing
     painter.drawImage(dirtyRect, _canvas, dirtyRect);          // canvas layer
+    if (_bPageGuidesOn)
+        _DrawPageGuides(painter);
+
     if(_pSprite)
         painter.drawImage(dirtyRect.translated(_pSprite->topLeft), _pSprite->image, dirtyRect);  // sprite layer: dirtyRect: actual area below sprite 
 }
@@ -1149,19 +1167,29 @@ void DrawArea::PageSetup()      // public slot
                360
     };
 
-    float fact[] = {1.0, 2.54, 25.4};
+    float fact[] = {1.0, 2.54, 25.4};   // inch, cm, mm
 
     PageSetupDialog* ps = new PageSetupDialog(this, _printerName);
 
     if (ps->exec())
     {
         #define SQUARE(a)  (a*a)
-        _pageHeight = h[ps->resolutionIndex];
-        _pageWidth = w[ps->resolutionIndex];
-        float cosine = (float)_pageWidth / (float)std::sqrt(SQUARE(_pageWidth) + SQUARE(_pageHeight));
-        _ppi = (float)(ps->screenDiagonal) *  fact[ps->unitFactor] * cosine / _pageWidth;
+        _screenHeight = h[ps->resolutionIndex];
+        _screenWidth = w[ps->resolutionIndex];
+        float cosine = (float)_screenWidth / (float)std::sqrt(SQUARE(_screenWidth) + SQUARE(_screenHeight));
+        _ppi = (float)(ps->screenDiagonal) *  fact[ps->unitFactor] * cosine / _screenWidth;
         _portrait  = ps->orientation;        
         _printerName = ps->actPrinter;
+        QPrinter printer;
+        printer.setPrinterName(_printerName);
+        printer.setOrientation(_portrait ? QPrinter::Portrait : QPrinter::Landscape);
+
+        QPrinterInfo info(printer);
+
+        QPageSize pageSize = info.defaultPageSize();
+        _pageWidth = pageSize.sizePixels(printer.resolution()).width();
+        _pageHeight= pageSize.sizePixels(printer.resolution()).height();
+        _magn = (float)_pageWidth / (float)_screenWidth;
     }
     delete ps;
 }
@@ -1383,7 +1411,8 @@ void DrawArea::SetGridOn(bool on, bool fixed)
 
 void DrawArea::SetPageGuidesOn(bool on)
 {
-
+    _bPageGuidesOn = on;
+    _Redraw();
 }
 
 void DrawArea::_SetOrigin(QPoint o)
@@ -1444,23 +1473,27 @@ void DrawArea::_End()
 
 void DrawArea::_Up(int amount)
 {
-    QPoint pt(0, amount);
-    _ShiftAndDisplayBy(pt);
+    QPoint pt(0, 1);
+    while(amount--)
+        _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Down(int amount)
 {
-    QPoint pt(0, -amount);
-    _ShiftAndDisplayBy(pt);
+    QPoint pt(0, -1);
+    while (amount--)
+        _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Left(int amount)
 {
-    QPoint pt(amount, 0);
-    _ShiftAndDisplayBy(pt);
+    QPoint pt(-1,0);
+    while (amount--)
+        _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Right(int amount)
 {
-    QPoint pt(-amount, 0);
-    _ShiftAndDisplayBy(pt);
+    QPoint pt(1,0);
+    while (amount--)
+        _ShiftAndDisplayBy(pt);
 }
 
 #ifndef _VIEWER

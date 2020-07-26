@@ -50,14 +50,31 @@ PageSetupDialog::~PageSetupDialog()
 }
 
 void PageSetupDialog::on_cbScreenResolution_currentIndexChanged(int i) { resolutionIndex = i; }
-void PageSetupDialog::on_edtScrenDiag_textChanged(QString& txt) { screenDiagonal = txt.toInt(); }
+void PageSetupDialog::on_edtScreenDiag_textChanged(QString& txt) { screenDiagonal = txt.toInt(); }
 void PageSetupDialog::on_cbUnit_currentIndexChanged(int i) { unitFactor = i; }
 void PageSetupDialog::on_cbOrientation_currentIndexChanged(int i) { orientation = i; }
 void PageSetupDialog::on_cbPrinterSelect_currentIndexChanged(int i)
 {
+	actPrinter.clear();
 	if (i >= 0)
 	{
 		actPrinter = ui.cbPrinterSelect->itemText(i);
 		ui.lblPrinter->setText(actPrinter);
 	}
+	ui.btnSetupPrinter->setEnabled(!actPrinter.isEmpty());
+}
+
+void PageSetupDialog::on_btnSetupPrinter_clicked()
+{
+	QPrinter  printer;
+	printer.setPrinterName(actPrinter);
+	printer.setOrientation(ui.cbOrientation->currentIndex() ? QPrinter::Landscape : QPrinter::Portrait);
+	QPrintDialog printDlg(&printer);
+	if (printDlg.exec())
+	{
+		int no = printer.orientation() == QPrinter::Portrait ? 0 : 1;
+		if (no != orientation)
+			ui.cbOrientation->setCurrentIndex(no);
+	}
+
 }

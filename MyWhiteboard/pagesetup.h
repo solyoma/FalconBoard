@@ -10,8 +10,8 @@ class PageSetupDialog : public QDialog
 {
 	Q_OBJECT
 public:
-	int resolutionIndex;		// in resolution table
-	int screenDiagonal;			// inch
+	int resolutionIndex;		// screen resolution in resolution combobox
+	int screenDiagonal;			// from text in inch
 	int unitFactor;				// index of units (0: inch, 1: cm, 2: mm)
 	int orientation;			// 0: portrait, 1: landscape
 	QString actPrinter;
@@ -24,10 +24,11 @@ private:
 
 private slots:
 	void on_cbScreenResolution_currentIndexChanged(int i);
-	void on_edtScrenDiag_textChanged(QString& txt);
+	void on_edtScreenDiag_textChanged(QString& txt);
 	void on_cbUnit_currentIndexChanged(int i);
 	void on_cbOrientation_currentIndexChanged(int i);
 	void on_cbPrinterSelect_currentIndexChanged(int i);
+	void on_btnSetupPrinter_clicked();
 };
 
 #endif
