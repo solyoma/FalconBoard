@@ -39,6 +39,7 @@ protected:
 private slots:
 	void on_actionGrid_triggered();
 	void on_actionFixedGrid_triggered();
+	void on_actionShowPageGuides_triggered();
 #ifndef _VIEWER
 	void on_actionNew_triggered();
 
@@ -65,7 +66,8 @@ private slots:
 	void on_actionClearDownward_triggered();
 
 	void on_actionClearBackgroundImage_triggered();
-	void on_action_Print_triggered() { _drawArea->Print();  }
+	void on_actionPageSetup_triggered();
+	void on_actionPrint_triggered() { _drawArea->Print();  }
 
 	void on_action_InsertVertSpace_triggered();
 	void SlotForRubberBandSelection(int on);

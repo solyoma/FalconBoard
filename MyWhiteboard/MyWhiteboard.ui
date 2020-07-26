@@ -42,8 +42,8 @@
     <addaction name="actionLoadBackground"/>
     <addaction name="actionSaveVisible"/>
     <addaction name="separator"/>
-    <addaction name="actionPage_Setup"/>
-    <addaction name="action_Print"/>
+    <addaction name="actionPageSetup"/>
+    <addaction name="actionPrint"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -90,6 +90,7 @@
     </property>
     <addaction name="actionGrid"/>
     <addaction name="actionFixedGrid"/>
+    <addaction name="actionShowPageGuides"/>
     <addaction name="separator"/>
     <addaction name="actionLightMode"/>
     <addaction name="actionDarkMode"/>
@@ -152,7 +153,7 @@
      <normaloff>:/MyWhiteboard/Resources/saveas.png</normaloff>:/MyWhiteboard/Resources/saveas.png</iconset>
    </property>
    <property name="text">
-    <string>Sa&amp;ve As...</string>
+    <string>S&amp;ave As...</string>
    </property>
   </action>
   <action name="actionExit">
@@ -243,7 +244,7 @@
     <string>&amp;About</string>
    </property>
   </action>
-  <action name="action_Print">
+  <action name="actionPrint">
    <property name="text">
     <string>&amp;Print...</string>
    </property>
@@ -343,10 +344,10 @@
   </action>
   <action name="actionLoadBackground">
    <property name="text">
-    <string>Loa&amp;d Image...</string>
+    <string>Loa&amp;dBackgorund...</string>
    </property>
    <property name="iconText">
-    <string>Load Image</string>
+    <string>Load Background</string>
    </property>
    <property name="toolTip">
     <string>Load image as background</string>
@@ -354,7 +355,7 @@
   </action>
   <action name="actionSaveVisible">
    <property name="text">
-    <string>Sav&amp;e Visible</string>
+    <string>Save &amp;Visible</string>
    </property>
    <property name="toolTip">
     <string>Save visible image (not the lines)</string>
@@ -498,9 +499,17 @@
     <string>Clear Visible Screen and Below.  Only a visible screen wide vertical band is cleared.</string>
    </property>
   </action>
-  <action name="actionPage_Setup">
+  <action name="actionPageSetup">
    <property name="text">
     <string>Pa&amp;ge Setup...</string>
+   </property>
+  </action>
+  <action name="actionShowPageGuides">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Page Guides</string>
    </property>
   </action>
  </widget>

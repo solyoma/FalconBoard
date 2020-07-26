@@ -17,7 +17,7 @@ void MyWhiteboard::_RemoveMenus()
     ui.actionSaveAs->setVisible(false);
     ui.actionSaveVisible->setVisible(false);
     ui.actionLoadBackground->setVisible(false);
-    ui.action_Print->setVisible(false);
+    ui.actionPrint->setVisible(false);
 
     ui.actionSaveData->setVisible(false);
     ui.actionSaveBackgroundImage->setVisible(false);
@@ -77,6 +77,9 @@ void MyWhiteboard::RestoreState()
     ui.actionGrid->setChecked(n & 1);
     ui.actionFixedGrid->setChecked(n & 2);
     _drawArea->SetGridOn(n & 1, n & 2);
+    n = s.value("pageG", 0).toInt(0);
+    ui.actionShowPageGuides->setChecked(n);
+    _drawArea->SetPageGuidesOn(n);
 
 #ifndef _VIEWER
     n = s.value("size", 3).toInt();
@@ -117,6 +120,7 @@ void MyWhiteboard::SaveState()
     s.setValue("version", sVersion);
     s.setValue("mode", _screenMode == smSystem ? "s" :_screenMode == smDark ? "d" : "b");
     s.setValue("grid", (ui.actionGrid->isChecked() ? 1 : 0 ) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
+    s.setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
 #ifndef _VIEWER
     s.setValue("size", _penWidth);
     s.setValue("esize", _eraserWidth);
@@ -183,7 +187,7 @@ void MyWhiteboard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.actionSave);
     ui.mainToolBar->addAction(ui.actionSaveAs);
     ui.mainToolBar->addSeparator();
-    ui.mainToolBar->addAction(ui.action_Print);
+    ui.mainToolBar->addAction(ui.actionPrint);
     ui.mainToolBar->addSeparator();
 
     ui.mainToolBar->addAction(ui.action_Black);
@@ -250,8 +254,8 @@ void MyWhiteboard::_AddSaveVisibleAsMenu()
     QMenu *pSaveAsVisibleMenu = new QMenu(QApplication::tr("Save Visible &As..."), this);
     for (QAction* action : qAsConst(_saveAsActs))
         pSaveAsVisibleMenu->addAction(action);
-    ui.menu_File->insertMenu(ui.action_Print, pSaveAsVisibleMenu);
-    ui.menu_File->insertSeparator(ui.action_Print);
+    ui.menu_File->insertMenu(ui.actionPrint, pSaveAsVisibleMenu);
+    ui.menu_File->insertSeparator(ui.actionPrint);
 }
 
 bool MyWhiteboard::_SaveIfYouWant(bool mustAsk)
@@ -699,6 +703,11 @@ void MyWhiteboard::on_actionFixedGrid_triggered()
     _drawArea->SetGridOn(ui.actionGrid->isChecked(), ui.actionFixedGrid->isChecked());
 }
 
+void MyWhiteboard::on_actionShowPageGuides_triggered()
+{
+    _drawArea->SetPageGuidesOn(ui.actionShowPageGuides->isChecked());
+}
+
 #ifndef _VIEWER
 void MyWhiteboard::on_action_Black_triggered()
 {
@@ -796,6 +805,11 @@ void MyWhiteboard::on_actionClearBackgroundImage_triggered()
 {
     _drawArea->ClearBackground();
     _sImageName.clear();
+}
+
+void MyWhiteboard::on_actionPageSetup_triggered()
+{
+    _drawArea->PageSetup();
 }
 
 void MyWhiteboard::on_actionUndo_triggered()

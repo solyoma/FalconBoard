@@ -40,6 +40,9 @@
     <ClCompile Include="history.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pagesetup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MyWhiteboard.h">
@@ -51,9 +54,15 @@
     <QtMoc Include="snipper.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="pagesetup.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="MyWhiteboard.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="pagesetup.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
@@ -63,7 +72,9 @@
     </QtRcc>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="MyWhiteboard.rc" />
+    <ResourceCompile Include="MyWhiteboard.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="history.h">

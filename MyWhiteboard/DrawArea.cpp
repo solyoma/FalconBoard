@@ -9,12 +9,15 @@
 #include <QMessageBox>
 
 #if defined(QT_PRINTSUPPORT_LIB)
-#include <QtPrintSupport/qtprintsupportglobal.h>
-#if QT_CONFIG(printdialog)
-#include <QPrinter>
-#include <QPrintDialog>
+    #include <QtPrintSupport/qtprintsupportglobal.h>
+    #if QT_CONFIG(printdialog)
+        #include <QPrinter>
+        #include <QPrintDialog>
+        #include <QPrinterInfo>
+    #endif
 #endif
-#endif
+
+#include <math.h>
 
 //----------------------------- DrawColors -------------------
 int DrawColors::_penColorIndex(MyPenKind pk)
@@ -261,12 +264,13 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
     update();
 }
 
-
+#ifndef _VIEWER
 void DrawArea::ChangePenColorByKeyboard(int key)
 {
     MyPenKind pk = PenKindFromKey(key);
     SetPenKind(pk);
 }
+#endif
 
 void DrawArea::keyPressEvent(QKeyEvent* event)
 {
@@ -805,6 +809,16 @@ void DrawArea::_DrawGrid(QPainter& painter)
         painter.drawLine(x, 0, x, height());
 }
 
+void DrawArea::_DrawPageGuides(QPainter& painter)
+{
+    if (!_bShowPages)
+        return;
+
+    int x = _topLeft.x() + width(), 
+        y = _topLeft.y() + height();
+    if(  )
+}
+
 
 /*========================================================
  * TASK:    system paint event. Paints all layers
@@ -1092,6 +1106,66 @@ void DrawArea::ClearHistory()
 }
 
 #ifndef _VIEWER
+void DrawArea::PageSetup()      // public slot
+{
+    int w[] = {3840,
+               3440,
+               2560,
+               2560,
+               2048,
+               1920,
+               1920,
+               1680,
+               1600,
+               1536,
+               1440,
+               1366,
+               1360,
+               1280,
+               1280,
+               1280,
+               1024,
+               800 ,
+               640
+    },
+        h[] = {2160,
+               1440 ,
+               1440 ,
+               1080 ,
+               1152 ,
+               1200 ,
+               1080 ,
+               1050 ,
+               900  ,
+               864  ,
+               900  ,
+               768  ,
+               768  ,
+               1024 ,
+               800  ,
+               720  ,
+               768  ,
+               600  ,
+               360
+    };
+
+    float fact[] = {1.0, 2.54, 25.4};
+
+    PageSetupDialog* ps = new PageSetupDialog(this, _printerName);
+
+    if (ps->exec())
+    {
+        #define SQUARE(a)  (a*a)
+        _pageHeight = h[ps->resolutionIndex];
+        _pageWidth = w[ps->resolutionIndex];
+        float cosine = (float)_pageWidth / (float)std::sqrt(SQUARE(_pageWidth) + SQUARE(_pageHeight));
+        _ppi = (float)(ps->screenDiagonal) *  fact[ps->unitFactor] * cosine / _pageWidth;
+        _portrait  = ps->orientation;        
+        _printerName = ps->actPrinter;
+    }
+    delete ps;
+}
+
 void DrawArea::Print()
 {
 #if QT_CONFIG(printdialog)
@@ -1305,6 +1379,11 @@ void DrawArea::SetGridOn(bool on, bool fixed)
     _gridIsFixed = fixed;
     _bGridOn = on;
     _Redraw();
+}
+
+void DrawArea::SetPageGuidesOn(bool on)
+{
+
 }
 
 void DrawArea::_SetOrigin(QPoint o)

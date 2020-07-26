@@ -13,6 +13,9 @@
 #include <thread>
 
 #include "history.h"
+#ifndef _VIEWER
+    #include "pagesetup.h"
+#endif
 
 using namespace std::chrono_literals;
 
@@ -94,6 +97,7 @@ public:
     void SetEraserCursor(QIcon *icon = nullptr);
 
     void SetGridOn(bool on, bool fixed);
+    void SetPageGuidesOn(bool on);
 
 signals:
     void CanUndo(bool state);     // state: true -> can undo
@@ -112,7 +116,7 @@ public slots:
     void ClearDown();
     void ClearHistory();
 #ifndef _VIEWER
-    void PageSetup() { /* !!!!!*/ } 
+    void PageSetup();
     void Print();
     void Undo();
     void Redo();
@@ -132,11 +136,20 @@ protected:
 
     void tabletEvent(QTabletEvent* event) override;
 
+#ifndef _VIEWER
 private:
     void ChangePenColorByKeyboard(int key);
-
+#endif
 private:
     History _history;               // every drawable element with undo/redo
+           // page setup
+    int _pageHeight = 0,            // not 0: printer page height in dots, calculated by page dialog
+        _pageWidth = 0;             // not 0: printer page width in dots
+    float _ppi = 96;                // pixels per screen incs
+    bool _portrait = true;          // print orientation
+    bool _bShowPages = false;       // els draw line on page breaks depending on _pageHeight and _pageWidth
+    QString _printerName;           // last selected printer, usually the default one not saved between sessions
+
             // key states used
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
     bool    _shiftKeyDown = false;  // used for constraints to draw horizontal vertical or slanted lines
@@ -186,8 +199,10 @@ private:
                                 // grid 
     bool   _bGridOn = false;
     bool   _gridIsFixed = false;
+    bool   _bPageGuidesOn = false;
     int    _nGridSpacing = 64;
-    QColor _gridColor = "#d0d0d0";
+    QColor _gridColor = "#d0d0d0";  // for white system color scheme
+    QColor _pageGuideColor = "#b0b0b0";    // - " - r 
 
     QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _tlMax,     // maximum value of top left of page with drawing on it
@@ -226,6 +241,7 @@ private:
     bool _ReplotItem(HistoryItem* pdrni); 
     void _Redraw();
     void _DrawGrid(QPainter &painter);
+    void _DrawPageGuides(QPainter& painter);
     QColor _PenColor();
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();

@@ -86,6 +86,7 @@
   <ItemGroup>
     <ClCompile Include="DrawArea.cpp" />
     <ClCompile Include="history.cpp" />
+    <ClCompile Include="pagesetup.cpp" />
     <ClCompile Include="snipper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyWhiteboard.cpp" />
@@ -95,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="MyWhiteboard.ui" />
+    <QtUic Include="pagesetup.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="MyWhiteboard.qrc" />
@@ -107,6 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="history.h" />
+    <QtMoc Include="pagesetup.h" />
     <QtMoc Include="snipper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
