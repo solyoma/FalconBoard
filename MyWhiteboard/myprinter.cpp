@@ -41,7 +41,8 @@ QPrinter* MyPrinter::GetPrinterParameters(MyPrinterData& prdata)
         prdata.dpi = printer->resolution();
         prdata.printArea = printer->pageRect(QPrinter::DevicePixel);
 
-        prdata.magn = (float)prdata.printArea.width() / (float)prdata.screenWidth;
+        prdata.magn = (float)prdata.printArea.width() / (float)prdata.screenPageWidth;
+        prdata.screenPageHeight = (int)((float)prdata.printArea.height() / prdata.magn);
            
         return printer;
     }
@@ -49,13 +50,15 @@ QPrinter* MyPrinter::GetPrinterParameters(MyPrinterData& prdata)
     return nullptr;
 }
 //----------------------------------------------
+//----------------------------------------------
 struct PageNum2
 {
-    int ny, nx;
+    int ny, nx;     // orindal of page vertically and horizontally
+    int zorder;     // z-order [screenshots:0, other:1]
     QVector<int> yindices = { -1 };
     void clear() {yindices.clear(); yindices.push_back(-1);}
 
-    bool operator<(const PageNum2& o) { return ny < o.ny ? true : (ny == o.ny && nx < o.nx) ? true : false; }
+    bool operator<(const PageNum2& o) { return ny < o.ny ? true : (zorder < o.zorder) ? true: (ny == o.ny && nx < o.nx) ? true : false; }
     bool operator==(const PageNum2& o) { return (nx == o.nx && ny == o.ny); }
     bool operator!=(const PageNum2& o) { return (nx != o.nx || ny != o.ny); }
 };
@@ -65,11 +68,17 @@ static struct SortedPageNumbers
     QVector<PageNum2> pgns;
     QRect screenPageRect;
 
+    const PageNum2& operator[](int ix) const { return pgns[ix]; }
+    int Size() const { return pgns.size(); }
     void Clear()
     {
         pgns.clear();
     }
-
+    int pgpos(PageNum2& pgn)
+    {
+        auto it = std::lower_bound(pgns.begin(), pgns.end(), pgn);
+        return it - pgns.begin();
+    }
     void Init(QRect screenRect)
     {
         Clear();
@@ -77,57 +86,60 @@ static struct SortedPageNumbers
     }
     void Insert(PageNum2 pgn)
     {
-        int pos = pgpos(pgn, pgns);
+        int pos = pgpos(pgn);
         if (pos == pgns.size())
             pgns.push_back(pgn);
         else if (pgns[pos] != pgn)
             pgns.insert(pos, pgn);
-        else // existinf
-            pgns[pos].yindices.push_back(pgn.yindices[0]);
+        else            // existing point see if item already added
+        {
+            int ix = pgns[pos].yindices.indexOf(pgn.yindices[0]);
+            if (ix < 0)
+                pgns[pos].yindices.push_back(pgn.yindices[0]);
+        }
     }
-    void PageForPoint(QPoint& p, int yindex, PageNum2 &pgn)
+    PageNum2 &PageForPoint(QPoint& p, int yindex, PageNum2 &pgn)
     {
         pgn.yindices[0] = yindex;
-        pgn.ny = (p.y() + screenPageRect.width() - 1) / screenPageRect.height();
-        pgn.nx = (p.x() + screenPageRect.width() - 1) / screenPageRect.width();
+        pgn.ny = p.y() / screenPageRect.height();
+        pgn.nx = p.x() / screenPageRect.width();
+        return pgn;
     };
 
     void AddPoints(HistoryItem* phi, int yindex, PageNum2 &pgn) // to 'pgns'
     {
         DrawnItem* pdrni;
 
-        pdrni = phi->GetDrawable
-
+        pdrni = phi->GetDrawable(0);    // only one element for drawable / printable
+        Insert(PageForPoint(pdrni->points[0], yindex, pgn));
+        Insert(pgn);
+        for (int i = 1; i < pdrni->points.size(); ++i)
+            Insert(PageForPoint(pdrni->points[i], yindex, pgn) );
     }
-} sortedPageNumbers;
 
-int pgpos(PageNum2& pgn, QVector<PageNum2> &pgns)
-{
-    auto it = std::lower_bound(pgns.begin(), pgns.end(), pgn);
-    return it - pgns.begin();
-}
+} sortedPageNumbers;
 
 int MyPrinter::_CalcPages()
 {
     _pages.clear();
 
-    int screenPageHeight = (int)(_data.printArea.height() / _data.magn);
-    int w = _data.screenWidth;      
-    sortedPageNumbers.Init( QRect(0, 0, w, screenPageHeight) );
+    sortedPageNumbers.Init( QRect(0, 0, _data.screenPageWidth, _data.screenPageHeight) );
 
     int nSize = _pHist->CountOfVisible();
 
+    // for each drawable determine pages it apperas on and prepare
+    // an list of pages ordered first by y then by x page indices
     HistoryItem* phi;
-
-    for (int yi = 0; yi < nSize; ++yi) // for each drawable
+    PageNum2 pgn;
+    for (int yi = 0; yi < nSize; ++yi) 
     {
         phi = _pHist->atYIndex(yi);
-        PageNum2 pgn;
         if (phi->type == heScreenShot)   // then this item is in all page rectangles it intersects
         {
             PageNum2 lpgn;
             sortedPageNumbers.PageForPoint(phi->Area().topLeft(), yi, pgn);         
             sortedPageNumbers.PageForPoint(phi->Area().bottomRight(), yi, lpgn);
+            pgn.zorder = lpgn.zorder = yi;       // screen shots below others
             PageNum2 act = pgn;
             for (int y = pgn.ny; y <= lpgn.ny; ++y)
             {
@@ -141,59 +153,31 @@ int MyPrinter::_CalcPages()
         }
         else                            // scribbles, ereases and other (future) drawables
         {                               // must be checked point by point
-            pdrni = phi->GetDrawable(0);
-            if (pdrni)                   // should be always!
+            switch (phi->type)
             {
-                switch (phi->type)
-                {
-                    case heScribble:
-                    case heEraser:
-                        AddPoints
-                }
+                case heScribble:
+                case heEraser:
+                    pgn.zorder = 1000000;
+                    sortedPageNumbers.AddPoints(phi, yi, pgn);
+                    break;
+                default: break;
             }
         }
     }
-    
-    auto insert = [&](int yindex)
-    { 
-        int ny = (phi->Area().y() + screenPageHeight-1)/screenPageHeight, 
-            nx = (phi->Area().x() + w - 1)/w; 
-        pg.pageNumber = ny;
-        int n = pages.indexOf(pg);
-        if (n < 0)
-        {
-            pages.push_back(pg);
-            n = pages.size() - 1;
-        }
-        pages[n].yindices.push_back(yindex);
+    // add pages to linear page list
+    _pages.clear();
+    Page pg;
+    pg.area = QRect(0, 0, _data.screenPageWidth, _data.screenPageHeight);
 
-        if (nx) // page at right of some other
-        {
-            pg.pageNumber = nx;
-            int n1 = pages[n].pagesAtRight.indexOf(pg);
-            if (n1 < 0)
-            {
-                pages[n].pagesAtRight.push_back(pg);
-                n1 = pages[n].pagesAtRight.size() - 1;
-            }
-            pages[n].pagesAtRight[n].yindices.push_back(n1);
-        }
-    };
-
-    for (int i = 0; i < nSize; ++i)
-        insert(i);
-
-    return 0;
-}
-
-bool MyPrinter::_CollectPage(int page)
-{
-    return false;
-}
-
-bool MyPrinter::_PrintPage(QRect& rect)
-{
-    return false;
+    for (int i = 0; i < sortedPageNumbers.Size(); ++i)
+    {
+        pg.pageNumber = i;
+        pgn = sortedPageNumbers[i];
+        pg.yindices = pgn.yindices;
+        pg.area.moveTo(pgn.nx * _data.screenPageWidth, pgn.ny* _data.screenPageHeight);
+        _pages.push_back(pg);
+    }
+    return _pages.size();
 }
 
 MyPrinter::MyPrinter(History* pHist, MyPrinterData prdata) :
@@ -206,7 +190,7 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
     QPrinter* printer = GetPrinterParameters(_data);
     if (!printer)
         return nullptr;
-    int pages = _CalcPages(); // although page data may change...
+    int pages = _CalcPages(); // page data may change if new printer is selected
 
     printer->setFromTo(1, pages);   // max page range
 
@@ -222,9 +206,6 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
             delete printer;
             printer = pActPrinter;
         }
-        int from = printer->fromPage();
-        int to = printer->toPage();
-
 
         return pDlg;    // must not delete here so printer remains valid
         // print
@@ -232,6 +213,27 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
     delete pDlg;
 
     return nullptr;
+}
+
+int MyPrinter::_PageForPoint(QPoint p)
+{
+    for (int i = 0; i < _pages.size(); ++i)
+        if (_pages[i].area.contains(p))
+            return i;
+    return -1;
+}
+
+bool MyPrinter::_PrintPage(int page)
+{
+    return false;
+}
+
+bool MyPrinter::_Print(QVector<int>& pages)
+{
+    bool res = true;
+    for(int i=0; i < pages.size() && res; ++i)
+        res &= _PrintPage(i);
+    return res;
 }
 
 bool MyPrinter::_Print(int from, int to)
@@ -242,16 +244,38 @@ bool MyPrinter::_Print(int from, int to)
     return _Print(vec);
 }
 
-bool MyPrinter::_Print(QVector<int>& pages)
+bool MyPrinter::Print()
 {
+    QPrintDialog* pdlg;
+    if ((pdlg=_DoPrintDialog()))
+    {
+        int n = _CalcPages();       // agsin
+        QPrinter *printer = pdlg->printer();
+        QPrinter::PrintRange range = printer->printRange();
+        if (range == QPrinter::CurrentPage)
+        {
+            PageNum2 pgn;
+            int n = _PageForPoint(_data.topLeftActPage);
+            return _Print(n);
+        }
+        else if (range == QPrinter::AllPages)
+        {
+            return _Print(0, _pages.size() - 1);
+        }
+        else if (range == QPrinter::PageRange)
+        {
+            int from = printer->fromPage()-1;   
+            int to = printer->toPage()-1;
+
+            return _Print(from, to);
+        }
+        else          // selection
+        {
+            // ???
+            return true;
+        }
+        delete pdlg;
+    }
     return false;
 }
 
-bool MyPrinter::Print()
-{
-    if (_DoPrintDialog())
-    {
-        _CalcPages();
-
-    }
-}

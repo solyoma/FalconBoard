@@ -153,7 +153,6 @@ void PageSetupDialog::on_cbPrinterSelect_currentIndexChanged(int i)
 		actPrinter = ui.cbPrinterSelect->itemText(i);
 		ui.lblPrinter->setText(actPrinter);
 	}
-	ui.btnSetupPrinter->setEnabled(!actPrinter.isEmpty());
 }
 
 void PageSetupDialog::on_chkPrintBackgroundImage_toggled(bool b)

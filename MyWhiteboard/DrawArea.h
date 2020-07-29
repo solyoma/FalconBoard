@@ -151,6 +151,7 @@ private:
     float _ppi = 96;               // pixels per screen inches
         // printer
     MyPrinterData _prdata;
+    MyPrinter* _printer = nullptr;
 
             // key states used
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
@@ -266,9 +267,6 @@ private:
     void MoveSprite(QPoint pt);
     void _PasteSprite();
 #endif
-    int _CalcPrinPageCount();   // using all wisible items
-    QRect _GetPage(int page);   // absolute coordinates
-    int _PrintPage(int page);
 };
 
 #endif

@@ -20,6 +20,8 @@
 
 #include <math.h>
 
+#include "myprinter.h"
+
 //----------------------------- DrawColors -------------------
 int DrawColors::_penColorIndex(MyPenKind pk)
 {
@@ -60,7 +62,7 @@ DrawArea::DrawArea(QWidget* parent)
 
 void DrawArea::SetPrinterData(const MyPrinterData& prdata)
 {
-     _prdata.screenWidth = prdata.screenWidth; 
+     _prdata.screenPageWidth = prdata.screenPageWidth; 
      _prdata.orientation = prdata.orientation;
      _prdata.flags = prdata.flags;
      _prdata.printerName = prdata.printerName;
@@ -816,12 +818,10 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
     if (!_bPageGuidesOn)
         return;
 
-    int sh = (int)(std::round(_prdata.pageHeight / _prdata.magn));     // screen height of printed page
-
     int nxp = _topLeft.x() / _screenWidth,
-        nyp = _topLeft.y() / sh,
+        nyp = _topLeft.y() / _prdata.screenPageHeight,
         nx  = (_topLeft.x() + width())/_screenWidth, 
-        ny  = (_topLeft.y() + height())/sh,
+        ny  = (_topLeft.y() + height())/_prdata.screenPageHeight,
         x=height(), y;
 
     painter.setPen(QPen(_pageGuideColor, 2, Qt::DotLine));
@@ -829,7 +829,7 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
         for(x = nxp + 1 * _screenWidth - _topLeft.x(); x < width(); x += _screenWidth )
                 painter.drawLine(x, 0, x, height());
     if (ny - nyp > 0)    // y - guide
-        for (y = nyp + 1 * sh - _topLeft.y(); y < height(); y += sh)
+        for (y = nyp + 1 * _prdata.screenPageHeight - _topLeft.y(); y < height(); y += _prdata.screenPageHeight)
             painter.drawLine(0, y, width(), y);
 }
 
@@ -1128,7 +1128,7 @@ void DrawArea::PageSetup()      // public slot
         QSize wh;
         int nHorizPixels = ps->GetScreenSize(wh);
 
-        _prdata.screenWidth = _screenWidth = wh.width();
+        _prdata.screenPageWidth = _screenWidth = wh.width();
         _screenHeight = wh.height();
 
         #define SQUARE(a)  (a*a)
@@ -1164,7 +1164,11 @@ void DrawArea::Print()
     //    painter.setWindow(_canvas.rect());
     //    painter.drawImage(0, 0, _canvas);
     //}
-    MyPrinterData* pMyPrinter = new MyPrinterData( &_history, _prdata);
+    _prdata.topLeftActPage = _topLeft;
+
+    _printer = new MyPrinter(&_history, _prdata);
+    MyPrinter::GetPrinterParameters(_prdata);
+    _printer->Print();
 
 #endif // QT_CONFIG(printdialog)
 }
