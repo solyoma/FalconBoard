@@ -90,6 +90,7 @@
     <ClCompile Include="snipper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyWhiteboard.cpp" />
+    <ClCompile Include="myprinter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MyWhiteboard.h" />
@@ -109,6 +110,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="history.h" />
+    <ClInclude Include="myprinter.h" />
     <QtMoc Include="pagesetup.h" />
     <QtMoc Include="snipper.h" />
   </ItemGroup>

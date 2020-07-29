@@ -87,12 +87,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtUic Include="..\MyWhiteboard\MyWhiteboard.ui" />
+    <QtUic Include="..\MyWhiteboard\pagesetup.ui" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\MyWhiteboard\DrawArea.cpp" />
     <ClCompile Include="..\MyWhiteboard\history.cpp" />
     <ClCompile Include="..\MyWhiteboard\main.cpp" />
     <ClCompile Include="..\MyWhiteboard\MyWhiteboard.cpp" />
+    <ClCompile Include="..\MyWhiteboard\pagesetup.cpp" />
     <ClCompile Include="..\MyWhiteboard\snipper.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\MyWhiteboard\history.h" />
+    <QtMoc Include="..\MyWhiteboard\pagesetup.h" />
     <QtMoc Include="..\MyWhiteboard\snipper.h" />
     <QtMoc Include="..\MyWhiteboard\MyWhiteboard.h" />
   </ItemGroup>

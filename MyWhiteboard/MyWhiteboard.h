@@ -66,8 +66,6 @@ private slots:
 	void on_actionClearDownward_triggered();
 
 	void on_actionClearBackgroundImage_triggered();
-	void on_actionPageSetup_triggered();
-	void on_actionPrint_triggered() { _drawArea->Print();  }
 
 	void on_action_InsertVertSpace_triggered();
 	void SlotForRubberBandSelection(int on);
@@ -87,6 +85,10 @@ private slots:
 
 	void SlotForLabel(QString text);
 #endif
+	void on_actionPageSetup_triggered();
+	void SlotForPrinterEnabled(bool enabled);
+	void on_actionPrint_triggered() { _drawArea->Print();  }
+
 	void on_actionLoad_triggered();
 
 	void on_actionAbout_triggered();

@@ -6,6 +6,7 @@
 #include <QSettings>
 #include "DrawArea.h"
 #include "MyWhiteboard.h"
+#include "myprinter.h"   // for MyPrinterData
 
 #ifdef _VIEWER
 void MyWhiteboard::_RemoveMenus()
@@ -17,7 +18,6 @@ void MyWhiteboard::_RemoveMenus()
     ui.actionSaveAs->setVisible(false);
     ui.actionSaveVisible->setVisible(false);
     ui.actionLoadBackground->setVisible(false);
-    ui.actionPrint->setVisible(false);
 
     ui.actionSaveData->setVisible(false);
     ui.actionSaveBackgroundImage->setVisible(false);
@@ -47,6 +47,7 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &MyWhiteboard::SlotForPointerType);
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &MyWhiteboard::SlotForRubberBandSelection);
 #endif
+    connect(_drawArea, &DrawArea::CanPrint, this, &MyWhiteboard::SlotForPrinterEnabled);
     RestoreState();
 
     _SetupIconsForPenColors(_screenMode);
@@ -80,6 +81,13 @@ void MyWhiteboard::RestoreState()
     n = s.value("pageG", 0).toInt(0);
     ui.actionShowPageGuides->setChecked(n);
     _drawArea->SetPageGuidesOn(n);
+
+    MyPrinterData data;
+    
+    data.screenWidth = s.value("hpxs", 1920).toInt();
+    data.orientation = s.value("porient", 0).toInt();		// portrait
+    data.flags = s.value("pflags", 0).toInt();		        // bit): print background image, bit 1: white background
+    _drawArea->SetPrinterData(data);
 
 #ifndef _VIEWER
     n = s.value("size", 3).toInt();
@@ -810,11 +818,6 @@ void MyWhiteboard::on_actionClearBackgroundImage_triggered()
     _sImageName.clear();
 }
 
-void MyWhiteboard::on_actionPageSetup_triggered()
-{
-    _drawArea->PageSetup();
-}
-
 void MyWhiteboard::on_actionUndo_triggered()
 {
     _drawArea->Undo();                
@@ -941,3 +944,14 @@ void MyWhiteboard::SlotForLabel(QString text)
     _plblMsg->setText(text);
 }
 #endif
+
+void MyWhiteboard::on_actionPageSetup_triggered()
+{
+    _drawArea->PageSetup();
+}
+
+void MyWhiteboard::SlotForPrinterEnabled(bool enabled)
+{
+    ui.actionPrint->setEnabled(enabled);
+}
+

@@ -6,7 +6,6 @@
 #include <QMouseEvent>
 
 #include <QPainter>
-#include <QPrinter>
 
 #include <QMessageBox>
 
@@ -57,6 +56,14 @@ DrawArea::DrawArea(QWidget* parent)
     setCursor(Qt::CrossCursor);
     SetPenColors();
     _history.pImages = &_belowImages;
+}
+
+void DrawArea::SetPrinterData(const MyPrinterData& prdata)
+{
+     _prdata.screenWidth = prdata.screenWidth; 
+     _prdata.orientation = prdata.orientation;
+     _prdata.flags = prdata.flags;
+     _prdata.printerName = prdata.printerName;
 }
 
 void DrawArea::SetPenColors()
@@ -809,7 +816,7 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
     if (!_bPageGuidesOn)
         return;
 
-    int sh = (int)(std::round(_pageHeight / _magn));     // screen height of printed page
+    int sh = (int)(std::round(_prdata.pageHeight / _prdata.magn));     // screen height of printed page
 
     int nxp = _topLeft.x() / _screenWidth,
         nyp = _topLeft.y() / sh,
@@ -1110,96 +1117,58 @@ void DrawArea::ClearHistory()
     emit CanRedo(false);
 }
 
-#ifndef _VIEWER
 void DrawArea::PageSetup()      // public slot
 {
-    int w[] = {3840,
-               3440,
-               2560,
-               2560,
-               2048,
-               1920,
-               1920,
-               1680,
-               1600,
-               1536,
-               1440,
-               1366,
-               1360,
-               1280,
-               1280,
-               1280,
-               1024,
-               800 ,
-               640
-    },
-        h[] = {2160,
-               1440 ,
-               1440 ,
-               1080 ,
-               1152 ,
-               1200 ,
-               1080 ,
-               1050 ,
-               900  ,
-               864  ,
-               900  ,
-               768  ,
-               768  ,
-               1024 ,
-               800  ,
-               720  ,
-               768  ,
-               600  ,
-               360
-    };
-
     float fact[] = {1.0, 2.54, 25.4};   // inch, cm, mm
 
-    PageSetupDialog* ps = new PageSetupDialog(this, _printerName);
+    PageSetupDialog* ps = new PageSetupDialog(this, _prdata.printerName);
 
     if (ps->exec())
     {
+        QSize wh;
+        int nHorizPixels = ps->GetScreenSize(wh);
+
+        _prdata.screenWidth = _screenWidth = wh.width();
+        _screenHeight = wh.height();
+
         #define SQUARE(a)  (a*a)
-        _screenHeight = h[ps->resolutionIndex];
-        _screenWidth = w[ps->resolutionIndex];
-        float cosine = (float)_screenWidth / (float)std::sqrt(SQUARE(_screenWidth) + SQUARE(_screenHeight));
-        _ppi = (float)(ps->screenDiagonal) *  fact[ps->unitFactor] * cosine / _screenWidth;
-        _portrait  = ps->orientation;        
-        _printerName = ps->actPrinter;
-        QPrinter printer;
-        printer.setPrinterName(_printerName);
-        printer.setOrientation(_portrait ? QPrinter::Portrait : QPrinter::Landscape);
 
-        QPrinterInfo info(printer);
+        if (_screenHeight > 0)           // -1 if no predefined resolution
+        {
+            float cosine = (float)_screenWidth / (float)std::sqrt(SQUARE(_screenWidth) + SQUARE(_screenHeight));
+            _ppi = (float)(ps->screenDiagonal) * fact[ps->unitFactor] * cosine / _screenWidth;
+        }
+        else
+            _ppi = 96;
 
-        QPageSize pageSize = info.defaultPageSize();
-        _pageWidth = pageSize.sizePixels(printer.resolution()).width();
-        _pageHeight= pageSize.sizePixels(printer.resolution()).height();
-        _magn = (float)_pageWidth / (float)_screenWidth;
+        _prdata.orientation = ps->orientation;
+        _prdata.printerName = ps->actPrinter;
+        MyPrinter::GetPrinterParameters(_prdata);
+        emit CanPrint(!_prdata.printerName.isEmpty());
     }
     delete ps;
 }
-
 void DrawArea::Print()
 {
 #if QT_CONFIG(printdialog)
-    QPrinter printer(QPrinter::HighResolution);
+    //QPrinter printer(QPrinter::HighResolution);
 
-    QPrintDialog printDialog(&printer, this);
-    //! [21] //! [22]
-    if (printDialog.exec() == QDialog::Accepted) {
-        QPainter painter(&printer);
-        QRect rect = painter.viewport();
-        QSize size = _canvas.size();
-        size.scale(rect.size(), Qt::KeepAspectRatio);
-        painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
-        painter.setWindow(_canvas.rect());
-        painter.drawImage(0, 0, _canvas);
-    }
+    //QPrintDialog printDialog(&printer, this);
+    ////! [21] //! [22]
+    //if (printDialog.exec() == QDialog::Accepted) {
+    //    QPainter painter(&printer);
+    //    QRect rect = painter.viewport();
+    //    QSize size = _canvas.size();
+    //    size.scale(rect.size(), Qt::KeepAspectRatio);
+    //    painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
+    //    painter.setWindow(_canvas.rect());
+    //    painter.drawImage(0, 0, _canvas);
+    //}
+    MyPrinterData* pMyPrinter = new MyPrinterData( &_history, _prdata);
+
 #endif // QT_CONFIG(printdialog)
 }
-#endif
+
 void DrawArea::_Redraw()
 {
     int savewidth = _penWidth;

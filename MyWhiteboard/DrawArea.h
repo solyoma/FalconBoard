@@ -13,9 +13,8 @@
 #include <thread>
 
 #include "history.h"
-#ifndef _VIEWER
-    #include "pagesetup.h"
-#endif
+#include "pagesetup.h"
+#include "myprinter.h"
 
 using namespace std::chrono_literals;
 
@@ -63,6 +62,8 @@ public:
 
     DrawArea(QWidget* parent = nullptr);
 
+    void SetPrinterData(const MyPrinterData& prdata);
+
     void SetPenColors();
 
     void ClearBackground();
@@ -102,6 +103,7 @@ public:
 signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo
+    void CanPrint(bool able);
     void WantFocus();
     void PointerTypeChange(QTabletEvent::PointerType pt);
     void TextToToolbar(QString text);
@@ -115,12 +117,13 @@ public slots:
     void ClearVisibleScreen();
     void ClearDown();
     void ClearHistory();
-#ifndef _VIEWER
-    void PageSetup();
     void Print();
+    void PageSetup();
+#ifndef _VIEWER
     void Undo();
     void Redo();
     void ChangePenColorSlot(int key);
+
 #endif
 
 protected:
@@ -146,13 +149,8 @@ private:
     int _screenWidth = 1920,       // screen width ==> _pageWidth (portrait) / _pageHeight (landscape)  
         _screenHeight = 1080;
     float _ppi = 96;               // pixels per screen inches
-    float _magn = 1.29166663;      // magnification factor for print: 1 print pixel = _magn screen pixel (for A4 and HD)
         // printer
-    int _dpi = 300;                // printer resolution: dots / inch approx 118 dots/cm
-    int _pageHeight = 3508,        // not 0: printer page height in dots, calculated by page dialog  (A4, portrait)
-        _pageWidth  = 2480;        // not 0: printer page width in dots                              (A4, portrait)
-    bool _portrait = true;         // print orientation
-    QString _printerName;          // last selected printer, usually the default one not saved between sessions
+    MyPrinterData _prdata;
 
             // key states used
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
@@ -249,7 +247,6 @@ private:
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
 #ifndef _VIEWER
-
     void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
 #endif
     void _SetOrigin(QPoint qp);  // sets new topleft and displays it on label
@@ -269,6 +266,9 @@ private:
     void MoveSprite(QPoint pt);
     void _PasteSprite();
 #endif
+    int _CalcPrinPageCount();   // using all wisible items
+    QRect _GetPage(int page);   // absolute coordinates
+    int _PrintPage(int page);
 };
 
 #endif

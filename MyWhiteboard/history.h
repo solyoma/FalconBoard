@@ -278,7 +278,6 @@ struct HistoryReColorItem : HistoryItem
     HistoryReColorItem(HistoryReColorItem&& other);
     HistoryReColorItem& operator=(const HistoryReColorItem&& other);
     QRect Area() const override;
-    DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
 };
 
 //--------------------------------------------
@@ -438,7 +437,8 @@ public:
     void SetClippingRect(QRect& rect) { _clpRect = rect;  }
 
     void clear();
-    int size() const;
+    int size() const;   // _items's size
+    int CountOfVisible() const { return _yxOrder.size(); }
     int SelectedSize() const { return _nSelectedItemsList.size(); }
 
     HistoryItem* operator[](int index);   // index: absolute index

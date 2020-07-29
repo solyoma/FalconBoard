@@ -28,6 +28,9 @@
     <QtUic Include="..\MyWhiteboard\MyWhiteboard.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="..\MyWhiteboard\pagesetup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\MyWhiteboard\DrawArea.cpp">
@@ -45,6 +48,9 @@
     <ClCompile Include="..\MyWhiteboard\snipper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\MyWhiteboard\pagesetup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="..\MyWhiteboard\DrawArea.h">
@@ -54,6 +60,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="..\MyWhiteboard\snipper.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="..\MyWhiteboard\pagesetup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

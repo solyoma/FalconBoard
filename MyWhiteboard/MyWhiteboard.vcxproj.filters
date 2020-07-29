@@ -43,6 +43,9 @@
     <ClCompile Include="pagesetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="myprinter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MyWhiteboard.h">
@@ -78,6 +81,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="history.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="myprinter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
