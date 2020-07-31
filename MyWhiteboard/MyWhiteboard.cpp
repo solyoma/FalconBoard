@@ -47,7 +47,6 @@ MyWhiteboard::MyWhiteboard(QWidget *parent)	: QMainWindow(parent)
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &MyWhiteboard::SlotForPointerType);
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &MyWhiteboard::SlotForRubberBandSelection);
 #endif
-    connect(_drawArea, &DrawArea::CanPrint, this, &MyWhiteboard::SlotForPrinterEnabled);
     RestoreState();
 
     _SetupIconsForPenColors(_screenMode);
@@ -159,14 +158,14 @@ void MyWhiteboard::_LoadIcons()
 
 void MyWhiteboard::_SetupIconsForPenColors(ScreenMode sm)
 {
-    _drawArea->drawColors.SetDarkMode(sm != smSystem);
+    drawColors.SetDarkMode(sm != smSystem);
 
 #ifndef _VIEWER
-    ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]) : _iconPen);
-    ui.action_Red->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penRed]));
-    ui.action_Green->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penGreen]));
-    ui.action_Blue->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlue]));
-    ui.action_Yellow->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penYellow]));
+    ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, drawColors[penBlack]) : _iconPen);
+    ui.action_Red->setIcon(_ColoredIcon(_iconPen,   drawColors[penRed]));
+    ui.action_Green->setIcon(_ColoredIcon(_iconPen, drawColors[penGreen]));
+    ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  drawColors[penBlue]));
+    ui.action_Yellow->setIcon(_ColoredIcon(_iconPen,drawColors[penYellow]));
 #endif
 }
 
@@ -950,8 +949,4 @@ void MyWhiteboard::on_actionPageSetup_triggered()
     _drawArea->PageSetup();
 }
 
-void MyWhiteboard::SlotForPrinterEnabled(bool enabled)
-{
-    ui.actionPrint->setEnabled(enabled);
-}
 

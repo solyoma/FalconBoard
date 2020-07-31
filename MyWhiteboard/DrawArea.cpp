@@ -20,34 +20,14 @@
 
 #include <math.h>
 
+#include "common.h"
+
 #include "myprinter.h"
 
-//----------------------------- DrawColors -------------------
-int DrawColors::_penColorIndex(MyPenKind pk)
-{
-	for (int i = 0; i < _COLOR_COUNT; ++i)
-		if (_colors[i].kind == pk)
-			return i;
-	return -1;
-}
+// !!!
+DrawColors drawColors;      // global used here and for print, declared in common.h
 
-DrawColors::DrawColors()
-{
-	_colors[0].kind = penBlack;
-	_colors[1].kind = penRed;
-	_colors[2].kind = penGreen;
-	_colors[3].kind = penBlue;
-	_colors[4].kind = penYellow;
-}
-void DrawColors::SetDarkMode(bool dark)
-{
-	_dark = dark;
-}
-QColor& DrawColors::operator[](MyPenKind pk)
-{
-	int i = _penColorIndex(pk);
-	return   (i < 0 ? _invalid : (_dark ? _colors[i].darkColor : _colors[i].lightColor));
-}
+
 
 //----------------------------- DrawArea ---------------------
 DrawArea::DrawArea(QWidget* parent)
@@ -56,7 +36,6 @@ DrawArea::DrawArea(QWidget* parent)
     setAttribute(Qt::WA_StaticContents);
     setAttribute(Qt::WA_TabletTracking);
     setCursor(Qt::CrossCursor);
-    SetPenColors();
     _history.pImages = &_belowImages;
 }
 
@@ -66,23 +45,6 @@ void DrawArea::SetPrinterData(const MyPrinterData& prdata)
      _prdata.orientation = prdata.orientation;
      _prdata.flags = prdata.flags;
      _prdata.printerName = prdata.printerName;
-}
-
-void DrawArea::SetPenColors()
-{
-    drawColors.SetDarkMode(false);         // dark color  on light mode screen
-    drawColors[penBlack] = Qt::black;
-    drawColors[penRed] =   Qt::red;
-    drawColors[penGreen] = "#007d1a";
-    drawColors[penBlue] =  Qt::blue;
-    drawColors[penYellow] = "#b704be";
-    
-    drawColors.SetDarkMode(true);          // use on dark mode screens
-	drawColors[penBlack] = Qt::white;
-	drawColors[penRed] = Qt::red;
-	drawColors[penGreen] = Qt::green;
-	drawColors[penBlue] = "#82dbfc";
-	drawColors[penYellow] = Qt::yellow;
 }
 
 void DrawArea::ClearRoll()
@@ -798,18 +760,18 @@ void DrawArea::_DrawGrid(QPainter& painter)
     int x, y;
     if (_gridIsFixed)
     {
-        x = _nGridSpacing; y = _nGridSpacing;
+        x = _nGridSpacingX; y = _nGridSpacingY;
     }
     else
     {
-        x = _nGridSpacing - (_topLeft.x() % _nGridSpacing);
-        y = _nGridSpacing - (_topLeft.y() % _nGridSpacing);
+        x = _nGridSpacingX - (_topLeft.x() % _nGridSpacingX);
+        y = _nGridSpacingY - (_topLeft.y() % _nGridSpacingY);
     }
 
     painter.setPen(QPen(_gridColor, 2, Qt::SolidLine));
-    for (; y <= height(); y += _nGridSpacing)
+    for (; y <= height(); y += _nGridSpacingY)
         painter.drawLine(0, y, width(), y);
-    for (; x <= width(); x += _nGridSpacing)
+    for (; x <= width(); x += _nGridSpacingX)
         painter.drawLine(x, 0, x, height());
 }
 
@@ -1072,7 +1034,7 @@ bool DrawArea::_DrawFreehandLineTo(QPoint endPointC)
  *          - when _shiftKeyDown 
  *              does not draw the point until a direction 
  *                  was established
-  *-------------------------------------------------------*/
+ *-------------------------------------------------------*/
 void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
 {
     QPainter painter(&_canvas);
@@ -1141,15 +1103,18 @@ void DrawArea::PageSetup()      // public slot
         else
             _ppi = 96;
 
+        #undef SQUARE
         _prdata.orientation = ps->orientation;
         _prdata.printerName = ps->actPrinter;
         MyPrinter::GetPrinterParameters(_prdata);
-        emit CanPrint(!_prdata.printerName.isEmpty());
+        _bPageSetupValid = !_prdata.printerName.isEmpty();
     }
     delete ps;
 }
 void DrawArea::Print()
 {
+    if (!_bPageSetupValid)
+        PageSetup();
 #if QT_CONFIG(printdialog)
     //QPrinter printer(QPrinter::HighResolution);
 
@@ -1165,6 +1130,12 @@ void DrawArea::Print()
     //    painter.drawImage(0, 0, _canvas);
     //}
     _prdata.topLeftActPage = _topLeft;
+    _prdata.backgroundColor   = _backgroundColor;
+    _prdata.gridColor         = _gridColor;
+    _prdata.pBackgroundImage  = &_background;
+    _prdata.nGridSpacingX     = _nGridSpacingX;
+    _prdata.nGridSpacingY     = _nGridSpacingY;
+    _prdata.gridIsFixed       = _gridIsFixed;
 
     _printer = new MyPrinter(&_history, _prdata);
     MyPrinter::GetPrinterParameters(_prdata);

@@ -10,6 +10,8 @@
 #include <QDataStream>
 #include <QIODevice>
 
+#include "common.h"
+
 const QString sVersion = "1.1.2";
 const QString sWindowTitle =
 #ifdef _VIEWER
@@ -18,6 +20,8 @@ const QString sWindowTitle =
 "MyWhiteboard";
 #endif
 
+
+constexpr int DRAWABLE_ZORDER_BASE = 10000000;
 
 enum HistEvent {
     heNone,
@@ -37,7 +41,6 @@ enum HistEvent {
                         // Undo: set _indexLastDrawnItem to that given in previous history item
                         // Redo: set _indexLastDrawnItem to 'lastDrawnIndex'
                 };
-enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser, penYellow };
 enum MyRotation { rotNone, rotR90, rotL90, rot180, rotFlipH, rotFlipV};
 enum MyLayer { mlyBackgroundImage, mlyDrawnItem, mlyScreenShot};
 
@@ -103,8 +106,9 @@ public:
     void Add(QImage& image, QPoint pt);
     // canvasRect and result are relative to (0,0)
     QRect Area(int index, const QRect& canvasRect) const;
-    ScreenShotImage* NextVisible();
+    ScreenShotImage* ScreenShotAt(int index);
     ScreenShotImage* FirstVisible(const QRect& canvasRect);
+    ScreenShotImage* NextVisible();
     void Translate(int which, QPoint p, int minY);
     void Rotate(int which, MyRotation rot, QRect encRect);
     void Clear();
@@ -125,12 +129,14 @@ struct HistoryItem      // base class
 {
     History* pHist;
     HistEvent type;
+    int zorder;
 
-    HistoryItem(History* pHist, HistEvent typ=heNone) : pHist(pHist), type(typ) {}
+    HistoryItem(History* pHist, HistEvent typ=heNone, int zorder=-1) : pHist(pHist), type(typ), zorder(zorder) {}
     virtual ~HistoryItem() {}
 
     virtual QPoint TopLeft() const { return QPoint(); }
     virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
+    virtual ScreenShotImage* GetScreenShotImage() const { return nullptr; }
 
     virtual bool Translatable() const { return false;  }
     virtual void Translate(QPoint p, int minY) { } // translates if top is >= minY
@@ -155,7 +161,7 @@ struct HistoryItem      // base class
 struct HistoryDrawnItem : public HistoryItem
 {
     DrawnItem drawnItem;                // store data into this
-    HistoryDrawnItem(History* pHist, DrawnItem& dri);
+    HistoryDrawnItem(History* pHist, DrawnItem& dri, int zorder);       // zorder: index in _items
     HistoryDrawnItem(const HistoryDrawnItem& other);
     HistoryDrawnItem(const HistoryDrawnItem&& other);
 
@@ -313,6 +319,7 @@ struct HistoryScreenShotItem : public HistoryItem
     void Translate(QPoint p, int minY) override;
     void Rotate(MyRotation rot, QRect encRect) override;
     bool IsDrawable() const override { return true; }
+    ScreenShotImage* GetScreenShotImage() const override;
 };
 //--------------------------------------------
 struct HistoryRotationItem : HistoryItem
@@ -388,6 +395,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     QStack<QRect> _savedClps;           // clipRect saves
 
     int _indexOfFirstVisible = -1;      // in _yxorder
+    int _lastZorder = 0;                // increased when elements adedd to _items, does not get decreasd when they are taken off!
 
     DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
     ScreenShotImageList   _copiedImages;// copy images on _nSelectedList to this

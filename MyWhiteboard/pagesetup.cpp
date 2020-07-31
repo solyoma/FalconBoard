@@ -13,6 +13,7 @@
 	#endif
 #endif
 
+#include "common.h"
 #include "pagesetup.h"
 
 
@@ -96,7 +97,13 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actP) : actPrinter(act
 
 	QStringList sl = QPrinterInfo::availablePrinterNames();
 	ui.cbPrinterSelect->addItems(sl);
-	if (!actPrinter.isEmpty())
+	if (actPrinter.isEmpty())
+	{
+		QPrinterInfo pdf = QPrinterInfo::defaultPrinter();
+		if (!pdf.isNull())
+			ui.cbPrinterSelect->setCurrentText(pdf.printerName());
+	}
+	else
 		ui.cbPrinterSelect->setCurrentText(actPrinter);
 }
 
@@ -167,4 +174,18 @@ void PageSetupDialog::on_chkWhiteBackground_toggled(bool b)
 	flags &= ~pfWhiteBackground;
 	if(b)
 		flags |= pfWhiteBackground;
+}
+
+void PageSetupDialog::on_chkGrayscale_toggled(bool b)
+{
+	flags &= ~pfGrayscale;
+	if (b)
+		flags |= pfGrayscale;
+}
+
+void PageSetupDialog::on_chkGrid_toggled(bool b)
+{
+	flags &= ~pfGrid;
+	if (b)
+		flags |= pfGrid;
 }

@@ -29,26 +29,6 @@ inline void SleepFor(std::chrono::milliseconds mseconds)
     std::this_thread::sleep_for(mseconds); // Delay a bit
 }
 // ******************************************************
-class DrawColors
-{
-    QColor _invalid;
-    bool _dark = false;
-    const  int _COLOR_COUNT = 5;
-    struct _clr
-    {
-        MyPenKind kind;
-        QColor lightColor,    // _dark = false - for light mode
-               darkColor;     // _dark = true  - for dark mode
-        _clr() : kind(penNone), lightColor(QColor()), darkColor(QColor()) { }
-    } _colors[5];
-
-    int _penColorIndex(MyPenKind pk);
-public:
-    DrawColors();
-    void SetDarkMode(bool dark);
-    QColor& operator[](MyPenKind pk);
-};
-// ******************************************************
 
 class DrawArea : public QWidget
 {       
@@ -58,13 +38,9 @@ public:
         // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
     enum CursorShape {csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
-    DrawColors drawColors;
-
     DrawArea(QWidget* parent = nullptr);
 
     void SetPrinterData(const MyPrinterData& prdata);
-
-    void SetPenColors();
 
     void ClearBackground();
 
@@ -103,7 +79,6 @@ public:
 signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo
-    void CanPrint(bool able);
     void WantFocus();
     void PointerTypeChange(QTabletEvent::PointerType pt);
     void TextToToolbar(QString text);
@@ -172,6 +147,7 @@ private:
     QCursor _eraserCursor;
     int     _actPenWidth = 1;
     MyPenKind _myPenKind = penBlack;
+    bool    _bPageSetupValid = false;
 
 
     std::chrono::milliseconds _msecs = 10ms;   // when delayed playback
@@ -203,7 +179,8 @@ private:
     bool   _bGridOn = false;
     bool   _gridIsFixed = false;
     bool   _bPageGuidesOn = false;       // true: draw line on page breaks depending on _pageHeight and _pageWidth
-    int    _nGridSpacing = 64;
+    int    _nGridSpacingX = 64,
+           _nGridSpacingY = 64;
     QColor _gridColor = "#d0d0d0";  // for white system color scheme
     QColor _pageGuideColor = "#e0e0e0";    // - " - r 
 

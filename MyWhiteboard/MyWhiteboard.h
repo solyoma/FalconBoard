@@ -86,7 +86,6 @@ private slots:
 	void SlotForLabel(QString text);
 #endif
 	void on_actionPageSetup_triggered();
-	void SlotForPrinterEnabled(bool enabled);
 	void on_actionPrint_triggered() { _drawArea->Print();  }
 
 	void on_actionLoad_triggered();

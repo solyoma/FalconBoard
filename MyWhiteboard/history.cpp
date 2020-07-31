@@ -309,6 +309,20 @@ QRect ScreenShotImageList::Area(int index, const QRect& canvasRect) const
 	return (*this)[index].Area(canvasRect);
 }
 
+ScreenShotImage* ScreenShotImageList::ScreenShotAt(int index)
+{
+	if(index >= size())
+		return nullptr;
+	return &(*this)[index];
+}
+
+ScreenShotImage* ScreenShotImageList::FirstVisible(const QRect& canvasRect)
+{
+	_index = -1;
+	_canvasRect = canvasRect;
+	return NextVisible();
+}
+
 ScreenShotImage* ScreenShotImageList::NextVisible()
 {
 	if (_canvasRect.isNull())
@@ -323,13 +337,6 @@ ScreenShotImage* ScreenShotImageList::NextVisible()
 		}
 	}
 	return nullptr;
-}
-
-ScreenShotImage* ScreenShotImageList::FirstVisible(const QRect& canvasRect)
-{
-	_index = -1;
-	_canvasRect = canvasRect;
-	return NextVisible();
 }
 
 void ScreenShotImageList::Translate(int which, QPoint p, int minY)
@@ -351,6 +358,7 @@ void ScreenShotImageList::Clear()
 {
 	QList<ScreenShotImage>::clear();
 }
+
 
 /*========================================================
  * One history element
@@ -375,7 +383,7 @@ bool HistoryItem::operator<(const HistoryItem& other)
 
 //--------------------------------------------
 // type heScribble, heEraser
-HistoryDrawnItem::HistoryDrawnItem(History* pHist, DrawnItem& dri) : HistoryItem(pHist), drawnItem(dri)
+HistoryDrawnItem::HistoryDrawnItem(History* pHist, DrawnItem& dri, int zorder) : HistoryItem(pHist, dri.type, zorder), drawnItem(dri)
 {
 	type = dri.type;
 	drawnItem.SetBoundingRectangle();
@@ -767,8 +775,8 @@ QRect HistoryInsertVertSpace::Area() const
 }
 
 //--------------------------------------------
-
-HistoryScreenShotItem::HistoryScreenShotItem(History* pHist, int which) : HistoryItem(pHist), which(which)
+																					// z-order = which
+HistoryScreenShotItem::HistoryScreenShotItem(History* pHist, int which) : HistoryItem(pHist, heScreenShot, which), which(which)
 {
 	type = heScreenShot;
 }
@@ -836,6 +844,11 @@ void HistoryScreenShotItem::Translate(QPoint p, int minY)
 void HistoryScreenShotItem::Rotate(MyRotation rot, QRect encRect)
 {
 	(*pHist->pImages)[which].Rotate(rot, encRect);
+}
+
+ScreenShotImage* HistoryScreenShotItem::GetScreenShotImage() const
+{
+	return &(*pHist->pImages)[which];
 }
 
 //---------------------------------------------------------
@@ -1183,6 +1196,8 @@ void History::clear()		// does not clear lists of copied items and screen snippe
 	_yxOrder.clear();
 	pImages->Clear();
 
+	_lastZorder = 0;
+
 	_modified = false;
 }
 
@@ -1347,7 +1362,7 @@ HistoryItem* History::addClearDown()
 
 HistoryItem* History::addDrawnItem(DrawnItem& itm)           // may be after an undo, so
 {                                                  // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
-	HistoryDrawnItem* p = new HistoryDrawnItem(this, itm);
+	HistoryDrawnItem* p = new HistoryDrawnItem(this, itm, DRAWABLE_ZORDER_BASE + _lastZorder++);		// each scribbles are above any image (until 10 million scribbles)
 	return _AddItem(p);
 }
 
@@ -1409,7 +1424,7 @@ HistoryItem* History::addPastedItems(QPoint topLeft, Sprite *pSprite)			   // tr
 	for (DrawnItem di : *pCopiedItems)	// do not modify copied item list
 	{
 		di.Translate(topLeft, 0);
-		pdri = new HistoryDrawnItem(this, di);
+		pdri = new HistoryDrawnItem(this, di, DRAWABLE_ZORDER_BASE +_lastZorder++);
 		_AddItem(pdri);
 	}
   // ------------Add top item

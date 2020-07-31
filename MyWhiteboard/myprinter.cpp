@@ -4,7 +4,9 @@
 #include <QPrinterInfo>
 #include <QPainter>
 #include <QPageSize>
+#include <Qimage>
 
+//#include <vector>
 #include <algorithm>
 
 #include "history.h"
@@ -50,15 +52,16 @@ QPrinter* MyPrinter::GetPrinterParameters(MyPrinterData& prdata)
     return nullptr;
 }
 //----------------------------------------------
-//----------------------------------------------
 struct PageNum2
 {
-    int ny, nx;     // orindal of page vertically and horizontally
-    int zorder;     // z-order [screenshots:0, other:1]
-    QVector<int> yindices = { -1 };
-    void clear() {yindices.clear(); yindices.push_back(-1);}
+    int ny, nx;     // ordinal of page vertically and horizontally
+    MyPrinter::YIndexVector yindices; 
 
-    bool operator<(const PageNum2& o) { return ny < o.ny ? true : (zorder < o.zorder) ? true: (ny == o.ny && nx < o.nx) ? true : false; }
+    PageNum2() { yindices.resize(1); }
+
+    void clear() {yindices.clear(); yindices.resize(1);}
+
+    bool operator<(const PageNum2& o) { return ny < o.ny ? true : (ny == o.ny && nx < o.nx) ? true :  false; }
     bool operator==(const PageNum2& o) { return (nx == o.nx && ny == o.ny); }
     bool operator!=(const PageNum2& o) { return (nx != o.nx || ny != o.ny); }
 };
@@ -86,38 +89,86 @@ static struct SortedPageNumbers
     }
     void Insert(PageNum2 pgn)
     {
-        int pos = pgpos(pgn);
-        if (pos == pgns.size())
+        int pos = pgpos(pgn);       // index of first element that is equal or larger than pgn
+        if (pos == pgns.size())     // all elements waeer smaller
             pgns.push_back(pgn);
-        else if (pgns[pos] != pgn)
-            pgns.insert(pos, pgn);
+        else if (pgns[pos] != pgn)  // pos-th element is larger
+            pgns.insert(pos, pgn);  // before it
         else            // existing point see if item already added
         {
-            int ix = pgns[pos].yindices.indexOf(pgn.yindices[0]);
-            if (ix < 0)
-                pgns[pos].yindices.push_back(pgn.yindices[0]);
+            MyPrinter::YIndexVector &yindices = pgns[pos].yindices;
+            MyPrinter::Yindex index = pgn.yindices[0];
+            int ix = std::lower_bound(yindices.begin(), yindices.end(), pgn.yindices[0]) - yindices.begin();
+            if (ix == yindices.size())
+                yindices.push_back(pgn.yindices[0]);
+            else if(yindices[ix] != pgn.yindices[0])
+                yindices.insert(ix, pgn.yindices[0]);
         }
     }
-    PageNum2 &PageForPoint(QPoint& p, int yindex, PageNum2 &pgn)
+    PageNum2 &PageForPoint(QPoint& p, int Yindex, PageNum2 &pgn)
     {
-        pgn.yindices[0] = yindex;
+        pgn.yindices[0].yix = Yindex;
+
         pgn.ny = p.y() / screenPageRect.height();
         pgn.nx = p.x() / screenPageRect.width();
         return pgn;
     };
 
-    void AddPoints(HistoryItem* phi, int yindex, PageNum2 &pgn) // to 'pgns'
+    void AddPoints(HistoryItem* phi, int Yindex, PageNum2 &pgn) // to 'pgns'
     {
         DrawnItem* pdrni;
 
         pdrni = phi->GetDrawable(0);    // only one element for drawable / printable
-        Insert(PageForPoint(pdrni->points[0], yindex, pgn));
-        Insert(pgn);
+        Insert(PageForPoint(pdrni->points[0], Yindex, pgn));
+        // TODO when the line segment between 2 consecutive points goes through more than one page
+        //          example: horizontal, vertical line, circle, etc *********
+
         for (int i = 1; i < pdrni->points.size(); ++i)
-            Insert(PageForPoint(pdrni->points[i], yindex, pgn) );
+            Insert(PageForPoint(pdrni->points[i], Yindex, pgn) );
     }
 
 } sortedPageNumbers;
+
+bool MyPrinter::_AllocateResources()
+{
+    _pPageImage = new QImage((int)_data.printArea.width(), (int)_data.printArea.height(), QImage::Format_ARGB32);
+    _pItemImage = new QImage((int)_data.printArea.width(), (int)_data.printArea.height(), QImage::Format_ARGB32);
+    if (!_pPageImage || _pPageImage->isNull())
+    {
+        delete _pPageImage;
+        _pPageImage = nullptr;
+        return false;
+    }
+
+    if (!_pItemImage || _pItemImage->isNull())
+    {
+        delete _pItemImage;
+        _pItemImage = nullptr;
+        return false;
+    }
+
+    _painterPage = new QPainter(_pPageImage);      // always print on this then to the printer
+    _painter = new QPainter(_pItemImage);      // always print on this then to the printer
+
+    _printPainter = new QPainter;                   // using begin() instead of constructor makes possible
+                                                    // to check status
+    return _printPainter->begin(_printer);          // must close()
+}
+
+bool MyPrinter::_FreeResources()
+{
+#define DELETEPTR(a) delete a; a = nullptr
+
+    DELETEPTR(_pDlg);
+    DELETEPTR(_painterPage);
+    DELETEPTR(_painter);
+    DELETEPTR(_pItemImage);
+    DELETEPTR(_pPageImage);
+    DELETEPTR(_pPageImage);
+#undef DELETEPTR
+    
+    return _printPainter->end();
+}
 
 int MyPrinter::_CalcPages()
 {
@@ -139,7 +190,7 @@ int MyPrinter::_CalcPages()
             PageNum2 lpgn;
             sortedPageNumbers.PageForPoint(phi->Area().topLeft(), yi, pgn);         
             sortedPageNumbers.PageForPoint(phi->Area().bottomRight(), yi, lpgn);
-            pgn.zorder = lpgn.zorder = yi;       // screen shots below others
+            pgn.yindices[0].zorder = lpgn.yindices[0].zorder = phi->zorder;       // screen shots below others
             PageNum2 act = pgn;
             for (int y = pgn.ny; y <= lpgn.ny; ++y)
             {
@@ -157,7 +208,7 @@ int MyPrinter::_CalcPages()
             {
                 case heScribble:
                 case heEraser:
-                    pgn.zorder = 1000000;
+                    pgn.yindices[0].zorder = phi->zorder;
                     sortedPageNumbers.AddPoints(phi, yi, pgn);
                     break;
                 default: break;
@@ -167,14 +218,14 @@ int MyPrinter::_CalcPages()
     // add pages to linear page list
     _pages.clear();
     Page pg;
-    pg.area = QRect(0, 0, _data.screenPageWidth, _data.screenPageHeight);
+    pg.screenArea = QRect(_data.topLeftActPage.x(), _data.topLeftActPage.y(), _data.screenPageWidth, _data.screenPageHeight);
 
     for (int i = 0; i < sortedPageNumbers.Size(); ++i)
     {
         pg.pageNumber = i;
         pgn = sortedPageNumbers[i];
         pg.yindices = pgn.yindices;
-        pg.area.moveTo(pgn.nx * _data.screenPageWidth, pgn.ny* _data.screenPageHeight);
+        pg.screenArea.moveTo(pgn.nx * _data.screenPageWidth, pgn.ny* _data.screenPageHeight);
         _pages.push_back(pg);
     }
     return _pages.size();
@@ -187,30 +238,33 @@ MyPrinter::MyPrinter(History* pHist, MyPrinterData prdata) :
 }
 QPrintDialog* MyPrinter::_DoPrintDialog()
 {
-    QPrinter* printer = GetPrinterParameters(_data);
-    if (!printer)
+    _printer = GetPrinterParameters(_data);
+    if (!_printer)
         return nullptr;
     int pages = _CalcPages(); // page data may change if new printer is selected
 
-    printer->setFromTo(1, pages);   // max page range
+    _printer->setFromTo(1, pages);   // max page range
 
-    pDlg = new QPrintDialog(printer);
+    _pDlg = new QPrintDialog(_printer);
 
-    pDlg->setPrintRange(QAbstractPrintDialog::AllPages);
+    _pDlg->setPrintRange(QAbstractPrintDialog::Selection);
+    _pDlg->setPrintRange(QAbstractPrintDialog::CurrentPage);
 
-    if (pDlg->exec())
+    if (_pDlg->exec())
     {
-        QPrinter* pActPrinter = pDlg->printer();
-        if (printer != pActPrinter)
+        QPrinter* pActPrinter = _pDlg->printer();
+        if (_printer != pActPrinter)
         {
-            delete printer;
-            printer = pActPrinter;
+            delete _printer;
+            _printer = pActPrinter;
+            _data.printerName = _printer->printerName();
         }
 
-        return pDlg;    // must not delete here so printer remains valid
+        return _pDlg;    // must not delete here so printer remains valid
         // print
     }
-    delete pDlg;
+    delete _pDlg;
+    _pDlg = nullptr;
 
     return nullptr;
 }
@@ -218,21 +272,137 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
 int MyPrinter::_PageForPoint(QPoint p)
 {
     for (int i = 0; i < _pages.size(); ++i)
-        if (_pages[i].area.contains(p))
+        if (_pages[i].screenArea.contains(p))
             return i;
     return -1;
 }
 
-bool MyPrinter::_PrintPage(int page)
+
+/*========================================================
+ * TASK:
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - item may start and/or end on an other page
+ *          - there may be pages where no point 
+ *              of this item is stored (long lines through
+ *                  page boundaries)
+ *          - screenshot images may extend to more than one pages
+ *-------------------------------------------------------*/
+bool MyPrinter::_PrintItem(Yindex yi)
 {
+    HistoryItem * phi = _pHist->atYIndex(yi.yix);
+    if(phi->type == heScreenShot)
+    {                               // paint over background layer
+        ScreenShotImage* psi = phi->GetScreenShotImage();
+#define MAGN(a) ((a)*_data.magn)
+        QRectF srcRect = phi->Area().intersected(_actPage.screenArea); // screen coordinates
+        QRectF dstRect = srcRect.translated(0, 0);
+        dstRect.setSize(dstRect.size() *= _data.magn);
+        Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
+        _painterPage->drawImage(dstRect, psi->image, srcRect, flag);
+    }
+    else if (phi->type == heScribble || phi->type == heEraser)
+    {             // paint over transparent layer
+        DrawnItem* pdrni = phi->GetDrawable(0);
+        MyPenKind pk = pdrni->penKind;
+        int pw = pdrni->penWidth * _data.magn;
+        bool erasemode = pdrni->type == heEraser ? true : false;
+
+        QPoint actP = pdrni->points[0] - _actPage.screenArea.topLeft(),
+               nextP = actP + QPoint(1, 1);
+
+        _painter->setPen(QPen(drawColors[pk], pw, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        if (erasemode)
+            _painter->setCompositionMode(QPainter::CompositionMode_Clear);
+        else
+            _painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+        _painter->setRenderHint(QPainter::Antialiasing);
+
+        if(pdrni->points.size() == 1)
+            _painter->drawLine(actP * _data.magn, actP * _data.magn);
+        else
+            for (int i = 1; i < pdrni->points.size(); ++i)
+            {
+                nextP = pdrni->points[i] - _actPage.screenArea.topLeft();
+                _painter->drawLine(actP * _data.magn, nextP * _data.magn);
+                actP = nextP;
+            }
+    }
     return false;
+#undef MAGN
 }
 
+void MyPrinter::_PrintGrid()
+{
+    int x, y,
+        dx = _data.nGridSpacingX * _data.magn,
+        dy = _data.nGridSpacingY * _data.magn;
+
+    if (_data.gridIsFixed)
+        x =  dx, y = dy;
+    else
+    {
+        x = dx - (_actPage.screenArea.x() % _data.nGridSpacingX) * _data.magn;
+        y = dy - (_actPage.screenArea.y() % _data.nGridSpacingY) * _data.magn;
+    }
+
+    _painterPage->setPen(QPen(_data.gridColor, 2, Qt::SolidLine));
+    for (; y <= _data.printArea.height(); y += dy)
+        _painterPage->drawLine(0, y, _data.printArea.width(), y);
+    for (; x <= _data.printArea.width(); x += dx)
+        _painterPage->drawLine(x, 0, x, _data.printArea.height());
+}
+
+void MyPrinter::_PreparePage(int which)
+{
+    _actPage = _pages[which];
+
+    auto compareByZorder = [&](Yindex& left, Yindex& right)
+    {
+        return left.zorder < right.zorder;
+    };
+    std::sort(_actPage.yindices.begin(), _actPage.yindices.end(), compareByZorder);     // re- sort by z-order
+
+    _pItemImage->fill(Qt::transparent);
+
+    bool b = drawColors.IsDarkMode();
+    if (!b || (_data.flags & pfWhiteBackground) != 0)
+    {
+        drawColors.SetDarkMode(false);
+        _pPageImage->fill(Qt::white);
+    }
+    else
+        _pPageImage->fill(_data.backgroundColor);
+    if ((_data.flags & pfPrintBackgroundImage) != 0)  // background image image always start at top left of page
+        _painter->drawImage(0, 0, *_data.pBackgroundImage);
+    if ((_data.flags & pfGrid) != 0)  // gris is below scribbles
+        _PrintGrid();
+    for (auto ix : _actPage.yindices)
+        _PrintItem(ix);
+
+    _painterPage->drawImage(QPoint(0,0), *_pItemImage);
+
+    drawColors.SetDarkMode(b);
+}
+
+// do not call this directly. call _Print(from = which, to=which) instead 
+bool MyPrinter::_PrintPage(int which, bool last)
+{
+    _PreparePage(which);    // into _pPageImage
+    _printPainter->drawImage(_data.printArea.left(), _data.printArea.top(), *_pPageImage); // printable area may be less than paper size
+    if(!last)
+        _printer->newPage();
+    
+    return true;
+}
+// this is the main print function. Frees resources afterwards
 bool MyPrinter::_Print(QVector<int>& pages)
 {
     bool res = true;
     for(int i=0; i < pages.size() && res; ++i)
-        res &= _PrintPage(i);
+        res &= _PrintPage(i, i == pages.size()-1);
+    res &= _FreeResources();
     return res;
 }
 
@@ -246,17 +416,20 @@ bool MyPrinter::_Print(int from, int to)
 
 bool MyPrinter::Print()
 {
-    QPrintDialog* pdlg;
-    if ((pdlg=_DoPrintDialog()))
+    if ((_pDlg=_DoPrintDialog()))
     {
         int n = _CalcPages();       // agsin
-        QPrinter *printer = pdlg->printer();
-        QPrinter::PrintRange range = printer->printRange();
+
+    // now print
+        if (!_AllocateResources())
+            return false;
+
+        QPrinter::PrintRange range = _printer->printRange();
         if (range == QPrinter::CurrentPage)
         {
             PageNum2 pgn;
             int n = _PageForPoint(_data.topLeftActPage);
-            return _Print(n);
+            return _Print(n, n);
         }
         else if (range == QPrinter::AllPages)
         {
@@ -264,17 +437,18 @@ bool MyPrinter::Print()
         }
         else if (range == QPrinter::PageRange)
         {
-            int from = printer->fromPage()-1;   
-            int to = printer->toPage()-1;
+            int from = _printer->fromPage()-1;   
+            int to =   _printer->toPage()-1;
 
             return _Print(from, to);
         }
         else          // selection
         {
             // ???
+            _FreeResources();
             return true;
         }
-        delete pdlg;
+            // cleanup
     }
     return false;
 }

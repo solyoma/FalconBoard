@@ -10,11 +10,6 @@ class PageSetupDialog : public QDialog
 {
 	Q_OBJECT
 public:
-	enum Flags:char { 
-						pfPrintBackgroundImage = 1,			
-						pfWhiteBackground 	   = 2		// or use display mode which may be dark
-					};
-
 	int resolutionIndex;		// screen resolution in resolution combobox
 	int horizPixels;			// horizontal pixel count
 	int screenDiagonal;			// from text in inch
@@ -47,6 +42,8 @@ private slots:
 	void on_cbPrinterSelect_currentIndexChanged(int i);
 	void on_chkPrintBackgroundImage_toggled(bool b);
 	void on_chkWhiteBackground_toggled(bool b);
+	void on_chkGrayscale_toggled(bool b);
+	void on_chkGrid_toggled(bool b);
 };
 
 #endif
