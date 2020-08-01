@@ -69,6 +69,9 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
     void add(QPoint p);          // add point w.o. modifying bounding rectangle
     void add(int x, int y);      // - " - 
+
+    void Smooth();              // points
+
     void SetBoundingRectangle(); // use after all points added
 
     bool intersects(const QRect& arect) const;

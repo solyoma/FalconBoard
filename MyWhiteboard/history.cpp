@@ -79,6 +79,12 @@ void DrawnItem::add(int x, int y)
 	add(p);
 }
 
+void DrawnItem::Smooth()
+{
+	// smoothing points so that small variations in them vanish
+	// ???
+}
+
 void DrawnItem::SetBoundingRectangle()
 {
 	bndRect = QRect();
@@ -979,38 +985,36 @@ int History::_YIndexForXY(QPoint xy)
 int History::_YIndexWhichInside()
 {
 	int i0 = _YIndexForXY(_clpRect.topLeft() );		// any number of items above this may be OK
-	int inc = 0,									// should test all elements above the i-th one but I only do it for max 100
-		i1 = -1,
-		i2 = -1;
+	int ib = -1,	// before i0
+		ia = -1;	// after i0			- if not -1 then element found 
 
 	if (i0 >= _yxOrder.size())
 		return -1;
 
-	HistoryItem	*pl = _yitems(i0), 	// pointers before and after selected
-				*pg = pl;	
+	HistoryItem	*pb = _yitems(i0), 	// pointers before and after selected
+				*pa = pb;			// starting from the same actual selected
 
-	if (pg && !pg->Hidden() && pg->Area().intersects(_clpRect))
-		i1 = i0;
-	else if (pl && !pg->Hidden() && pg->Area().intersects(_clpRect))
-		i2 = i0;
+	if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect))
+		ia = i0;			// set found element index for 'after' elements
 
-	while (inc < 100)
+	int inc = 1;									// should test all elements above the i-th one but only do it for max 100
+	while (inc < 100 && (i0-inc >= 0 || ia < 0))
 	{
-		pl = i0 - inc >= 0 ? _yitems(i0 - inc) : nullptr;
-		pg = i0 + inc  < _yxOrder.size() ? _yitems(i0 + inc) : nullptr;
-		if ( pl && !pl->Hidden() && pl->Area().intersects(_clpRect)) 
-			i1 = i0 - inc;
-		else if (i2 < 0 && pg && !pg->Hidden() && pg->Area().intersects(_clpRect)) // only check those that come after if not found already
-			i2 = i0 + inc;
+		pb = i0 - inc >= 0 ? _yitems(i0 - inc) : nullptr;
+		pa = ia < 0 && (i0 + inc  < _yxOrder.size()) ? _yitems(i0 + inc) : nullptr;
+		if ( pb && !pb->Hidden() && pb->Area().intersects(_clpRect)) 
+			ib = i0 - inc;
+		else if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect)) // only check those that come after if not found already in before 
+			ia = i0 + inc;
 		++inc;
 	}
 
-	if (i1 > 0)
-		return i1;
-	else if (i2 > 0)
-		return i2;
+	if (ib >= 0)
+		return ib;
+	else if (ia >= 0)
+		return ia;
 	else
-		return i1; // -1
+		return ib; // -1
 }
 int History::_YIndexForIndex(int index)      // index: in unordered array, returns yindex in _yxOrder
 {

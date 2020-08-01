@@ -12,6 +12,8 @@
 #include <QColor>
 #include <QImage>
 
+#include "common.h"
+
 class History;      // in history.h
 
 struct MyPrinterData

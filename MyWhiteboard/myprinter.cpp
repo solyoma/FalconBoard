@@ -316,8 +316,8 @@ bool MyPrinter::_PrintItem(Yindex yi)
         int pw = pdrni->penWidth * _data.magn;
         bool erasemode = pdrni->type == heEraser ? true : false;
 
-        QPoint actP = pdrni->points[0] - _actPage.screenArea.topLeft(),
-               nextP = actP + QPoint(1, 1);
+        QPointF actP = pdrni->points[0] - _actPage.screenArea.topLeft(),
+                nextP = actP + QPointF(1.0, 1.0);
 
         _painter->setPen(QPen(drawColors[pk], pw, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         if (erasemode)
