@@ -43,6 +43,7 @@ private slots:
 	void on_chkWhiteBackground_toggled(bool b);
 	void on_chkGrayscale_toggled(bool b);
 	void on_chkGrid_toggled(bool b);
+	void on_chkDontPrintImages_toggled(bool);
 };
 
 #endif

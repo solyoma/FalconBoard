@@ -11,7 +11,8 @@ enum PrinterFlags :char {
     pfWhiteBackground       = 2,		// or use display mode which may be dark
     pfGrid                  = 4,
     pfGrayscale             = 8,
-    pfLandscape             = 16
+    pfLandscape             = 16,
+    pfDontPrintImages       = 32
 };
 
 

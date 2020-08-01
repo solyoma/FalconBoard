@@ -300,7 +300,16 @@ bool MyPrinter::_PrintItem(Yindex yi)
 
         QRectF dstRect = QRect( QPoint(srcRect.x()*_data.magn, srcRect.y() * _data.magn), QSize(srcRect.width() * _data.magn, srcRect.height() * _data.magn)) ;
         Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
-		if (_data.flags & pfDontPrintImages)    //print placeholder
+// DEBUG
+//QRect r=phi->Area(),
+//      ir=QRect( 0, 0, psi->image.width(), psi->image.height());
+//bool b = psi->image.isNull();
+//int bc = psi->image.byteCount(),
+//    bpl = psi->image.bytesPerLine();
+//QImage::Format format = psi->image.format();
+//const uchar *pbuf = psi->image.bits();
+// /DEBUG
+		if (_data.flags & pfDontPrintImages)
         {
             _painterPage->setPen(QPen(drawColors[penYellow], 2, Qt::SolidLine));
             _painterPage->drawLine(dstRect.topLeft(), dstRect.bottomRight());
@@ -308,6 +317,14 @@ bool MyPrinter::_PrintItem(Yindex yi)
         }
         else
             _painterPage->drawImage(dstRect, psi->image, QRect(0, 0, psi->image.width(),psi->image.height()), flag);
+
+// DEBUG
+        _painterPage->setPen(QPen(drawColors[penBlue], 2, Qt::SolidLine));
+        _painterPage->drawRect(dstRect);
+        _painterPage->drawLine(dstRect.topLeft(), dstRect.bottomRight());
+        _painterPage->drawLine(dstRect.topRight(), dstRect.bottomLeft());
+// /DEBUG
+
     }
     else if (phi->type == heScribble || phi->type == heEraser)
     {             // paint over transparent layer

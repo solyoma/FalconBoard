@@ -97,6 +97,7 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actP) : actPrinter(act
 	ui.chkGrayscale->setChecked(flags & pfGrayscale);
 	ui.chkPrintBackgroundImage->setChecked(flags & pfPrintBackgroundImage);
 	ui.chkGrid->setChecked(flags & pfGrid);
+	ui.chkDontPrintImages->setChecked(flags & pfDontPrintImages);
 
 
 	QStringList sl = QPrinterInfo::availablePrinterNames();
@@ -190,4 +191,14 @@ void PageSetupDialog::on_chkGrid_toggled(bool b)
 	flags &= ~pfGrid;
 	if (b)
 		flags |= pfGrid;
+}
+
+void PageSetupDialog::on_chkDontPrintImages_toggled(bool b)
+{
+	flags &= ~pfDontPrintImages;
+	if (b)
+	{
+		flags |= pfDontPrintImages;
+		ui.chkPrintBackgroundImage->setChecked(false);
+	}
 }
