@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QApplication>
 #include <QPrinter>
 #include <QPrinterInfo>
 #include <QPainter>
@@ -10,6 +11,7 @@
 #include <algorithm>
 
 #include "history.h"
+#include "printprogress.h"
 #include "myprinter.h"
 
 
@@ -149,7 +151,8 @@ bool MyPrinter::_AllocateResources()
     _painterPage = new QPainter(_pPageImage);      // always print on this then to the printer
     _painter = new QPainter(_pItemImage);      // always print on this then to the printer
 
-    _printPainter = new QPainter;                   // using begin() instead of constructor makes possible
+    _printPainter = new QPainter;                   
+                                                    // using begin() instead of constructor makes possible
                                                     // to check status
     return _printPainter->begin(_printer);          // must close()
 }
@@ -164,6 +167,7 @@ bool MyPrinter::_FreeResources()
     DELETEPTR(_pItemImage);
     DELETEPTR(_pPageImage);
     DELETEPTR(_pPageImage);
+    DELETEPTR(_pProgress);
 #undef DELETEPTR
     
     return _printPainter->end();
@@ -233,7 +237,6 @@ int MyPrinter::_CalcPages()
 MyPrinter::MyPrinter(History* pHist, MyPrinterData prdata) :
     _pHist(pHist), _data (prdata)
 {
-    
 }
 QPrintDialog* MyPrinter::_DoPrintDialog()
 {
@@ -275,7 +278,6 @@ int MyPrinter::_PageForPoint(QPoint p)
             return i;
     return -1;
 }
-
 
 /*========================================================
  * TASK:
@@ -336,6 +338,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
                 actP = nextP;
             }
     }
+
     return false;
 }
 
@@ -385,11 +388,20 @@ void MyPrinter::_PreparePage(int which)
     if ((_data.flags & pfGrid) != 0)  // gris is below scribbles
         _PrintGrid();
     for (auto ix : _actPage.yindices)
+    {
         _PrintItem(ix);
+        if (_pProgress)
+        {
+            _pProgress->Progress(_actPage.pageNumber);
+            QApplication::processEvents();
+        }
+
+    }
 
     _painterPage->drawImage(QPoint(0,0), *_pItemImage);
 
     drawColors.SetDarkMode(b);
+
 }
 
 // do not call this directly. call _Print(from = which, to=which) instead 
@@ -402,6 +414,7 @@ bool MyPrinter::_PrintPage(int which, bool last)
     
     return true;
 }
+
 // this is the main print function. Frees resources afterwards
 bool MyPrinter::_Print(QVector<int>& pages)
 {
@@ -409,6 +422,7 @@ bool MyPrinter::_Print(QVector<int>& pages)
     for(int i=0; i < pages.size() && res; ++i)
         res &= _PrintPage(i, i == pages.size()-1);
     res &= _FreeResources();
+
     return res;
 }
 
@@ -429,6 +443,9 @@ bool MyPrinter::Print()
     // now print
         if (!_AllocateResources())
             return false;
+
+        _pProgress = new PrintProgressDialog(n, _pHist->CountOfVisible());
+        _pProgress->show();
 
         QPrinter::PrintRange range = _printer->printRange();
         if (range == QPrinter::CurrentPage)

@@ -60,12 +60,18 @@
     <QtMoc Include="pagesetup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="printprogress.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="MyWhiteboard.ui">
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="pagesetup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="printprogress.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

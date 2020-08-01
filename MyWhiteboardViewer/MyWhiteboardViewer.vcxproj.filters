@@ -31,6 +31,9 @@
     <QtUic Include="..\MyWhiteboard\pagesetup.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="..\MyWhiteboard\printprogress.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\MyWhiteboard\DrawArea.cpp">
@@ -74,6 +77,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\MyWhiteboard\myprinter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\MyWhiteboard\printprogress.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

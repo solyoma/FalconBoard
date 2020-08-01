@@ -37,8 +37,18 @@ struct MyPrinterData
     bool gridIsFixed        = true;
 };
 
+
+class PrintProgressDialog;
+
 class MyPrinter
 {
+public:
+
+    MyPrinter(History* pHist, MyPrinterData prdata);
+
+    static QPrinter *GetPrinterParameters(MyPrinterData &prdata);    // set screenwidth and printer name into prdata first from printer name, false: no such printer
+    bool Print();
+
 public:
     //----------------------------------------------
     struct Yindex
@@ -69,6 +79,7 @@ private:
              *_printPainter;
     QImage* _pPageImage = nullptr,
           * _pItemImage = nullptr;
+    PrintProgressDialog* _pProgress = nullptr;
 
     History* _pHist;
     QPrinter* _printer = nullptr;
@@ -77,6 +88,7 @@ private:
     QVector<int> _selectedPages;            // to print e.g. 3,4,5,6
     QPrintDialog* _pDlg;
 
+private:
 
     bool _AllocateResources();
     bool _FreeResources();
@@ -90,12 +102,6 @@ private:
     bool _Print(QVector<int>& pages);             // list of pages
     QPrintDialog* _DoPrintDialog();   // if 'Print' pressed recalculates page data () else returns nullptr
     int _PageForPoint(QPoint p);
-public:
-
-    MyPrinter(History* pHist, MyPrinterData prdata);
-
-    static QPrinter *GetPrinterParameters(MyPrinterData &prdata);    // set screenwidth and printer name into prdata first from printer name, false: no such printer
-    bool Print();
 };
 
 #endif	// _PRINTING_H
