@@ -35,9 +35,8 @@ QPrinter* MyPrinter::GetPrinterParameters(MyPrinterData& prdata)
             return nullptr;
         }
 		printer->setPrinterName(prdata.printerName);
-		printer->setOrientation(prdata.orientation ? QPrinter::Portrait : QPrinter::Landscape);
+		printer->setOrientation((prdata.flags & pfLandscape) ? QPrinter::Landscape : QPrinter::Portrait);
 
-		prdata.orientation = printer->orientation() == QPrinter::Portrait ? 0 : 1;
 		prdata.printerName = printer->printerName();
     // get actual printer data (may be different from the one set in page setup)
         prdata.dpi = printer->resolution();
@@ -45,7 +44,7 @@ QPrinter* MyPrinter::GetPrinterParameters(MyPrinterData& prdata)
 
         prdata.magn = (float)prdata.printArea.width() / (float)prdata.screenPageWidth;
         prdata.screenPageHeight = (int)((float)prdata.printArea.height() / prdata.magn);
-           
+
         return printer;
     }
 
@@ -295,12 +294,23 @@ bool MyPrinter::_PrintItem(Yindex yi)
     if(phi->type == heScreenShot)
     {                               // paint over background layer
         ScreenShotImage* psi = phi->GetScreenShotImage();
-#define MAGN(a) ((a)*_data.magn)
+// DEBUG
+QRect r=phi->Area(),
+      ir=QRect( 0, 0, psi->image.width(), psi->image.height());
+// /DEBUG
         QRectF srcRect = phi->Area().intersected(_actPage.screenArea); // screen coordinates
-        QRectF dstRect = srcRect.translated(0, 0);
-        dstRect.setSize(dstRect.size() *= _data.magn);
+        QPointF dp =  srcRect.topLeft() - _actPage.screenArea.topLeft(); // screen relative coord.
+        srcRect.moveTopLeft(dp);  
+
+        QRectF dstRect = QRect( QPoint(srcRect.x()*_data.magn, srcRect.y() * _data.magn), QSize(srcRect.width() * _data.magn, srcRect.height() * _data.magn)) ;
         Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
         _painterPage->drawImage(dstRect, psi->image, srcRect, flag);
+// DEBUG
+        _painterPage->setPen(QPen(_data.gridColor, 2, Qt::SolidLine));
+        _painterPage->drawLine(dstRect.topLeft(), dstRect.bottomRight());
+        _painterPage->drawLine(dstRect.topRight(), dstRect.bottomLeft());
+// /DEBUG
+
     }
     else if (phi->type == heScribble || phi->type == heEraser)
     {             // paint over transparent layer
@@ -330,7 +340,6 @@ bool MyPrinter::_PrintItem(Yindex yi)
             }
     }
     return false;
-#undef MAGN
 }
 
 void MyPrinter::_PrintGrid()

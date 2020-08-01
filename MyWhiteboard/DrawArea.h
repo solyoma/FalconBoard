@@ -203,6 +203,7 @@ private:
     QRect   _rubberRect;        // used to select histoy items
     void  _RemoveRubberBand();
     void _InitiateDrawing(QEvent* event);
+    void _InitRubberBand(QEvent* event);
 #endif
     void _ClearCanvas();
 

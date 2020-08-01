@@ -87,13 +87,17 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actP) : actPrinter(act
 	horizPixels     = s.value("hpxs", 1920).toInt();
 	screenDiagonal	= s.value("sdiag", 24).toInt();		// inch
 	unitFactor		= s.value("uf", 0).toInt();			// multipl. factor for number in edScreenDiag number to inch
-	orientation		= s.value("porient", 0).toInt();		// portrait
 	flags			= s.value("pflags", 0).toInt();		// bit): print background image, bit 1: white background
 
 	ui.cbScreenResolution->setCurrentIndex(resolutionIndex);
 	ui.edtScreenDiag->setText(QString().setNum(screenDiagonal)) ;
 	ui.cbUnit->setCurrentIndex(unitFactor);
-	ui.cbOrientation->setCurrentIndex(orientation);
+	ui.cbOrientation->setCurrentIndex(flags & pfLandscape ? 1 : 0);
+	ui.chkWhiteBackground->setChecked(flags & pfWhiteBackground);
+	ui.chkGrayscale->setChecked(flags & pfGrayscale);
+	ui.chkPrintBackgroundImage->setChecked(flags & pfPrintBackgroundImage);
+	ui.chkGrid->setChecked(flags & pfGrid);
+
 
 	QStringList sl = QPrinterInfo::availablePrinterNames();
 	ui.cbPrinterSelect->addItems(sl);
@@ -113,8 +117,6 @@ PageSetupDialog::~PageSetupDialog()
 	s.setValue("resi", ui.cbScreenResolution->currentIndex());			
 	s.setValue("hpxs", ui.sbHorizPixels->value());
 	s.setValue("sdiag", ui.edtScreenDiag->text());
-	s.setValue("uf", ui.cbUnit->currentIndex());
-	s.setValue("porient", ui.cbOrientation->currentIndex());
 	s.setValue("pflags", flags);
 }
 
@@ -151,7 +153,7 @@ void PageSetupDialog::on_sbHorizPixels_valueChanged(int val)
 
 void PageSetupDialog::on_edtScreenDiag_textChanged(QString& txt) { screenDiagonal = txt.toInt(); }
 void PageSetupDialog::on_cbUnit_currentIndexChanged(int i) { unitFactor = i; }
-void PageSetupDialog::on_cbOrientation_currentIndexChanged(int i) { orientation = i; }
+void PageSetupDialog::on_cbOrientation_currentIndexChanged(int landscape) { flags &= ~pfLandscape; if (landscape) flags |= pfLandscape; }
 void PageSetupDialog::on_cbPrinterSelect_currentIndexChanged(int i)
 {
 	actPrinter.clear();

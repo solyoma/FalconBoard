@@ -21,7 +21,6 @@ struct MyPrinterData
     int screenPageWidth = 1920;         // used to calculate pixel limits for pages
     int screenPageHeight = 1920 * 3500 / 2480;
     int dpi = 300;                  // printer resolution: dots / inch approx 118 dots/cm
-    int orientation = 0;            // print orientation
     QString printerName;            // last selected printer, usually the default one not saved between sessions
     float magn = 1.29166663;        // magnification factor for print: 1 print pixel = _magn screen pixel (for A4 and HD)
     QRectF printArea = QRectF(0, 0, 2480.0, 3500.0);    // get from printer:printable area in device pixels (dots): top left is usually not 0,0

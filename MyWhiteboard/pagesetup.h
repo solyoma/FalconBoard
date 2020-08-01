@@ -14,8 +14,7 @@ public:
 	int horizPixels;			// horizontal pixel count
 	int screenDiagonal;			// from text in inch
 	int unitFactor;				// index of units (0: inch, 1: cm, 2: mm)
-	int orientation;			// 0: portrait, 1: landscape
-	int flags;					// ORed bit 0: print background image, 
+	int flags;					// ORed from PrinterFlags (common.h)
 	QString actPrinter;
 
 

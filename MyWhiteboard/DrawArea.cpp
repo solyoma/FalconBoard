@@ -42,7 +42,6 @@ DrawArea::DrawArea(QWidget* parent)
 void DrawArea::SetPrinterData(const MyPrinterData& prdata)
 {
      _prdata.screenPageWidth = prdata.screenPageWidth; 
-     _prdata.orientation = prdata.orientation;
      _prdata.flags = prdata.flags;
      _prdata.printerName = prdata.printerName;
 }
@@ -458,18 +457,18 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
             _RemoveRubberBand();
         }
 
-        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
+        if (event->modifiers().testFlag(Qt::AltModifier) && event->modifiers().testFlag(Qt::ControlModifier))
+            _InitRubberBand(event);
+        else
+        {
+            _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
 
-        _InitiateDrawing(event);
+            _InitiateDrawing(event);
+        }
     }
     else if (event->button() == Qt::RightButton)
     {
-        _rubber_origin = event->pos();
-        if (!_rubberBand)
-            _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-        _rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
-        _rubberBand->show();
-        emit RubberBandSelection(true);
+        _InitRubberBand(event);
 #else
     _lastPointC = event->pos();     // used for moving the canvas around
 #endif
@@ -896,6 +895,16 @@ void DrawArea::_InitiateDrawing(QEvent* event)
     _lastDrawnItem.add(_lastPointC + _topLeft);
 }
 
+void DrawArea::_InitRubberBand(QEvent* event)
+{
+    _rubber_origin = event->type() == QEvent::MouseButtonPress ? ((QMouseEvent*)event)->pos() : ((QTabletEvent*)event)->pos();
+    if (!_rubberBand)
+        _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+    _rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
+    _rubberBand->show();
+    emit RubberBandSelection(true);
+}
+
 
 void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
 {       // when '_horizontal' is valid only keep the changes in coordinate in one direction
@@ -1104,8 +1113,9 @@ void DrawArea::PageSetup()      // public slot
             _ppi = 96;
 
         #undef SQUARE
-        _prdata.orientation = ps->orientation;
         _prdata.printerName = ps->actPrinter;
+        _prdata.flags = ps->flags;
+
         MyPrinter::GetPrinterParameters(_prdata);
         _bPageSetupValid = !_prdata.printerName.isEmpty();
     }
@@ -1139,7 +1149,10 @@ void DrawArea::Print()
 
     _printer = new MyPrinter(&_history, _prdata);
     MyPrinter::GetPrinterParameters(_prdata);
-    _printer->Print();
+    if (!_printer->Print())
+    {
+        QMessageBox::warning(this, tr("MyWhiteBoard - Warning"), tr("Printing cancelled or print error"));
+    }
 
 #endif // QT_CONFIG(printdialog)
 }

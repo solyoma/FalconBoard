@@ -84,7 +84,6 @@ void MyWhiteboard::RestoreState()
     MyPrinterData data;
     
     data.screenPageWidth = s.value("hpxs", 1920).toInt();
-    data.orientation = s.value("porient", 0).toInt();		// portrait
     data.flags = s.value("pflags", 0).toInt();		        // bit): print background image, bit 1: white background
     _drawArea->SetPrinterData(data);
 
