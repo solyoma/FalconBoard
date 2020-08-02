@@ -1,11 +1,9 @@
-#pragma once
-
 #include <QApplication>
 #include <QPrinter>
 #include <QPrinterInfo>
 #include <QPainter>
 #include <QPageSize>
-#include <Qimage>
+#include <QImage>
 
 //#include <vector>
 #include <algorithm>
@@ -98,7 +96,6 @@ static struct SortedPageNumbers
         else            // existing point see if item already added
         {
             MyPrinter::YIndexVector &yindices = pgns[pos].yindices;
-            MyPrinter::Yindex index = pgn.yindices[0];
             int ix = std::lower_bound(yindices.begin(), yindices.end(), pgn.yindices[0]) - yindices.begin();
             if (ix == yindices.size())
                 yindices.push_back(pgn.yindices[0]);
@@ -106,7 +103,7 @@ static struct SortedPageNumbers
                 yindices.insert(ix, pgn.yindices[0]);
         }
     }
-    PageNum2 &PageForPoint(QPoint& p, int Yindex, PageNum2 &pgn)
+    PageNum2 &PageForPoint(const QPoint& p, int Yindex, PageNum2 &pgn)
     {
         pgn.yindices[0].yix = Yindex;
 
@@ -271,7 +268,7 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
     return nullptr;
 }
 
-int MyPrinter::_PageForPoint(QPoint p)
+int MyPrinter::_PageForPoint(const QPoint p)
 {
     for (int i = 0; i < _pages.size(); ++i)
         if (_pages[i].screenArea.contains(p))

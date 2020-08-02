@@ -1,5 +1,3 @@
-#pragma once
-
 #include <QMouseEvent>
 #include "snipper.h"
 

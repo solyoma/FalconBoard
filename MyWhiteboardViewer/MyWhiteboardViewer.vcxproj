@@ -47,7 +47,7 @@
   </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <QtInstall>msvc2019</QtInstall>
-    <QtModules>core;gui;widgets</QtModules>
+    <QtModules>core;gui;printsupport;widgets</QtModules>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
     <Import Project="$(QtMsBuild)\qt.props" />
@@ -62,6 +62,7 @@
       <PreprocessorDefinitions>_VIEWER;$(Qt_DEFINES_);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>..\MyWhiteboard;$(Qt_INCLUDEPATH_);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -103,9 +104,10 @@
     <QtMoc Include="..\MyWhiteboard\DrawArea.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\MyWhiteboard\common.h" />
     <ClInclude Include="..\MyWhiteboard\history.h" />
     <ClInclude Include="..\MyWhiteboard\myprinter.h" />
-    <ClInclude Include="..\MyWhiteboard\printprogress.h" />
+    <QtMoc Include="..\MyWhiteboard\printprogress.h" />
     <QtMoc Include="..\MyWhiteboard\pagesetup.h" />
     <QtMoc Include="..\MyWhiteboard\snipper.h" />
     <QtMoc Include="..\MyWhiteboard\MyWhiteboard.h" />

@@ -101,7 +101,7 @@ private:
     bool _Print(int from=1, int to=0x7fffffff);   // pages
     bool _Print(QVector<int>& pages);             // list of pages
     QPrintDialog* _DoPrintDialog();   // if 'Print' pressed recalculates page data () else returns nullptr
-    int _PageForPoint(QPoint p);
+    int _PageForPoint(const QPoint p);
 };
 
 #endif	// _PRINTING_H

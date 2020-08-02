@@ -25,6 +25,7 @@ protected:
 
 public:
 	Snipper(QWidget* parent = nullptr);
+	~Snipper() {}
 	void show()
 	{
 		setCursor(Qt::CrossCursor);

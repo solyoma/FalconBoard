@@ -12,15 +12,6 @@
 
 #include "common.h"
 
-const QString sVersion = "1.1.2";
-const QString sWindowTitle =
-#ifdef _VIEWER
-"MyWhiteboard Viewer";
-#else
-"MyWhiteboard";
-#endif
-
-
 constexpr int DRAWABLE_ZORDER_BASE = 10000000;
 
 enum HistEvent {
@@ -445,7 +436,7 @@ public:
     History(const History&& o);
     ~History();
 
-    void SetClippingRect(QRect& rect) { _clpRect = rect;  }
+    void SetClippingRect(const QRect& rect) { _clpRect = rect;  }
 
     void clear();
     int size() const;   // _items's size

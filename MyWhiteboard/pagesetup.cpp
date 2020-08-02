@@ -123,7 +123,7 @@ PageSetupDialog::~PageSetupDialog()
 
 int PageSetupDialog::_GetIndexForHorizPixels(int hp)
 {
-	for (int i = 0; i < sizeof(_w) / sizeof(int); ++i)
+	for (size_t i = 0; i < sizeof(_w) / sizeof(int); ++i)
 		if (_w[i] == hp)
 			return i;
 	return -1;

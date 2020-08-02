@@ -5,6 +5,16 @@
 //#include <>
 #include <QColor>
 
+const QString sVersion = "1.2.0";
+const QString sWindowTitle =
+#ifdef _VIEWER
+        "MyWhiteboard Viewer";
+#else
+        "MyWhiteboard";
+#endif
+
+
+
 enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser, penYellow };
 enum PrinterFlags :char {
     pfPrintBackgroundImage  = 1,

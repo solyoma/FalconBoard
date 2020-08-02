@@ -71,6 +71,9 @@
     <QtMoc Include="..\MyWhiteboard\pagesetup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="..\MyWhiteboard\printprogress.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\MyWhiteboard\history.h">
@@ -79,7 +82,7 @@
     <ClInclude Include="..\MyWhiteboard\myprinter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\MyWhiteboard\printprogress.h">
+    <ClInclude Include="..\MyWhiteboard\common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -601,7 +601,7 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
         if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
         {
             _rubberRect = _rubberBand->geometry();
-            bool b = _history.CollectItemsInside(_rubberRect.translated(_topLeft));
+            _history.CollectItemsInside(_rubberRect.translated(_topLeft));
             if (_history.SelectedSize())
             {
                 _rubberBand->setGeometry(_history.BoundingRect().translated(-_topLeft));

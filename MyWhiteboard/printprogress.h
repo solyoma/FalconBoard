@@ -21,6 +21,7 @@ public:
 	{
 		ui.setupUi(this);
 	}
+	~PrintProgressDialog() {}
 
 	void Progress(int page)
 	{
