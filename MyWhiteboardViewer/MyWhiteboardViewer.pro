@@ -8,7 +8,7 @@ CONFIG += debug
 LIBS += -L"."
 DEPENDPATH += .
 MOC_DIR += ./Debug/moc
-OBJECTS_DIR += ./Debug
+OBJECTS_DIR += Debug
 UI_DIR += ./Debug/Ui
 RCC_DIR += ./Debug/rcc
 win32:RC_FILE = MyWhiteboardViewer.rc
@@ -30,7 +30,7 @@ FORMS += ../MyWhiteboard/MyWhiteboard.ui \
     ../MyWhiteboard/pagesetup.ui \
     ../MyWhiteboard/printprogress.ui
 RESOURCES += ../MyWhiteboard/MyWhiteboard.qrc
-INCLUDES += . ../MyWhiteBoard
+INCLUDES += ../MyWhiteBoard
 QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
 QT += gui widgets printsupport
 requires(qtConfig(filedialog))

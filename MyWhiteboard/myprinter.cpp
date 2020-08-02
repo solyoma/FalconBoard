@@ -129,8 +129,10 @@ static struct SortedPageNumbers
 
 bool MyPrinter::_AllocateResources()
 {
-    _pPageImage = new QImage((int)_data.printArea.width(), (int)_data.printArea.height(), QImage::Format_ARGB32);
-    _pItemImage = new QImage((int)_data.printArea.width(), (int)_data.printArea.height(), QImage::Format_ARGB32);
+    QImage::Format fmt = _data.flags & pfGrayscale ? QImage::Format_Grayscale8 : QImage::Format_ARGB32;
+
+    _pPageImage = new QImage((int)_data.printArea.width(), (int)_data.printArea.height(), fmt);
+    _pItemImage = new QImage((int)_data.printArea.width(), (int)_data.printArea.height(), fmt);
     if (!_pPageImage || _pPageImage->isNull())
     {
         delete _pPageImage;
@@ -299,7 +301,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
 
         QRectF dstRect = QRect( QPoint(srcRect.x()*_data.magn, srcRect.y() * _data.magn), QSize(srcRect.width() * _data.magn, srcRect.height() * _data.magn)) ;
         Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
-		if (_data.flags & pfDontPrintImages)    //print placeholder
+		if (_data.flags & pfDontPrintImages)    // print placeholder
         {
             _painterPage->setPen(QPen(drawColors[penYellow], 2, Qt::SolidLine));
             _painterPage->drawLine(dstRect.topLeft(), dstRect.bottomRight());

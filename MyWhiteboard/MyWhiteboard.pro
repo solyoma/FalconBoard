@@ -31,7 +31,7 @@ FORMS += ./MyWhiteboard.ui \
     ./pagesetup.ui \
     ./printprogress.ui
 RESOURCES += ./MyWhiteboard.qrc
-INCLUDES += . .MyWhiteBoard
+INCLUDES += .
 QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
 QT += gui widgets printsupport
 requires(qtConfig(filedialog))
