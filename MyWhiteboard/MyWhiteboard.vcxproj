@@ -91,6 +91,7 @@
     <ClCompile Include="DrawArea.cpp" />
     <ClCompile Include="history.cpp" />
     <ClCompile Include="pagesetup.cpp" />
+    <ClCompile Include="pdfsetup.cpp" />
     <ClCompile Include="snipper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyWhiteboard.cpp" />
@@ -102,6 +103,7 @@
   <ItemGroup>
     <QtUic Include="MyWhiteboard.ui" />
     <QtUic Include="pagesetup.ui" />
+    <QtUic Include="pdfsetup.ui" />
     <QtUic Include="printprogress.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +119,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="history.h" />
     <ClInclude Include="myprinter.h" />
+    <QtMoc Include="pdfsetup.h" />
     <QtMoc Include="printprogress.h" />
     <QtMoc Include="pagesetup.h" />
     <QtMoc Include="snipper.h" />

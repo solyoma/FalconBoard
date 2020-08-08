@@ -34,6 +34,9 @@
     <QtUic Include="..\MyWhiteboard\printprogress.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="..\MyWhiteboard\pdfsetup.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\MyWhiteboard\DrawArea.cpp">
@@ -57,6 +60,9 @@
     <ClCompile Include="..\MyWhiteboard\myprinter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\MyWhiteboard\pdfsetup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="..\MyWhiteboard\DrawArea.h">
@@ -72,6 +78,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="..\MyWhiteboard\printprogress.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="..\MyWhiteboard\pdfsetup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

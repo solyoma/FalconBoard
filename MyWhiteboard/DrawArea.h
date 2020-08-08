@@ -14,6 +14,7 @@
 
 #include "history.h"
 #include "pagesetup.h"
+#include "pdfsetup.h"
 #include "myprinter.h"
 
 using namespace std::chrono_literals;
@@ -92,7 +93,8 @@ public slots:
     void ClearVisibleScreen();
     void ClearDown();
     void ClearHistory();
-    void Print();
+    void Print(QString fileName);
+    void ExportPdf(QString fileName);
     void PageSetup();
 #ifndef _VIEWER
     void Undo();
@@ -147,7 +149,8 @@ private:
     QCursor _eraserCursor;
     int     _actPenWidth = 1;
     MyPenKind _myPenKind = penBlack;
-    bool    _bPageSetupValid = false;
+    bool    _bPageSetupValid;
+    bool    _bPageSetupUsed = false;
 
 
     std::chrono::milliseconds _msecs = 10ms;   // when delayed playback
@@ -178,11 +181,11 @@ private:
                                 // grid 
     bool   _bGridOn = false;
     bool   _gridIsFixed = false;
-    bool   _bPageGuidesOn = false;       // true: draw line on page breaks depending on _pageHeight and _pageWidth
+    bool   _bPageGuidesOn = false;          // true: draw line on page breaks depending on _pageHeight and _pageWidth
     int    _nGridSpacingX = 64,
            _nGridSpacingY = 64;
-    QColor _gridColor = "#d0d0d0";  // for white system color scheme
-    QColor _pageGuideColor = "#e0e0e0";    // - " - r 
+    QColor _gridColor = "#d0d0d0";          // for white system color scheme
+    QColor _pageGuideColor = "#fcd475";     // - " - r 
 
     QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _lastMove;  // value of last canvas move 
@@ -239,6 +242,8 @@ private:
     void _Down(int distance = 10);
     void _Left(int distance = 10);
     void _Right(int distance = 10);
+    bool _PdfPageSetup();               // false: cancelled
+    bool  _NoPrintProblems();           // false: some problems
 #ifndef _VIEWER
     void ShowCoordinates(const QPoint& qp);
     Sprite * _CreateSprite(QPoint cursorPos, QRect& rect);

@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QMouseEvent>
 
+#include <QFileDialog>
 #include <QPainter>
 
 #include <QMessageBox>
@@ -1090,71 +1091,134 @@ void DrawArea::ClearHistory()
 
 void DrawArea::PageSetup()      // public slot
 {
-    float fact[] = {1.0, 2.54, 25.4};   // inch, cm, mm
+    static float fact[] = {1.0, 1.0/2.54, 1.0/25.4};   // inch, cm, mm
 
     PageSetupDialog* ps = new PageSetupDialog(this, _prdata.printerName);
+    _prdata.bExportPdf = false;
 
     if (ps->exec())
     {
         QSize wh;
-        int nHorizPixels = ps->GetScreenSize(wh);
+        _screenWidth = ps->GetScreenSize(wh);
 
-        _prdata.screenPageWidth = _screenWidth = wh.width();
+        _prdata.screenPageWidth = _screenWidth;
         _screenHeight = wh.height();
 
-        #define SQUARE(a)  (a*a)
+#define SQUARE(a)  (a*a)
 
         if (_screenHeight > 0)           // -1 if no predefined resolution
         {
             float cosine = (float)_screenWidth / (float)std::sqrt(SQUARE(_screenWidth) + SQUARE(_screenHeight));
-            _ppi = (float)(ps->screenDiagonal) * fact[ps->unitFactor] * cosine / _screenWidth;
+            _ppi = (float)_screenWidth / (ps->screenDiagonal * fact[ps->unitIndex] * cosine) ;
         }
         else
             _ppi = 96;
 
-        #undef SQUARE
-        _prdata.printerName = ps->actPrinter;
+#undef SQUARE
+        _prdata.printerName = ps->_actPrinterName;
         _prdata.flags = ps->flags;
-
-        MyPrinter::GetPrinterParameters(_prdata);
-        _bPageSetupValid = !_prdata.printerName.isEmpty();
+        _bPageSetupUsed = !_prdata.printerName.isEmpty();
+        _bPageSetupValid = true;
     }
+    else
+        _bPageSetupValid = false;
     delete ps;
 }
-void DrawArea::Print()
+
+bool DrawArea::_PdfPageSetup()
 {
-    if (!_bPageSetupValid)
-        PageSetup();
-#if QT_CONFIG(printdialog)
-    //QPrinter printer(QPrinter::HighResolution);
-
-    //QPrintDialog printDialog(&printer, this);
-    ////! [21] //! [22]
-    //if (printDialog.exec() == QDialog::Accepted) {
-    //    QPainter painter(&printer);
-    //    QRect rect = painter.viewport();
-    //    QSize size = _canvas.size();
-    //    size.scale(rect.size(), Qt::KeepAspectRatio);
-    //    painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
-    //    painter.setWindow(_canvas.rect());
-    //    painter.drawImage(0, 0, _canvas);
-    //}
-    _prdata.topLeftActPage = _topLeft;
-    _prdata.backgroundColor   = _backgroundColor;
-    _prdata.gridColor         = _gridColor;
-    _prdata.pBackgroundImage  = &_background;
-    _prdata.nGridSpacingX     = _nGridSpacingX;
-    _prdata.nGridSpacingY     = _nGridSpacingY;
-    _prdata.gridIsFixed       = _gridIsFixed;
-
-    _printer = new MyPrinter(&_history, _prdata);
-    MyPrinter::GetPrinterParameters(_prdata);
-    if (!_printer->Print())
+    PdfSetupDialog* pdfDlg = new PdfSetupDialog(this);
+    bool res = false;
+    if (pdfDlg->exec())
     {
-        QMessageBox::warning(this, tr("MyWhiteBoard - Warning"), tr("Printing cancelled or print error"));
-    }
+        _prdata.bExportPdf = true;
+        _prdata.flags = pdfDlg->flags;
 
-#endif // QT_CONFIG(printdialog)
+        static int resos[] = { 300, 600, 1200 };
+        int dpi = resos[pdfDlg->pdfDpi];
+
+        float   w = (pdfDlg->pdfWidth - 2 * pdfDlg->pdfMarginLR) * dpi,
+                h = (pdfDlg->pdfHeight - 2 * pdfDlg->pdfMarginTB) * dpi,
+                mlr = pdfDlg->pdfMarginLR * dpi,
+                mtb = pdfDlg->pdfMarginTB * dpi;
+        if (_prdata.flags & pfLandscape)
+        {
+            _prdata.printArea = QRectF(mtb, mlr, h, w);
+            _prdata.magn = h / _prdata.screenPageWidth;
+            _prdata.pdfMarginLR = mtb;  
+            _prdata.pdfMarginTB = mlr;
+        }
+        else
+        {
+            _prdata.printArea = QRectF(mlr, mtb, w, h);
+            _prdata.magn = w / _prdata.screenPageWidth;
+            _prdata.pdfMarginLR = mlr;
+            _prdata.pdfMarginTB = mtb;
+        }
+        _bPageSetupValid = true;
+        res = true;
+    }
+    delete pdfDlg;
+
+    return res;
+}
+
+bool DrawArea::_NoPrintProblems()
+{
+    bool res = false;
+    switch (_printer->Status())
+    {
+        case MyPrinter::rsAllocationError:
+            QMessageBox::critical(this, tr("MyWhiteboard - Error"), tr("Can't Allocate Resources\nNot enough memory?"));
+            break;
+        case MyPrinter::rsInvalidPrinter:
+            QMessageBox::critical(this, tr("MyWhiteboard - Error"), tr("Can't find printer"));
+            break;
+        case MyPrinter::rsPrintError:
+            QMessageBox::warning(this, tr("MyWhiteboard - Warning"), tr("Print error"));
+            break;
+        case MyPrinter::rsCancelled:
+            QMessageBox::warning(this, tr("MyWhiteboard - Warning"), tr("Print cancelled"));
+            break;
+        default:
+            res = true;
+    }
+    return res;
+}
+
+void DrawArea::Print(QString name)
+{
+    int pos = name.lastIndexOf('/');
+    if (pos >= 0)
+        name = name.mid(pos + 1);
+    _prdata.docName = name;
+
+    if (!_prdata.bExportPdf && !_bPageSetupUsed)
+        PageSetup();
+
+	if (_bPageSetupValid)
+	{
+		_prdata.topLeftActPage = _topLeft;
+		_prdata.backgroundColor = _backgroundColor;
+		_prdata.gridColor = _gridColor;
+		_prdata.pBackgroundImage = &_background;
+		_prdata.nGridSpacingX = _nGridSpacingX;
+		_prdata.nGridSpacingY = _nGridSpacingY;
+		_prdata.gridIsFixed = _gridIsFixed;
+        _printer = new MyPrinter(this, &_history, _prdata);     // _prdata may be modified!
+        if (_NoPrintProblems())   // only when not Ok
+        {
+            _printer->Print();
+            _NoPrintProblems();
+        }
+	}
+    _prdata.bExportPdf = false;
+}
+
+void DrawArea::ExportPdf(QString fileName)
+{
+    if( _PdfPageSetup() )       // else cancelled
+        Print(fileName);
 }
 
 void DrawArea::_Redraw()

@@ -1,9 +1,14 @@
 #include <QApplication>
+#include <QMainWindow>
+#include <QFileDialog>
 #include <QPrinter>
 #include <QPrinterInfo>
 #include <QPainter>
 #include <QPageSize>
 #include <QImage>
+// DEBUG
+#include <QMargins>
+// /DEBUG
 
 //#include <vector>
 #include <algorithm>
@@ -11,6 +16,23 @@
 #include "history.h"
 #include "printprogress.h"
 #include "myprinter.h"
+
+
+MyPrinter::MyPrinter(QWidget* parent, History* pHist, MyPrinterData &prdata) :
+    _parent(parent), _pHist(pHist), _data (prdata)
+{
+    if (_data.bExportPdf)
+        _GetPdfPrinter();
+    else
+        _GetPrinterParameters();
+
+    prdata = _data;        // send back to caller
+}
+
+bool MyPrinter::isValid() const 
+{ 
+    return _status == rsOk; 
+}
 
 
 /*========================================================
@@ -23,32 +45,88 @@
  *          - magnification is calculated from printable
  *              page rectangle and screen width
  *-------------------------------------------------------*/
-QPrinter* MyPrinter::GetPrinterParameters(MyPrinterData& prdata) 
+MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
 {
-    QPrinter* printer;
-    if (!prdata.printerName.isEmpty())
+    _status = rsInvalidPrinter;
+    if (!_data.printerName.isEmpty())
     {
-		printer = new QPrinter(QPrinter::HighResolution);
-        if (!printer->isValid())
+        if(!_printer)
+		    _printer = new QPrinter(QPrinter::HighResolution);
+        if (!_printer->isValid())
         {
-            delete printer;
-            return nullptr;
+            delete _printer;
+            _printer = nullptr;
+            return _status;
         }
-		printer->setPrinterName(prdata.printerName);
-		printer->setOrientation((prdata.flags & pfLandscape) ? QPrinter::Landscape : QPrinter::Portrait);
+		_printer->setPrinterName(_data.printerName);
+		_printer->setOrientation((_data.flags & pfLandscape) ? QPrinter::Landscape : QPrinter::Portrait);
 
-		prdata.printerName = printer->printerName();
-    // get actual printer data (may be different from the one set in page setup)
-        prdata.dpi = printer->resolution();
-        prdata.printArea = printer->pageRect(QPrinter::DevicePixel);
+        _pDlg = _DoPrintDialog();  // includes a _CalcPages() call
 
-        prdata.magn = (float)prdata.printArea.width() / (float)prdata.screenPageWidth;
-        prdata.screenPageHeight = (int)((float)prdata.printArea.height() / prdata.magn);
+        if(!_pDlg)
+        {
+            delete _printer;
+            _printer = nullptr;
+            _status = rsCancelled;
+            return _status;
+        }
+        // print dialog might have changed printer parameters
+        // get actual _printer data (may be different from the one set in page setup)
+		_data.printerName = _printer->printerName();
+        _data.flags &= pfLandscape;
+        if (_printer->orientation() == QPrinter::Landscape)
+            _data.flags |= pfLandscape;
+        _data.dpi = _printer->resolution();
+        _data.printArea = _printer->pageRect(QPrinter::DevicePixel);
+        _data.printArea.moveTopLeft(QPoint(0, 0));    // margins are set by the printer
 
-        return printer;
+        _data.magn = (float)_data.printArea.width() / (float)_data.screenPageWidth;
+        _data.screenPageHeight = (int)((float)_data.printArea.height() / _data.magn);
+
+        _status = rsOk;
     }
+    return _status;
+}
 
-    return nullptr;
+MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
+{
+    _printer = new QPrinter(QPrinter::HighResolution);
+
+    _status = rsInvalidPrinter;
+    if (_printer)
+    {
+        if (!_printer->isValid())
+        {
+            delete _printer;
+            _printer = nullptr;
+            return _status;
+        }
+        QString filename = QFileDialog::getSaveFileName(_parent, QMainWindow::tr("MyWhiteboard - Save PDF As"), QString("untitled.pdf"), "Pdf File(*.pdf)");
+        if (filename.isEmpty())
+        {
+            delete _printer;
+            _printer = nullptr;
+            _status = rsCancelled;
+            return _status;
+        }
+
+        if (QFileInfo(filename).suffix().isEmpty())
+            filename.append(".pdf");
+
+        _data.fileName = filename;
+        _data.printerName = "MyWhiteBoardPDF";
+        _printer->setOutputFormat(QPrinter::PdfFormat);
+        _printer->setPrinterName(_data.printerName);
+        _printer->setOutputFileName(_data.fileName);
+        _printer->setOrientation((_data.flags & pfLandscape) ? QPrinter::Landscape : QPrinter::Portrait);
+        _printer->setResolution(_data.dpi);
+        _printer->setPageMargins(QMarginsF(0,0,0,0));
+        _data.screenPageHeight = (int)((float)_data.printArea.height() / _data.magn);
+
+        _CalcPages();
+        _status = rsOk;
+    }
+    return _status;
 }
 //----------------------------------------------
 struct PageNum2
@@ -131,6 +209,8 @@ bool MyPrinter::_AllocateResources()
 {
     QImage::Format fmt = _data.flags & pfGrayscale ? QImage::Format_Grayscale8 : QImage::Format_ARGB32;
 
+    _status = rsAllocationError;
+
     _pPageImage = new QImage((int)_data.printArea.width(), (int)_data.printArea.height(), fmt);
     _pItemImage = new QImage((int)_data.printArea.width(), (int)_data.printArea.height(), fmt);
     if (!_pPageImage || _pPageImage->isNull())
@@ -153,6 +233,9 @@ bool MyPrinter::_AllocateResources()
     _printPainter = new QPainter;                   
                                                     // using begin() instead of constructor makes possible
                                                     // to check status
+    _printer->setDocName(_data.docName);
+
+    _status = rsOk;
     return _printPainter->begin(_printer);          // must close()
 }
 
@@ -174,8 +257,6 @@ bool MyPrinter::_FreeResources()
 
 int MyPrinter::_CalcPages()
 {
-    _pages.clear();
-
     sortedPageNumbers.Init( QRect(0, 0, _data.screenPageWidth, _data.screenPageHeight) );
 
     int nSize = _pHist->CountOfVisible();
@@ -230,18 +311,18 @@ int MyPrinter::_CalcPages()
         pg.screenArea.moveTo(pgn.nx * _data.screenPageWidth, pgn.ny* _data.screenPageHeight);
         _pages.push_back(pg);
     }
-    return _pages.size();
-}
-
-MyPrinter::MyPrinter(History* pHist, MyPrinterData prdata) :
-    _pHist(pHist), _data (prdata)
-{
+    int siz = _pages.size();
+    if (!siz)
+        _status = rsNothingToPrint;
+    else
+        _status = rsOk;
+    return siz;
 }
 QPrintDialog* MyPrinter::_DoPrintDialog()
 {
-    _printer = GetPrinterParameters(_data);
     if (!_printer)
         return nullptr;
+
     int pages = _CalcPages(); // page data may change if new printer is selected
 
     _printer->setFromTo(1, pages);   // max page range
@@ -253,19 +334,20 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
 
     if (_pDlg->exec())
     {
-        QPrinter* pActPrinter = _pDlg->printer();
-        if (_printer != pActPrinter)
+        QPrinter* p_actPrinterName = _pDlg->printer();
+        if (_printer != p_actPrinterName)
         {
             delete _printer;
-            _printer = pActPrinter;
+            _printer = p_actPrinterName;
             _data.printerName = _printer->printerName();
         }
-
-        return _pDlg;    // must not delete here so printer remains valid
+        _status = rsOk;
+        return _pDlg;    // must not delete here so printer remains valid even if it was changed in the printer dialog
         // print
     }
     delete _pDlg;
     _pDlg = nullptr;
+    _status = rsCancelled;
 
     return nullptr;
 }
@@ -375,6 +457,7 @@ void MyPrinter::_PreparePage(int which)
     _pItemImage->fill(Qt::transparent);
 
     bool b = drawColors.IsDarkMode();
+    // bottom layer
     if (!b || (_data.flags & pfWhiteBackground) != 0)
     {
         drawColors.SetDarkMode(false);
@@ -382,10 +465,13 @@ void MyPrinter::_PreparePage(int which)
     }
     else
         _pPageImage->fill(_data.backgroundColor);
-    if ((_data.flags & pfPrintBackgroundImage) != 0)  // background image image always start at top left of page
-        _painter->drawImage(0, 0, *_data.pBackgroundImage);
+    // background image layer
+    if ((_data.flags & pfPrintBackgroundImage) != 0 && _data.pBackgroundImage) 
+        _painter->drawImage(0, 0, *_data.pBackgroundImage);   // background image image always start at top left of page
+    // grid layer
     if ((_data.flags & pfGrid) != 0)  // gris is below scribbles
         _PrintGrid();
+    // items layer
     for (auto ix : _actPage.yindices)
     {
         _PrintItem(ix);
@@ -394,9 +480,8 @@ void MyPrinter::_PreparePage(int which)
             _pProgress->Progress(_actPage.pageNumber);
             QApplication::processEvents();
         }
-
     }
-
+    // end composition
     _painterPage->drawImage(QPoint(0,0), *_pItemImage);
 
     drawColors.SetDarkMode(b);
@@ -407,7 +492,7 @@ void MyPrinter::_PreparePage(int which)
 bool MyPrinter::_PrintPage(int which, bool last)
 {
     _PreparePage(which);    // into _pPageImage
-    _printPainter->drawImage(_data.printArea.left(), _data.printArea.top(), *_pPageImage); // printable area may be less than paper size
+    _printPainter->drawImage(QPointF(_data.printArea.left(), _data.printArea.top()), *_pPageImage); // printable area may be less than paper size
     if(!last)
         _printer->newPage();
     
@@ -425,7 +510,7 @@ bool MyPrinter::_Print(QVector<int>& pages)
     return res;
 }
 
-bool MyPrinter::_Print(int from, int to)
+bool MyPrinter::_Print(int from, int to)     // from, to: 1,...
 {
     QVector<int> vec(to - from + 1);
     for (int i = 0; i <= to - from; ++i)
@@ -435,27 +520,31 @@ bool MyPrinter::_Print(int from, int to)
 
 bool MyPrinter::Print()
 {
-    if ((_pDlg=_DoPrintDialog()))
+    if (isValid() )
     {
-        int n = _CalcPages();       // agsin
+        int n = _pages.size();
+        if(!_data.bExportPdf)
+            n = _CalcPages();       // agsin: printer might have been changed in dialog
 
     // now print
         if (!_AllocateResources())
             return false;
 
-        _pProgress = new PrintProgressDialog(n, _pHist->CountOfVisible());
+        _pProgress = new PrintProgressDialog(n, _pHist->CountOfVisible(), QString("MyWhiteboard - ") + (_data.bExportPdf ? "PDF Export" : "Printing") );
         _pProgress->show();
+
+        int from = 1, to = n;
 
         QPrinter::PrintRange range = _printer->printRange();
         if (range == QPrinter::CurrentPage)
         {
             PageNum2 pgn;
-            int n = _PageForPoint(_data.topLeftActPage);
-            return _Print(n, n);
+            int nCurrent = _PageForPoint(_data.topLeftActPage);
+            from = nCurrent; to = nCurrent;
         }
         else if (range == QPrinter::AllPages)
         {
-            return _Print(0, _pages.size() - 1);
+            from = 1; to = _pages.size();
         }
         else if (range == QPrinter::PageRange)
         {
@@ -470,6 +559,7 @@ bool MyPrinter::Print()
             _FreeResources();
             return true;
         }
+        return _Print(from, to);
             // cleanup
     }
     return false;

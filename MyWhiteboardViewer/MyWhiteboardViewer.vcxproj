@@ -89,6 +89,7 @@
   <ItemGroup>
     <QtUic Include="..\MyWhiteboard\MyWhiteboard.ui" />
     <QtUic Include="..\MyWhiteboard\pagesetup.ui" />
+    <QtUic Include="..\MyWhiteboard\pdfsetup.ui" />
     <QtUic Include="..\MyWhiteboard\printprogress.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -98,6 +99,7 @@
     <ClCompile Include="..\MyWhiteboard\myprinter.cpp" />
     <ClCompile Include="..\MyWhiteboard\MyWhiteboard.cpp" />
     <ClCompile Include="..\MyWhiteboard\pagesetup.cpp" />
+    <ClCompile Include="..\MyWhiteboard\pdfsetup.cpp" />
     <ClCompile Include="..\MyWhiteboard\snipper.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -107,6 +109,7 @@
     <ClInclude Include="..\MyWhiteboard\common.h" />
     <ClInclude Include="..\MyWhiteboard\history.h" />
     <ClInclude Include="..\MyWhiteboard\myprinter.h" />
+    <QtMoc Include="..\MyWhiteboard\pdfsetup.h" />
     <QtMoc Include="..\MyWhiteboard\printprogress.h" />
     <QtMoc Include="..\MyWhiteboard\pagesetup.h" />
     <QtMoc Include="..\MyWhiteboard\snipper.h" />

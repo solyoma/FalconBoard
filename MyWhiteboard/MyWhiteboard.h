@@ -86,7 +86,8 @@ private slots:
 	void SlotForLabel(QString text);
 #endif
 	void on_actionPageSetup_triggered();
-	void on_actionPrint_triggered() { _drawArea->Print();  }
+	void on_actionPrint_triggered() { _drawArea->Print(_saveName);  }
+	void on_actionExportToPdf_triggered() { _drawArea->ExportPdf(_saveName); }
 
 	void on_actionLoad_triggered();
 
@@ -144,7 +145,7 @@ private:
 			_sTextColor = "#000000";
 
 	QString _sGridColor = "#d0d0d0",
-		    _sPageGuideColor = "#e0e0e0";
+		    _sPageGuideColor = "#fcd475";
 
 	ScreenMode _screenMode = smSystem;
 

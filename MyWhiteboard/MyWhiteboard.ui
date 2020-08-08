@@ -45,6 +45,8 @@
     <addaction name="actionPageSetup"/>
     <addaction name="actionPrint"/>
     <addaction name="separator"/>
+    <addaction name="actionExportToPdf"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menu_Edit">
@@ -513,6 +515,11 @@
    </property>
    <property name="text">
     <string>Show Page Guides</string>
+   </property>
+  </action>
+  <action name="actionExportToPdf">
+   <property name="text">
+    <string>&amp;Export to Pdf ...</string>
    </property>
   </action>
  </widget>

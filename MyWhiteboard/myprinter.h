@@ -23,10 +23,12 @@ struct MyPrinterData
     int screenPageWidth = 1920;         // used to calculate pixel limits for pages
     int screenPageHeight = 1920 * 3500 / 2480;
     int dpi = 300;                  // printer resolution: dots / inch approx 118 dots/cm
-    QString printerName;            // last selected printer, usually the default one not saved between sessions
     float magn = 1.29166663;        // magnification factor for print: 1 print pixel = _magn screen pixel (for A4 and HD)
+    QString printerName;            // last selected printer, usually the default one not saved between sessions
+    QString docName;
     QRectF printArea = QRectF(0, 0, 2480.0, 3500.0);    // get from printer:printable area in device pixels (dots): top left is usually not 0,0
     int flags;
+    bool bExportPdf = false;
 
     // colors and others: set these before print in drawarea
     QColor  backgroundColor = "#FFFFFF",
@@ -35,6 +37,10 @@ struct MyPrinterData
     int nGridSpacingX       = 64,
         nGridSpacingY       = 64;
     bool gridIsFixed        = true;
+
+        // for PDF printing only
+    QString fileName;
+    int pdfMarginLR, pdfMarginTB; // left-right and top bottom in pixels
 };
 
 
@@ -44,11 +50,14 @@ class MyPrinter
 {
 public:
 
-    MyPrinter(History* pHist, MyPrinterData prdata);
+    enum StatusCode{rsOk, rsNothingToPrint, rsAllocationError, rsCancelled, rsInvalidPrinter, rsPrintError };
+    MyPrinter(QWidget *parent, History* pHist, MyPrinterData &prdata);  // prdata is modifyed by printer parameters
 
-    static QPrinter *GetPrinterParameters(MyPrinterData &prdata);    // set screenwidth and printer name into prdata first from printer name, false: no such printer
+                                                                     // used in DrawArea.cpp
     bool Print();
-
+    bool isValid() const;
+    StatusCode Status() const { return _status; }
+    QPrinter* Printer() const { return _printer; }
 public:
     //----------------------------------------------
     struct Yindex
@@ -62,6 +71,7 @@ public:
 
     using YIndexVector = QVector<Yindex>;
 private:
+    QWidget* _parent;
     struct Page
     {
         int pageNumber;
@@ -77,6 +87,7 @@ private:
     QPainter *_painter,
              *_painterPage,
              *_printPainter;
+    StatusCode _status = rsInvalidPrinter;
     QImage* _pPageImage = nullptr,
           * _pItemImage = nullptr;
     PrintProgressDialog* _pProgress = nullptr;
@@ -86,14 +97,14 @@ private:
     MyPrinterData _data;
 
     QVector<int> _selectedPages;            // to print e.g. 3,4,5,6
-    QPrintDialog* _pDlg;
+    QPrintDialog* _pDlg = nullptr;
+
 
 private:
 
     bool _AllocateResources();
     bool _FreeResources();
     int _CalcPages();        // using _data 
-    bool _PrintImage();
     bool _PrintItem(Yindex yi);
     void _PrintGrid();
     void _PreparePage(int which);
@@ -102,6 +113,9 @@ private:
     bool _Print(QVector<int>& pages);             // list of pages
     QPrintDialog* _DoPrintDialog();   // if 'Print' pressed recalculates page data () else returns nullptr
     int _PageForPoint(const QPoint p);
+
+    StatusCode _GetPdfPrinter();    // when pdf printing
+    StatusCode _GetPrinterParameters();    // set screenwidth and printer name into prdata first from printer name, false: no such printer
 };
 
 #endif	// _PRINTING_H

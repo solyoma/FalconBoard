@@ -17,15 +17,17 @@ private:
 	int _itemsPrinted = 0;
 
 public:
-	PrintProgressDialog(int pageCount, int itemCount, QWidget* parent = nullptr) : _cntPages(pageCount), _cntItems(itemCount), QDialog(parent) 
+	PrintProgressDialog(int pageCount, int itemCount, QString title, QWidget* parent = nullptr) : _cntPages(pageCount), _cntItems(itemCount), QDialog(parent) 
 	{
 		ui.setupUi(this);
+		if(!title.isEmpty())
+			setWindowTitle(title);
 	}
 	~PrintProgressDialog() {}
 
 	void Progress(int page)
 	{
-		ui.lblPage->setText(QString("#%1/%2").arg(page).arg(_cntPages));
+		ui.lblPage->setText(QString("#%1/%2").arg(page+1).arg(_cntPages));
 		_itemsPrinted += 1;
 		ui.pbPrint->setValue(_itemsPrinted * 100 / _cntItems);
 	}
