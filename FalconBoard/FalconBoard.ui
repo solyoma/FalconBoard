@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FalconBoardClass</class>
+ <widget class="QMainWindow" name="FalconBoardClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>958</width>
+    <height>783</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>FalconBoard</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="DrawArea" name="centralWidget">
+   <property name="cursor">
+    <cursorShape>CrossCursor</cursorShape>
+   </property>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>958</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionNew"/>
+    <addaction name="actionLoad"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSaveAs"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadBackground"/>
+    <addaction name="actionSaveVisible"/>
+    <addaction name="separator"/>
+    <addaction name="actionPageSetup"/>
+    <addaction name="actionPrint"/>
+    <addaction name="separator"/>
+    <addaction name="actionExportToPdf"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menu_Edit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="action_Black"/>
+    <addaction name="action_Red"/>
+    <addaction name="action_Green"/>
+    <addaction name="action_Blue"/>
+    <addaction name="action_Yellow"/>
+    <addaction name="action_Eraser"/>
+    <addaction name="separator"/>
+    <addaction name="action_Screenshot"/>
+    <addaction name="separator"/>
+    <addaction name="action_InsertVertSpace"/>
+   </widget>
+   <widget class="QMenu" name="menu_Help">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionHelp"/>
+    <addaction name="actionAbout"/>
+   </widget>
+   <widget class="QMenu" name="menu_Clear">
+    <property name="title">
+     <string>&amp;Clear</string>
+    </property>
+    <addaction name="actionClearRoll"/>
+    <addaction name="actionClearThisScreen"/>
+    <addaction name="actionClearDownward"/>
+    <addaction name="separator"/>
+    <addaction name="actionClearBackgroundImage"/>
+    <addaction name="separator"/>
+    <addaction name="actionClearHistory"/>
+   </widget>
+   <widget class="QMenu" name="menu_Options">
+    <property name="title">
+     <string>&amp;Options</string>
+    </property>
+    <addaction name="actionLightMode"/>
+    <addaction name="actionDarkMode"/>
+    <addaction name="actionBlackMode"/>
+    <addaction name="separator"/>
+    <addaction name="actionGrid"/>
+    <addaction name="actionFixedGrid"/>
+    <addaction name="actionShowPageGuides"/>
+    <addaction name="separator"/>
+    <addaction name="actionSaveData"/>
+    <addaction name="actionSaveBackgroundImage"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menu_Edit"/>
+   <addaction name="menu_Clear"/>
+   <addaction name="menu_Options"/>
+   <addaction name="menu_Help"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionLoad">
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/open.png</normaloff>:/FalconBoard/Resources/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Load...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load saved data into memory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/save.png</normaloff>:/FalconBoard/Resources/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Save</string>
+   </property>
+   <property name="iconText">
+    <string>Save...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSaveAs">
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/saveas.png</normaloff>:/FalconBoard/Resources/saveas.png</iconset>
+   </property>
+   <property name="text">
+    <string>S&amp;ave As...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/close.png</normaloff>:/FalconBoard/Resources/close.png</iconset>
+   </property>
+   <property name="text">
+    <string>E&amp;xit</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+X</string>
+   </property>
+  </action>
+  <action name="action_Black">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>Blac&amp;k</string>
+   </property>
+   <property name="shortcut">
+    <string>1</string>
+   </property>
+  </action>
+  <action name="action_Red">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Red</string>
+   </property>
+   <property name="shortcut">
+    <string>2</string>
+   </property>
+  </action>
+  <action name="action_Green">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Green</string>
+   </property>
+   <property name="shortcut">
+    <string>3</string>
+   </property>
+  </action>
+  <action name="action_Blue">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Blue</string>
+   </property>
+   <property name="shortcut">
+    <string>4</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="text">
+    <string>?</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionPrint">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Print...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionClearRoll">
+   <property name="text">
+    <string>C&amp;lear Roll</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear whole Whiteboard except background image.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Del</string>
+   </property>
+  </action>
+  <action name="action_Eraser">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/eraser.png</normaloff>:/FalconBoard/Resources/eraser.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Eraser</string>
+   </property>
+   <property name="shortcut">
+    <string>E</string>
+   </property>
+  </action>
+  <action name="action_InsertVertSpace">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Insert vertical space.</string>
+   </property>
+   <property name="toolTip">
+    <string>Insert vertical space.</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/undo.png</normaloff>:/FalconBoard/Resources/undo.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Undo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/redo.png</normaloff>:/FalconBoard/Resources/redo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Re&amp;do</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionClearHistory">
+   <property name="text">
+    <string>Clear &amp;History (no undo)</string>
+   </property>
+  </action>
+  <action name="actionNew">
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/new.png</normaloff>:/FalconBoard/Resources/new.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;New</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear whiteboard</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionLoadBackground">
+   <property name="text">
+    <string>Loa&amp;dBackgorund...</string>
+   </property>
+   <property name="iconText">
+    <string>Load Background</string>
+   </property>
+   <property name="toolTip">
+    <string>Load image as background</string>
+   </property>
+  </action>
+  <action name="actionSaveVisible">
+   <property name="text">
+    <string>Save &amp;Visible</string>
+   </property>
+   <property name="toolTip">
+    <string>Save visible image (not the lines)</string>
+   </property>
+  </action>
+  <action name="actionClearBackgroundImage">
+   <property name="text">
+    <string>Clear Bac&amp;kground</string>
+   </property>
+  </action>
+  <action name="action_Screenshot">
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/screenshot.png</normaloff>:/FalconBoard/Resources/screenshot.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Screenshot</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
+   </property>
+  </action>
+  <action name="actionLightMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>System colors</string>
+   </property>
+  </action>
+  <action name="actionDarkMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Dark mode</string>
+   </property>
+  </action>
+  <action name="actionBlackMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Black mode</string>
+   </property>
+  </action>
+  <action name="actionSaveData">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Auto Save Data</string>
+   </property>
+   <property name="toolTip">
+    <string>Automatic save of data at exit</string>
+   </property>
+  </action>
+  <action name="actionSaveBackgroundImage">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Auto Save background Image</string>
+   </property>
+   <property name="toolTip">
+    <string>Save background Image at exit automatically</string>
+   </property>
+  </action>
+  <action name="action_Yellow">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Yellow</string>
+   </property>
+   <property name="shortcut">
+    <string>5</string>
+   </property>
+  </action>
+  <action name="actionVertical_space">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Vertical space...</string>
+   </property>
+  </action>
+  <action name="actionGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Grid</string>
+   </property>
+  </action>
+  <action name="actionFixedGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fixed Grid</string>
+   </property>
+  </action>
+  <action name="actionClearThisScreen">
+   <property name="text">
+    <string>Clear Visible &amp;Screen</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear Visible Screen. Anything left or right of visible screen remains visible.</string>
+   </property>
+  </action>
+  <action name="actionClearUpward">
+   <property name="text">
+    <string>Clear Visible Screen and &amp;Above</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear Visible Screen and Above. Only a visible screen wide vertical band is cleared.</string>
+   </property>
+  </action>
+  <action name="actionClearDownward">
+   <property name="text">
+    <string>Clear Visible Screen and &amp;Below</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear Visible Screen and Below.  Only a visible screen wide vertical band is cleared.</string>
+   </property>
+  </action>
+  <action name="actionPageSetup">
+   <property name="text">
+    <string>Pa&amp;ge Setup...</string>
+   </property>
+  </action>
+  <action name="actionShowPageGuides">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Page Guides</string>
+   </property>
+  </action>
+  <action name="actionExportToPdf">
+   <property name="text">
+    <string>&amp;Export to Pdf ...</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>DrawArea</class>
+   <extends>QWidget</extends>
+   <header>DrawArea.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="FalconBoard.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered()</signal>
+   <receiver>FalconBoardClass</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
