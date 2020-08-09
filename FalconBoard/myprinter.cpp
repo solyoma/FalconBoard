@@ -101,7 +101,8 @@ MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
             _printer = nullptr;
             return _status;
         }
-        QString filename = QFileDialog::getSaveFileName(_parent, QMainWindow::tr("FalconBoard - Save PDF As"), QString("untitled.pdf"), "Pdf File(*.pdf)");
+        QString docName = _data.docName.left(_data.docName.length() - 3) + "pdf";
+        QString filename = QFileDialog::getSaveFileName(_parent, QMainWindow::tr("FalconBoard - Save PDF As"), docName, "Pdf File(*.pdf)");
         if (filename.isEmpty())
         {
             delete _printer;
@@ -524,7 +525,7 @@ bool MyPrinter::Print()
     {
         int n = _pages.size();
         if(!_data.bExportPdf)
-            n = _CalcPages();       // agsin: printer might have been changed in dialog
+            n = _CalcPages();       // again: printer might have been changed in dialog
 
     // now print
         if (!_AllocateResources())

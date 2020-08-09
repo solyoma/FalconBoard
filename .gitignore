@@ -46,3 +46,6 @@ Release/
 #easyconfig specific
 *.ini
 *.txt
+
+#no release
+_releases/

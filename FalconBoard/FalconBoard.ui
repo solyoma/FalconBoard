@@ -39,13 +39,13 @@
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
     <addaction name="separator"/>
-    <addaction name="actionLoadBackground"/>
-    <addaction name="actionSaveVisible"/>
-    <addaction name="separator"/>
     <addaction name="actionPageSetup"/>
     <addaction name="actionPrint"/>
     <addaction name="separator"/>
     <addaction name="actionExportToPdf"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadBackground"/>
+    <addaction name="actionSaveVisible"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -349,7 +349,7 @@
   </action>
   <action name="actionLoadBackground">
    <property name="text">
-    <string>Loa&amp;dBackgorund...</string>
+    <string>Loa&amp;d Backgorund...</string>
    </property>
    <property name="iconText">
     <string>Load Background</string>
