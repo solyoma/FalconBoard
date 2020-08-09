@@ -40,6 +40,11 @@ private slots:
 	void on_actionGrid_triggered();
 	void on_actionFixedGrid_triggered();
 	void on_actionShowPageGuides_triggered();
+
+	void on_actionLoad_triggered();
+	void on_actionCleaRecentList_triggered();
+	void _sa_actionRecentFile_triggered(int which);
+
 #ifndef _VIEWER
 	void on_actionNew_triggered();
 
@@ -89,7 +94,6 @@ private slots:
 	void on_actionPrint_triggered() { _drawArea->Print(_saveName);  }
 	void on_actionExportToPdf_triggered() { _drawArea->ExportPdf(_saveName); }
 
-	void on_actionLoad_triggered();
 
 	void on_actionAbout_triggered();
 	void on_actionHelp_triggered();
@@ -137,6 +141,11 @@ private:
 	QLabel* _plblMsg = nullptr;			// -" -
 
 	QList<QAction*> _saveAsActs;
+
+	// recent files 
+	QSignalMapper* _pSignalMapper = nullptr;
+	QStringList _recentList;
+
 	QActionGroup* _penGroup, *_modeGroup;
 
 	Snipper* plblScreen = nullptr;		// screen grab label
@@ -163,6 +172,7 @@ private:
 
 	void _SaveLastDirectory(QString fileName);
 	void _LoadData(QString fileName);
+	void _AddToRecentList(QString path);
 
 	void _CreateAndAddActions();
 #ifndef _VIEWER
@@ -194,5 +204,6 @@ private:
 #endif
 
 	void _SetupMode(ScreenMode mode);
+	void _PopulateRecentMenu();	// from recentList
 };
 #endif

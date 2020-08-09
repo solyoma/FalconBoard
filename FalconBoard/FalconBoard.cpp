@@ -114,6 +114,22 @@ void FalconBoard::RestoreState()
     if (!_sImageName.isEmpty() && !_drawArea->OpenBackgroundImage(_sImageName))
         _sImageName.clear();
 #endif
+    s.beginGroup("recent");
+    int cnt = s.value("cnt", 0).toInt();
+    
+    for (int i = 0; i < cnt; ++i)
+    {
+        qs = s.value(QString().setNum(i + 1), "").toString();
+        if (!qs.isEmpty())
+        {
+            _recentList.push_back(qs);
+            if (_recentList.size() == 9)
+                break;
+        }
+    }
+    _PopulateRecentMenu();
+
+    s.endGroup();
 }
 
 void FalconBoard::SaveState()
@@ -139,6 +155,18 @@ void FalconBoard::SaveState()
     s.setValue("lastDir", _lastDir);
     s.setValue("lastFile", _lastFile);
     s.setValue("bckgrnd", _sImageName);
+
+    if (_recentList.size())
+    {
+        s.beginGroup("recent");
+        s.setValue("cnt", _recentList.size());
+        for (int i = 0; i < _recentList.size(); ++i)
+            s.setValue(QString().setNum(i + 1), _recentList[i]);
+        s.endGroup();
+    }
+    else
+        s.remove("recent");
+
 }
 
 void FalconBoard::_LoadIcons()
@@ -260,8 +288,8 @@ void FalconBoard::_AddSaveVisibleAsMenu()
     QMenu *pSaveAsVisibleMenu = new QMenu(QApplication::tr("Save Visible &As..."), this);
     for (QAction* action : qAsConst(_saveAsActs))
         pSaveAsVisibleMenu->addAction(action);
-    ui.menu_File->insertMenu(ui.actionPrint, pSaveAsVisibleMenu);
-    ui.menu_File->insertSeparator(ui.actionPrint);
+    ui.menu_File->insertMenu(ui.actionPageSetup, pSaveAsVisibleMenu);
+    ui.menu_File->insertSeparator(ui.actionPageSetup);
 }
 
 bool FalconBoard::_SaveIfYouWant(bool mustAsk)
@@ -325,11 +353,12 @@ void FalconBoard::_SelectPen()     // call after '_actPen' is set
 
 void FalconBoard::_SetPenKind()
 {
+    bool b = _busy;
     _eraserOn = _actPen == penEraser;
     _drawArea->SetPenKind(_actPen);
     _busy = true;
     _psbPenWidth->setValue(_penWidth);
-    _busy = false;
+    _busy = b;
     ui.centralWidget->setFocus();
 }
 
@@ -511,6 +540,40 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     _drawArea->SetMode(mode != smSystem, _sBackgroundColor, _sGridColor, _sPageGuideColor);
 }
 
+void FalconBoard::_PopulateRecentMenu()
+{
+    if (_busy)
+        return;
+
+    ui.actionRecentDocuments->setEnabled( !_recentList.isEmpty() );
+    if (_recentList.isEmpty())
+        return;
+
+    QMenu* pMenu;
+    QAction* pAction;
+    delete _pSignalMapper;
+    _pSignalMapper = new QSignalMapper(this);
+    connect(_pSignalMapper, SIGNAL(mapped(int)), SLOT(_sa_actionRecentFile_triggered(int)));
+    ui.actionRecentDocuments->clear();
+
+        // first add 'clear list' menu with separator
+    pAction = ui.actionRecentDocuments->addAction(tr("C&lear list"), this, &FalconBoard::on_actionCleaRecentList_triggered);
+    ui.actionRecentDocuments->addSeparator();
+
+    // then add new items
+
+    QString s;
+    for (int i = 0; i < _recentList.size(); ++i)
+    {
+        s = QString("%1. %2").arg(i + 1).arg(_recentList[i]);
+        //pAction = ui.actionRecentDocuments->addAction(s, _pSignalMapper, &QSignalMapper::map);
+        pAction = ui.actionRecentDocuments->addAction(s);
+//        connect(pAction, &QAction::triggered, _pSignalMapper, &QSignalMapper::map);
+        connect(pAction, SIGNAL(triggered()), _pSignalMapper, SLOT(map()));
+        _pSignalMapper->setMapping(pAction, i);
+    }
+}
+
 void FalconBoard::closeEvent(QCloseEvent* event)
 {
 #ifndef _VIEWER
@@ -557,7 +620,28 @@ void FalconBoard::_LoadData(QString fileName)
         _SetPenKind();
 #endif
         _saveName = fileName;
+
+        _AddToRecentList(_saveName);
     }
+}
+
+void FalconBoard::_AddToRecentList(QString path)
+{
+    int i = _recentList.indexOf(path);
+    if (i == 0)                    // at top
+        return;
+
+    if (i > 0)
+        _recentList.removeAt(i);
+    else    // i < 0: new document
+    {
+        if (_recentList.size() == 9) // max number of recent files
+            _recentList.pop_back();
+    }
+
+    _recentList.push_front(path);
+
+    _PopulateRecentMenu();
 }
 
 void FalconBoard::on_actionLoad_triggered()
@@ -577,6 +661,25 @@ void FalconBoard::on_actionLoad_triggered()
     if (_eraserOn)
         on_action_Eraser_triggered();
 #endif
+}
+
+void FalconBoard::on_actionCleaRecentList_triggered()
+{
+    ui.actionRecentDocuments->clear();
+    ui.actionRecentDocuments->setEnabled(false);
+    delete _pSignalMapper;
+    _pSignalMapper = nullptr;
+    _recentList.clear();
+}
+
+void FalconBoard::_sa_actionRecentFile_triggered(int which)
+{
+    _busy = true;   // do not delete signal mapper during a mapping
+    QString& fileName = _recentList[which];
+    _SaveLastDirectory(fileName);
+    _LoadData(fileName);
+    setWindowTitle(sWindowTitle + QString(" - %1").arg(_saveName));
+    _busy = false;
 }
 
 void FalconBoard::_SaveLastDirectory(QString fileName)

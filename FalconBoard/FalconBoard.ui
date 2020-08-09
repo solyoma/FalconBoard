@@ -34,6 +34,15 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <widget class="QMenu" name="actionRecentDocuments">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Recen&amp;t Documents</string>
+     </property>
+     <addaction name="actionCleaRecentList"/>
+    </widget>
     <addaction name="actionNew"/>
     <addaction name="actionLoad"/>
     <addaction name="actionSave"/>
@@ -43,6 +52,8 @@
     <addaction name="actionPrint"/>
     <addaction name="separator"/>
     <addaction name="actionExportToPdf"/>
+    <addaction name="separator"/>
+    <addaction name="actionRecentDocuments"/>
     <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="actionSaveVisible"/>
@@ -520,6 +531,14 @@
   <action name="actionExportToPdf">
    <property name="text">
     <string>&amp;Export to Pdf ...</string>
+   </property>
+  </action>
+  <action name="actionCleaRecentList">
+   <property name="text">
+    <string>C&amp;lear List</string>
+   </property>
+   <property name="iconText">
+    <string>Clear List of prev. documents</string>
    </property>
   </action>
  </widget>
