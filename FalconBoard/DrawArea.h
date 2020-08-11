@@ -210,7 +210,8 @@ private:
 #endif
     void _ClearCanvas();
 
-    void MoveToActualPosition(QRect rect);
+    void _MoveToActualPosition(QRect rect);
+    HistoryItemVector _CollectDrawables(); // for actual clipping rect
 #ifndef _VIEWER
     bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
     QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal

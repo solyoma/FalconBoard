@@ -978,7 +978,7 @@ QPoint DrawArea::_CorrectForDirection(QPoint &newpC)     // newpC canvas relativ
     return newpC;
 }
 #endif
-void DrawArea::MoveToActualPosition(QRect rect)
+void DrawArea::_MoveToActualPosition(QRect rect)
 {
     int l = _topLeft.x(),
         t = _topLeft.y();
@@ -997,6 +997,19 @@ void DrawArea::MoveToActualPosition(QRect rect)
         }
     }
 
+}
+
+HistoryItemVector DrawArea::_CollectDrawables()
+{
+
+    HistoryItemVector hv;
+    if (_history.SetFirstItemToDraw() < 0)
+        return hv;
+    HistoryItem* phi;
+    while ((phi = _history.GetOneStep()))
+        hv.push_back(phi);
+    std::sort(hv.begin(), hv.end(), [](HistoryItem* pl, HistoryItem* pr) {return pl->zorder < pr->zorder; });
+    return hv;
 }
 
 /*========================================================
@@ -1227,12 +1240,15 @@ void DrawArea::_Redraw()
     MyPenKind savekind = _myPenKind;
     bool saveEraseMode = _erasemode;
 
+    HistoryItemVector forPage = _CollectDrawables();  // using _yxOrder and _items sorted in ascending Z-number
     _ClearCanvas();
-    if (_history.SetFirstItemToDraw() >= 0)
-    {
-        while (_ReplotItem(_history.GetOneStep()))
-            ;
-    }
+    for (auto phi : forPage)
+        _ReplotItem(phi);
+    //if (_history.SetFirstItemToDraw() >= 0)
+    //{
+    //    while (_ReplotItem(_history.GetOneStep()))
+    //        ;
+    //}
     SetPenWidth(savewidth);
     SetPenKind(savekind);
     _erasemode = saveEraseMode;
@@ -1342,7 +1358,7 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
         _RemoveRubberBand();
 
         QRect rect = _history.Undo();
-        MoveToActualPosition(rect); 
+        _MoveToActualPosition(rect); 
 //        _clippingRect = rect;
         _ClearCanvas();
 
@@ -1361,7 +1377,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 
     _RemoveRubberBand();
 
-    MoveToActualPosition(phi->Area());
+    _MoveToActualPosition(phi->Area());
 // ??    _clippingRect = phi->Area();
 
     _Redraw();

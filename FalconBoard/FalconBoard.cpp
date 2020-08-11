@@ -556,11 +556,7 @@ void FalconBoard::_PopulateRecentMenu()
     connect(_pSignalMapper, SIGNAL(mapped(int)), SLOT(_sa_actionRecentFile_triggered(int)));
     ui.actionRecentDocuments->clear();
 
-        // first add 'clear list' menu with separator
-    pAction = ui.actionRecentDocuments->addAction(tr("C&lear list"), this, &FalconBoard::on_actionCleaRecentList_triggered);
-    ui.actionRecentDocuments->addSeparator();
-
-    // then add new items
+    // add items
 
     QString s;
     for (int i = 0; i < _recentList.size(); ++i)
@@ -572,6 +568,11 @@ void FalconBoard::_PopulateRecentMenu()
         connect(pAction, SIGNAL(triggered()), _pSignalMapper, SLOT(map()));
         _pSignalMapper->setMapping(pAction, i);
     }
+            // thent add 'clear list' menu with separator
+    ui.actionRecentDocuments->addSeparator();
+    pAction = ui.actionRecentDocuments->addAction(tr("C&lear list"), this, &FalconBoard::on_actionCleaRecentList_triggered);
+
+
 }
 
 void FalconBoard::closeEvent(QCloseEvent* event)
