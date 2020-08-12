@@ -14,12 +14,13 @@ static void SwapWH(QRect& r)
 
 //-------------------------------------------------
 
-DrawnItem::DrawnItem(HistEvent he) noexcept : type(he) {}
+DrawnItem::DrawnItem(HistEvent he, int zorder) noexcept : type(he), zOrder(zorder) {}
 DrawnItem::DrawnItem(const DrawnItem& di) { *this = di; }
 DrawnItem::DrawnItem(const DrawnItem&& di) { *this = di; }
 DrawnItem& DrawnItem::operator=(const DrawnItem& di)
 {
 	type = di.type;
+	zOrder = di.zOrder;
 	penKind = di.penKind;
 	penWidth = di.penWidth;
 	points = di.points;
@@ -30,6 +31,7 @@ DrawnItem& DrawnItem::operator=(const DrawnItem& di)
 DrawnItem& DrawnItem::operator=(const DrawnItem&& di)  noexcept
 {
 	type = di.type;
+	zOrder = di.zOrder;
 	penKind = di.penKind;
 	penWidth = di.penWidth;
 	points = di.points;
@@ -223,7 +225,7 @@ void DrawnItem::Rotate(MyRotation rotation, QRect encRect)	// rotate around the 
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
 {
-	ofs << (qint32)di.type << (qint32)di.penKind << (qint32)di.penWidth;
+	ofs << (qint32)di.type << di.zOrder << (qint32)di.penKind << (qint32)di.penWidth;
 	ofs << (qint32)di.points.size();
 	for (auto pt : di.points)
 		ofs << (qint32)pt.x() << (qint32)pt.y();
@@ -233,7 +235,7 @@ inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
 inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 {
 	qint32 n;
-//	ifs >> n; di.type = static_cast<HistEvent>(n);
+	ifs >> n; di.zOrder = n;
 	ifs >> n; di.penKind = (MyPenKind)n;
 	ifs >> n; di.penWidth = n;
 
@@ -255,7 +257,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
 
 inline QDataStream& operator<<(QDataStream& ofs, const ScreenShotImage& bimg)
 {
-	ofs << (int)heScreenShot << bimg.topLeft.x() << bimg.topLeft.y();
+	ofs << (int)heScreenShot << bimg.zOrder << bimg.topLeft.x() << bimg.topLeft.y();
 	ofs << bimg.image;
 
 	return ofs;
@@ -264,15 +266,13 @@ inline QDataStream& operator<<(QDataStream& ofs, const ScreenShotImage& bimg)
 inline QDataStream& operator>>(QDataStream& ifs, ScreenShotImage& bimg)
 {	 // type already read in
 	int x, y;
-	ifs >> x >> y;
+	ifs >> bimg.zOrder >> x >> y;
 	bimg.topLeft = QPoint(x, y);
 	ifs >> bimg.image;
 	return ifs;
 }
 
-
 //------------------------------------------------
-
 
 QRect ScreenShotImage::Area(const QRect& canvasRect) const
 {
@@ -302,7 +302,7 @@ void ScreenShotImage::Rotate(MyRotation rot, QRect encRect)
 
 // ---------------------------------------------
 
-void ScreenShotImageList::Add(QImage& image, QPoint pt)
+void ScreenShotImageList::Add(QImage& image, QPoint pt, int zorder)
 {
 	ScreenShotImage img;
 	img.image = image;
@@ -365,7 +365,6 @@ void ScreenShotImageList::Clear()
 	QList<ScreenShotImage>::clear();
 }
 
-
 /*========================================================
  * One history element
  *-------------------------------------------------------*/
@@ -389,7 +388,7 @@ bool HistoryItem::operator<(const HistoryItem& other)
 
 //--------------------------------------------
 // type heScribble, heEraser
-HistoryDrawnItem::HistoryDrawnItem(History* pHist, DrawnItem& dri, int zorder) : HistoryItem(pHist, dri.type, zorder), drawnItem(dri)
+HistoryDrawnItem::HistoryDrawnItem(History* pHist, DrawnItem& dri) : HistoryItem(pHist, dri.type), drawnItem(dri)
 {
 	type = dri.type;
 	drawnItem.SetBoundingRectangle();
@@ -428,6 +427,11 @@ HistoryDrawnItem& HistoryDrawnItem::operator=(const HistoryDrawnItem&& other)
 	drawnItem = other.drawnItem;
 	return *this;
 }
+int HistoryDrawnItem::ZOrder() const
+{
+	return drawnItem.zOrder;
+}
+
 DrawnItem* HistoryDrawnItem::GetDrawable(int index) const
 {
 	return (index || Hidden()) ? nullptr : const_cast<DrawnItem*>(&drawnItem);
@@ -781,8 +785,8 @@ QRect HistoryInsertVertSpace::Area() const
 }
 
 //--------------------------------------------
-																					// z-order = which
-HistoryScreenShotItem::HistoryScreenShotItem(History* pHist, int which) : HistoryItem(pHist, heScreenShot, which), which(which)
+																					//  which: index in 
+HistoryScreenShotItem::HistoryScreenShotItem(History* pHist, int which) : HistoryItem(pHist, heScreenShot), which(which)
 {
 	type = heScreenShot;
 }
@@ -801,8 +805,6 @@ HistoryScreenShotItem& HistoryScreenShotItem::operator=(const HistoryScreenShotI
 
 HistoryScreenShotItem::~HistoryScreenShotItem()
 {
-	// remove image from memory, but leave empty screenshot item in screenshot list
-//	(*pHist->pImages)[which].image = QImage();
 }
 
 int  HistoryScreenShotItem::Undo() // hide
@@ -815,6 +817,11 @@ int  HistoryScreenShotItem::Redo() // show
 {
 	(*pHist->pImages)[which].isVisible = true;
 	return 0;
+}
+
+int HistoryScreenShotItem::ZOrder() const
+{
+	return  (*pHist->pImages)[which].zOrder;
 }
 
 QPoint HistoryScreenShotItem::TopLeft() const
@@ -1200,7 +1207,7 @@ void History::clear()		// does not clear lists of copied items and screen snippe
 	_yxOrder.clear();
 	pImages->Clear();
 
-	_lastZorder = 0;
+	_lastZorder = DRAWABLE_ZORDER_BASE;
 
 	_modified = false;
 }
@@ -1254,6 +1261,8 @@ bool History::Save(QString name)
 
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
+	ofs << MAGIC_VERSION;
+
 	for (int yi =0; yi < _yxOrder.size(); ++yi )
 	{
 		HistoryItem* ph = atYIndex(yi);		// ordered by y then x coordinate
@@ -1297,13 +1306,19 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 		return -1;
 
 	QDataStream ifs(&f);
-	qint32 id;
+	qint32 id, version;
+	bool bZOrderSaved = false;
 	ifs >> id;
 	if (id != MAGIC_ID)
 		return 0;
+	ifs >> version;
+	if ((version >> 24) != 'V')
+		return 0;
 
 	clear();
-	
+
+	_inLoad = true;
+
 	DrawnItem di;
 	ScreenShotImage bimg;
 	int i = 0, n;
@@ -1325,7 +1340,10 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 
 		ifs >> di;
 		if (ifs.status() != QDataStream::Ok)
+		{
+			_inLoad = false;
 			return -_items.size() - 1;
+		}
 
 		++i;
 
@@ -1333,6 +1351,7 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 
 	}
 	_modified = false;
+	_inLoad = false;
 	return  _items.size();
 }
 
@@ -1364,9 +1383,16 @@ HistoryItem* History::addClearDown()
 	return pi;
 }
 
-HistoryItem* History::addDrawnItem(DrawnItem& itm)           // may be after an undo, so
-{                                                  // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
-	HistoryDrawnItem* p = new HistoryDrawnItem(this, itm, DRAWABLE_ZORDER_BASE + _lastZorder++);		// each scribbles are above any image (until 10 million scribbles)
+HistoryItem* History::addDrawnItem(DrawnItem& itm)			// may be after an undo, so
+{				                                            // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
+	if (_inLoad)
+	{
+		if (itm.zOrder > _lastZorder)
+			_lastZorder = itm.zOrder;
+	}
+	else
+		itm.zOrder = _lastZorder++;		// each scribbles are above any image (until 10 million images)
+	HistoryDrawnItem * p = new HistoryDrawnItem(this, itm);
 	return _AddItem(p);
 }
 
@@ -1428,7 +1454,7 @@ HistoryItem* History::addPastedItems(QPoint topLeft, Sprite *pSprite)			   // tr
 	for (DrawnItem di : *pCopiedItems)	// do not modify copied item list
 	{
 		di.Translate(topLeft, 0);
-		pdri = new HistoryDrawnItem(this, di, DRAWABLE_ZORDER_BASE +_lastZorder++);
+		pdri = new HistoryDrawnItem(this, di);
 		_AddItem(pdri);
 	}
   // ------------Add top item
@@ -1458,6 +1484,15 @@ HistoryItem* History::addInsertVertSpace(int y, int heightInPixels)
 HistoryItem* History::addScreenShot(int index)
 {
 	HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, index);
+
+	if (!_inLoad)
+	{
+		if (_lastImage < (*pImages)[index].zOrder)
+			_lastImage = (*pImages)[index].zOrder + 1;
+	}
+	else
+		(*pImages)[index].zOrder = _lastImage++;
+
 	return _AddItem(phss);
 }
 

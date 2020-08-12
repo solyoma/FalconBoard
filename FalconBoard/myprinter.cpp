@@ -274,7 +274,7 @@ int MyPrinter::_CalcPages()
             PageNum2 lpgn;
             sortedPageNumbers.PageForPoint(phi->Area().topLeft(), yi, pgn);         
             sortedPageNumbers.PageForPoint(phi->Area().bottomRight(), yi, lpgn);
-            pgn.yindices[0].zorder = lpgn.yindices[0].zorder = phi->zorder;       // screen shots below others
+            pgn.yindices[0].zorder = lpgn.yindices[0].zorder = phi->ZOrder();       // screen shots below others
             PageNum2 act = pgn;
             for (int y = pgn.ny; y <= lpgn.ny; ++y)
             {
@@ -292,7 +292,7 @@ int MyPrinter::_CalcPages()
             {
                 case heScribble:
                 case heEraser:
-                    pgn.yindices[0].zorder = phi->zorder;
+                    pgn.yindices[0].zorder = phi->ZOrder();
                     sortedPageNumbers.AddPoints(phi, yi, pgn);
                     break;
                 default: break;

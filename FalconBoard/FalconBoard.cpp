@@ -323,7 +323,12 @@ bool FalconBoard::_SaveIfYouWant(bool mustAsk)
 
 bool FalconBoard::_SaveFile()
 {
-    return _drawArea->Save(_saveName);
+    if (_drawArea->Save(_saveName))
+    {
+        _AddToRecentList(_saveName);
+        return true;
+    }
+    return false;
 }
 
 bool FalconBoard::_SaveBackgroundImage()

@@ -1001,14 +1001,13 @@ void DrawArea::_MoveToActualPosition(QRect rect)
 
 HistoryItemVector DrawArea::_CollectDrawables()
 {
-
     HistoryItemVector hv;
     if (_history.SetFirstItemToDraw() < 0)
         return hv;
     HistoryItem* phi;
     while ((phi = _history.GetOneStep()))
         hv.push_back(phi);
-    std::sort(hv.begin(), hv.end(), [](HistoryItem* pl, HistoryItem* pr) {return pl->zorder < pr->zorder; });
+    std::sort(hv.begin(), hv.end(), [](HistoryItem* pl, HistoryItem* pr) {return pl->ZOrder() < pr->ZOrder(); });
     return hv;
 }
 

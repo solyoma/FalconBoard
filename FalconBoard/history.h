@@ -38,6 +38,7 @@ enum MyLayer { mlyBackgroundImage, mlyDrawnItem, mlyScreenShot};
 struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 {                   
     HistEvent type = heNone;
+    int zOrder = 0;
     bool isVisible = true;
 
     MyPenKind penKind = penBlack;
@@ -47,7 +48,7 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
     QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
                                     // not saved on disk, recreated on read
 
-    DrawnItem(HistEvent he = heNone) noexcept;       // default constructor
+    DrawnItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
     DrawnItem(const DrawnItem& di);
     DrawnItem(const DrawnItem&& di);
     DrawnItem& operator=(const DrawnItem& di);
@@ -81,6 +82,7 @@ struct ScreenShotImage {           // shown below the drawings
     QImage image;              // image from the disk or from screenshot
     QPoint topLeft;            // relative to (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
     bool isVisible = true;
+    int zOrder;     // of images is the index of this image on the pimages list in History
             // canvasRect relative to (0,0)
             // result: relative to image
             // isNull() true when no intersection
@@ -97,7 +99,7 @@ class  ScreenShotImageList : public  QList<ScreenShotImage>
     int _index = -1;
     QRect _canvasRect;
 public:
-    void Add(QImage& image, QPoint pt);
+    void Add(QImage& image, QPoint pt, int zorder);
     // canvasRect and result are relative to (0,0)
     QRect Area(int index, const QRect& canvasRect) const;
     ScreenShotImage* ScreenShotAt(int index);
@@ -123,11 +125,11 @@ struct HistoryItem      // base class
 {
     History* pHist;
     HistEvent type;
-    int zorder;
 
-    HistoryItem(History* pHist, HistEvent typ=heNone, int zorder=-1) : pHist(pHist), type(typ), zorder(zorder) {}
+    HistoryItem(History* pHist, HistEvent typ=heNone) : pHist(pHist), type(typ) {}
     virtual ~HistoryItem() {}
 
+    virtual int ZOrder() const { return 0; }
     virtual QPoint TopLeft() const { return QPoint(); }
     virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
     virtual ScreenShotImage* GetScreenShotImage() const { return nullptr; }
@@ -155,7 +157,7 @@ struct HistoryItem      // base class
 struct HistoryDrawnItem : public HistoryItem
 {
     DrawnItem drawnItem;                // store data into this
-    HistoryDrawnItem(History* pHist, DrawnItem& dri, int zorder);       // zorder: index in _items
+    HistoryDrawnItem(History* pHist, DrawnItem& dri);
     HistoryDrawnItem(const HistoryDrawnItem& other);
     HistoryDrawnItem(const HistoryDrawnItem&& other);
 
@@ -165,6 +167,7 @@ struct HistoryDrawnItem : public HistoryItem
     HistoryDrawnItem& operator=(const HistoryDrawnItem& other);
     HistoryDrawnItem& operator=(const HistoryDrawnItem&& other);
 
+    int ZOrder() const override;
     QPoint TopLeft() const override { return drawnItem.bndRect.topLeft(); }
     DrawnItem* GetDrawable(int index = 0) const override;
     QRect Area() const override;
@@ -297,7 +300,7 @@ struct HistoryInsertVertSpace : HistoryItem
 //--------------------------------------------
 struct HistoryScreenShotItem : public HistoryItem
 {
-    int which;
+    int which;      // index in History's screen shot image list
 
     HistoryScreenShotItem(History* pHist, int which);
     HistoryScreenShotItem(const HistoryScreenShotItem &other);
@@ -305,6 +308,7 @@ struct HistoryScreenShotItem : public HistoryItem
     ~HistoryScreenShotItem();
     int Undo() override;
     int Redo() override;
+    int ZOrder() const override;
     QPoint TopLeft() const override;
     QRect Area() const override;
     bool Hidden() const override;       // when the first element is hidden, all hidden
@@ -374,9 +378,10 @@ using HistoryItemVector = QVector<HistoryItem*>;
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
+    bool _inLoad = false;                // in function Load() / needed for correct z- order settings
     HistoryItemVector _items,           // items in the order added
                                         // drawable elements on this list may be either visible or hidden
-                      _redo;           // items after undo
+                      _redo;            // items after undo
                                         // drawable elements on this list may be either visible or hidden
     IntVector   _yxOrder;               // indices into _items ordered by y then x    
                                         // same size as the number of drwable items in _itemss
@@ -389,7 +394,9 @@ class History  // stores all drawing sections and keeps track of undo and redo
     QStack<QRect> _savedClps;           // clipRect saves
 
     int _indexOfFirstVisible = -1;      // in _yxorder
-    int _lastZorder = 0;                // increased when elements adedd to _items, does not get decreasd when they are taken off!
+
+    int _lastZorder = DRAWABLE_ZORDER_BASE;  // increased when drawable elements adedd to _items, does not get decreasd when they are taken off!
+    int _lastImage = 0;                 // z-order of images
 
     DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
     ScreenShotImageList   _copiedImages;// copy images on _nSelectedList to this
@@ -446,6 +453,7 @@ public:
     HistoryItem* operator[](int index);   // index: absolute index
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
+    const qint32 MAGIC_VERSION = 0x56010000; // V 01.00.00
 
     /*========================================================
      * TASK:    save actual visible drawn items
