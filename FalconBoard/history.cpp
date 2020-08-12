@@ -1263,9 +1263,9 @@ bool History::Save(QString name)
 	ofs << MAGIC_ID;
 	ofs << MAGIC_VERSION;
 
-	for (int yi =0; yi < _yxOrder.size(); ++yi )
+	for (int i =0; i < _items.size(); ++i )
 	{
-		HistoryItem* ph = atYIndex(yi);		// ordered by y then x coordinate
+		HistoryItem* ph = _items[i];		// ordered by y then x coordinate
 		if (ph->Hidden())		// hidden elements are not saved
 			continue;
 
