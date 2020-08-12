@@ -143,7 +143,7 @@ private:
 	QList<QAction*> _saveAsActs;
 
 	// recent files 
-	QSignalMapper* _pSignalMapper = nullptr;
+	QSignalMapper _signalMapper;
 	QStringList _recentList;
 
 	QActionGroup* _penGroup, *_modeGroup;
@@ -204,6 +204,7 @@ private:
 #endif
 
 	void _SetupMode(ScreenMode mode);
+	void _ClearRecentMenu();
 	void _PopulateRecentMenu();	// from recentList
 };
 #endif

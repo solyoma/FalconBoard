@@ -35,6 +35,8 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     _drawArea->SetPenWidth(_penWidth); 
 
     _CreateAndAddActions();
+    connect(&_signalMapper, SIGNAL(mapped(int)), SLOT(_sa_actionRecentFile_triggered(int)));
+
 #ifdef _VIEWER
     _RemoveMenus();        // viewer has none of these
 #else
@@ -545,21 +547,30 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     _drawArea->SetMode(mode != smSystem, _sBackgroundColor, _sGridColor, _sPageGuideColor);
 }
 
+void FalconBoard::_ClearRecentMenu()
+{
+    // remove actions
+    QList<QAction*> actList = ui.actionRecentDocuments->actions();
+    for(int i = 0; i < actList.size(); ++i)
+    {
+        _signalMapper.removeMappings(actList[i]);
+        disconnect(actList[i], SIGNAL(triggered()), &_signalMapper, SLOT(map()));
+    }
+    ui.actionRecentDocuments->clear();
+}
+
 void FalconBoard::_PopulateRecentMenu()
 {
     if (_busy)
         return;
 
+    _ClearRecentMenu();
     ui.actionRecentDocuments->setEnabled( !_recentList.isEmpty() );
     if (_recentList.isEmpty())
         return;
 
     QMenu* pMenu;
     QAction* pAction;
-    delete _pSignalMapper;
-    _pSignalMapper = new QSignalMapper(this);
-    connect(_pSignalMapper, SIGNAL(mapped(int)), SLOT(_sa_actionRecentFile_triggered(int)));
-    ui.actionRecentDocuments->clear();
 
     // add items
 
@@ -567,17 +578,15 @@ void FalconBoard::_PopulateRecentMenu()
     for (int i = 0; i < _recentList.size(); ++i)
     {
         s = QString("%1. %2").arg(i + 1).arg(_recentList[i]);
-        //pAction = ui.actionRecentDocuments->addAction(s, _pSignalMapper, &QSignalMapper::map);
         pAction = ui.actionRecentDocuments->addAction(s);
-//        connect(pAction, &QAction::triggered, _pSignalMapper, &QSignalMapper::map);
-        connect(pAction, SIGNAL(triggered()), _pSignalMapper, SLOT(map()));
-        _pSignalMapper->setMapping(pAction, i);
+        connect(pAction, SIGNAL(triggered()), &_signalMapper, SLOT(map()));
+        _signalMapper.setMapping(pAction, i);
     }
-            // thent add 'clear list' menu with separator
-    ui.actionRecentDocuments->addSeparator();
-    pAction = ui.actionRecentDocuments->addAction(tr("C&lear list"), this, &FalconBoard::on_actionCleaRecentList_triggered);
-
-
+    if (_recentList.size())
+    {        // then add 'clear list' menu with separator
+        ui.actionRecentDocuments->addSeparator();
+        pAction = ui.actionRecentDocuments->addAction(tr("C&lear list"), this, &FalconBoard::on_actionCleaRecentList_triggered);
+    }
 }
 
 void FalconBoard::closeEvent(QCloseEvent* event)
@@ -673,19 +682,18 @@ void FalconBoard::on_actionCleaRecentList_triggered()
 {
     ui.actionRecentDocuments->clear();
     ui.actionRecentDocuments->setEnabled(false);
-    delete _pSignalMapper;
-    _pSignalMapper = nullptr;
     _recentList.clear();
+    _ClearRecentMenu();
 }
 
 void FalconBoard::_sa_actionRecentFile_triggered(int which)
 {
-    _busy = true;   // do not delete signal mapper during a mapping
+//    _busy = true;   // do not delete signal mapper during a mapping
     QString& fileName = _recentList[which];
     _SaveLastDirectory(fileName);
     _LoadData(fileName);
     setWindowTitle(sWindowTitle + QString(" - %1").arg(_saveName));
-    _busy = false;
+//    _busy = false;
 }
 
 void FalconBoard::_SaveLastDirectory(QString fileName)
