@@ -151,7 +151,8 @@ private:
 	Snipper* plblScreen = nullptr;		// screen grab label
 
 	QString _sBackgroundColor = "#FFFFFF",
-			_sTextColor = "#000000";
+			_sTextColor = "#000000",
+			_sDisabledColor = "#ccccc";
 
 	QString _sGridColor = "#d0d0d0",
 		    _sPageGuideColor = "#fcd475";

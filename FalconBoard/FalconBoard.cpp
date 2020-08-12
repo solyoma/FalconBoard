@@ -483,6 +483,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.action_Screenshot->setIcon(_iconScreenShot);
             _sBackgroundColor = "#FFFFFF";
             _sTextColor = "#000000";
+            _sDisabledColor = "#AAAAAA";
             _sGridColor = "#d0d0d0";
             _sPageGuideColor = "#fcd475";
             break;
@@ -499,6 +500,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#282828";
             _sTextColor = "#E1E1E1";
+            _sDisabledColor = "#AAAAAA";
             _sGridColor = "#202020";
             _sPageGuideColor = "#413006";
             break;
@@ -516,6 +518,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#000000";
             _sTextColor = "#CCCCCC";
+            _sDisabledColor = "#888888";
             _sGridColor = "#202020";
             _sPageGuideColor = "#2e2204";
             break;
@@ -540,7 +543,11 @@ void FalconBoard::_SetupMode(ScreenMode mode)
              "QMenu::item:selected {\n"
              "  color:"+_sBackgroundColor + ";\n"
              "  background-color:" + _sTextColor + ";\n"
-             "}\n";
+             "}\n"
+             "QMenu::item:disabled {\n"
+             "  color:"+ _sDisabledColor + ";\n"
+             "}\n"
+        ;
 
     setStyleSheet(ss);
 
@@ -550,6 +557,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
 void FalconBoard::_ClearRecentMenu()
 {
     // remove actions
+    ui.actionRecentDocuments->setEnabled( !_recentList.isEmpty() );
     QList<QAction*> actList = ui.actionRecentDocuments->actions();
     for(int i = 0; i < actList.size(); ++i)
     {
@@ -565,7 +573,6 @@ void FalconBoard::_PopulateRecentMenu()
         return;
 
     _ClearRecentMenu();
-    ui.actionRecentDocuments->setEnabled( !_recentList.isEmpty() );
     if (_recentList.isEmpty())
         return;
 
