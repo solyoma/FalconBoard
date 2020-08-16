@@ -447,7 +447,8 @@ public:
 
     void clear();
     int size() const;   // _items's size
-    int CountOfVisible() const { return _yxOrder.size(); }
+    int CountOfVisible() const; // visible from yxOrder
+    int CountOfDrawable() const { return _yxOrder.size(); }
     int SelectedSize() const { return _nSelectedItemsList.size(); }
 
     HistoryItem* operator[](int index);   // index: absolute index

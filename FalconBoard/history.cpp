@@ -1217,6 +1217,15 @@ int History::size() const
 	return _items.size(); 
 }
 
+int History::CountOfVisible() const
+{
+	int cnt = 0; 
+	for (auto a : _yxOrder)
+		if (!_items[a]->Hidden())
+			++cnt;
+	return cnt;
+}
+
 HistoryItem* History::operator[](int index)	// absolute index
 {
 	if (index < 0 || index >= _items.size())

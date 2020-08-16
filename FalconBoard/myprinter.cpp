@@ -260,7 +260,7 @@ int MyPrinter::_CalcPages()
 {
     sortedPageNumbers.Init( QRect(0, 0, _data.screenPageWidth, _data.screenPageHeight) );
 
-    int nSize = _pHist->CountOfVisible();
+    int nSize = _pHist->CountOfDrawable();
 
     // for each drawable determine pages it apperas on and prepare
     // an list of pages ordered first by y then by x page indices
@@ -269,6 +269,9 @@ int MyPrinter::_CalcPages()
     for (int yi = 0; yi < nSize; ++yi) 
     {
         phi = _pHist->atYIndex(yi);
+        if (phi->Hidden())
+            continue;
+
         if (phi->type == heScreenShot)   // then this item is in all page rectangles it intersects
         {
             PageNum2 lpgn;
