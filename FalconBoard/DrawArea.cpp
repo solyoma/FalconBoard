@@ -427,6 +427,19 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 
 void DrawArea::mousePressEvent(QMouseEvent* event)
 {
+#ifndef _VIEWER
+    if (event->button() == Qt::RightButton || 
+        (event->button() == Qt::LeftButton && event->modifiers().testFlag(Qt::ControlModifier)) )
+    {
+        _InitRubberBand(event);
+#else
+        _lastPointC = event->pos();     // used for moving the canvas around
+#endif
+
+#ifndef _VIEWER
+    }
+    else 
+#endif
     if (event->button() == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
     {
         if (_spaceBarDown)
@@ -450,20 +463,9 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
             _RemoveRubberBand();
         }
 
-        if (event->modifiers().testFlag(Qt::AltModifier) && event->modifiers().testFlag(Qt::ControlModifier))
-            _InitRubberBand(event);
-        else
-        {
-            _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
+        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
 
-            _InitiateDrawing(event);
-        }
-    }
-    else if (event->button() == Qt::RightButton)
-    {
-        _InitRubberBand(event);
-#else
-    _lastPointC = event->pos();     // used for moving the canvas around
+        _InitiateDrawing(event);
 #endif
     }
 
@@ -474,6 +476,13 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
 {
 #ifndef _VIEWER
     ShowCoordinates(event->pos());
+    if ((event->buttons() &  Qt::RightButton) ||
+        (event->buttons() & Qt::LeftButton && event->modifiers().testFlag(Qt::ControlModifier)) && _rubberBand)
+    {
+        QPoint pos = event->pos();
+        _rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
+    }
+    else
 #endif
     if ((event->buttons() & Qt::LeftButton) && _scribbling)
     {
@@ -506,13 +515,6 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
         }
 #endif
     }
-#ifndef _VIEWER
-    else if ((event->buttons() & Qt::RightButton) && _rubberBand)
-    {
-        QPoint pos = event->pos();
-        _rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
-    }
-#endif
 }
 
 void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen

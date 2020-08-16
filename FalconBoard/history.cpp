@@ -1679,13 +1679,20 @@ int History::CollectItemsInside(QRect rect) // only
 
 	auto rightOfRect = [](QRect rect, QRect other) -> bool
 	{
-		return  (rect.y() < other.y() && rect.y() + rect.height() > other.y() + other.height()) &&
-			(rect.x() + rect.width() < other.x());
+		return (rect.x() + rect.width() < other.x()) &&
+			!(rect.y() > other.y() + other.height()) &&
+			!(rect.y() + rect.height() < other.y());
+
+			//(rect.y() < other.y() && rect.y() + rect.height() > other.y() + other.height()) &&
+			//(rect.x() + rect.width() < other.x());
 	};
 	auto leftOfRect = [](QRect rect, QRect other) -> bool
 	{
-		return (rect.y() < other.y() && rect.y() + rect.height() > other.y() + other.height()) &&
-			(rect.x() > other.x() + other.width());
+		return (rect.x() > other.width() + other.x()) &&
+			!(rect.y() > other.y() + other.height()) &&
+			!(rect.y() + rect.height() < other.y());
+		//return (rect.y() < other.y() && rect.y() + rect.height() > other.y() + other.height()) &&
+		//	(rect.x() > other.x() + other.width());
 
 	};
 
@@ -1700,7 +1707,7 @@ int History::CollectItemsInside(QRect rect) // only
 
 	_SaveClippingRect();
 	_clpRect = rect;
-	int yi = _YIndexForFirstVisible(true);		 // in _yxOrder, only using y coordinate (no check for intersection here
+	int yi = _YIndexForFirstVisible(true);		 // in _yxOrder, only using y coordinate (no check for intersection here)
 	_RestoreClippingRect();
 	if (yi < 0)	// nothing to collect
 		return 0;
@@ -1708,7 +1715,7 @@ int History::CollectItemsInside(QRect rect) // only
 	for (; yi < _yxOrder.size(); ++yi)
 	{
 		const HistoryItem* pitem = _yitems(yi);
-		if (pitem->Translatable())
+		if (!pitem->Hidden() && pitem->Translatable())
 		{
 			if (rect.contains(pitem->Area(), true))    // union of rects in a pasted item
 			{                       // here must be an item for drawing or pasting (others are undrawable)
