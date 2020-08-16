@@ -1768,6 +1768,9 @@ void History::CopySelected(Sprite *sprite)
 		}
 		_copiedRect = _selectionRect.translated( - _selectionRect.topLeft());
 
+		std::sort(pCopiedItems->begin(), pCopiedItems->end(), [](DrawnItem &pl, DrawnItem &pr) {return pl.zOrder < pr.zOrder; });
+		std::sort(pCopiedImages->begin(), pCopiedImages->end(), [](ScreenShotImage &pl, ScreenShotImage &pr) {return pl.zOrder < pr.zOrder; });
+
 		if (sprite)
 			sprite->rect = _copiedRect;	// (0,0, width, height)
 	}

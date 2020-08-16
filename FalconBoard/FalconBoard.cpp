@@ -31,8 +31,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 	ui.setupUi(this);
 
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
-    _drawArea->SetPenKind(_actPen);
-    _drawArea->SetPenWidth(_penWidth); 
+    _drawArea->SetPenKind(_actPen, _penWidth[_actPen-1]); 
 
     _CreateAndAddActions();
     connect(&_signalMapper, SIGNAL(mapped(int)), SLOT(_sa_actionRecentFile_triggered(int)));
@@ -90,11 +89,16 @@ void FalconBoard::RestoreState()
     _drawArea->SetPrinterData(data);
 
 #ifndef _VIEWER
-    n = s.value("size", 3).toInt();
-    _penWidth = n;
-    _psbPenWidth->setValue(n);
-    n = s.value("esize", 30).toInt();
-    _eraserWidth = n;
+    qs = s.value("size", "3,3,3,3,30,3").toString();      // black, red, green, blue, eraser yellow
+    QStringList qsl = qs.split(',');
+    if (qsl.size() != NUM_COLORS)
+    {
+        qsl.clear();
+        qsl << "3" << "3" << "3" << "3" << "30" << "3";
+    }
+    for (int i = 0; i < NUM_COLORS; ++i)
+        _penWidth[i] = qsl[i].toInt();
+    _psbPenWidth->setValue(_penWidth[0]);
     
     ui.actionSaveData->setChecked(s.value("saved", false).toBool());
     ui.actionSaveBackgroundImage->setChecked(s.value("saveb", false).toBool());
@@ -146,8 +150,7 @@ void FalconBoard::SaveState()
     s.setValue("grid", (ui.actionGrid->isChecked() ? 1 : 0 ) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
     s.setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
 #ifndef _VIEWER
-    s.setValue("size", _penWidth);
-    s.setValue("esize", _eraserWidth);
+    s.setValue("size", QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]) );
     s.setValue("saved", ui.actionSaveData->isChecked());
     s.setValue("saveb", ui.actionSaveBackgroundImage->isChecked());
     if (ui.actionSaveBackgroundImage->isChecked())
@@ -256,7 +259,7 @@ void FalconBoard::_CreateAndAddActions()
     _psbPenWidth->setMinimum(1);
     _psbPenWidth->setMaximum(200);
     _psbPenWidth->setSingleStep(1);
-    _psbPenWidth->setValue(_penWidth);
+    _psbPenWidth->setValue(_penWidth[0]);
     QRect rect = _psbPenWidth->geometry();
     rect.setWidth(30);
     _psbPenWidth->setGeometry(rect);
@@ -362,11 +365,14 @@ void FalconBoard::_SetPenKind()
 {
     bool b = _busy;
     _eraserOn = _actPen == penEraser;
-    _drawArea->SetPenKind(_actPen);
-    _busy = true;
-    _psbPenWidth->setValue(_penWidth);
-    _busy = b;
-    ui.centralWidget->setFocus();
+    if(_actPen != penNone)
+	{
+		_drawArea->SetPenKind(_actPen, _penWidth[_actPen - 1]);
+		_busy = true;
+		_psbPenWidth->setValue(_penWidth[_actPen - 1]);
+		_busy = b;
+	}
+	ui.centralWidget->setFocus();
 }
 
 void FalconBoard::_SetPenKind(MyPenKind newPen)
@@ -387,15 +393,11 @@ void FalconBoard::_SetGreenPen() { _SetPenKind(penGreen); }
 void FalconBoard::_SetBluePen()  { _SetPenKind (penBlue); }
 void FalconBoard::_SetYellowPen()  { _SetPenKind (penYellow); }
 
-void FalconBoard::_SetPenWidth()
+void FalconBoard::_SetPenWidth(MyPenKind pk)
 {
-    int pw = _eraserOn ? _eraserWidth : _penWidth;
-    if (_eraserOn)
-        _drawArea->SetEraserWidth(pw);
-    else
-        _drawArea->SetPenWidth(pw);
+    _drawArea->SetPenKind(pk, _penWidth[pk-1]);
     _busy = true;
-    _psbPenWidth->setValue(pw);
+    _psbPenWidth->setValue(_penWidth[pk-1]);
     _busy = false;
 }
 #endif
@@ -848,7 +850,7 @@ void FalconBoard::on_action_Black_triggered()
     {
         _SetBlackPen();
         _SetCursor(DrawArea::csPen);
-        _SetPenWidth();
+        _SetPenWidth(penBlack);
     }
 };
 void FalconBoard::on_action_Red_triggered() 
@@ -857,7 +859,7 @@ void FalconBoard::on_action_Red_triggered()
     {
         _SetRedPen();
         _SetCursor(DrawArea::csPen);
-        _SetPenWidth();
+        _SetPenWidth(penRed);
     }
 };
 void FalconBoard::on_action_Green_triggered()
@@ -866,7 +868,7 @@ void FalconBoard::on_action_Green_triggered()
     {
         _SetGreenPen();
         _SetCursor(DrawArea::csPen);
-        _SetPenWidth();
+        _SetPenWidth(penGreen);
     }
 };
 void FalconBoard::on_action_Blue_triggered()
@@ -875,7 +877,7 @@ void FalconBoard::on_action_Blue_triggered()
     {
         _SetBluePen();
         _SetCursor(DrawArea::csPen);
-        _SetPenWidth();
+        _SetPenWidth(penBlue);
     }
 };
 void FalconBoard::on_action_Yellow_triggered()
@@ -884,17 +886,16 @@ void FalconBoard::on_action_Yellow_triggered()
     {
         _SetYellowPen();
         _SetCursor(DrawArea::csPen);
-        _SetPenWidth();
+        _SetPenWidth(penYellow);
     }
 };
 
 void FalconBoard::on_action_Eraser_triggered()
 {
     _eraserOn = true;
-    _drawArea->SetPenKind(_actPen = penEraser);
+    _SetPenWidth(_actPen = penEraser);
     QIcon icon = ui.action_Eraser->icon();
     _drawArea->SetCursor(DrawArea::csEraser, &icon);
-    _SetPenWidth();
     _SelectPenForAction(ui.action_Eraser);
     SlotForFocus();
 }
@@ -976,12 +977,8 @@ void FalconBoard::slotPenWidthChanged(int val)
     if (_busy)		// from program
         return;
     // from user
-    if (_eraserOn)
-        _eraserWidth = val;
-    else
-        _penWidth = val;
-
-    _SetPenWidth();
+    _penWidth[_actPen-1] = val;
+    _SetPenKind();
 }
 
 void FalconBoard::SlotForUndo(bool b)
@@ -1018,7 +1015,6 @@ void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sen
             {
                 _SetCursor(DrawArea::csPen);
                 _SetPenKind(pk);
-                _SetPenWidth();
                 penEraser = false;
             }
             break;
@@ -1064,6 +1060,10 @@ void FalconBoard::SlotDecreaseBrushSize(int ds)
 void FalconBoard::SlotForLabel(QString text)
 {
     _plblMsg->setText(text);
+}
+void FalconBoard::SlotForPenKindChange(MyPenKind pk)
+{
+    _SetPenKind(pk);
 }
 #endif
 

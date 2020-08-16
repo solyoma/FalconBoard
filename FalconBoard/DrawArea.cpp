@@ -133,19 +133,11 @@ void DrawArea::SetMode(bool darkMode, QString color, QString sGridColor, QString
     _Redraw();                  // because pen color changed!
 }
 
-void DrawArea::SetPenKind(MyPenKind newKind)
+void DrawArea::SetPenKind(MyPenKind newKind, int width)
 {
     _myPenKind = newKind;
-}
-
-void DrawArea::SetPenWidth(int newWidth)
-{
-    _penWidth = newWidth;
-}
-
-void DrawArea::SetEraserWidth(int newWidth)
-{
-    _eraserWidth = newWidth;
+    if(width > 0)
+        _penWidth = width;
 }
 
 void DrawArea::AddScreenShotImage(QImage& image)
@@ -234,7 +226,7 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
 void DrawArea::ChangePenColorByKeyboard(int key)
 {
     MyPenKind pk = PenKindFromKey(key);
-    SetPenKind(pk);
+    emit PenKindChange(pk);
 }
 #endif
 
@@ -881,15 +873,10 @@ void DrawArea::_InitiateDrawing(QEvent* event)
 
     _lastDrawnItem.clear();
     if (_erasemode)
-    {
         _lastDrawnItem.type = heEraser;
-        _actPenWidth = _eraserWidth;
-    }
     else
-    {
         _lastDrawnItem.type = heScribble;
-        _actPenWidth = _penWidth;
-    }
+    _actPenWidth = _penWidth;
 
     _lastDrawnItem.penKind = _myPenKind;
     _lastDrawnItem.penWidth = _actPenWidth;
@@ -1248,8 +1235,8 @@ void DrawArea::_Redraw()
     //    while (_ReplotItem(_history.GetOneStep()))
     //        ;
     //}
-    SetPenWidth(savewidth);
-    SetPenKind(savekind);
+    _myPenKind = savekind;
+    _penWidth = savewidth;
     _erasemode = saveEraseMode;
 }
 

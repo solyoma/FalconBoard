@@ -22,6 +22,7 @@
 //class DrawArea;
 
 const int HISTORY_DEPTH = 20;
+constexpr int NUM_COLORS = 6; // black/white, red, green, blue, eraser and yellow/purple
 
 enum ScreenMode { smSystem, smDark, smBlack };
 
@@ -89,6 +90,7 @@ private slots:
 	void SlotDecreaseBrushSize(int ds);
 
 	void SlotForLabel(QString text);
+	void SlotForPenKindChange(MyPenKind pk);
 #endif
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() { _drawArea->Print(_saveName);  }
@@ -115,8 +117,7 @@ private:
 	bool _firstShown = false;	// main window was shown first
 
 	bool	_eraserOn = false;
-	int		_penWidth = 3,
-			_eraserWidth = 30;
+	int		_penWidth[NUM_COLORS] = { 3,3,3,3,30,3 };	// historical: penEraser = 5
 	MyPenKind _actPen = penBlack;
 
 		// default icons
@@ -198,7 +199,7 @@ private:
 	void _SetBluePen() ;
 	void _SetYellowPen() ;
 		 
-	void _SetPenWidth();
+	void _SetPenWidth(MyPenKind pk);
 
 
 	void _ConnectDisconnectScreenshotLabel(bool join); // toggle

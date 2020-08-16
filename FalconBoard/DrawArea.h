@@ -58,9 +58,7 @@ public:
 
     void SetMode(bool darkMode, QString color, QString gridColor, QString pageGuideColor);
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
-    void SetPenKind(MyPenKind newKind);
-    void SetPenWidth(int newWidth);
-    void SetEraserWidth(int newWidth);
+    void SetPenKind(MyPenKind newKind, int newWidth);
 
     void SetOrigin() { _topLeft = QPoint(); }
 
@@ -86,6 +84,7 @@ signals:
     void IncreaseBrushSize(int quantity);
     void DecreaseBrushSize(int quantity);
     void RubberBandSelection(bool on);  // used when a selection is active
+    void PenKindChange(MyPenKind pk);
 
 public slots:
     void NewData();
@@ -145,7 +144,6 @@ private:
     bool    _scribblesCopied = false;   // copy/copy & delete : list of scribbles into 'history::_nSelectedItems';
 
     int     _penWidth = 1;
-    int     _eraserWidth = 30;
     QCursor _eraserCursor;
     int     _actPenWidth = 1;
     MyPenKind _myPenKind = penBlack;

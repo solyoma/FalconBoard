@@ -15,7 +15,7 @@ const QString sWindowTitle =
 
 
 
-enum MyPenKind { penNone, penBlack, penRed, penGreen, penBlue, penEraser, penYellow };
+enum MyPenKind { penNone=0, penBlack=1, penRed=2, penGreen=3, penBlue=4, penYellow=6, penEraser=5};
 enum PrinterFlags :char {
     pfPrintBackgroundImage  = 1,
     pfWhiteBackground       = 2,		// or use display mode which may be dark
