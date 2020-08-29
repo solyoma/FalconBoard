@@ -194,6 +194,7 @@ void FalconBoard::_SetupIconsForPenColors(ScreenMode sm)
 
 #ifndef _VIEWER
     ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, drawColors[penBlack]) : _iconPen);
+    ui.action_Black->setText(sm == smSystem ? "Blac&k" : "&White");
     ui.action_Red->setIcon(_ColoredIcon(_iconPen,   drawColors[penRed]));
     ui.action_Green->setIcon(_ColoredIcon(_iconPen, drawColors[penGreen]));
     ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  drawColors[penBlue]));

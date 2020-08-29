@@ -232,6 +232,8 @@ void DrawArea::ChangePenColorByKeyboard(int key)
 
 void DrawArea::keyPressEvent(QKeyEvent* event)
 {
+    _mods = event->modifiers();
+
     if (!_scribbling && !_pendown && event->key() == Qt::Key_Space)
     {
         _spaceBarDown = true;
@@ -240,19 +242,19 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
     else if (event->spontaneous())
     {
         int key = event->key();
-        Qt::KeyboardModifiers mods = event->modifiers();
+        /*Qt::KeyboardModifiers */ _mods = event->modifiers();
 
 #ifndef _VIEWER
         if (_rubberBand)    // delete rubberband for any keypress except pure modifiers
         {
             bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
-                 bCut    = ((key == Qt::Key_X) && mods.testFlag(Qt::ControlModifier)) ||
-                           ((key == Qt::Key_Insert) && mods.testFlag(Qt::ShiftModifier)),
+                 bCut    = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
+                           ((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
                  bCopy   = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
-                                        mods.testFlag(Qt::ControlModifier),
+                                        _mods.testFlag(Qt::ControlModifier),
                  bPaste  =  _scribblesCopied && 
-                            ( (key == Qt::Key_Insert && mods.testFlag(Qt::ShiftModifier)) ||
-                              (key == Qt::Key_V && mods.testFlag(Qt::ControlModifier))
+                            ( (key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
+                              (key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
                             ),
                  bRemove = (bDelete | bCopy | bCut | bPaste) ||
                            (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt),
@@ -263,7 +265,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                              key == Qt::Key_8 ||  // rotate by 180 degrees
                              key == Qt::Key_9 ||  // rotate left by 90 degrees
                              key == Qt::Key_H ||  // flip horizontally
-                             (key == Qt::Key_V && !mods)       // flip vertically when no modifier keys pressed
+                             (key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
                             );
 
             if (bDelete || bCopy || bRecolor || bRotate)
@@ -332,7 +334,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _lastDrawnItem.clear();
                 _lastDrawnItem.type = heScribble;
 
-                int margin = /* !mods.testFlag(Qt::ShiftModifier)*/ _history.SelectedSize() ? 3*_actPenWidth : 0;
+                int margin = /* !_mods.testFlag(Qt::ShiftModifier)*/ _history.SelectedSize() ? 3*_actPenWidth : 0;
 
                 int x1, y1, x2, y2, x3, y3, x4, y4;
                 x1 = _rubberRect.x()-margin;                y1 = _rubberRect.y() - margin;
@@ -366,27 +368,27 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         else
 #endif
         {
-            _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
+//            _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
 
 			if (key == Qt::Key_PageUp)
 				_PageUp();
 			else  if (key == Qt::Key_PageDown)
 				_PageDown();
 			else  if (key == Qt::Key_Home)
-				_Home(mods.testFlag(Qt::ControlModifier) );
+				_Home(_mods.testFlag(Qt::ControlModifier) );
             else  if (key == Qt::Key_End)
                 _End();
-            else if (key == Qt::Key_Shift)
-				_shiftKeyDown = true;
+//            else if (key == Qt::Key_Shift)
+//				_shiftKeyDown = true;
 
             else if (key == Qt::Key_Up)
-                _Up(mods.testFlag(Qt::ControlModifier) ? 100 : 20);
+                _Up(_mods.testFlag(Qt::ControlModifier) ? 100 : 20);
             else if (key == Qt::Key_Down)
-                _Down(mods.testFlag(Qt::ControlModifier) ? 100 : 20);
+                _Down(_mods.testFlag(Qt::ControlModifier) ? 100 : 20);
             else if (key == Qt::Key_Left)
-                _Left(mods.testFlag(Qt::ControlModifier) ? 100 : 20);
+                _Left(_mods.testFlag(Qt::ControlModifier) ? 100 : 20);
             else if (key == Qt::Key_Right)
-                _Right(mods.testFlag(Qt::ControlModifier) ? 100 : 20);
+                _Right(_mods.testFlag(Qt::ControlModifier) ? 100 : 20);
             else if(key == Qt::Key_BracketRight )
                 emit IncreaseBrushSize(1);
             else if(key == Qt::Key_BracketLeft )
@@ -401,7 +403,9 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 void DrawArea::keyReleaseEvent(QKeyEvent* event)
 {
-    if ( (!_spaceBarDown && !_shiftKeyDown) || !event->spontaneous() || event->isAutoRepeat())
+    _mods = event->modifiers();
+
+    if ( (!_spaceBarDown && !_mods.testFlag(Qt::ShiftModifier) || !event->spontaneous() || event->isAutoRepeat()))
     {
         QWidget::keyReleaseEvent(event);
         return;
@@ -417,19 +421,20 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
             return;
         }
     }
-    if(event->key() == Qt::Key_Shift)
-        _shiftKeyDown = false;
+    //if(event->key() == Qt::Key_Shift)
+    //    _shiftKeyDown = false;
 
     _startSet = false;
-    _altKeyDown = event->key() == Qt::Key_Alt;
+    //_altKeyDown = event->key() == Qt::Key_Alt;
     QWidget::keyReleaseEvent(event);
 }
 
 void DrawArea::mousePressEvent(QMouseEvent* event)
 {
+    _mods = event->modifiers();
 #ifndef _VIEWER
     if (event->button() == Qt::RightButton || 
-        (event->button() == Qt::LeftButton && event->modifiers().testFlag(Qt::ControlModifier)) )
+        (event->button() == Qt::LeftButton && _mods.testFlag(Qt::ControlModifier)) )
     {
         _InitRubberBand(event);
 #else
@@ -463,7 +468,7 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
             _RemoveRubberBand();
         }
 
-        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
+//        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
 
         _InitiateDrawing(event);
 #endif
@@ -474,6 +479,7 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
 
 void DrawArea::mouseMoveEvent(QMouseEvent* event)
 {
+    _mods = event->modifiers();
 #ifndef _VIEWER
     ShowCoordinates(event->pos());
     if ((event->buttons() &  Qt::RightButton) ||
@@ -524,6 +530,7 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
         event->ignore();
         return;
     }
+    _mods = event->modifiers();
 
     //int y  = _topLeft.y();
     static int dy = 0;                  
@@ -560,7 +567,8 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
 
 void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton && _scribbling) 
+    _mods = event->modifiers();
+    if (event->button() == Qt::LeftButton && _scribbling)
     {
 #ifndef _VIEWER
         if (_pSprite)
@@ -616,6 +624,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
     QTabletEvent::PointerType pointerT = event->pointerType();
 
     auto mb = event->buttons();
+    _mods = event->modifiers();
 
     switch (event->type())
     {
@@ -926,7 +935,7 @@ void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
  *-------------------------------------------------------*/
 bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to canvas, not _topLeft
 {
-    if (!_startSet && _shiftKeyDown && (_pendown || _scribbling))
+    if (!_startSet && (_mods.testFlag(Qt::ShiftModifier) && (_pendown || _scribbling)))
     {
         int x0 = _firstPointC.x(),    // relative to canvas
             y0 = _firstPointC.y(),

@@ -55,9 +55,8 @@
     <addaction name="separator"/>
     <addaction name="actionRecentDocuments"/>
     <addaction name="separator"/>
-    <addaction name="actionLoadBackground"/>
-    <addaction name="actionSaveVisible"/>
     <addaction name="separator"/>
+    <addaction name="actionSaveVisible"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menu_Edit">
@@ -108,6 +107,7 @@
     <addaction name="actionGrid"/>
     <addaction name="actionFixedGrid"/>
     <addaction name="actionShowPageGuides"/>
+    <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>
     <addaction name="actionSaveData"/>
     <addaction name="actionSaveBackgroundImage"/>
@@ -360,7 +360,7 @@
   </action>
   <action name="actionLoadBackground">
    <property name="text">
-    <string>Loa&amp;d Backgorund...</string>
+    <string>Loa&amp;d Backgorund Image...</string>
    </property>
    <property name="iconText">
     <string>Load Background</string>

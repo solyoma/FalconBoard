@@ -1176,7 +1176,7 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 
 /*========================================================
  * TASK:   find first drawable and visible history item 
- * PARAMS:
+ * PARAMS: yonly: no intersection check only check y
  * GLOBALS:	_items
  * RETURNS:	index of first displayable item or -1 if no items
  * REMARKS: - item is displayable if it is visible and 
@@ -1546,11 +1546,9 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 void History::InserVertSpace(int y, int heightInPixels)
 {
 	
-	int i = _YIndexForFirstVisible();
-if (!i)
-{
-	return;;
-}
+    int i = _YIndexForFirstVisible();
+	if (i< 0)
+		return;;
 
 	QPoint dy = QPoint(0, heightInPixels);
 	Translate(i, dy, y);
