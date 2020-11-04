@@ -75,12 +75,17 @@ void FalconBoard::RestoreState()
         default: break;
     }
     int n = s.value("grid", 0).toInt();
-    ui.actionGrid->setChecked(n & 1);
+    ui.actionShowGrid->setChecked(n & 1);
     ui.actionFixedGrid->setChecked(n & 2);
     _drawArea->SetGridOn(n & 1, n & 2);
     n = s.value("pageG", 0).toInt(0);
     ui.actionShowPageGuides->setChecked(n);
     _drawArea->SetPageGuidesOn(n);
+    bool b = s.value("limited", true).toBool();
+    ui.actionLimitedPage->setChecked(b);    // default: checked
+#ifndef _VIEWER
+    _drawArea->SetLimitedPage(b);
+#endif
 
     MyPrinterData data;
     
@@ -140,26 +145,27 @@ void FalconBoard::RestoreState()
 
 void FalconBoard::SaveState()
 {
-    QSettings s("FalconBoard.ini",QSettings::IniFormat);
+	QSettings s("FalconBoard.ini", QSettings::IniFormat);
 
-    s.setValue("geometry", saveGeometry());
-    s.setValue("windowState", saveState());
+	s.setValue("geometry", saveGeometry());
+	s.setValue("windowState", saveState());
 
-    s.setValue("version", sVersion);
-    s.setValue("mode", _screenMode == smSystem ? "s" :_screenMode == smDark ? "d" : "b");
-    s.setValue("grid", (ui.actionGrid->isChecked() ? 1 : 0 ) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
-    s.setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
+	s.setValue("version", sVersion);
+	s.setValue("mode", _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
+	s.setValue("grid", (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
+	s.setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
+    s.setValue("limited", ui.actionLimitedPage->isChecked());
 #ifndef _VIEWER
-    s.setValue("size", QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]) );
-    s.setValue("saved", ui.actionSaveData->isChecked());
-    s.setValue("saveb", ui.actionSaveBackgroundImage->isChecked());
-    if (ui.actionSaveBackgroundImage->isChecked())
-    s.setValue("img", _sImageName);
+	s.setValue("size", QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]));
+	s.setValue("saved", ui.actionSaveData->isChecked());
+	s.setValue("saveb", ui.actionSaveBackgroundImage->isChecked());
+	if (ui.actionSaveBackgroundImage->isChecked())
+		s.setValue("img", _sImageName);
 #endif
-    s.setValue("data", _saveName);
-    s.setValue("lastDir", _lastDir);
-    s.setValue("lastFile", _lastFile);
-    s.setValue("bckgrnd", _sImageName);
+	s.setValue("data", _saveName);
+	s.setValue("lastDir", _lastDir);
+	s.setValue("lastFile", _lastFile);
+	s.setValue("bckgrnd", _sImageName);
 
     if (_recentList.size())
     {
@@ -364,14 +370,13 @@ void FalconBoard::_SelectPen()     // call after '_actPen' is set
 
 void FalconBoard::_SetPenKind()
 {
-    bool b = _busy;
     _eraserOn = _actPen == penEraser;
     if(_actPen != penNone)
 	{
 		_drawArea->SetPenKind(_actPen, _penWidth[_actPen - 1]);
-		_busy = true;
+		++_busy;
 		_psbPenWidth->setValue(_penWidth[_actPen - 1]);
-		_busy = b;
+		--_busy;
 	}
 	ui.centralWidget->setFocus();
 }
@@ -397,9 +402,9 @@ void FalconBoard::_SetYellowPen()  { _SetPenKind (penYellow); }
 void FalconBoard::_SetPenWidth(MyPenKind pk)
 {
     _drawArea->SetPenKind(pk, _penWidth[pk-1]);
-    _busy = true;
+    ++_busy;
     _psbPenWidth->setValue(_penWidth[pk-1]);
-    _busy = false;
+    --_busy;
 }
 #endif
 
@@ -630,6 +635,10 @@ void FalconBoard::showEvent(QShowEvent* event)
 void FalconBoard::on_actionNew_triggered()
 {
     _SaveIfYouWant(true);   // must ask if data changed
+    bool b = QMessageBox::question(this, "falconBoard", tr("Do you want to limit the editable area horizontally to the screen width?\n"
+                                                           " You may change this any time in Options/Page"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
+    ui.actionLimitedPage->setChecked(b);
+    _drawArea->SetLimitedPage(b);
     _drawArea->NewData();
     _saveName.clear();
     setWindowTitle(sWindowTitle);
@@ -829,14 +838,14 @@ void FalconBoard::on_actionBlackMode_triggered()
     _SetupMode(smBlack);
 }
 
-void FalconBoard::on_actionGrid_triggered()
+void FalconBoard::on_actionShowGrid_triggered()
 {
-    _drawArea->SetGridOn(ui.actionGrid->isChecked(), ui.actionFixedGrid->isChecked());
+    _drawArea->SetGridOn(ui.actionShowGrid->isChecked(), ui.actionFixedGrid->isChecked());
 }
 
 void FalconBoard::on_actionFixedGrid_triggered()
 {
-    _drawArea->SetGridOn(ui.actionGrid->isChecked(), ui.actionFixedGrid->isChecked());
+    _drawArea->SetGridOn(ui.actionShowGrid->isChecked(), ui.actionFixedGrid->isChecked());
 }
 
 void FalconBoard::on_actionShowPageGuides_triggered()
@@ -940,6 +949,30 @@ void FalconBoard::on_actionClearBackgroundImage_triggered()
 {
     _drawArea->ClearBackground();
     _sImageName.clear();
+}
+
+void FalconBoard::on_actionInfinitePage_triggered()
+{
+    if (_busy)
+        return;
+    ++_busy;
+	bool b = ui.actionInfinitePage->isChecked();
+	ui.actionLimitedPage->setChecked(!b);
+	_drawArea->SetLimitedPage(!b);
+    
+    --_busy;
+}
+
+void FalconBoard::on_actionLimitedPage_triggered()
+{
+    if (_busy)
+        return;
+    ++_busy;
+    bool b = ui.actionLimitedPage->isChecked();
+    ui.actionInfinitePage->setChecked(!b);
+    _drawArea->SetLimitedPage(b);
+
+    --_busy;
 }
 
 void FalconBoard::on_actionUndo_triggered()

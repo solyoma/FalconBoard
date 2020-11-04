@@ -54,6 +54,7 @@ public:
     void InsertVertSpace();         // from top left of rubber band with height of rubber rectangle
     MyPenKind PenKindFromKey(int key);  // keyboard press/menu click
     bool RecolorSelected(int key); // true: recolored
+    void SetLimitedPage(bool limited) { _limited = limited; }
 #endif
 
     void SetMode(bool darkMode, QString color, QString gridColor, QString pageGuideColor);
@@ -120,11 +121,12 @@ private:
     void ChangePenColorByKeyboard(int key);
 #endif
 private:
-    History _history;              // every drawable element with undo/redo
+    History _history;               // every drawable element with undo/redo
            // page setup
-    int _screenWidth = 1920,       // screen width ==> _pageWidth (portrait) / _pageHeight (landscape)  
+    int _screenWidth = 1920,        // screen width ==> _pageWidth (portrait) / _pageHeight (landscape)  
         _screenHeight = 1080;
-    float _ppi = 96;               // pixels per screen inches
+    bool _limited = false;          // true: page width is fixed (= screen width)
+    float _ppi = 96;                // pixels per screen inches
         // printer
     MyPrinterData _prdata;
     MyPrinter* _printer = nullptr;
@@ -205,6 +207,7 @@ private:
     QPoint   _rubber_origin;
     QRect   _rubberRect;        // used to select histoy items
     void  _RemoveRubberBand();
+    void _InitiateDrawingIngFromLastPos();   // from _lastPoint
     void _InitiateDrawing(QEvent* event);
     void _InitRubberBand(QEvent* event);
 #endif

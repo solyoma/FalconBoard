@@ -25,6 +25,14 @@
 
 #include "myprinter.h"
 
+#define DEBUG_LOG(qs) \
+{							 \
+	QFile f("debug.log");		 \
+	f.open(QIODevice::Append);	 \
+	QTextStream ofsdbg(&f);		 \
+	ofsdbg << qs << "\n";			 \
+}
+
 // !!!
 DrawColors drawColors;      // global used here and for print, declared in common.h
 
@@ -469,8 +477,21 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
         }
 
 //        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
+//DEBUG_LOG(QString("mousePress #1: first:(%1,%2) last=(%3,%4)").arg(_firstPointC.x()).arg(_firstPointC.y()).arg(_lastPointC.x()).arg(_lastPointC.y()))
+        if (_mods.testFlag(Qt::ShiftModifier) )
+        {
+//            _mods.setFlag(Qt::ShiftModifier, false);
+            _firstPointC = _lastPointC;
+            _InitiateDrawingIngFromLastPos();
+//            _DrawLineTo(event->pos() );
+//DEBUG_LOG(QString("mousePress #2:  drawn: => last=(%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
 
-        _InitiateDrawing(event);
+//            if (_DrawFreehandLineTo(event->pos()))
+//                _lastDrawnItem.add(_lastPointC + _topLeft);
+//            _mods.setFlag(Qt::ShiftModifier, true);
+        }
+        else
+            _InitiateDrawing(event);        // resets _lastPointC to event_>pos()
 #endif
     }
 
@@ -582,8 +603,11 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
             if (!_spaceBarDown)
             {
 #ifndef _VIEWER
-                _DrawFreehandLineTo(event->pos());
+//DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
+                if (_DrawFreehandLineTo(event->pos()))
+                    _lastDrawnItem.add(_lastPointC + _topLeft);
 
+//DEBUG_LOG(QString("Mouse release #2: _lastPoint: (%1,%2)\n__lastDrwanItem point size:%3").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(_lastDrawnItem.points.size()))
                 _history.addDrawnItem(_lastDrawnItem);
 
                 emit CanUndo(true);
@@ -654,7 +678,13 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                     _pendown = true;
                     emit PointerTypeChange(pointerT);
 #ifndef _VIEWER
-                    _InitiateDrawing(event);
+                    if (_mods.testFlag(Qt::ShiftModifier))
+                    {
+                        _firstPointC = _lastPointC;
+                        _InitiateDrawingIngFromLastPos();
+                    }
+                    else
+                        _InitiateDrawing(event);
 #endif
                 }
             }
@@ -840,13 +870,17 @@ void DrawArea::paintEvent(QPaintEvent* event)
 
 void DrawArea::resizeEvent(QResizeEvent* event)
 {
+    if (_limited && _topLeft.x() + width() >= _screenWidth)
+        _ShiftOrigin(QPoint( (_topLeft.x() + width() - _screenWidth),0));
+
     if (width() > _canvas.width() || height() > _canvas.height()) 
     {
         int newWidth =  qMax(width() + 128,  _canvas.width());
         int newHeight = qMax(height() + 128, _canvas.height());
         _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
         _history.SetClippingRect(QRect(_topLeft, QSize(newWidth, newHeight)));
-        update();
+
+        _Redraw();
     }
     QWidget::resizeEvent(event);
 
@@ -866,19 +900,15 @@ void DrawArea::_RemoveRubberBand()
 }
 
 /*========================================================
- * TASK:    starts drawing at position set by the event
- *          saves first point in _firstPointC, _lastPointC
- *          and _lastDrawnItem
- * PARAMS:  event - mouse or tablet event
+ * TASK:    starts drawing at position _lastPosition
+ * PARAMS:  NONE
  * GLOBALS: _spaceBarDown, _eraseMode, _lastDrawnItem,
  *          _actPenWidth, _actpenColor, _lastPoint, _topLeft
  * RETURNS:
  * REMARKS: -
  *-------------------------------------------------------*/
-void DrawArea::_InitiateDrawing(QEvent* event)
+void DrawArea::_InitiateDrawingIngFromLastPos()
 {
-    _firstPointC = _lastPointC = _pendown ? ((QTabletEvent*)event)->pos() : ((QMouseEvent*)event)->pos();
-
     if (_spaceBarDown)      // no drawing
         return;
 
@@ -892,6 +922,23 @@ void DrawArea::_InitiateDrawing(QEvent* event)
     _lastDrawnItem.penKind = _myPenKind;
     _lastDrawnItem.penWidth = _actPenWidth;
     _lastDrawnItem.add(_lastPointC + _topLeft);
+}
+
+/*========================================================
+ * TASK:    starts drawing at position set by the event
+ *          saves first point in _firstPointC, _lastPointC
+ *          and _lastDrawnItem
+ * PARAMS:  event - mouse or tablet event
+ * GLOBALS: _spaceBarDown, _eraseMode, _lastDrawnItem,
+ *          _actPenWidth, _actpenColor, _lastPoint, _topLeft
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
+void DrawArea::_InitiateDrawing(QEvent* event)
+{
+    _firstPointC = _lastPointC = _pendown ? ((QTabletEvent*)event)->pos() : ((QMouseEvent*)event)->pos();
+
+    _InitiateDrawingIngFromLastPos();
 }
 
 void DrawArea::_InitRubberBand(QEvent* event)
@@ -921,7 +968,7 @@ void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
  * TASK:    Determines whether movement should be 
  *          constrained to be horizontal or vertical 
  *          and if so does not allow drawing until
- *          the next point is at list 5 points from the first one
+ *          the next point is at last 5 points from the first one
  *          allows drawing in any other case
  * PARAMS:  newEndPoint is canvas relative
  * GLOBALS:
@@ -935,7 +982,8 @@ void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
  *-------------------------------------------------------*/
 bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to canvas, not _topLeft
 {
-    if (!_startSet && (_mods.testFlag(Qt::ShiftModifier) && (_pendown || _scribbling)))
+//DEBUG_LOG(QString("CanSavePoint #1: firstPointC:(%1,%2) newEndPointC=(%3,%4)").arg(_firstPointC.x()).arg(_firstPointC.y()).arg(newEndPointC.x()).arg(newEndPointC.y()))
+     if (!_startSet && (_mods.testFlag(Qt::ShiftModifier) && (_pendown || _scribbling)))
     {
         int x0 = _firstPointC.x(),    // relative to canvas
             y0 = _firstPointC.y(),
@@ -944,18 +992,23 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
             dx = abs(x - x0),
             dy = abs(y0 - y);
 
+//DEBUG_LOG(QString("CanSavePoint #2: (dx, dy) = (%1,%2)").arg(dx).arg(dy))
         if (dx < 4 && dy < 4)
             return false;
 
-        if (dx > dy)
-            _isHorizontal = true;
-        else if (dy > dx)
-            _isHorizontal = false;
-        _startSet = true;
-        // replace most points keeping only the first, and the last
+        if(dx < 10 && dy < 10)
+        {
+            if (dx > dy)
+                _isHorizontal = true;
+            else if (dy > dx)
+                _isHorizontal = false;
+            _startSet = true;
+            // replace most points keeping only the first, and the last
 
-        _ModifyIfSpecialDirection(_lastPointC);
-        _ModifyIfSpecialDirection(newEndPointC);
+            _ModifyIfSpecialDirection(_lastPointC);
+            _ModifyIfSpecialDirection(newEndPointC);
+        }
+DEBUG_LOG(QString("CanSavePOint #3: lastPointC:(%1,%2) endPointC=(%3,%4)").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(newEndPointC.x()).arg(newEndPointC.y()))
     }
     // DEBUG
     //qDebug("last: (%d, %d), new:(%d,%d)", _lastPointC.x(), _lastPointC.y(), newEndPointC.x(), newEndPointC.y());
@@ -1030,11 +1083,11 @@ bool DrawArea::_DrawFreehandLineTo(QPoint endPointC)
 {
     bool result = true;
 #ifndef _VIEWER
-    if ((result = _CanSavePoint(endPointC)))     // i.e. must save point
-    {
-        _CorrectForDirection(endPointC); // when _startSet leaves only one coord moving
-        _DrawLineTo(endPointC);
-    }
+        if ((result = _CanSavePoint(endPointC)))     // i.e. must save point
+        {
+            _CorrectForDirection(endPointC); // when _startSet leaves only one coord moving
+            _DrawLineTo(endPointC);
+        }
 #endif
     return result;
 }
@@ -1446,18 +1499,24 @@ void DrawArea::_SetOrigin(QPoint o)
 #endif
 }
 
-void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, positive delta.x: scroll right
+void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, positive delta.x: scroll left
 {
     QPoint o = _topLeft;       // origin of screen top left relative to "paper"
 
     o -= delta;                // calculate new screen origin
+
     if (o.x() < 0)
         o.setX(0);
+
+    if (delta.x() < 0 && _limited && o.x() + width() >= _screenWidth)
+        o.setX(_topLeft.x());
+
     if (o.y() < 0)
         o.setY(0);
 
     _SetOrigin(o);
 }
+
 void DrawArea::_ShiftAndDisplayBy(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
 {
     _ShiftOrigin(delta);

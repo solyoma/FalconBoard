@@ -263,7 +263,7 @@ int MyPrinter::_CalcPages()
     int nSize = _pHist->CountOfDrawable();
 
     // for each drawable determine pages it apperas on and prepare
-    // an list of pages ordered first by y then by x page indices
+    // a list of pages ordered first by y then by x page indices
     HistoryItem* phi;
     PageNum2 pgn;
     for (int yi = 0; yi < nSize; ++yi) 
@@ -293,8 +293,8 @@ int MyPrinter::_CalcPages()
         {                               // must be checked point by point
             switch (phi->type)
             {
-                case heScribble:
                 case heEraser:
+                case heScribble:
                     pgn.yindices[0].zorder = phi->ZOrder();
                     sortedPageNumbers.AddPoints(phi, yi, pgn);
                     break;

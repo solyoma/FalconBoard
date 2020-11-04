@@ -38,7 +38,7 @@ protected:
 	void showEvent(QShowEvent* event) override;
 
 private slots:
-	void on_actionGrid_triggered();
+	void on_actionShowGrid_triggered();
 	void on_actionFixedGrid_triggered();
 	void on_actionShowPageGuides_triggered();
 
@@ -73,7 +73,11 @@ private slots:
 
 	void on_actionClearBackgroundImage_triggered();
 
+	void on_actionInfinitePage_triggered();
+	void on_actionLimitedPage_triggered();
+
 	void on_action_InsertVertSpace_triggered();
+
 	void SlotForRubberBandSelection(int on);
 
 	void slotPenWidthChanged(int val);
@@ -113,7 +117,13 @@ private slots:
 private:
 	Ui::FalconBoardClass ui;
 
-	bool _busy = false;
+	struct FLAG {
+		int b = 0;
+		int operator++() { ++b; return b; }
+		int operator--() { if(b) --b; return b; }
+		operator bool() { return b; }
+	} _busy;
+
 	bool _firstShown = false;	// main window was shown first
 
 	bool	_eraserOn = false;

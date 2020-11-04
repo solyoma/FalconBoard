@@ -100,13 +100,34 @@
     <property name="title">
      <string>&amp;Options</string>
     </property>
-    <addaction name="actionLightMode"/>
-    <addaction name="actionDarkMode"/>
-    <addaction name="actionBlackMode"/>
+    <widget class="QMenu" name="menu_Mode">
+     <property name="title">
+      <string>&amp;Mode</string>
+     </property>
+     <addaction name="actionLightMode"/>
+     <addaction name="actionDarkMode"/>
+     <addaction name="actionBlackMode"/>
+    </widget>
+    <widget class="QMenu" name="menuGrid">
+     <property name="title">
+      <string>Grid</string>
+     </property>
+     <addaction name="actionShowGrid"/>
+     <addaction name="actionFixedGrid"/>
+    </widget>
+    <widget class="QMenu" name="menu_Paper">
+     <property name="title">
+      <string>&amp;Paper</string>
+     </property>
+     <addaction name="actionInfinitePage"/>
+     <addaction name="actionLimitedPage"/>
+    </widget>
+    <addaction name="menu_Paper"/>
     <addaction name="separator"/>
-    <addaction name="actionGrid"/>
-    <addaction name="actionFixedGrid"/>
+    <addaction name="menu_Mode"/>
+    <addaction name="menuGrid"/>
     <addaction name="actionShowPageGuides"/>
+    <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>
     <addaction name="actionSaveData"/>
@@ -133,7 +154,10 @@
      <normaloff>:/FalconBoard/Resources/open.png</normaloff>:/FalconBoard/Resources/open.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Load...</string>
+    <string>&amp;Open...</string>
+   </property>
+   <property name="iconText">
+    <string>Open</string>
    </property>
    <property name="toolTip">
     <string>Load saved data into memory</string>
@@ -394,36 +418,6 @@
     <string>F4</string>
    </property>
   </action>
-  <action name="actionLightMode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>System colors</string>
-   </property>
-  </action>
-  <action name="actionDarkMode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Dark mode</string>
-   </property>
-  </action>
-  <action name="actionBlackMode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Black mode</string>
-   </property>
-  </action>
   <action name="actionSaveData">
    <property name="checkable">
     <bool>true</bool>
@@ -475,22 +469,6 @@
     <string>Vertical space...</string>
    </property>
   </action>
-  <action name="actionGrid">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Grid</string>
-   </property>
-  </action>
-  <action name="actionFixedGrid">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Fixed Grid</string>
-   </property>
-  </action>
   <action name="actionClearThisScreen">
    <property name="text">
     <string>Clear Visible &amp;Screen</string>
@@ -539,6 +517,71 @@
    </property>
    <property name="iconText">
     <string>Clear List of prev. documents</string>
+   </property>
+  </action>
+  <action name="actionLightMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>System Colors</string>
+   </property>
+  </action>
+  <action name="actionDarkMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dark</string>
+   </property>
+  </action>
+  <action name="actionBlackMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Black</string>
+   </property>
+  </action>
+  <action name="actionShowGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Show</string>
+   </property>
+  </action>
+  <action name="actionFixedGrid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fixed</string>
+   </property>
+  </action>
+  <action name="actionInfinitePage">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Infinite</string>
+   </property>
+  </action>
+  <action name="actionLimitedPage">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Limited</string>
    </property>
   </action>
  </widget>
