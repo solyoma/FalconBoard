@@ -984,7 +984,7 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
 {
 //DEBUG_LOG(QString("CanSavePoint #1: firstPointC:(%1,%2) newEndPointC=(%3,%4)").arg(_firstPointC.x()).arg(_firstPointC.y()).arg(newEndPointC.x()).arg(newEndPointC.y()))
      if (!_startSet && (_mods.testFlag(Qt::ShiftModifier) && (_pendown || _scribbling)))
-    {
+     {
         int x0 = _firstPointC.x(),    // relative to canvas
             y0 = _firstPointC.y(),
             x  = newEndPointC.x(),
@@ -1008,7 +1008,7 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
             _ModifyIfSpecialDirection(_lastPointC);
             _ModifyIfSpecialDirection(newEndPointC);
         }
-DEBUG_LOG(QString("CanSavePOint #3: lastPointC:(%1,%2) endPointC=(%3,%4)").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(newEndPointC.x()).arg(newEndPointC.y()))
+//DEBUG_LOG(QString("CanSavePOint #3: lastPointC:(%1,%2) endPointC=(%3,%4)").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(newEndPointC.x()).arg(newEndPointC.y()))
     }
     // DEBUG
     //qDebug("last: (%d, %d), new:(%d,%d)", _lastPointC.x(), _lastPointC.y(), newEndPointC.x(), newEndPointC.y());
@@ -1111,13 +1111,27 @@ bool DrawArea::_DrawFreehandLineTo(QPoint endPointC)
 void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
 {
     QPainter painter(&_canvas);
-    painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
-        Qt::RoundJoin));
+    QPen pen = QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+/* 
+                            THIS DOES NOT WORK, nothing gets painted:
+    if (_actPenWidth > 2)
+    {
+        qreal cxy = _actPenWidth / 2.0;
+        QRadialGradient gradient(cxy, cxy, cxy);
+        gradient.setColorAt(0, _PenColor());
+        gradient.setColorAt(0.9, _PenColor());
+        gradient.setColorAt(1, QColor::fromRgbF(0, 0, 0, 0));
+
+        QBrush brush(gradient);
+        pen.setBrush(brush);
+    }
+*/
+    painter.setPen(pen);
     if (_erasemode)
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
     else
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::HighQualityAntialiasing);
 
     painter.drawLine(_lastPointC, endPointC);
     int rad = (_actPenWidth / 2) + 2;

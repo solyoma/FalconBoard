@@ -268,7 +268,7 @@ void FalconBoard::_CreateAndAddActions()
     _psbPenWidth->setSingleStep(1);
     _psbPenWidth->setValue(_penWidth[0]);
     QRect rect = _psbPenWidth->geometry();
-    rect.setWidth(30);
+    rect.setWidth(40);
     _psbPenWidth->setGeometry(rect);
     ui.mainToolBar->addWidget(_psbPenWidth);
 
@@ -281,6 +281,7 @@ void FalconBoard::_CreateAndAddActions()
 
     // more than one valueChanged() function exists
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenWidthChanged);
+    connect(_psbPenWidth, &QSpinBox::editingFinished, this, &FalconBoard::slotPenWidthEditingFinished);
 
     connect(_drawArea, &DrawArea::CanUndo, this, &FalconBoard::SlotForUndo);
     connect(_drawArea, &DrawArea::CanRedo, this, &FalconBoard::SlotForRedo);
@@ -378,7 +379,6 @@ void FalconBoard::_SetPenKind()
 		_psbPenWidth->setValue(_penWidth[_actPen - 1]);
 		--_busy;
 	}
-	ui.centralWidget->setFocus();
 }
 
 void FalconBoard::_SetPenKind(MyPenKind newPen)
@@ -861,6 +861,7 @@ void FalconBoard::on_action_Black_triggered()
         _SetBlackPen();
         _SetCursor(DrawArea::csPen);
         _SetPenWidth(penBlack);
+        ui.centralWidget->setFocus();
     }
 };
 void FalconBoard::on_action_Red_triggered() 
@@ -870,6 +871,7 @@ void FalconBoard::on_action_Red_triggered()
         _SetRedPen();
         _SetCursor(DrawArea::csPen);
         _SetPenWidth(penRed);
+        ui.centralWidget->setFocus();
     }
 };
 void FalconBoard::on_action_Green_triggered()
@@ -879,6 +881,7 @@ void FalconBoard::on_action_Green_triggered()
         _SetGreenPen();
         _SetCursor(DrawArea::csPen);
         _SetPenWidth(penGreen);
+        ui.centralWidget->setFocus();
     }
 };
 void FalconBoard::on_action_Blue_triggered()
@@ -888,6 +891,7 @@ void FalconBoard::on_action_Blue_triggered()
         _SetBluePen();
         _SetCursor(DrawArea::csPen);
         _SetPenWidth(penBlue);
+        ui.centralWidget->setFocus();
     }
 };
 void FalconBoard::on_action_Yellow_triggered()
@@ -897,6 +901,7 @@ void FalconBoard::on_action_Yellow_triggered()
         _SetYellowPen();
         _SetCursor(DrawArea::csPen);
         _SetPenWidth(penYellow);
+        ui.centralWidget->setFocus();
     }
 };
 
@@ -1013,6 +1018,11 @@ void FalconBoard::slotPenWidthChanged(int val)
     // from user
     _penWidth[_actPen-1] = val;
     _SetPenKind();
+}
+
+void FalconBoard::slotPenWidthEditingFinished()
+{
+    ui.centralWidget->setFocus();
 }
 
 void FalconBoard::SlotForUndo(bool b)

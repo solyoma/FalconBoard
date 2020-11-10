@@ -81,6 +81,7 @@ private slots:
 	void SlotForRubberBandSelection(int on);
 
 	void slotPenWidthChanged(int val);
+	void slotPenWidthEditingFinished();
 
 	void SlotForUndo(bool b);
 	void SlotForRedo(bool b);
