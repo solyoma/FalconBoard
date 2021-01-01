@@ -488,7 +488,7 @@ public:
     HistoryItem* NextVisibleItem();
     IntVector VisibleItemsBelow(int height = 0x7fffffff);
 
-    QPoint BottomRightVisible() const;      // returns bottom right coordinate of last visible item
+    QPoint BottomRightVisible(QSize screenSize) const;      // returns bottom right coordinate of last visible item
 
 
 //--------------------- Add Items ------------------------------------------

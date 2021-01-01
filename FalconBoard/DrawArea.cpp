@@ -1556,7 +1556,7 @@ void DrawArea::_Home(bool toTop)
 }
 void DrawArea::_End()
 {
-    _topLeft = _history.BottomRightVisible();
+    _topLeft = _history.BottomRightVisible(geometry().size() );
     _SetOrigin(_topLeft);
     _Redraw();
 }

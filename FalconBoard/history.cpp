@@ -1131,7 +1131,7 @@ IntVector History::VisibleItemsBelow(int height)
 	return iv;
 }
 
-QPoint History::BottomRightVisible() const
+QPoint History::BottomRightVisible(QSize screenSize) const
 {
 	QPoint pt;
 
@@ -1142,7 +1142,15 @@ QPoint History::BottomRightVisible() const
 		while (ix >= 0 && (phi = _yitems(ix))->Hidden())
 			--ix;
 		if (ix >= 0)
+		{
 			pt = phi->Area().topLeft();
+			pt.setY( pt.y() - screenSize.height()/2 );
+			pt.setX( pt.x() - screenSize.width());
+			if (pt.x() < 0)
+				pt.setX(0);
+			if (pt.y() < 0)
+				pt.setY(0);
+		}
 	}
 	return pt;
 }
