@@ -241,15 +241,25 @@ void DrawArea::ChangePenColorByKeyboard(int key)
 void DrawArea::keyPressEvent(QKeyEvent* event)
 {
     _mods = event->modifiers();
+    int key = event->key();
 
-    if (!_scribbling && !_pendown && event->key() == Qt::Key_Space)
+#if !defined _VIEWER && defined _DEBUG
+    if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::AltModifier)))
+    {
+        _debugmode = !_debugmode;
+        if (_mods.testFlag(Qt::ShiftModifier))
+            _pencilmode = !_pencilmode;
+        _Redraw();
+    }
+#endif
+
+    if (!_scribbling && !_pendown && key == Qt::Key_Space)
     {
         _spaceBarDown = true;
         QWidget::keyPressEvent(event);
     }
     else if (event->spontaneous())
     {
-        int key = event->key();
         /*Qt::KeyboardModifiers */ _mods = event->modifiers();
 
 #ifndef _VIEWER
@@ -466,8 +476,13 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
             {
                 if (_CreateSprite(event->pos(), _rubberRect))
                 {
-                    _history.addDeleteItems(_pSprite);
-                    _Redraw();
+                    if (_mods.testFlag(Qt::AltModifier) /*&& _mods.testFlag(Qt::ControlModifier)*/)
+                        /* do nothing */;
+                    else
+                    {
+                        _history.addDeleteItems(_pSprite);
+                        _Redraw();
+                    }
 //                    QApplication::processEvents();
                 }
                 
@@ -1111,7 +1126,7 @@ bool DrawArea::_DrawFreehandLineTo(QPoint endPointC)
 void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
 {
     QPainter painter(&_canvas);
-    QPen pen = QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 /* 
                             THIS DOES NOT WORK, nothing gets painted:
     if (_actPenWidth > 2)
@@ -1127,7 +1142,7 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
     }
 */
     painter.setPen(pen);
-    if (_erasemode)
+    if (_erasemode && !_debugmode)
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
     else
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -1656,7 +1671,7 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect)
         }
     }
     // create border to see the rectangle
-    if (_erasemode)
+    if (_erasemode && !_debugmode)
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter.setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin)) ;
     painter.drawLine(0, 0, _pSprite->rect.width(), 0);

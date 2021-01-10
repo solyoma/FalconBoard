@@ -634,7 +634,9 @@ void FalconBoard::showEvent(QShowEvent* event)
 #ifndef _VIEWER
 void FalconBoard::on_actionNew_triggered()
 {
-    _SaveIfYouWant(true);   // must ask if data changed
+    if (!_SaveIfYouWant(true))    // must ask if data changed, false: cancelled
+        return;
+
     bool b = QMessageBox::question(this, "falconBoard", tr("Do you want to limit the editable area horizontally to the screen width?\n"
                                                            " You may change this any time in Options/Page"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
     ui.actionLimitedPage->setChecked(b);
