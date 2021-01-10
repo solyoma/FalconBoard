@@ -351,7 +351,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _actPenWidth = _penWidth;
                 _lastDrawnItem.clear();
                 _lastDrawnItem.type = heScribble;
-                            // when any draweables is selected draw the rectangle with 1 pixel margins on all sides
+                            // when any draweables is selected draw the rectangle with margins
                 int margin = /* !_mods.testFlag(Qt::ShiftModifier)*/ _history.SelectedSize() ? _actPenWidth/2+1 : 0;
 
                 int x1, y1, x2, y2, x3, y3, x4, y4;

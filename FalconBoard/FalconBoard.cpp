@@ -816,10 +816,13 @@ void FalconBoard::on_actionHelp_triggered()
         tr("<p><i>Cut selected</i><br>&nbsp;&nbsp;Ctrl+X, Shift+Del</p>") +
         tr("<p><i>Delete selected</i><br>&nbsp;&nbsp;Del, BackSpace</p>") +
         "<br>" +
-        tr("<p><i>Select</i> drawings with right button.</p>") +
+        tr("<p><i>Select</i> drawings with right button or Ctrl+Left mouse button.</p>") +
+        tr("<p><i>Move</i> selected drawings with Left button, move copy by Alt+Left button.</p>")+
         tr("<p>Selected drawings can be deleted, copied or cut out by keyboard shortcuts./p>") +
-        tr("<p>To paste selection select destination with right button and use keyboard shortcut.</p>")+
-        tr("<p>Draw horizontal or vertical lines by holding down a Shift key while drawing.</p>")+
+        tr("<p>To paste selection select an area at destination with right button and use keyboard shortcut.</p>")+
+        tr("<p>Draw a straight line from last position by holding down a Shift key while pressing Left, ")+
+        tr("draw horizontal or vertical line by <i>first</i> pressing Left, then holding Shift key while drawing. ")+
+        tr("Line orientation depends on which direction you start to draw.</p>")+
         tr("<p>Take a screenshot of an area using the right mouse button - F4</p>")
 #endif
     );
