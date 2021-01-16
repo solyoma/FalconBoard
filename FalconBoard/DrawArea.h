@@ -46,6 +46,7 @@ public:
     void ClearBackground();
 
     int Load(QString name);
+    bool EnableRedraw(bool value);
 #ifndef _VIEWER
     bool Save(QString name) { return  _history.Save(name); }
     bool OpenBackgroundImage(const QString& fileName);
@@ -122,6 +123,8 @@ private:
 #endif
 private:
     History _history;               // every drawable element with undo/redo
+    bool _mustRedrawArea = true;    // else no redraw
+    bool _redrawPending = false;    // redraw requested when it was not enabled
            // page setup
     int _screenWidth = 1920,        // screen width ==> _pageWidth (portrait) / _pageHeight (landscape)  
         _screenHeight = 1080;
@@ -225,6 +228,7 @@ private:
     bool _DrawFreehandLineTo(QPoint endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
     void _DrawLineTo(QPoint endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
+    void _DrawAllPoints(DrawnItem* pdrni);
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
     bool _ReplotItem(HistoryItem* pdrni); 
@@ -239,7 +243,7 @@ private:
 #endif
     void _SetOrigin(QPoint qp);  // sets new topleft and displays it on label
     void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, negative delta.x: scroll right
-    void _ShiftAndDisplayBy(QPoint delta);
+    void _ShiftAndDisplayBy(QPoint delta, bool bPointByPoint = false);
     void _PageUp();
     void _PageDown();
     void _Home(bool toTop);

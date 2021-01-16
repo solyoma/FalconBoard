@@ -195,7 +195,7 @@ static struct SortedPageNumbers
     {
         DrawnItem* pdrni;
 
-        pdrni = phi->GetDrawable(0);    // only one element for drawable / printable
+        pdrni = phi->GetVisibleDrawable(0);    // only one element for drawable / printable
         Insert(PageForPoint(pdrni->points[0], Yindex, pgn));
         // TODO when the line segment between 2 consecutive points goes through more than one page
         //          example: horizontal, vertical line, circle, etc *********
@@ -398,7 +398,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
     }
     else if (phi->type == heScribble || phi->type == heEraser)
     {             // paint over transparent layer
-        DrawnItem* pdrni = phi->GetDrawable(0);
+        DrawnItem* pdrni = phi->GetVisibleDrawable(0);
         MyPenKind pk = pdrni->penKind;
         int pw = pdrni->penWidth * _data.magn;
         bool erasemode = pdrni->type == heEraser ? true : false;

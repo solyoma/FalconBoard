@@ -57,6 +57,8 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 
 void FalconBoard::RestoreState()
 {
+    _drawArea->EnableRedraw(false);
+
     QSettings s("FalconBoard.ini", QSettings::IniFormat);
 
     restoreGeometry(s.value("geometry").toByteArray());
@@ -141,6 +143,8 @@ void FalconBoard::RestoreState()
     _PopulateRecentMenu();
 
     s.endGroup();
+
+    _drawArea->EnableRedraw(true);
 }
 
 void FalconBoard::SaveState()
@@ -649,6 +653,8 @@ void FalconBoard::on_actionNew_triggered()
 #endif
 void FalconBoard::_LoadData(QString fileName)
 {
+    _drawArea->EnableRedraw(false);
+
     if (!fileName.isEmpty())
     {
         _drawArea->Load(fileName);
@@ -659,6 +665,8 @@ void FalconBoard::_LoadData(QString fileName)
 
         _AddToRecentList(_saveName);
     }
+
+    _drawArea->EnableRedraw(true);
 }
 
 void FalconBoard::_AddToRecentList(QString path)
@@ -710,6 +718,8 @@ void FalconBoard::on_actionCleaRecentList_triggered()
 void FalconBoard::_sa_actionRecentFile_triggered(int which)
 {
 //    _busy = true;   // do not delete signal mapper during a mapping
+    if (!_SaveIfYouWant(true))    // must ask if data changed, false: cancelled
+        return;
     QString& fileName = _recentList[which];
     _SaveLastDirectory(fileName);
     _LoadData(fileName);
@@ -807,23 +817,31 @@ void FalconBoard::on_actionHelp_triggered()
         tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl End</p>")
 #ifndef _VIEWER
         +
+        "<br>" +
+        tr("<p>F4<br>&nbsp;&nbsp;Take a screenshot of an area using the right mouse button</p>")+
         tr("<p>Left and right bracket keys '[',']' change brush size</p>")+
         tr("<p><i>Select colors</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5, eraser: E</p>")+
-        tr("<p><i>Draw rectangle</i> around selected area<br>&nbsp;&nbsp;R key")+
-        tr("Insert vertical space from top of selected area - F5</p>")+
-        tr("<p><i>Recolor selected</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5 </p>")+
-        tr("<p><i>Copy selected</i><br>&nbsp;&nbsp;Ctrl+Ins, Ctrl+C</p>") +
-        tr("<p><i>Cut selected</i><br>&nbsp;&nbsp;Ctrl+X, Shift+Del</p>") +
-        tr("<p><i>Delete selected</i><br>&nbsp;&nbsp;Del, BackSpace</p>") +
-        "<br>" +
-        tr("<p><i>Select</i> drawings with right button or Ctrl+Left mouse button.</p>") +
-        tr("<p><i>Move</i> selected drawings with Left button, move copy by Alt+Left button.</p>")+
-        tr("<p>Selected drawings can be deleted, copied or cut out by keyboard shortcuts./p>") +
-        tr("<p>To paste selection select an area at destination with right button and use keyboard shortcut.</p>")+
         tr("<p>Draw a straight line from last position by holding down a Shift key while pressing Left, ")+
         tr("draw horizontal or vertical line by <i>first</i> pressing Left, then holding Shift key while drawing. ")+
         tr("Line orientation depends on which direction you start to draw.</p>")+
-        tr("<p>Take a screenshot of an area using the right mouse button - F4</p>")
+
+        tr("<p><b>Area selection</b><br>")+
+        tr(   "Press and hold the <i>right mouse (pen) button</i> or "
+              "press and hold <i>Ctrl</i> plus the <i>left mouse button</i> "
+              "and move the mouse (pen) around. Release the buttons when finished. "
+              "Hold the Shift key to get a square selection.")+
+        tr("If the selection contains one or more complete lines or even eraser strokes (!) "
+           "then the selection will shrink around those.</p>")+
+        tr("<p>1, 2, 3, 4, 5 <br>&nbsp;&nbsp;<i>Recolor selected</i></p>")+
+        tr("<p>Ctrl+Ins, Ctrl+C<br>&nbsp;&nbsp;<i>Copy selected</i></p>") +
+        tr("<p>Ctrl+X, Shift+Del<br>&nbsp;&nbsp;<i>Cut selected</i></p>") +
+        tr("<p>Del, BackSpace<br>&nbsp;&nbsp;<i>Delete selected</i></p>") +
+        tr("<p><i>Move</i> selected drawings with Left button, move copy by Alt+Left button.</p>")+
+        tr("<p>To paste selection select an area at destination with right button and use keyboard shortcut.</p>")+
+        tr("<p>When an area is selected you can:</p>")+
+        tr("<p>R key<br>&nbsp;&nbsp;<i>Draw a rectangle</i> around selected area.")+
+        tr("<p>C key<br>&nbsp;&nbsp;<i>Draw an ellipse (or circle)</i> inside selected area.")+
+        tr("<p>F5<br>&nbsp;&nbsp;<i>Insert vertical space</i> from top of selected area</p>")
 #endif
     );
 }

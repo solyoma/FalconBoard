@@ -112,6 +112,16 @@ int DrawArea::Load(QString name)
     return res;
 }
 
+bool DrawArea::EnableRedraw(bool value)
+{
+    bool b = _mustRedrawArea;
+    _mustRedrawArea = value;
+    if (value && _redrawPending)  // redraw was requested but not performed
+        _Redraw();
+
+    return b;
+}
+
 #ifndef _VIEWER
 bool DrawArea::OpenBackgroundImage(const QString& fileName)
 {
@@ -245,7 +255,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 #if !defined _VIEWER && defined _DEBUG
     if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::AltModifier)))
-    {
+    {                           // toggle debug mode
         _debugmode = !_debugmode;
         if (_mods.testFlag(Qt::ShiftModifier))
             _pencilmode = !_pencilmode;
@@ -260,8 +270,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
     }
     else if (event->spontaneous())
     {
-        /*Qt::KeyboardModifiers */ _mods = event->modifiers();
-
 #ifndef _VIEWER
         if (_rubberBand)    // delete rubberband for any keypress except pure modifiers
         {
@@ -378,6 +386,37 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
                 emit CanUndo(true);
                 emit CanRedo(false);
+            }
+            if (key == Qt::Key_C)   // draw ellipse
+            {
+                _actPenWidth = _penWidth;
+                _lastDrawnItem.clear();
+                _lastDrawnItem.type = heScribble;
+
+                QPainterPath myPath;
+                QRectF rf = _rubberRect;
+                myPath.addEllipse(rf);
+                QList<QPolygonF> polList = myPath.toSubpathPolygons();
+                QPoint pt;
+                if (polList.size())
+                {
+                    _lastPointC = QPoint( polList[0][0].x(), polList[0][0].y());
+                    _lastDrawnItem.add(_lastPointC);
+                    for (auto p : polList)
+                    {
+                        for (auto ptf : p)
+                        {
+                            pt = QPoint( (int)ptf.x(),(int)ptf.y() );
+                            _DrawLineTo(pt);
+                            _lastPointC = pt;
+                            _lastDrawnItem.add(_lastPointC);
+                        }
+                    }
+                    _history.addDrawnItem(_lastDrawnItem);
+
+                    emit CanUndo(true);
+                    emit CanRedo(false);
+                }
             }
             if (bRemove)
                 _RemoveRubberBand();
@@ -521,8 +560,10 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
     if ((event->buttons() &  Qt::RightButton) ||
         (event->buttons() & Qt::LeftButton && event->modifiers().testFlag(Qt::ControlModifier)) && _rubberBand)
     {
-        QPoint pos = event->pos();
-        _rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
+        QPoint epos = event->pos();
+        if (event->modifiers().testFlag(Qt::ShiftModifier))
+            epos.setX(_rubberBand->geometry().x() + (epos.y() - _rubberBand->geometry().y()) );
+        _rubberBand->setGeometry(QRect(_rubber_origin, epos).normalized()); // means: top < bottom, left < right
     }
     else
 #endif
@@ -885,6 +926,8 @@ void DrawArea::paintEvent(QPaintEvent* event)
 
 void DrawArea::resizeEvent(QResizeEvent* event)
 {
+    QWidget::resizeEvent(event);
+
     if (_limited && _topLeft.x() + width() >= _screenWidth)
         _ShiftOrigin(QPoint( (_topLeft.x() + width() - _screenWidth),0));
 
@@ -897,7 +940,6 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 
         _Redraw();
     }
-    QWidget::resizeEvent(event);
 
     _canvasRect = QRect(0, 0, geometry().width(), geometry().height() ).translated(_topLeft);     // 0,0 relative rectangle
     _clippingRect = _canvasRect;
@@ -1068,11 +1110,13 @@ void DrawArea::_MoveToActualPosition(QRect rect)
 HistoryItemVector DrawArea::_CollectDrawables()
 {
     HistoryItemVector hv;
-    if (_history.SetFirstItemToDraw() < 0)
-        return hv;
+    if (_history.SetFirstItemToDraw() < 0)  // returns index of first visible item after the last clear screen
+        return hv;                          // so when no such iteme xists we're done with empty list
+
     HistoryItem* phi;
-    while ((phi = _history.GetOneStep()))
-        hv.push_back(phi);
+    while ((phi = _history.GetOneStep()))   // add next not hidden item to vector in y order
+        hv.push_back(phi);                  
+                                            // but draw them in z-order
     std::sort(hv.begin(), hv.end(), [](HistoryItem* pl, HistoryItem* pr) {return pl->ZOrder() < pr->ZOrder(); });
     return hv;
 }
@@ -1154,6 +1198,44 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
         .adjusted(-rad, -rad, +rad, +rad));
 
     _lastPointC = endPointC;
+}
+
+void DrawArea::_DrawAllPoints(DrawnItem* pdrni)
+{
+    _myPenKind = pdrni->penKind;
+    _actPenWidth = pdrni->penWidth;
+    _erasemode = pdrni->type == heEraser ? true : false;
+
+    
+    QPainter painter(&_canvas);
+    QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+
+    painter.setPen(pen);
+    if (_erasemode && !_debugmode)
+        painter.setCompositionMode(QPainter::CompositionMode_Clear);
+    else
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter.setRenderHint(QPainter::HighQualityAntialiasing);
+
+    _lastPointC = pdrni->points[0] - _topLeft;
+    QPoint pt;
+    if(pdrni->points.size() > 1)
+        pt = pdrni->points[1] - _topLeft;
+    else
+        pt = pdrni->points[0] - _topLeft + QPoint(1,1);
+
+    for (int i = 1; i < pdrni->points.size()-1; ++i)
+    {
+        painter.drawLine(_lastPointC, pt);
+        _lastPointC = pt;
+        pt = pdrni->points[i+1] - _topLeft;
+    }
+    painter.drawLine(_lastPointC, pt);
+
+    int rad = (_actPenWidth / 2) + 2;
+    update(pdrni->bndRect.normalized()
+           .adjusted(-rad, -rad, +rad, +rad));
+    _lastPointC = pt;
 }
 
 void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTransparent)
@@ -1315,6 +1397,13 @@ void DrawArea::ExportPdf(QString fileName)
 
 void DrawArea::_Redraw()
 {
+    if (!_mustRedrawArea)
+    {
+        _redrawPending = true;
+        return;
+    }
+
+    _redrawPending = false;
     int savewidth = _penWidth;
     MyPenKind savekind = _myPenKind;
     bool saveEraseMode = _erasemode;
@@ -1395,13 +1484,13 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         //    painter.drawRect(rect);
         //}
         // /DEBUG            
-
-        _lastPointC = pdrni->points[0] - _topLeft;
-        _myPenKind = pdrni->penKind;
-        _actPenWidth = pdrni->penWidth;
-        _erasemode = pdrni->type == heEraser ? true : false;
-        for (int i = 1; i < pdrni->points.size(); ++i)
-            _DrawLineTo(pdrni->points[i] - _topLeft);
+        _DrawAllPoints(pdrni);
+        //_lastPointC = pdrni->points[0] - _topLeft;
+        //_myPenKind = pdrni->penKind;
+        //_actPenWidth = pdrni->penWidth;
+        //_erasemode = pdrni->type == heEraser ? true : false;
+        //for (int i = 1; i < pdrni->points.size(); ++i)
+        //    _DrawLineTo(pdrni->points[i] - _topLeft);
 
     };
 
@@ -1409,17 +1498,17 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
     {
         case heScribble:
         case heEraser:    
-            if( (pdrni = phi->GetDrawable(0)))
+            if( (pdrni = phi->GetVisibleDrawable(0)))
                 plot();
             break;
         case heItemsDeleted:    // nothing to do
             break;
         case heItemsPastedTop:
-            pdrni = phi->GetDrawable();
+            pdrni = phi->GetVisibleDrawable();
             for (int i = 1; pdrni; ++i)
             {
                 plot();
-                pdrni = phi->GetDrawable(i);
+                pdrni = phi->GetVisibleDrawable(i);
             }
             break;
         default:
@@ -1546,10 +1635,31 @@ void DrawArea::_ShiftOrigin(QPoint delta)    // delta changes _topLeft, positive
     _SetOrigin(o);
 }
 
-void DrawArea::_ShiftAndDisplayBy(QPoint delta)    // delta changes _topLeft, negative delta.x: scroll right
+void DrawArea::_ShiftAndDisplayBy(QPoint delta, bool bPointByPoint)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
 {
-    _ShiftOrigin(delta);
-    _Redraw();
+    if( (delta.y() > 0 && _topLeft.y() == 0 && delta.x() == 0) || (delta.x() > 0 && _topLeft.x() == 0 && delta.y() == 0) ||
+        ( _limited && (delta.x() < 0 && _topLeft.x() +width() >= _screenWidth) )
+      )
+       return;      // nothing to do
+
+    if (bPointByPoint)
+    {
+        int xstep = delta.x(),    // only one of these should be non zero
+            ystep = delta.y(),
+            count = xstep ? (xstep > 0 ? xstep : -xstep) : (ystep ? (ystep > 0 ? ystep : -ystep) : 0);
+
+        QPoint onept(xstep ? xstep/abs(xstep) : 0, ystep ? ystep/abs(ystep) : 0);
+        for (int i = 0; i < count; ++i)
+        {
+            _ShiftOrigin(onept);
+            _Redraw();
+        }
+    }
+    else
+    {
+        _ShiftOrigin(delta);
+        _Redraw();
+    }
 }
 void DrawArea::_PageUp()
 {
@@ -1575,26 +1685,26 @@ void DrawArea::_End()
     _SetOrigin(_topLeft);
     _Redraw();
 }
-
+// second argument should be true for smotth scrolling (when it will work...)
 void DrawArea::_Up(int amount)
 {
     QPoint pt(0, amount);
-    _ShiftAndDisplayBy(pt);
+    _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Down(int amount)
 {
     QPoint pt(0, -amount);
-    _ShiftAndDisplayBy(pt);
+    _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Left(int amount)
 {
     QPoint pt(amount,0);
-        _ShiftAndDisplayBy(pt);
+    _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Right(int amount)
 {
     QPoint pt(-amount,0);
-        _ShiftAndDisplayBy(pt);
+    _ShiftAndDisplayBy(pt, false);
 }
 
 #ifndef _VIEWER

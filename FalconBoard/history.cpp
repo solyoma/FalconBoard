@@ -130,7 +130,7 @@ void DrawnItem::Translate(QPoint dr, int minY)
 	bndRect.translate(dr);
 }
 
-void DrawnItem::Rotate(MyRotation rotation, QRect encRect)	// rotate around the center of encRect
+void DrawnItem::Rotate(MyRotation rotation, QRect encRect, float alpha)	// rotate around the center of encRect
 {
 	int erx = encRect.x(), ery = encRect.y(),
 		erw = encRect.width(),
@@ -286,7 +286,7 @@ void ScreenShotImage::Translate(QPoint p, int minY)
 
 }
 
-void ScreenShotImage::Rotate(MyRotation rot, QRect encRect)
+void ScreenShotImage::Rotate(MyRotation rot, QRect encRect, float alpha)
 {
 	QTransform transform;
 	switch (rot)
@@ -352,11 +352,11 @@ void ScreenShotImageList::Translate(int which, QPoint p, int minY)
 	(*this)[which].Translate(p, minY);
 }
 
-void ScreenShotImageList::Rotate(int which, MyRotation rot, QRect encRect)
+void ScreenShotImageList::Rotate(int which, MyRotation rot, QRect encRect, float alpha)
 {
 	if (which < 0 || which >= size() || (*this)[which].isVisible)
 		return;
-	(*this)[which].Rotate(rot, encRect);
+	(*this)[which].Rotate(rot, encRect, alpha);
 }
 
 
@@ -432,9 +432,14 @@ int HistoryDrawnItem::ZOrder() const
 	return drawnItem.zOrder;
 }
 
-DrawnItem* HistoryDrawnItem::GetDrawable(int index) const
+DrawnItem* HistoryDrawnItem::GetVisibleDrawable(int index) const
 {
 	return (index || Hidden()) ? nullptr : const_cast<DrawnItem*>(&drawnItem);
+}
+
+DrawnItem* HistoryDrawnItem::GetDrawable(int index) const
+{
+	return (index) ? nullptr : const_cast<DrawnItem*>(&drawnItem);
 }
 
 QRect HistoryDrawnItem::Area() const
@@ -447,7 +452,7 @@ void HistoryDrawnItem::Translate(QPoint p, int minY)
 	drawnItem.Translate(p, minY);
 }
 
-void HistoryDrawnItem::Rotate(MyRotation rot, QRect encRect)
+void HistoryDrawnItem::Rotate(MyRotation rot, QRect encRect, float alpha)
 {
 	drawnItem.Rotate(rot, encRect);
 }
@@ -659,7 +664,7 @@ void HistoryPasteItemTop::Translate(QPoint p, int minY)
 		boundingRect.translate(p);
 }
 
-void HistoryPasteItemTop::Rotate(MyRotation rot, QRect encRect)
+void HistoryPasteItemTop::Rotate(MyRotation rot, QRect encRect, float alpha)
 {
 	for (int i = 1; i <= count; ++i)
 		(*pHist)[indexOfBottomItem + i]->Rotate(rot, encRect);
@@ -670,6 +675,13 @@ DrawnItem* HistoryPasteItemTop::GetDrawable(int which) const
 	if (which < 0 || which >= count)
 		return nullptr;
 	return (*pHist)[indexOfBottomItem + 1 + which]->GetDrawable(0);
+}
+
+DrawnItem* HistoryPasteItemTop::GetVisibleDrawable(int which) const
+{
+	if (which < 0 || which >= count)
+		return nullptr;
+	return (*pHist)[indexOfBottomItem + 1 + which]->GetVisibleDrawable(0);
 }
 
 QRect HistoryPasteItemTop::Area() const
@@ -727,7 +739,7 @@ int  HistoryReColorItem::Undo()
 	{
 		int index = 0;
 		DrawnItem* pdri;
-		while ((pdri = (*pHist)[i]->GetDrawable(index)))
+		while ((pdri = (*pHist)[i]->GetVisibleDrawable(index)))
 			pdri->penKind = penKindList[index++];
 	}
 	return 1;
@@ -738,7 +750,7 @@ int  HistoryReColorItem::Redo()
 	{
 		int index = 0;
 		DrawnItem* pdri;
-		while ((pdri = (*pHist)[i]->GetDrawable(index)))
+		while ((pdri = (*pHist)[i]->GetVisibleDrawable(index)))
 		{
 			penKindList[index++] = pdri->penKind;
 			pdri->penKind = pk;
@@ -854,7 +866,7 @@ void HistoryScreenShotItem::Translate(QPoint p, int minY)
 	(*pHist->pImages)[which].Translate(p, minY);
 }
 
-void HistoryScreenShotItem::Rotate(MyRotation rot, QRect encRect)
+void HistoryScreenShotItem::Rotate(MyRotation rot, QRect encRect, float alpha)
 {
 	(*pHist->pImages)[which].Rotate(rot, encRect);
 }
@@ -866,15 +878,15 @@ ScreenShotImage* HistoryScreenShotItem::GetScreenShotImage() const
 
 //---------------------------------------------------------
 
-HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList) :
-	HistoryItem(pHist), rot(rotation), nSelectedItemList(selList), encRect(rect)
+HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList, float alpha) :
+	HistoryItem(pHist), rot(rotation), rAlpha(alpha), nSelectedItemList(selList), encRect(rect)
 {
 	encRect = encRect;
 	Redo();
 }
 
 HistoryRotationItem::HistoryRotationItem(const HistoryRotationItem& other) :
-	HistoryItem(other.pHist), rot(other.rot), nSelectedItemList(other.nSelectedItemList)
+	HistoryItem(other.pHist), rot(other.rot), rAlpha(other.rAlpha), nSelectedItemList(other.nSelectedItemList)
 {
 	flipV = other.flipV;
 	flipH = other.flipH;
@@ -887,6 +899,7 @@ HistoryRotationItem& HistoryRotationItem::operator=(const HistoryRotationItem& o
 	nSelectedItemList = other.nSelectedItemList;
 	flipV = other.flipV;
 	flipH = other.flipH;
+	rAlpha = other.rAlpha;
 	encRect = other.encRect;
 
 	return *this;
@@ -895,6 +908,7 @@ HistoryRotationItem& HistoryRotationItem::operator=(const HistoryRotationItem& o
 int HistoryRotationItem::Undo()
 {
 	MyRotation rotation = rot;
+	float alpha = rAlpha;
 	switch (rot)
 	{
 		case rotR90:
@@ -906,11 +920,15 @@ int HistoryRotationItem::Undo()
 		case rot180:
 		case rotFlipH:
 		case rotFlipV:
+			break;
+		case rotAlpha:
+			alpha = - rAlpha;
+			break;
 		default:
 			break;
 	}
 	for (int n : nSelectedItemList)
-		(*pHist)[n]->Rotate(rotation, encRect);
+		(*pHist)[n]->Rotate(rotation, encRect, alpha);
 	SwapWH(encRect);
 
 	return 1;
@@ -919,7 +937,7 @@ int HistoryRotationItem::Undo()
 int HistoryRotationItem::Redo()
 {
 	for (int n : nSelectedItemList)
-		(*pHist)[n]->Rotate(rot, encRect);
+		(*pHist)[n]->Rotate(rot, encRect, rAlpha);
 	if(rot != rotFlipH && rot != rotFlipV)
 		SwapWH(encRect);
 	return 0;
@@ -956,8 +974,82 @@ History::~History()
 	clear();
 }
 
+
 /*========================================================
- * TASK:	Fet index of top-left-most element at or below xy.y
+ * TASK:	Find topmost element which intersects the clipping
+ *			area
+ * PARAMS:	clip - clipping area
+ * GLOBALS:
+ * RETURNS: index in _yxOrder of topmost element, which visible and
+ *				intersects the clipping area
+ * REMARKS: - expects element ordered in _yxOrder arrray
+ *				first by y, then by x
+ *			- it is possible, that element for index i 
+ *				in _yxOrder inersects the clipping area, 
+ *				for index (i+1) it isn't and index (i+2)
+ *				is
+ *-------------------------------------------------------*/
+int History::_YIndexForClippingRect(const QRect& clip)
+{
+
+	int s = 0,					// beginning of range
+		e = _yxOrder.size()-1;	// end +1 of range
+	int m = e / 2,				// middle of range
+		mprev = 0;
+	const HistoryItem* ph;
+	QPoint pt;
+	const DrawnItem* pdrni;
+
+	while(m != mprev && m >= s && m <= e && (ph = _yitems(m)) )
+	{
+		pt = ph->TopLeft();
+		if (pt.y() > clip.bottom())	// outside and below
+		{
+			e = m;
+		}
+		else
+		{
+			pdrni = ph->GetDrawable();	// may be hidden, should never be nullptr
+			if (!pdrni->intersects(clip))	// completely above or to the right/left and not shown
+			{
+				if (pt.y() >= clip.top())
+					e = m;
+				else
+					s = m;
+			}
+			else	// either inside or above
+			{
+				e = m-1;
+			}
+
+		}
+		mprev = m;
+		m = (e - s) / 2;
+	}
+	return m;
+
+
+
+	//IntVector::iterator it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), 0,     // 0: in place of 'value' (=='right') - not used
+	//										  [&](const int left, const int right)	   // left: _yorder[xxx], returns true if above or left
+	//										  {										   // right(value) is clip
+	//											  const HistoryItem* ph = (const HistoryItem*)_items[left];
+	//											  QPoint pt = ph->TopLeft();
+	//											  if (pt.y() > clip.bottom())
+	//												  return false;
+	//											  DrawnItem* pdrni = ph->GetDrawable();	// may be hidden, should never be nullptr
+	//											  if (pdrni && pdrni->intersects(clip))
+	//												  return true;					   // pdrni is below clipping area
+	//												return false;					   // ph above clipping area
+	//										  });
+	//int i = (it - _yxOrder.begin());
+	//if (i >= _yxOrder.size())
+	//	return -1;
+//	return i;
+}
+
+/*========================================================
+ * TASK:	Get index of top-left-most element at or below xy.y
  *			in _items, using '_yOrder' (binary search)
  * PARAMS:	xy  - limiting point 
  * GLOBALS:
@@ -966,9 +1058,9 @@ History::~History()
  * REMARKS: - y inreses downwards
  *-------------------------------------------------------*/
 int History::_YIndexForXY(QPoint xy)
-{
+{				// get first element, which is above or at xy.y
 	IntVector::iterator it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), 0,     // 0: in place of 'right' - not used
-											  [&](const int left, const int right)	   // left: _yorder[xxx]
+											  [&](const int left, const int right)	   // left: _yorder[xxx], returns true if above or left
 											  {
 												  QPoint pt = ((const HistoryItem*)_items[left])->TopLeft();
 												  if (pt.y() < xy.y())
@@ -989,40 +1081,40 @@ int History::_YIndexForXY(QPoint xy)
  * RETURNS: index of element or -1
  * REMARKS: 
  *-------------------------------------------------------*/
-int History::_YIndexWhichInside()
-{
-	int i0 = _YIndexForXY(_clpRect.topLeft() );		// any number of items above this may be OK
-	int ib = -1,	// before i0
-		ia = -1;	// after i0			- if not -1 then element found 
-
-	if (i0 >= _yxOrder.size())
-		return -1;
-
-	HistoryItem	*pb = _yitems(i0), 	// pointers before and after selected
-				*pa = pb;			// starting from the same actual selected
-
-	if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect))
-		ia = i0;			// set found element index for 'after' elements
-
-	int inc = 1;									// should test all elements above the i-th one but only do it for max 100
-	while (inc < 100 && (i0-inc >= 0 || ia < 0))
-	{
-		pb = i0 - inc >= 0 ? _yitems(i0 - inc) : nullptr;
-		pa = ia < 0 && (i0 + inc  < _yxOrder.size()) ? _yitems(i0 + inc) : nullptr;
-		if ( pb && !pb->Hidden() && pb->Area().intersects(_clpRect)) 
-			ib = i0 - inc;
-		else if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect)) // only check those that come after if not found already in before 
-			ia = i0 + inc;
-		++inc;
-	}
-
-	if (ib >= 0)
-		return ib;
-	else if (ia >= 0)
-		return ia;
-	else
-		return ib; // -1
-}
+//int History::_YIndexWhichInside()
+//{
+//	int i0 = _YIndexForXY(_clpRect.topLeft() );		// any number of items above this may be OK
+//	int ib = -1,	// before i0
+//		ia = -1;	// after i0			- if not -1 then element found 
+//
+//	if (i0 >= _yxOrder.size())
+//		return -1;
+//
+//	HistoryItem	*pb = _yitems(i0), 	// pointers before and after selected
+//				*pa = pb;			// starting from the same actual selected
+//
+//	if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect))
+//		ia = i0;			// set found element index for 'after' elements
+//
+//	int inc = 1;									// should test all elements above the i-th one but only do it for max 100
+//	while (inc < 100 && (i0-inc >= 0 || ia < 0))
+//	{
+//		pb = i0 - inc >= 0 ? _yitems(i0 - inc) : nullptr;
+//		pa = ia < 0 && (i0 + inc  < _yxOrder.size()) ? _yitems(i0 + inc) : nullptr;
+//		if ( pb && !pb->Hidden() && pb->Area().intersects(_clpRect)) 
+//			ib = i0 - inc;
+//		else if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect)) // only check those that come after if not found already in before 
+//			ia = i0 + inc;
+//		++inc;
+//	}
+//
+//	if (ib >= 0)
+//		return ib;
+//	else if (ia >= 0)
+//		return ia;
+//	else
+//		return ib; // -1
+//}
 int History::_YIndexForIndex(int index)      // index: in unordered array, returns yindex in _yxOrder
 {
 	QPoint pt = _items[index]->TopLeft();
@@ -1080,7 +1172,7 @@ int History::YIndexOfTopmost(bool onlyY)
 	if (onlyY)
 		return _YIndexForXY(_clpRect.topLeft());
 	else
-		yi = _YIndexWhichInside();
+		yi = _YIndexForClippingRect(_clpRect);		// from _YIndexWhichInside
 
 	if (yi < 0)
 		return -1;
@@ -1300,7 +1392,7 @@ bool History::Save(QString name)
 			continue;
 		}
 		DrawnItem* pdrni;
-		while ((pdrni = ph->GetDrawable(++index)) != nullptr)
+		while ((pdrni = ph->GetVisibleDrawable(++index)) != nullptr)
 			ofs << *pdrni;
 	}
 	_modified = false;
@@ -1779,12 +1871,12 @@ void History::CopySelected(Sprite *sprite)
 			else
 			{
 				int index = 0; // index in source
-				const DrawnItem* pdrni = item->GetDrawable();
+				const DrawnItem* pdrni = item->GetVisibleDrawable();
 				while (pdrni)
 				{
 					pCopiedItems->push_back(*pdrni);
 					(*pCopiedItems)[pCopiedItems->size() - 1].Translate( -_selectionRect.topLeft(), -1);
-					pdrni = item->GetDrawable(++index);
+					pdrni = item->GetVisibleDrawable(++index);
 				}
 			}
 		}

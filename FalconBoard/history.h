@@ -16,8 +16,11 @@ constexpr int DRAWABLE_ZORDER_BASE = 10000000;
 
 enum HistEvent {
     heNone,
+        // these are types saved on disk
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
+    heEllipse,         // ellipse as a series of points
+        // these are not saved
     heRecolor,         // save old color, set new color
     heScreenShot,
     heItemsDeleted,         // store the list of items deleted in this event
@@ -32,10 +35,20 @@ enum HistEvent {
                         // Undo: set _indexLastDrawnItem to that given in previous history item
                         // Redo: set _indexLastDrawnItem to 'lastDrawnIndex'
                 };
-enum MyRotation { rotNone, rotR90, rotL90, rot180, rotFlipH, rotFlipV};
-enum MyLayer { mlyBackgroundImage, mlyDrawnItem, mlyScreenShot};
+enum MyRotation { rotNone, 
+            rotR90, rotL90, rot180, rotFlipH, rotFlipV,     // these leave the top left corner in place
+            rotAlpha                                        // alpha: around the center of the bounding box, increasescounterclockwise
+                };
+enum MyLayer { 
+                mlyBackgroundImage,         // lowest layer: background image
+                mlyScreenShot,              // screenshot layer: may write over it
+                mlyDrawnItem,               // drawables are drawn here
+                mlySprite                   // layer for sprites (moveable images)
+             };
 
-struct DrawnItem    // stores the freehand line strokes from pen down to pen up
+using PointVector = QVector<QPoint>;
+// stores the coordinates of line strokes from pen down to pen up:
+struct DrawnItem        // drawn on layer mltDrawnItem
 {                   
     HistEvent type = heNone;
     int zOrder = 0;
@@ -43,8 +56,9 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
     MyPenKind penKind = penBlack;
     int penWidth =1;
-    QVector<QPoint> points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
+    PointVector points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
     MyRotation rot = rotNone;       // used only when rotation item added
+    float rAlpha = 0;               // for 'rotAlpha': rotation around  center of bounding box
     QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
                                     // not saved on disk, recreated on read
 
@@ -55,21 +69,19 @@ struct DrawnItem    // stores the freehand line strokes from pen down to pen up
 
     DrawnItem& operator=(const DrawnItem&& di)  noexcept;
 
-    void clear();
+    void clear();       // clears points and sets type to heNone
 
     static bool IsExtension(const QPoint& p, const QPoint& p1, const QPoint& p2 = QPoint()); // vectors p->p1 and p1->p are parallel?
 
-    void add(QPoint p);          // add point w.o. modifying bounding rectangle
+    void add(QPoint p);          // must use SetBoundingRectangle after all points adedde
     void add(int x, int y);      // - " - 
-
-    void Smooth();              // points
+    void Smooth();               // points
 
     void SetBoundingRectangle(); // use after all points added
-
     bool intersects(const QRect& arect) const;
 
     void Translate(QPoint dr, int minY);    // only if not deleted and top is above minY
-    void Rotate(MyRotation rot, QRect inThisrectangle);
+    void Rotate(MyRotation rot, QRect inThisrectangle, float alpha=0.0);    // alpha used only for 'rotAlpha'
 };
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di);
@@ -78,7 +90,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di);
 
 // ******************************************************
 // image to shown on background
-struct ScreenShotImage {           // shown below the drawings
+struct ScreenShotImage {           // shown on layer mlyScreenShot below the drawings
     QImage image;              // image from the disk or from screenshot
     QPoint topLeft;            // relative to (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
     bool isVisible = true;
@@ -88,7 +100,7 @@ struct ScreenShotImage {           // shown below the drawings
             // isNull() true when no intersection
     QRect Area(const QRect& canvasRect) const;
     void Translate(QPoint p, int minY);
-    void Rotate(MyRotation rot, QRect encRect);
+    void Rotate(MyRotation rot, QRect encRect, float alpha=0.0);    // only used for 'rotAlpha'
 };
 
 inline QDataStream& operator<<(QDataStream& ofs, const ScreenShotImage& bimg);
@@ -106,7 +118,7 @@ public:
     ScreenShotImage* FirstVisible(const QRect& canvasRect);
     ScreenShotImage* NextVisible();
     void Translate(int which, QPoint p, int minY);
-    void Rotate(int which, MyRotation rot, QRect encRect);
+    void Rotate(int which, MyRotation rot, QRect encRect, float alpha=0.0);
     void Clear();
 };
 
@@ -131,12 +143,13 @@ struct HistoryItem      // base class
 
     virtual int ZOrder() const { return 0; }
     virtual QPoint TopLeft() const { return QPoint(); }
-    virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
+    virtual DrawnItem* GetVisibleDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
+    virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem even when it is not visible
     virtual ScreenShotImage* GetScreenShotImage() const { return nullptr; }
 
     virtual bool Translatable() const { return false;  }
     virtual void Translate(QPoint p, int minY) { } // translates if top is >= minY
-    virtual void Rotate(MyRotation rot, QRect encRect) { ; }      // rotation or flip
+    virtual void Rotate(MyRotation rot, QRect encRect, float alpha=0.0) { ; }      // rotation or flip
     virtual int Size() const { return 0; }         // size of stored scribbles or erases
     virtual void SetVisibility(bool visible) { }
 
@@ -169,12 +182,13 @@ struct HistoryDrawnItem : public HistoryItem
 
     int ZOrder() const override;
     QPoint TopLeft() const override { return drawnItem.bndRect.topLeft(); }
+    DrawnItem* GetVisibleDrawable(int index = 0) const override;
     DrawnItem* GetDrawable(int index = 0) const override;
     QRect Area() const override;
     int Size() const override { return 1; }
     bool Translatable() const override { return drawnItem.isVisible; }
     void Translate(QPoint p, int minY) override;
-    void Rotate(MyRotation rot, QRect encRect) override;
+    void Rotate(MyRotation rot, QRect encRect, float alpha=0.0) override;
     bool IsDrawable() const override { return true; }
     // no new undo/redo needed
 };
@@ -191,6 +205,7 @@ struct HistoryDeleteItems : public HistoryItem
     HistoryDeleteItems(HistoryDeleteItems&& other);
     HistoryDeleteItems& operator=(const HistoryDeleteItems&& other);
     DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
+    DrawnItem* GetVisibleDrawable(int index = 0) const override { return nullptr; }
 };
 //--------------------------------------------
 // remove an empty rectangular region by moving
@@ -251,13 +266,14 @@ struct HistoryPasteItemTop : HistoryItem
     int Size() const override { return count; }
 
     DrawnItem* GetDrawable(int index = 0) const override; // only for top get (count - index)-th below this one
+    DrawnItem* GetVisibleDrawable(int index = 0) const override; // only for top get (count - index)-th below this one
 
     bool Hidden() const override;       // only for top: when the first element is hidden, all hidden
     // bool IsSaveable() const override;
     void SetVisibility(bool visible) override; // for all elements 
     bool Translatable() const override { return !Hidden(); }
     void Translate(QPoint p, int minY) override;
-    void Rotate(MyRotation rot, QRect encRect) override;
+    void Rotate(MyRotation rot, QRect encRect, float alpha=0.0) override;
 
     QPoint TopLeft() const override { return boundingRect.topLeft(); }
     QRect Area() const override;
@@ -315,7 +331,7 @@ struct HistoryScreenShotItem : public HistoryItem
     void SetVisibility(bool visible) override; // for all elements in list
     bool Translatable() const override;
     void Translate(QPoint p, int minY) override;
-    void Rotate(MyRotation rot, QRect encRect) override;
+    void Rotate(MyRotation rot, QRect encRect, float alpha=0.0) override;
     bool IsDrawable() const override { return true; }
     ScreenShotImage* GetScreenShotImage() const override;
 };
@@ -325,10 +341,11 @@ struct HistoryRotationItem : HistoryItem
     MyRotation rot;
     bool flipH = false;
     bool flipV = false;
+    float rAlpha = 0.0;
     IntVector nSelectedItemList;
     QRect encRect;         // encompassing rectangle: all items inside
 
-    HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList);
+    HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList, float alpha=0.0);
     HistoryRotationItem(const HistoryRotationItem& other);
     HistoryRotationItem& operator=(const HistoryRotationItem& other);
     int Undo() override;
@@ -340,6 +357,12 @@ struct HistoryRotationItem : HistoryItem
 class History;
         // declare here so that CopySelected can use it, but 
         // create and use it in 'DrawArea'
+
+/*========================================================
+ * describes an image with transparent background to show 
+ *  on top of everything, while containing all of the items
+ *  to paste into the list
+ *-------------------------------------------------------*/
 struct Sprite
 {
     Sprite(History* ph);
@@ -350,7 +373,7 @@ struct Sprite
     QImage image;       // image of the sprite to paint over the canvas
     QRect rect;         // selection rectangle 0,0, width,height
 
-    IntVector nSelectedItemsList;    // indices into '_items', that are completely inside the rubber band
+    IntVector nSelectedItemsList;     // indices into 'pHist->_items', that are completely inside the rubber band
     DrawnItemVector       items;      // each point of items[..] is relative to top-left of sprite (0,0)
     ScreenShotImageList   images;     // image top left is relative to top left of sprite (0,0)
 };
@@ -378,13 +401,12 @@ using HistoryItemVector = QVector<HistoryItem*>;
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    bool _inLoad = false;                // in function Load() / needed for correct z- order settings
-    HistoryItemVector _items,           // items in the order added
+    bool _inLoad = false;               // in function Load() / needed for correct z- order settings
+    HistoryItemVector _items,           // items in the order added. Items need not be drawable.
                                         // drawable elements on this list may be either visible or hidden
-                      _redo;            // items after undo
+                      _redo;            // from _items for redo. Items need not be drawable.
                                         // drawable elements on this list may be either visible or hidden
-    IntVector   _yxOrder;               // indices into _items ordered by y then x    
-                                        // same size as the number of drwable items in _itemss
+    IntVector   _yxOrder;               // indices of all drawables in '_items' ordered by y then x    
                                         // undrawable items have no indices in here
     friend class _yitems;
     int _yindex = -1;                   // index in ordered item list
@@ -416,9 +438,10 @@ class History  // stores all drawing sections and keeps track of undo and redo
                                         // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
     bool _IsSaveable(int i);
 
+    int _YIndexForClippingRect(const QRect &clip); // binary search in ordered list
     int _YIndexForXY(QPoint topLeft);        // index of top-left-most element below xy (y larger or equal to xy.y) 
                                         // in _items, using '_yOrder' (binary search)
-    int _YIndexWhichInside();// index of top most element whose area includes point xy
+//    int _YIndexWhichInside();// index of top most element whose area includes point xy
     QPoint _XYForIndex(int index)       // y coord of (physical) index-th element no check if thisa is valid!
     {
         return _items[index]->TopLeft();
