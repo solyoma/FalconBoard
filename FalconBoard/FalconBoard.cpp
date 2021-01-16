@@ -121,6 +121,11 @@ void FalconBoard::RestoreState()
         setWindowTitle(sWindowTitle + QString(" - %1").arg(_saveName));
     }
     _lastDir  = s.value("lastDir",  "").toString();
+    if (!_lastDir.isEmpty() && _lastDir[_lastDir.size() - 1] != '/')
+        _lastDir += "/";
+    _lastPDFDir  = s.value("lastPDFDir",  "").toString();
+    if (!_lastPDFDir.isEmpty() && _lastPDFDir[_lastPDFDir.size() - 1] != '/')
+        _lastPDFDir += "/";
     _lastFile = s.value("lastFile", "untitled.mwb").toString();
     _sImageName = s.value("bckgrnd", "").toString();
 #ifndef _VIEWER
@@ -168,6 +173,7 @@ void FalconBoard::SaveState()
 #endif
 	s.setValue("data", _saveName);
 	s.setValue("lastDir", _lastDir);
+	s.setValue("lastPDFDir", _lastPDFDir);
 	s.setValue("lastFile", _lastFile);
 	s.setValue("bckgrnd", _sImageName);
 
@@ -718,8 +724,10 @@ void FalconBoard::on_actionCleaRecentList_triggered()
 void FalconBoard::_sa_actionRecentFile_triggered(int which)
 {
 //    _busy = true;   // do not delete signal mapper during a mapping
+#ifndef _VIEWER
     if (!_SaveIfYouWant(true))    // must ask if data changed, false: cancelled
         return;
+#endif
     QString& fileName = _recentList[which];
     _SaveLastDirectory(fileName);
     _LoadData(fileName);
@@ -812,12 +820,13 @@ void FalconBoard::on_actionHelp_triggered()
            "  using the arrow keys alone or with Ctrl.</p>")+
         tr("<p><b>Keyboard Shortcuts not shown on menus/buttons:</b></p>")+
         tr("<p><i>To start of line</i><br>&nbsp;&nbsp;Home</p>")+
+        tr("<p><i>To end of line</i><br>&nbsp;&nbsp;End</p>")+
         tr("<p><i>To start of document</i><br>&nbsp;&nbsp;Ctrl+Home</p>") +
+        tr("<p><i>To End of Document</i><br>&nbsp;&nbsp;Ctrl+End</p>")+
         tr("<p><i>To lowest position used so far</i><br>&nbsp;&nbsp;End</p>") +
-        tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl End</p>")
+        tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl</p>")
 #ifndef _VIEWER
         +
-        "<br>" +
         tr("<p>F4<br>&nbsp;&nbsp;Take a screenshot of an area using the right mouse button</p>")+
         tr("<p>Left and right bracket keys '[',']' change brush size</p>")+
         tr("<p><i>Select colors</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5, eraser: E</p>")+
@@ -1096,7 +1105,7 @@ void FalconBoard::SlotForScreenshotReady(QRect gmetry)
     image =QImage(gmetry.size(), QImage::Format_ARGB32);
 
     QPainter *painter = new QPainter(&image);   // need to delete it before the label is deleted
-    painter->drawImage(QPoint(0,0), plblScreen->pixmap()->toImage(), gmetry);
+    painter->drawImage(QPointF(0,0), plblScreen->pixmap()->toImage(), gmetry);
     delete painter;
     _drawArea->AddScreenShotImage(image);
 
@@ -1137,6 +1146,13 @@ void FalconBoard::SlotForPenKindChange(MyPenKind pk)
 void FalconBoard::on_actionPageSetup_triggered()
 {
     _drawArea->PageSetup();
+}
+
+void FalconBoard::on_actionExportToPdf_triggered()
+{
+    int pos = _saveName.lastIndexOf('/');
+    QString name = _lastPDFDir + _saveName.mid(pos+1);
+    _drawArea->ExportPdf(name, _lastPDFDir);
 }
 
 

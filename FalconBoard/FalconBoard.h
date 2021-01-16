@@ -99,7 +99,7 @@ private slots:
 #endif
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() { _drawArea->Print(_saveName);  }
-	void on_actionExportToPdf_triggered() { _drawArea->ExportPdf(_saveName); }
+	void on_actionExportToPdf_triggered();
 
 
 	void on_actionAbout_triggered();
@@ -171,7 +171,7 @@ private:
 
 	ScreenMode _screenMode = smSystem;
 
-	QString _lastDir, _lastFile;
+	QString _lastDir, _lastFile, _lastPDFDir;
 
 	void RestoreState();
 	void SaveState();

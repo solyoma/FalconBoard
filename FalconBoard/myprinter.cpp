@@ -78,7 +78,7 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
             _data.flags |= pfLandscape;
         _data.dpi = _printer->resolution();
         _data.printArea = _printer->pageRect(QPrinter::DevicePixel);
-        _data.printArea.moveTopLeft(QPoint(0, 0));    // margins are set by the printer
+        _data.printArea.moveTopLeft(QPointF(0, 0));    // margins are set by the printer
 
         _data.magn = (float)_data.printArea.width() / (float)_data.screenPageWidth;
         _data.screenPageHeight = (int)((float)_data.printArea.height() / _data.magn);
@@ -101,7 +101,7 @@ MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
             _printer = nullptr;
             return _status;
         }
-        QString docName = _data.docName.left(_data.docName.length() - 3) + "pdf";
+        QString docName = _data.directory + _data.docName.left(_data.docName.length() - 3) + "pdf";
         QString filename = QFileDialog::getSaveFileName(_parent, QMainWindow::tr("FalconBoard - Save PDF As"), docName, "Pdf File(*.pdf)");
         if (filename.isEmpty())
         {
@@ -115,6 +115,14 @@ MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
             filename.append(".pdf");
 
         _data.fileName = filename;
+        int posslash = filename.lastIndexOf('/');
+        if (posslash >= 0)
+            _data.directory = filename.left(posslash + 1);
+        else
+            _data.directory.clear();
+        if (_data.pdir != &_data.directory)     // only for PDF export
+            *_data.pdir = _data.directory;      // save PDF directory
+
         _data.printerName = "MyWhiteBoardPDF";
         _printer->setOutputFormat(QPrinter::PdfFormat);
         _printer->setPrinterName(_data.printerName);
@@ -182,7 +190,7 @@ static struct SortedPageNumbers
                 yindices.insert(ix, pgn.yindices[0]);
         }
     }
-    PageNum2 &PageForPoint(const QPoint& p, int Yindex, PageNum2 &pgn)
+    PageNum2 &PageForPoint(const QPointF& p, int Yindex, PageNum2 &pgn)
     {
         pgn.yindices[0].yix = Yindex;
 
@@ -356,7 +364,7 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
     return nullptr;
 }
 
-int MyPrinter::_PageForPoint(const QPoint p)
+int MyPrinter::_PageForPoint(const QPointF p)
 {
     for (int i = 0; i < _pages.size(); ++i)
         if (_pages[i].screenArea.contains(p))
@@ -385,7 +393,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
         QPointF dp =  srcRect.topLeft() - _actPage.screenArea.topLeft(); // screen relative coord.
         srcRect.moveTopLeft(dp);  
 
-        QRectF dstRect = QRect( QPoint(srcRect.x()*_data.magn, srcRect.y() * _data.magn), QSize(srcRect.width() * _data.magn, srcRect.height() * _data.magn)) ;
+        QRectF dstRect = QRectF( QPointF(srcRect.x()*_data.magn, srcRect.y() * _data.magn), QSize(srcRect.width() * _data.magn, srcRect.height() * _data.magn)) ;
         Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
 		if (_data.flags & pfDontPrintImages)    // print placeholder
         {
@@ -429,7 +437,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
 
 void MyPrinter::_PrintGrid()
 {
-    int x, y,
+    qreal x, y,
         dx = _data.nGridSpacingX * _data.magn,
         dy = _data.nGridSpacingY * _data.magn;
 
@@ -437,8 +445,8 @@ void MyPrinter::_PrintGrid()
         x =  dx, y = dy;
     else
     {
-        x = dx - (_actPage.screenArea.x() % _data.nGridSpacingX) * _data.magn;
-        y = dy - (_actPage.screenArea.y() % _data.nGridSpacingY) * _data.magn;
+        x = dx - ((int)_actPage.screenArea.x() % _data.nGridSpacingX) * _data.magn;
+        y = dy - ((int)_actPage.screenArea.y() % _data.nGridSpacingY) * _data.magn;
     }
 
     _painterPage->setPen(QPen(_data.gridColor, 2, Qt::SolidLine));
@@ -486,7 +494,7 @@ void MyPrinter::_PreparePage(int which)
         }
     }
     // end composition
-    _painterPage->drawImage(QPoint(0,0), *_pItemImage);
+    _painterPage->drawImage(QPointF(0,0), *_pItemImage);
 
     drawColors.SetDarkMode(b);
 

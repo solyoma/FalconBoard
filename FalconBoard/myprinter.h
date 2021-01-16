@@ -18,7 +18,9 @@ class History;      // in history.h
 
 struct MyPrinterData
 {
-    QPoint topLeftActPage;          // set in DrawAre before printing
+    QPointF topLeftActPage;          // set in DrawAre before printing
+    QString directory;               // empty or ends with '/'
+    QString* pdir = nullptr;         // points to either 'directory' or for PDF to caller
 
     int screenPageWidth = 1920;         // used to calculate pixel limits for pages
     int screenPageHeight = 1920 * 3500 / 2480;
@@ -75,7 +77,7 @@ private:
     struct Page
     {
         int pageNumber;
-        QRect screenArea;        // absolute screen area for page set from _data.topLeftActPage, screenWidth and _data.printArea
+        QRectF screenArea;        // absolute screen area for page set from _data.topLeftActPage, screenWidth and _data.printArea
         YIndexVector yindices;   // of drawables to print on this page (ordered by y, z-order [screenshots:0, other:1] then x)
         bool operator==(const struct Page& other) { return pageNumber == other.pageNumber; }
     };
@@ -112,7 +114,7 @@ private:
     bool _Print(int from=1, int to=0x7fffffff);   // pages
     bool _Print(QVector<int>& pages);             // list of pages
     QPrintDialog* _DoPrintDialog();   // if 'Print' pressed recalculates page data () else returns nullptr
-    int _PageForPoint(const QPoint p);
+    int _PageForPoint(const QPointF p);
 
     StatusCode _GetPdfPrinter();    // when pdf printing
     StatusCode _GetPrinterParameters();    // set screenwidth and printer name into prdata first from printer name, false: no such printer

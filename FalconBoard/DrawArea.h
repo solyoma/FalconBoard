@@ -5,7 +5,7 @@
 #include <QColor>
 #include <QImage>
 #include <QBitmap>
-#include <QPoint>
+#include <QPointF>
 #include <QWidget>
 #include <QRubberBand>
 #include <QTabletEvent>
@@ -62,7 +62,7 @@ public:
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
     void SetPenKind(MyPenKind newKind, int newWidth);
 
-    void SetOrigin() { _topLeft = QPoint(); }
+    void SetOrigin() { _topLeft = QPointF(); }
 
     void AddScreenShotImage(QImage& image);
 
@@ -94,8 +94,8 @@ public slots:
     void ClearVisibleScreen();
     void ClearDown();
     void ClearHistory();
-    void Print(QString fileName);
-    void ExportPdf(QString fileName);
+    void Print(QString fileName, QString *pdir=nullptr);
+    void ExportPdf(QString fileName, QString &directory);   // filename w.o. directory
     void PageSetup();
 #ifndef _VIEWER
     void Undo();
@@ -194,10 +194,10 @@ private:
     QColor _gridColor = "#d0d0d0";          // for white system color scheme
     QColor _pageGuideColor = "#fcd475";     // - " - r 
 
-    QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
+    QPointF  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _lastMove;  // value of last canvas move 
 
-    QPoint  _firstPointC, // canvas relative first point drawn
+    QPointF  _firstPointC, // canvas relative first point drawn
             _lastPointC; // canvas relative last point drawn relative to visible image
     DrawnItem _lastDrawnItem;
     QCursor _savedCursor;
@@ -221,12 +221,12 @@ private:
     void _MoveToActualPosition(QRect rect);
     HistoryItemVector _CollectDrawables(); // for actual clipping rect
 #ifndef _VIEWER
-    bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
-    QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
+    bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
+    QPointF _CorrectForDirection(QPointF &newp);     // using _startSet and _isHorizontal
 #endif
 
-    bool _DrawFreehandLineTo(QPoint endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
-    void _DrawLineTo(QPoint endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
+    bool _DrawFreehandLineTo(QPointF endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
+    void _DrawLineTo(QPointF endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
     void _DrawAllPoints(DrawnItem* pdrni);
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
@@ -239,11 +239,11 @@ private:
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
 #ifndef _VIEWER
-    void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
+    void _ModifyIfSpecialDirection(QPointF & qp);   // modify qp by multiplying with the start vector
 #endif
-    void _SetOrigin(QPoint qp);  // sets new topleft and displays it on label
-    void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, negative delta.x: scroll right
-    void _ShiftAndDisplayBy(QPoint delta, bool bPointByPoint = false);
+    void _SetOrigin(QPointF qp);  // sets new topleft and displays it on label
+    void _ShiftOrigin(QPointF delta);    // delta changes _topLeft, negative delta.x: scroll right
+    void _ShiftAndDisplayBy(QPointF delta, bool bPointByPoint = false);
     void _PageUp();
     void _PageDown();
     void _Home(bool toTop);
@@ -255,9 +255,9 @@ private:
     bool _PdfPageSetup();               // false: cancelled
     bool  _NoPrintProblems();           // false: some problems
 #ifndef _VIEWER
-    void ShowCoordinates(const QPoint& qp);
-    Sprite * _CreateSprite(QPoint cursorPos, QRect& rect);
-    void MoveSprite(QPoint pt);
+    void ShowCoordinates(const QPointF& qp);
+    Sprite * _CreateSprite(QPointF cursorPos, QRect& rect);
+    void MoveSprite(QPointF pt);
     void _PasteSprite();
 #endif
 };
