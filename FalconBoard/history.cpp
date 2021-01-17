@@ -1712,7 +1712,7 @@ HistoryItem* History::GetOneStep()
 	HistoryItem* pi;
 	while ((pi = atYIndex(_yindex++)) != nullptr && (pi->Hidden()))
 		;
-	if (pi->GetDrawable(0)->bndRect.top() > _clpRect.bottom())
+	if (pi && pi->GetDrawable(0)->bndRect.top() > _clpRect.bottom())
 		pi = nullptr;
 	return pi;
 }

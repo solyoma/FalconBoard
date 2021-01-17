@@ -242,8 +242,8 @@ private:
     void _ModifyIfSpecialDirection(QPointF & qp);   // modify qp by multiplying with the start vector
 #endif
     void _SetOrigin(QPointF qp);  // sets new topleft and displays it on label
-    void _ShiftOrigin(QPointF delta);    // delta changes _topLeft, negative delta.x: scroll right
-    void _ShiftAndDisplayBy(QPointF delta, bool bPointByPoint = false);
+    void _ShiftOrigin(QPointF delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down
+    void _ShiftAndDisplayBy(QPointF delta, bool smooth = false);
     void _PageUp();
     void _PageDown();
     void _Home(bool toTop);

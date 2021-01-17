@@ -387,7 +387,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit CanUndo(true);
                 emit CanRedo(false);
             }
-            if (key == Qt::Key_C)   // draw ellipse
+            if (key == Qt::Key_C && !bCopy)   // draw ellipse
             {
                 _actPenWidth = _penWidth;
                 _lastDrawnItem.clear();
@@ -1661,26 +1661,34 @@ void DrawArea::_ShiftOrigin(QPointF delta)    // delta changes _topLeft, positiv
 
     _SetOrigin(o);
 }
+// 
 
-void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool bPointByPoint)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
+/*========================================================
+ * TASK:    scrolls visible area in a given direction
+ * PARAMS:  delta: vector to move the area 
+ *              if delta.x() > 0 moves left, 
+ *              if delta.y() > 0 moves up, 
+ *          smooth: smoth scrolling by only drawing the 
+                changed bits
+ * GLOBALS: _limited, _topLeft, _canvas
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
+void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
 {
     if( (delta.y() > 0 && _topLeft.y() == 0 && delta.x() == 0) || (delta.x() > 0 && _topLeft.x() == 0 && delta.y() == 0) ||
         ( _limited && (delta.x() < 0 && _topLeft.x() +width() >= _screenWidth) )
       )
        return;      // nothing to do
 
-    if (bPointByPoint)
+    if (smooth)
     {
-        int xstep = delta.x(),    // only one of these should be non zero
-            ystep = delta.y(),
-            count = xstep ? (xstep > 0 ? xstep : -xstep) : (ystep ? (ystep > 0 ? ystep : -ystep) : 0);
-
-        QPointF onept(xstep ? xstep/abs(xstep) : 0, ystep ? ystep/abs(ystep) : 0);
-        for (int i = 0; i < count; ++i)
-        {
-            _ShiftOrigin(onept);
-            _Redraw();
-        }
+        QImage origImg = _canvas;
+        _canvas.fill(qRgba(255, 255, 255, 0));     // transparent
+        QPainter painter(&_canvas);
+//        QRect rect()
+//        painter.drawImage()
+        painter.setCompositionMode(QPainter::CompositionMode_Clear);
     }
     else
     {
@@ -1712,7 +1720,7 @@ void DrawArea::_End()
     _SetOrigin(_topLeft);
     _Redraw();
 }
-// second argument should be true for smotth scrolling (when it will work...)
+
 void DrawArea::_Up(int amount)
 {
     QPointF pt(0, amount);

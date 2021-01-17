@@ -771,6 +771,8 @@ void FalconBoard::on_actionSaveAs_triggered()
     _SaveLastDirectory(fileName);
     _saveName = fileName;
     _SaveFile();
+    setWindowTitle(sWindowTitle + QString(" - %1").arg(_saveName));
+
 }
 
 void FalconBoard::on_actionLoadBackground_triggered()
@@ -836,8 +838,8 @@ void FalconBoard::on_actionHelp_triggered()
 #ifndef _VIEWER
         +
         tr("<p>F4<br>&nbsp;&nbsp;Take a screenshot of an area using the right mouse button</p>")+
+        tr("<p><i>Select brush colors</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5. Eraser: E</p>")+
         tr("<p>Left and right bracket keys '[',']' change brush size</p>")+
-        tr("<p><i>Select colors</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5, eraser: E</p>")+
         tr("<p>Draw a straight line from last position by holding down a Shift key while pressing Left, ")+
         tr("draw horizontal or vertical line by <i>first</i> pressing Left, then holding Shift key while drawing. ")+
         tr("Line orientation depends on which direction you start to draw.</p>")+
@@ -849,15 +851,17 @@ void FalconBoard::on_actionHelp_triggered()
               "Hold the Shift key to get a square selection.")+
         tr("If the selection contains one or more complete lines or even eraser strokes (!) "
            "then the selection will shrink around those.</p>")+
-        tr("<p>1, 2, 3, 4, 5 <br>&nbsp;&nbsp;<i>Recolor selected</i></p>")+
+        tr("<p><b>Keyboard shortcuts when there is an active selection</b></p>")+
+        tr("<p>1, 2, 3, 4, 5 <br>&nbsp;&nbsp;<i>Recolor <b>completely</b> selected drawings</i></p>")+
+        tr("<p>0, 8, 9, H, V<br>&nbsp;&nbsp;<i>Rotate or flip <b>completely</b> selected drawings</i></p>")+
         tr("<p>Ctrl+Ins, Ctrl+C<br>&nbsp;&nbsp;<i>Copy selected</i></p>") +
         tr("<p>Ctrl+X, Shift+Del<br>&nbsp;&nbsp;<i>Cut selected</i></p>") +
         tr("<p>Del, BackSpace<br>&nbsp;&nbsp;<i>Delete selected</i></p>") +
+        tr("<p>R key<br>&nbsp;&nbsp;<i>Draw a rectangle</i> around the selected area.")+
+        tr("<p>C key<br>&nbsp;&nbsp;<i>Draw an ellipse (or circle)</i> inside the selected area.")+
         tr("<p><i>Move</i> selected drawings with Left button, move copy by Alt+Left button.</p>")+
         tr("<p>To paste selection select an area at destination with right button and use keyboard shortcut.</p>")+
         tr("<p>When an area is selected you can:</p>")+
-        tr("<p>R key<br>&nbsp;&nbsp;<i>Draw a rectangle</i> around selected area.")+
-        tr("<p>C key<br>&nbsp;&nbsp;<i>Draw an ellipse (or circle)</i> inside selected area.")+
         tr("<p>F5<br>&nbsp;&nbsp;<i>Insert vertical space</i> from top of selected area</p>")
 #endif
     );
