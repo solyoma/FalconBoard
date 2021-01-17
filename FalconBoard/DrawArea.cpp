@@ -928,21 +928,27 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
 
-    if (_limited && _topLeft.x() + width() >= _screenWidth)
-        _ShiftOrigin(QPointF( (_topLeft.x() + width() - _screenWidth),0));
+// DEBUG
+    QSize s = geometry().size();
+// /DEBUG
+    int h = height();
+    int w = width();
+    if (_limited && _topLeft.x() + w > _screenWidth)
+        _ShiftOrigin(QPointF( (_topLeft.x() + w - _screenWidth),0));
+
+    _canvasRect = QRect(0, 0, w, h).translated(_topLeft.toPoint());     // 0,0 relative rectangle
+    _clippingRect = _canvasRect;
 
     if (width() > _canvas.width() || height() > _canvas.height()) 
     {
-        int newWidth =  qMax(width() + 128,  _canvas.width());
-        int newHeight = qMax(height() + 128, _canvas.height());
+        int newWidth =  qMax(w + 128,  _canvas.width());
+        int newHeight = qMax(h + 128, _canvas.height());
         _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
         _history.SetClippingRect(QRect(_topLeft.toPoint(), QSize(newWidth, newHeight)));
 
         _Redraw();
     }
 
-    _canvasRect = QRect(0, 0, geometry().width(), geometry().height() ).translated(_topLeft.toPoint());     // 0,0 relative rectangle
-    _clippingRect = _canvasRect;
 }
 #ifndef _VIEWER
 void DrawArea::_RemoveRubberBand()

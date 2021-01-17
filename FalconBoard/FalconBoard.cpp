@@ -55,6 +55,14 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     ui.centralWidget->setFocus();
 }
 
+
+/*========================================================
+ * TASK:
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - disables redraw
+ *-------------------------------------------------------*/
 void FalconBoard::RestoreState()
 {
     _drawArea->EnableRedraw(false);
@@ -148,8 +156,6 @@ void FalconBoard::RestoreState()
     _PopulateRecentMenu();
 
     s.endGroup();
-
-    _drawArea->EnableRedraw(true);
 }
 
 void FalconBoard::SaveState()
@@ -637,7 +643,9 @@ void FalconBoard::showEvent(QShowEvent* event)
     {
         _firstShown = true;
         if (!_saveName.isEmpty())
-            _LoadData(_saveName);
+            _LoadData(_saveName);   // enables redraw
+        else
+            _drawArea->EnableRedraw(true);
     }
 }
 
