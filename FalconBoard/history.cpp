@@ -980,8 +980,9 @@ History::~History()
  *			area
  * PARAMS:	clip - clipping area
  * GLOBALS:
- * RETURNS: index in _yxOrder of topmost element, which visible and
- *				intersects the clipping area
+ * RETURNS: index in _yxOrder of topmost element, which either
+ *				intersects the clipping area or starts in
+ *				its y range (i,e. left or right of clipping)
  * REMARKS: - expects element ordered in _yxOrder arrray
  *				first by y, then by x
  *			- it is possible, that element for index i 
@@ -993,40 +994,42 @@ int History::_YIndexForClippingRect(const QRectF& clip)
 {
 
 	int s = 0,					// beginning of range
-		e = _yxOrder.size()-1;	// end +1 of range
+		e = _yxOrder.size()-1;	// last valid index
+	if (e < 0)					// empty list
+		return -1;
+
 	int m = e / 2,				// middle of range
-		mprev = 0;
+		mprev = -1;
 	const HistoryItem* ph;
 	QPointF pt;
 	const DrawnItem* pdrni;
 
-	while(m != mprev && m >= s && m <= e && (ph = _yitems(m)) )
+	while(m != mprev && s < e && (ph = _yitems(m)) )
 	{
 		pt = ph->TopLeft();
 		if (pt.y() > clip.bottom())	// outside and below
 		{
-			e = m;
+			e = m-1;						// the m-th element is below, so no need to check it again
 		}
-		else
+		else    // inside or above
 		{
 			pdrni = ph->GetDrawable();	// may be hidden, should never be nullptr
 			if (!pdrni->intersects(clip))	// completely above or to the right/left and not shown
 			{
-				if (pt.y() >= clip.top())
-					e = m;
-				else
-					s = m;
+				if (pt.y() >= clip.top())	// then to the right or to the left of clip
+					e = m;					// but inside range clip.top() - clip.bottom()
+				else						// above clip
+					s = m+1;				// the m-th element is less
 			}
-			else	// either inside or above
-			{
-				e = m-1;
-			}
+			else	// either inside or above but intersects with clip
+				e = m;
 
 		}
 		mprev = m;
-		m = (e - s) / 2;
+		m = (e + s) / 2;
 	}
-	return m;
+	return (ph = _yitems(m))->TopLeft().y() > clip.bottom() || 
+			 (!ph->GetDrawable()->intersects(clip) && ph->TopLeft().y() < clip.top()) ? -1 : m;
 
 
 
@@ -1534,7 +1537,7 @@ HistoryItem* History::addPastedItems(QPointF topLeft, Sprite *pSprite)			   // t
   // ------------add bottom item
 
 	HistoryDeleteItems* phd = nullptr;
-	if (pSprite)	// then on top of _items there is a HistoryDeleteItems
+	if (pSprite && pSprite->itemsDeleted)	// then on top of _items there is a HistoryDeleteItems
 	{
 		phd = (HistoryDeleteItems * ) _items[_items.size() - 1];	// pointer to HistoryDeleteItems
 		_items.pop_back();
@@ -1545,7 +1548,7 @@ HistoryItem* History::addPastedItems(QPointF topLeft, Sprite *pSprite)			   // t
 	_AddItem(pb);
 	if (pSprite)
 	{
-		pb->moved = 1;
+		pb->moved = pSprite->itemsDeleted ? 1 : 0;
 		_AddItem(phd);
 	}
 
@@ -1570,7 +1573,7 @@ HistoryItem* History::addPastedItems(QPointF topLeft, Sprite *pSprite)			   // t
 	QRectF rect = pCopiedRect->translated(topLeft);
 	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->size() + pCopiedImages->size(), rect);
 	if (pSprite)
-		pt->moved = 1;		// mark it moved
+		pt->moved = pSprite->itemsDeleted ? 1 : 0;		// mark it moved
 
 	return _AddItem(pt);
 }
@@ -1748,6 +1751,24 @@ HistoryItem* History::Redo()   // returns item to redone
 	_modified = true;
 
 	return phi;
+}
+
+
+/*========================================================
+ * TASK:	add index-th element of _items to selected list
+ * PARAMS:	index: in _items or -1 If -1 uses last drawn item added
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
+void History::AddToSelection(int index)
+{
+	if(index < 0)
+		index = _items.size()-1;
+	const HistoryItem* pitem = _items.at(index);
+	_nSelectedItemsList.push_back(index);
+	_selectionRect = _selectionRect.united(pitem->Area());
+
 }
 
 /*========================================================

@@ -164,7 +164,8 @@ private:
 
 	QString _sBackgroundColor = "#FFFFFF",
 			_sTextColor = "#000000",
-			_sDisabledColor = "#ccccc";
+			_sDisabledColor = "#ccccc",
+			_sToolBarColor = "#cccccc";
 
 	QString _sGridColor = "#d0d0d0",
 		    _sPageGuideColor = "#fcd475";

@@ -236,8 +236,8 @@ struct HistoryPasteItemBottom : HistoryItem
     int index;          // in pHist
     int count;          // of items pasted above this item
                         // these items came in one group in *pHist's '_items'
-    int moved = 0;              // 0: copy / paste, 1: moved with mouse / pen
-                                //  in both bottom and top items
+    int moved = 0;      // 0: copy / paste, 1: moved with mouse / pen
+                        //  set into both bottom and top items
 
     HistoryPasteItemBottom(History* pHist, int index, int count);
 
@@ -371,6 +371,7 @@ struct Sprite
     QPointF dp;          // relative to top left of sprite: cursor coordinates when the sprite is selected
     QImage image;       // image of the sprite to paint over the canvas
     QRectF rect;         // selection rectangle 0,0, width,height
+    bool itemsDeleted = true;   // unless Alt+
 
     IntVector nSelectedItemsList;     // indices into 'pHist->_items', that are completely inside the rubber band
     DrawnItemVector       items;      // each point of items[..] is relative to top-left of sprite (0,0)
@@ -519,7 +520,7 @@ public:
     HistoryItem* addClearDown();
     HistoryItem* addDrawnItem(DrawnItem& dri);
     HistoryItem* addDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
-    HistoryItem* addPastedItems(QPointF topLeft, Sprite *pSprite=nullptr);    // using 'this' and either '_copiedList'  or  pSprite->... lists
+    HistoryItem* addPastedItems(QPointF topLeft, Sprite *pSprite=nullptr);   // using 'this' and either '_copiedList'  or  pSprite->... lists
     HistoryItem* addRecolor(MyPenKind pk);
     HistoryItem* addInsertVertSpace(int y, int heightInPixels);
     HistoryItem* addScreenShot(int index);
@@ -536,6 +537,7 @@ public:
 
     HistoryItem* GetOneStep();
 
+    void AddToSelection(int index=-1);
     int CollectItemsInside(QRectF rect);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images

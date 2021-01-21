@@ -293,7 +293,8 @@ void FalconBoard::_CreateAndAddActions()
 
     ui.mainToolBar->addSeparator();
     _plblMsg = new QLabel();
-    ui.mainToolBar->addWidget(_plblMsg);
+//    ui.mainToolBar->addWidget(_plblMsg);
+    statusBar()->addWidget(_plblMsg);
 
     // more than one valueChanged() function exists
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenWidthChanged);
@@ -510,6 +511,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sDisabledColor = "#AAAAAA";
             _sGridColor = "#d0d0d0";
             _sPageGuideColor = "#fcd475";
+            _sToolBarColor = "#AAAAAA";
             break;
         case smDark:
             // already set : _drawArea->drawColors.SetDarkMode(true);
@@ -527,6 +529,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sDisabledColor = "#AAAAAA";
             _sGridColor = "#202020";
             _sPageGuideColor = "#413006";
+            _sToolBarColor = "#202020";
             break;
         case smBlack:
             // already set : _drawArea->drawColors.SetDarkMode(true);
@@ -545,6 +548,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sDisabledColor = "#888888";
             _sGridColor = "#202020";
             _sPageGuideColor = "#2e2204";
+            _sToolBarColor = "#181818";
             break;
     }
     if(_eraserOn)
@@ -570,6 +574,8 @@ void FalconBoard::_SetupMode(ScreenMode mode)
              "}\n"
              "QMenu::item:disabled {\n"
              "  color:"+ _sDisabledColor + ";\n"
+             "}\n"
+             "QStatusBar, QToolBar {\n background-color:" + _sToolBarColor + ";\n"
              "}\n"
         ;
 

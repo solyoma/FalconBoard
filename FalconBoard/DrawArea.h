@@ -232,7 +232,7 @@ private:
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
     bool _ReplotItem(HistoryItem* pdrni); 
-    void _Redraw();
+    void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);
     void _DrawPageGuides(QPainter& painter);
     QColor _PenColor();
@@ -253,11 +253,11 @@ private:
     void _Left(int distance = 10);
     void _Right(int distance = 10);
     bool _PdfPageSetup();               // false: cancelled
-    bool  _NoPrintProblems();           // false: some problems
+    bool _NoPrintProblems();           // false: some problems
 #ifndef _VIEWER
-    void ShowCoordinates(const QPointF& qp);
-    Sprite * _CreateSprite(QPointF cursorPos, QRect& rect);
-    void MoveSprite(QPointF pt);
+    void _ShowCoordinates(const QPointF& qp);
+    Sprite * _CreateSprite(QPointF cursorPos, QRect& rect, bool itemsDeleted);
+    void _MoveSprite(QPointF pt);
     void _PasteSprite();
 #endif
 };
