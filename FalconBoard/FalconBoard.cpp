@@ -48,6 +48,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &FalconBoard::SlotForPointerType);
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &FalconBoard::SlotForRubberBandSelection);
 #endif
+    connect(qApp, &QApplication::primaryScreenChanged, _drawArea, &DrawArea::SlotForPrimaryScreenChanged);
     RestoreState();
 
     _SetupIconsForPenColors(_screenMode);

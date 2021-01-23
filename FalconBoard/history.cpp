@@ -1,4 +1,5 @@
 #include "history.h"
+#include <QApplication>
 #include <QMessageBox>
 #include <QMainWindow>
 #include <algorithm>
@@ -944,6 +945,7 @@ int HistoryRotationItem::Redo()
 }
 
 
+//********************************** History class ****************************
 void History::_SaveClippingRect()
 {
 	_savedClps.push(_clpRect);
@@ -954,11 +956,11 @@ void History::_RestoreClippingRect()
 	_clpRect = _savedClps.pop();
 }
 
-//********************************** History class ****************************
 History::History(const History& o)					
 {
 	_yindex = o._yindex;
 	_items = o._items;
+	_bands = o._bands;
 	_yxOrder = o._yxOrder;
 }
 
@@ -966,6 +968,7 @@ History::History(const History&& o)
 {
 	_yindex = o._yindex;
 	_items = o._items;
+	_bands = o._bands;
 	_yxOrder = o._yxOrder;
 }
 
@@ -1124,6 +1127,13 @@ int History::_YIndexForIndex(int index)      // index: in unordered array, retur
 	return _YIndexForXY(pt);
 }
 
+int History::IndexForYIndex(int yix)
+{
+	if (yix < 0 || yix >= _yxOrder.size())
+		return -1;
+	return _yxOrder[yix];
+}
+
 void History::ReplaceItem(int index, HistoryItem* pi)     // index: in '_items'
 {
 	int yindex = _YIndexForIndex(index);    // must exist
@@ -1132,6 +1142,7 @@ void History::ReplaceItem(int index, HistoryItem* pi)     // index: in '_items'
 	_yxOrder.remove(yindex);
 	int yi = _YIndexForXY(pi->TopLeft());
 	_yxOrder.insert(yi, index);
+	// no need to change _bands
 }
 
 void History::RemoveItemsStartingAt(int index)  // index: into _items
@@ -1142,8 +1153,8 @@ void History::RemoveItemsStartingAt(int index)  // index: into _items
 		delete _items[j];
 		_items[j] = nullptr;
 		_yxOrder.remove(yindex);
+		_bands.Remove(j);
 	}
-
 }
 
 /*========================================================
@@ -1156,13 +1167,16 @@ void History::RemoveItemsStartingAt(int index)  // index: into _items
  *-------------------------------------------------------*/
 void History::_push_back(HistoryItem* pi)
 {
-	int s = _items.size();					 // hysical index to put into _yxOrder 
+	int s = _items.size();					 // physical index to put into _yxOrder 
+	bool b = pi->type == heScreenShot;
 	_items.push_back(pi);					 // always append
 
 	if (pi->IsDrawable())	// Only drawable elements are put into _yxOrder
 	{
+		_bands.Add(b ? pImages->size() : s, b);
+
 		int yi = _YIndexForXY(pi->TopLeft());    // yi either to element with same x,y values or the one which is higher or at the right
-		if (yi == _yxOrder.size() )  // all elements were at xy less than for this one
+		if (yi == _yxOrder.size() )  // all elements at xy were less than for this one
 			_yxOrder.push_back(s);
 		else          // the yi-th element has the larger y , or same and larger x coordinate
 			_yxOrder.insert(yi, s);
@@ -1691,6 +1705,7 @@ QRectF History::Undo()      // returns top left after undo
 		{
 			int yi = _YIndexForIndex(actItem);
 			_yxOrder.remove(yi);
+			_bands.Remove(actItem);
 		}
 
 		_items.pop_back();	// we need _items for removing the yindex
@@ -1705,6 +1720,15 @@ QRectF History::Undo()      // returns top left after undo
 	_modified = true;
 
 	return rect;
+}
+
+int History::GetDrawablesInside(QRect rect, HistoryItemVector &hv)
+{
+	IntVector iv;
+	_bands.ItemsForArea(rect, iv);
+	for (auto i : iv)
+		hv.push_back(_items[i]);
+	return hv.size();
 }
 
 HistoryItem* History::GetOneStep()
@@ -1767,7 +1791,7 @@ void History::AddToSelection(int index)
 		index = _items.size()-1;
 	const HistoryItem* pitem = _items.at(index);
 	_nSelectedItemsList.push_back(index);
-	_selectionRect = _selectionRect.united(pitem->Area());
+	_selectionRect = _selectionRect.united(pitem->Area().toRect());
 
 }
 
@@ -1786,7 +1810,7 @@ void History::AddToSelection(int index)
  *			'_nIndexOfFirstScreenShot' and '-selectionRect'
  * PARAMS:	rect: (0,0) relative rectangle
  * GLOBALS:
- * RETURNS:	size of selecetd item list + lists filled
+ * RETURNS:	size of selected item list + lists filled
  * REMARKS: - even pasted items require a single index
  *			- only selects items whose visible elements
  *			  are completely inside 'rect' (pasted items)
@@ -1794,28 +1818,8 @@ void History::AddToSelection(int index)
  *				are in '_nSelectedItemsList'. In thet case
  *				it is set to equal rect
  *-------------------------------------------------------*/
-int History::CollectItemsInside(QRectF rect) // only 
+int History::CollectItemsInside(QRect rect) // only 
 {
-
-	auto rightOfRect = [](QRectF rect, QRectF other) -> bool
-	{
-		return (rect.x() + rect.width() < other.x()) &&
-			!(rect.y() > other.y() + other.height()) &&
-			!(rect.y() + rect.height() < other.y());
-
-			//(rect.y() < other.y() && rect.y() + rect.height() > other.y() + other.height()) &&
-			//(rect.x() + rect.width() < other.x());
-	};
-	auto leftOfRect = [](QRectF rect, QRectF other) -> bool
-	{
-		return (rect.x() > other.width() + other.x()) &&
-			!(rect.y() > other.y() + other.height()) &&
-			!(rect.y() + rect.height() < other.y());
-		//return (rect.y() < other.y() && rect.y() + rect.height() > other.y() + other.height()) &&
-		//	(rect.x() > other.x() + other.width());
-
-	};
-
 	_nSelectedItemsList.clear();
 	_nItemsRightOfList.clear();
 	_nItemsLeftOfList.clear();
@@ -1824,32 +1828,8 @@ int History::CollectItemsInside(QRectF rect) // only
 	_selectionRect = QRect();     // minimum size of selection (0,0) relative!
 	
 	// first add images to list
-
-	_SaveClippingRect();
-	_clpRect = rect.toRect();
-	int yi = _YIndexForFirstVisible(true);		 // in _yxOrder, only using y coordinate (no check for intersection here)
-	_RestoreClippingRect();
-	if (yi < 0)	// nothing to collect
-		return 0;
-
-	for (; yi < _yxOrder.size(); ++yi)
-	{
-		const HistoryItem* pitem = _yitems(yi);
-		if (!pitem->Hidden() && pitem->Translatable())
-		{
-			if (rect.contains(pitem->Area()))    // union of rects in a pasted item
-			{                       // here must be an item for drawing or pasting (others are undrawable)
-				_nSelectedItemsList.push_back( _yxOrder[yi] );				 // index in _items !
-				_selectionRect = _selectionRect.united(pitem->Area());
-			}
-			else if (rightOfRect(rect, pitem->Area()))
-				_nItemsRightOfList.push_back(yi);
-			else if (leftOfRect(rect, pitem->Area()))
-				_nItemsLeftOfList.push_back(yi);
-			if (yi < _nIndexOfFirstScreenShot && pitem->Area().y() > rect.y() + rect.height())
-				_nIndexOfFirstScreenShot = yi;
-		}
-	}
+	_bands.ItemsForArea(rect, _nItemsLeftOfList, _nSelectedItemsList, _nItemsRightOfList, _selectionRect);	
+							// collect indices for visible, drawable elements completely inside 'rect'
 	if (_nSelectedItemsList.isEmpty())		// save for removing empty space
 		_selectionRect = rect;
 
@@ -1915,4 +1895,230 @@ void History::CopySelected(Sprite *sprite)
 Sprite::Sprite(History* ph) :pHist(ph) 
 { 
 	ph->CopySelected(this); 
+}
+
+// ********************************** BANDS *************
+
+int Bands::_GetBand(int y)
+{
+	int nband = y / _bandHeight;
+	Band newBand;
+	int iband = _FindBand(y, _bandHeight );		// check if this band exists
+	if (iband == _bands.size() || _bands[iband].band_index != nband)	// all bands are either below this one
+	{																	// or we found the first band above
+		newBand.band_index = iband;
+		_bands.insert(iband, newBand);
+	}
+	// else 	// found 
+	return iband;
+}
+
+int Bands::_NextBand(int aix, int y)	// aix - index of actual band in _bands., y coord
+{
+	if(aix * _bandHeight > y)
+		return -1;			// no more bands
+
+	int nix = _GetBand(y);
+
+	return nix == aix ? -1 : nix;
+}
+
+void Bands::SetParam(History* pHist, int bandHeight)
+{
+	if (_pHist == pHist && _bandHeight == bandHeight)
+		return;
+
+	_pHist = pHist;
+	if (bandHeight < 0)
+		bandHeight = QGuiApplication::primaryScreen()->geometry().height();
+
+	_bandHeight = bandHeight; 
+	_bands.clear();
+	HistoryItem* phi;
+	int yix = -1;
+	while ((phi = pHist->atYIndex(++yix)) != nullptr)
+	{
+		if (phi->IsDrawable() && !phi->Hidden())
+			Add(_pHist->IndexForYIndex(yix), phi->type == heScreenShot);
+	}
+}
+
+
+/*========================================================
+ * TASK:	add drawable to bands
+ * PARAMS:	index:in _items (isImage = false) or in 'pImages' 
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
+void Bands::Add(int index, bool isImage)
+{
+	HistoryItem* phi = (*_pHist)[index];
+	int ib = _GetBand(phi->GetDrawable()->bndRect.top() );
+	_Insert(_bands[ib], index, isImage);	// z-ordered 
+
+	int y = phi->GetDrawable()->bndRect.y() + phi->GetDrawable()->bndRect.height();
+	while( (ib = _NextBand(ib, y)) > 0)
+		_Insert(_bands[ib], index, isImage);
+}
+
+void Bands::Remove(int index)
+{
+	HistoryItem* phi = (*_pHist)[index];
+	int ib = _GetBand(phi->GetDrawable()->bndRect.top());
+	_bands[ib].Remove(index);
+
+	int y = phi->GetDrawable()->bndRect.y() + phi->GetDrawable()->bndRect.height();
+	while ((ib = _NextBand(ib, y)) > 0)
+		_bands[ib].Remove(index);
+}
+
+void Bands::_ItemsForBand(int bandIndex, QRect& rect, IntVector &hv, bool insidersOnly)
+{
+	Band& band = _bands[bandIndex];
+	for (auto ind : band.indices)
+	{
+		HistoryItem* phi = (*_pHist)[ind.index];
+		if( (insidersOnly && rect.contains(phi->GetDrawable()->bndRect.toRect())) || (!insidersOnly && phi->GetDrawable()->bndRect.intersects(rect)) )
+			hv.push_back(ind.index);
+	}
+}
+
+
+/*========================================================
+ * TASK:	collects drawable items inside band 'bandIndex' 
+ *			into three lists: items that are inside, left 
+ *			or right of 'rect'
+ * PARAMS: bandIndex,
+ *			rect,
+ *			hvLeft, hvInside, hvRight: integer vectors for 
+				item indices
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - items with bounding rectangles whose corners
+ *				are outside band ara not collected
+ *-------------------------------------------------------*/
+void Bands::_ItemsForBand(int bandIndex, QRect& rect, IntVector& hvLeft, IntVector& hvInside, IntVector& hvRight, QRect& unionRect)
+{
+	int topBand, bottomBand;    // indices of bands where this item starts and ends
+	Band& band = _bands[bandIndex];
+	auto inlineWithRect = [&](QRect& bndRect)	// returns bit #0: top id in line, bit#1: bottom is in line
+	{
+		return ((bndRect.y() >= rect.y() && bndRect.y() <= rect.bottom()) ? 1: 0) +
+			((bndRect.bottom() >= rect.y() && bndRect.bottom() <= rect.bottom()) ? 2 : 0);
+	};
+
+	for (auto ind : band.indices)
+	{
+		HistoryItem* phi = (*_pHist)[ind.index];
+		QRect& bndRect = phi->GetDrawable()->bndRect.toRect();
+		int ilkind;
+		
+		if (rect.contains(bndRect))
+		{
+			hvInside.push_back(ind.index);
+			unionRect = unionRect.united(bndRect);
+		}
+		else if ( (ilkind = inlineWithRect(bndRect)) )
+		{
+//			if (!rect.intersects(bndRect))
+			{
+				if (ilkind & 1)	// top of bndrect in line with rect
+				{
+					if (bndRect.x() > rect.right())
+						hvRight.push_back(ind.index);
+					else if (bndRect.right() < rect.x())
+						hvLeft.push_back(ind.index);
+				}
+				else
+				{
+					if (bndRect.right() > rect.right())
+						hvRight.push_back(ind.index);
+					else if (bndRect.x() < rect.x())
+						hvLeft.push_back(ind.index);
+
+				}
+			}
+		}
+	}
+}
+
+
+/*========================================================
+ * TASK:	populates an IntVector with indices of visible
+ *			elements that are inside of or intersect 'rect'
+ * PARAMS:	rect		 - area to include
+ *			hv			 - fill elements into this vector
+ *			insidersOnly - indices only items completely inside
+ *							rect are return
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
+void Bands::ItemsForArea(QRect& rect, IntVector &hv, bool insidersOnly)
+{
+	if (_bands.isEmpty())
+		return;
+
+	int y = rect.top();
+	int ib = _GetBand(y);			// topmost band
+	Band& band = _bands[ib];
+	_ItemsForBand(ib, rect, hv, insidersOnly);
+
+	y = rect.y() + rect.height();
+	while (y > (ib + 1) * _bandHeight)	// there is another band for
+	{
+		ib = _NextBand(ib, y);
+		_ItemsForBand(ib, rect, hv, insidersOnly);
+	}
+}
+
+void Bands::ItemsForArea(QRect& rect, IntVector& hvLeft, IntVector& hvInside, IntVector& hvRight, QRect &unionRect)
+{
+	if (_bands.isEmpty())
+		return;
+
+	int y = rect.top();
+	int ib = _GetBand(y);			// topmost band
+	Band& band = _bands[ib];
+	_ItemsForBand(ib, rect, hvLeft, hvInside, hvRight, unionRect);
+
+	y = rect.y() + rect.height();
+	while (y > (ib + 1) * _bandHeight)	// there is another band for
+	{
+		ib = _NextBand(ib, y);
+		_ItemsForBand(ib, rect, hvLeft, hvInside, hvRight, unionRect);
+	}
+}
+
+int Bands::_FindBand(int y, int bandHeight) const
+{
+	int	nband = y / bandHeight;	// look for this band_ind
+
+	QList<Band>::const_iterator iter;
+
+	iter = std::lower_bound(_bands.begin(), _bands.end(), nband);
+	if (iter != _bands.end())
+		return (iter - _bands.begin());
+	else
+		return _bands.size();
+}
+
+void Bands::_Insert(Band& band, int index, bool isImage)
+{
+	int zi = (*_pHist)[index]->ZOrder();
+	Band::Index zind = { zi, index, isImage };
+	auto iter = std::lower_bound(band.indices.begin(), band.indices.end(), zind);
+	int i = iter - band.indices.begin();
+	band.indices.insert(i, zind);
+}
+
+void Bands::Band::Remove(int ix) // z-order irrelevant
+{
+	for(int i=0; i < indices.size(); ++i)
+		if (indices.at(i).index == ix)
+		{
+			indices.remove(i);
+			break;
+		}
 }

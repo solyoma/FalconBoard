@@ -39,8 +39,7 @@ DrawColors drawColors;      // global used here and for print, declared in commo
 
 
 //----------------------------- DrawArea ---------------------
-DrawArea::DrawArea(QWidget* parent)
-    : QWidget(parent)
+DrawArea::DrawArea(QWidget* parent)    : QWidget(parent)
 {
     setAttribute(Qt::WA_StaticContents);
     setAttribute(Qt::WA_TabletTracking);
@@ -1125,18 +1124,19 @@ void DrawArea::_MoveToActualPosition(QRect rect)
 
 }
 
-HistoryItemVector DrawArea::_CollectDrawables()
+ int DrawArea::_CollectDrawables(HistoryItemVector &hv)
 {
-    HistoryItemVector hv;
-    if (_history.SetFirstItemToDraw() < 0)  // returns index of first visible item after the last clear screen
-        return hv;                          // so when no such iteme exists we're done with empty list
+    return _history.GetDrawablesInside(_clippingRect, hv);
+    
+    //if (_history.SetFirstItemToDraw() < 0)  // returns index of first visible item after the last clear screen
+    //    return hv;                          // so when no such iteme exists we're done with empty list
 
-    HistoryItem* phi;
-    while ((phi = _history.GetOneStep()))   // add next not hidden item to vector in y order
-        hv.push_back(phi);                  
-                                            // but draw them in z-order
-    std::sort(hv.begin(), hv.end(), [](HistoryItem* pl, HistoryItem* pr) {return pl->ZOrder() < pr->ZOrder(); });
-    return hv;
+    //HistoryItem* phi;
+    //while ((phi = _history.GetOneStep()))   // add next not hidden item to vector in y order
+    //    hv.push_back(phi);                  
+    //                                        // but draw them in z-order
+    //std::sort(hv.begin(), hv.end(), [](HistoryItem* pl, HistoryItem* pr) {return pl->ZOrder() < pr->ZOrder(); });
+    //return hv;
 }
 
 /*========================================================
@@ -1188,7 +1188,7 @@ bool DrawArea::_DrawFreehandLineTo(QPointF endPointC)
 void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative 
 {
     QPainter painter(&_canvas);
-    QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+    QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
 /* 
                             THIS DOES NOT WORK, nothing gets painted:
     if (_actPenWidth > 2)
@@ -1287,6 +1287,18 @@ void DrawArea::ClearHistory()
 
     emit CanUndo(false);
     emit CanRedo(false);
+}
+
+/*========================================================
+ * TASK:    called when primary screen changed
+ * PARAMS:  new screen
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - must be used to set bandHeight for _history
+ *-------------------------------------------------------*/
+void DrawArea::SlotForPrimaryScreenChanged(QScreen* ps)
+{
+    _history.SetBandHeight(ps->geometry().height());
 }
 
 void DrawArea::PageSetup()      // public slot
@@ -1455,7 +1467,8 @@ void DrawArea::_Redraw(bool clear)
     MyPenKind savekind = _myPenKind;
     bool saveEraseMode = _erasemode;
 
-    HistoryItemVector forPage = _CollectDrawables();  // using _yxOrder and _items sorted in ascending Z-number
+    HistoryItemVector forPage;
+    _CollectDrawables(forPage);  // using _yxOrder and _items sorted in ascending Z-number
     if(clear)
         _ClearCanvas();
     for (auto phi : forPage)

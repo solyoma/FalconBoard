@@ -378,7 +378,59 @@ struct Sprite
     ScreenShotImageList   images;     // image top left is relative to top left of sprite (0,0)
 };
 
+
 using HistoryItemVector = QVector<HistoryItem*>;
+
+/*========================================================
+ * bands on screen
+ *  all items are categorized into bands of height of 
+ *  _screenHeight, each band contains indices of each 
+ *  element which intersects that band, so one element may
+ *  appear on more than one band (currently 2)
+ *  a band may contain images and scribbles both
+ * 
+ * Band for any y coord is y / _bandHeight
+ *-------------------------------------------------------*/
+struct Bands 
+{
+    Bands() {}
+    void SetParam(History* pHist, int bandHeight );
+    void Add(int ix, bool isImage);    // existing and visible drawnable in pHist 
+    void Remove(int ix);
+    void ItemsForArea(QRect &rect, IntVector& hv, bool onlyInsider=false);
+    void ItemsForArea(QRect &rect, IntVector& hvLeft, IntVector& hvInside, IntVector& hvRight, QRect &unionRect);
+private:
+    struct Band
+    {
+        struct Index   
+        { 
+            int zorder;                 // indices are ordered in ascending zorder
+            int index;                  // in pHist->_items
+            bool isImage;
+            bool operator<(const Index &other) {return zorder < other.zorder; } 
+        };
+        using IndexVector = QVector<Band::Index>;
+
+        int band_index;
+        IndexVector indices;  // z-ordered indices in _items for visible items
+        bool operator<(const Band &other) const { return band_index < other.band_index;  }
+        bool operator<(int n) const { return band_index < n;  };
+
+        void Remove(int index);
+    };
+
+    History* _pHist=nullptr;
+    int _bandHeight=-1;
+    QPoint _visibleBands;   // x() top, y() bottom, any of them -1: not used
+    QList<Band> _bands;     // Band-s ordered by ascending band index
+
+    int _GetBand(int y);  // if present returns existing, else insert new band, or append when above all bands
+    int _NextBand(int actual_band_index, int y); // -"-
+    int _FindBand(int y, int bandHeight) const;  // binary search: returns index of  the band which have y inside
+    void _ItemsForBand(int bandIndex, QRect& rect, IntVector& hv, bool insidersOnly);
+    void _ItemsForBand(int bandIndex, QRect &rect, IntVector& hvLeft, IntVector& hvInside, IntVector& hvRight, QRect& unionRect);
+    void _Insert(Band &band, int index, bool isImage); // insert into indices at correct position
+};
 
 /*========================================================
  * Class for storing history of editing
@@ -420,24 +472,25 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _lastZorder = DRAWABLE_ZORDER_BASE;  // increased when drawable elements adedd to _items, does not get decreasd when they are taken off!
     int _lastImage = 0;                 // z-order of images
 
+    Bands _bands;                       // used to cathegorize visible _items
     DrawnItemVector  _copiedItems;      // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
     ScreenShotImageList   _copiedImages;// copy images on _nSelectedList to this
-    QRectF _copiedRect;                  // bounding rectangle for copied items used for paste operation
+    QRectF _copiedRect;                 // bounding rectangle for copied items used for paste operation
 
     IntVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band
               _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
               _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
-    int _nIndexOfFirstScreenShot;            // index of the first drawable (not image) element that is below a given y 
-    QRectF _selectionRect;               // bounding rectangle for selected items OR rectangle in which there are no items
+    int _nIndexOfFirstScreenShot;       // index of the first drawable (not image) element that is below a given y (always calulate)
+    QRect _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
                                         // when _nSelectedItemList is empty
     bool _modified = false;
 
     HistoryItem* _AddItem(HistoryItem* p);
 
-    int _YIndexForFirstVisible(bool onlyY = false);       // first visible drawable item in '_items' or -1 check area or only the y value
-                                        // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
     bool _IsSaveable(int i);
 
+    int _YIndexForFirstVisible(bool onlyY = false);       // first visible drawable item in '_items' or -1 check area or only the y value
+                                        // returns: 0 no item find, start at first item, -1: no items, (count+1) to next history item
     int _YIndexForClippingRect(const QRectF &clip); // binary search in ordered list
     int _YIndexForXY(QPointF topLeft);        // index of top-left-most element below xy (y larger or equal to xy.y) 
                                         // in _items, using '_yOrder' (binary search)
@@ -446,7 +499,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     {
         return _items[index]->TopLeft();
     }
-    int _YIndexForIndex(int index);      // returns index in _yxOrder
+    int _YIndexForIndex(int index);
     void _push_back(HistoryItem* pi);
 
     HistoryItem* _yitems(int yindex) const
@@ -461,11 +514,12 @@ class History  // stores all drawing sections and keeps track of undo and redo
 public:
     ScreenShotImageList* pImages = nullptr;  // set in DrawArea constructor
 
-    History() {}
+    History() { _bands.SetParam(this, -1);  }
     History(const History& o);
     History(const History&& o);
     ~History();
 
+    void SetBandHeight(int h) { _bands.SetParam(this, h); }
     void SetClippingRect(const QRect& rect) { _clpRect = rect;  }
 
     void clear();
@@ -479,17 +533,6 @@ public:
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
     const qint32 MAGIC_VERSION = 0x56010000; // V 01.00.00
 
-    /*========================================================
-     * TASK:    save actual visible drawn items
-     * PARAMS:  file name
-     * GLOBALS:
-     * RETURNS:
-     * REMARKS: - drawn items follow each other in the order 
-     *              they were used. 
-     *          - if a clear screen was somewhere it contains
-     *              the index of the last drawn item before it
-     *              so only items after it are saved
-     *-------------------------------------------------------*/
     bool Save(QString name);
 
     int Load(QString name);         // returns _ites.size() when Ok, -items.size()-1 when read error
@@ -498,10 +541,11 @@ public:
     bool CanRedo() const { return _redo.size(); }
 
     HistoryItem* operator[](int index) const { return _items[index]; }                  // index: physical index in _items
-    HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder
+    HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder - only drawables
     {
         return _yitems(yindex);
     }
+    int IndexForYIndex(int yix);
     void ReplaceItem(int index, HistoryItem* pi);     // index: in '_items'
     void RemoveItemsStartingAt(int index);
 
@@ -535,16 +579,17 @@ public:
     QRectF       Undo();        // returns top left after undo 
     HistoryItem* Redo();
 
+    int History::GetDrawablesInside(QRect rect, HistoryItemVector& hv);
     HistoryItem* GetOneStep();
 
     void AddToSelection(int index=-1);
-    int CollectItemsInside(QRectF rect);
+    int CollectItemsInside(QRect rect);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
 
     const QVector<DrawnItem>& CopiedItems() const { return _copiedItems;  }
     int CopiedCount() const { return _copiedItems.size();  }
-    const QRectF &BoundingRect() const { return _selectionRect; }
+    const QRectF BoundingRect() const { return _selectionRect; }
     const IntVector &Selected() const { return _nSelectedItemsList;  }
 };
 

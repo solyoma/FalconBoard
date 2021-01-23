@@ -97,11 +97,11 @@ public slots:
     void Print(QString fileName, QString *pdir=nullptr);
     void ExportPdf(QString fileName, QString &directory);   // filename w.o. directory
     void PageSetup();
+    void SlotForPrimaryScreenChanged(QScreen*);
 #ifndef _VIEWER
     void Undo();
     void Redo();
     void ChangePenColorSlot(int key);
-
 #endif
 
 protected:
@@ -219,7 +219,7 @@ private:
     void _ClearCanvas();
 
     void _MoveToActualPosition(QRect rect);
-    HistoryItemVector _CollectDrawables(); // for actual clipping rect
+    int _CollectDrawables(HistoryItemVector &hv); // for actual clipping rect
 #ifndef _VIEWER
     bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
     QPointF _CorrectForDirection(QPointF &newp);     // using _startSet and _isHorizontal

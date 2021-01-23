@@ -96,6 +96,7 @@ private slots:
 
 	void SlotForLabel(QString text);
 	void SlotForPenKindChange(MyPenKind pk);
+
 #endif
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() { _drawArea->Print(_saveName);  }
