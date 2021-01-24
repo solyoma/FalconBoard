@@ -277,7 +277,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                            ((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
                  bCopy   = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
                                         _mods.testFlag(Qt::ControlModifier),
-                 bPaste  =  _scribblesCopied && 
+                 bPaste  =  _itemsCopied && 
                             ( (key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
                               (key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
                             ),
@@ -298,7 +298,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 if ((bCollected = _history.SelectedSize()) && !bDelete && !bRotate)
                 {
                     _history.CopySelected();
-                    _scribblesCopied = true;        // never remove selected list
+                    _itemsCopied = true;        // never remove selected list
                 }
             }
                 // if !bCollected then history's _selectedList is empty, but the rubberRect is set into _selectionRect
@@ -903,7 +903,9 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
  * REMARKS: - layers:
  *                  top     sprite layer     ARGB
  *                          _canvas          ARGB
+ *                          page guides if shown
  *                          screenshots
+ *                          grid        if shown
  *                  bottom  background image if any
  *          - paint these in bottom to top order on this widget 
  *          - event->rect() is widget relative
@@ -928,6 +930,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
     }
             // top of these the drawing
     painter.drawImage(dirtyRect, _canvas, dirtyRect);          // canvas layer
+
     if (_bPageGuidesOn)
         _DrawPageGuides(painter);
 
@@ -1473,11 +1476,7 @@ void DrawArea::_Redraw(bool clear)
         _ClearCanvas();
     for (auto phi : forPage)
         _ReplotItem(phi);
-    //if (_history.SetFirstItemToDraw() >= 0)
-    //{
-    //    while (_ReplotItem(_history.GetOneStep()))
-    //        ;
-    //}
+    
     _myPenKind = savekind;
     _penWidth = savewidth;
     _erasemode = saveEraseMode;
@@ -1526,7 +1525,7 @@ void DrawArea::_RestoreCursor()
 
 bool DrawArea::_ReplotItem(HistoryItem* phi)
 {
-    if (!phi || !phi->GetDrawable()->intersects(_clippingRect))
+    if (!phi || phi->IsImage() || !phi->Area().intersects(_clippingRect))
         return false;
 
     DrawnItem* pdrni;     // used when we must draw something onto the screen
@@ -1537,7 +1536,7 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
             return;                              // the scribble
 
         // DEBUG
-// draw rectange around item to see if item intersects the rectangle
+        // draw rectange around item to see if item intersects the rectangle
         //{
         //    QPainter painter(&_canvas);
         //    QRect rect = pdrni->rect.adjusted(-1,-1,0,0);   // 1px pen left and top:inside rectangle, put pen outside rectangle
@@ -1546,13 +1545,6 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
         //}
         // /DEBUG            
         _DrawAllPoints(pdrni);
-        //_lastPointC = pdrni->points[0] - _topLeft;
-        //_myPenKind = pdrni->penKind;
-        //_actPenWidth = pdrni->penWidth;
-        //_erasemode = pdrni->type == heEraser ? true : false;
-        //for (int i = 1; i < pdrni->points.size(); ++i)
-        //    _DrawLineTo(pdrni->points[i] - _topLeft);
-
     };
 
     switch(phi->type)

@@ -280,7 +280,7 @@ int MyPrinter::_CalcPages()
         if (phi->Hidden())
             continue;
 
-        if (phi->type == heScreenShot)   // then this item is in all page rectangles it intersects
+        if (phi->IsImage())   // then this item is in all page rectangles it intersects
         {
             PageNum2 lpgn;
             sortedPageNumbers.PageForPoint(phi->Area().topLeft(), yi, pgn);         
@@ -386,7 +386,7 @@ int MyPrinter::_PageForPoint(const QPointF p)
 bool MyPrinter::_PrintItem(Yindex yi)
 {
     HistoryItem * phi = _pHist->atYIndex(yi.yix);
-    if(phi->type == heScreenShot)
+    if(phi->IsImage())
     {                               // paint over background layer
         ScreenShotImage* psi = phi->GetScreenShotImage();
         QRectF srcRect = phi->Area().intersected(_actPage.screenArea); // screen coordinates
@@ -397,6 +397,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
         Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
 		if (_data.flags & pfDontPrintImages)    // print placeholder
         {
+            _painterPage->setPen(QPen(drawColors[penYellow], 2, Qt::SolidLine));
             _painterPage->setPen(QPen(drawColors[penYellow], 2, Qt::SolidLine));
             _painterPage->drawLine(dstRect.topLeft(), dstRect.bottomRight());
             _painterPage->drawLine(dstRect.topRight(), dstRect.bottomLeft());
