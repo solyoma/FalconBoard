@@ -78,7 +78,7 @@ private:
     {
         int pageNumber;
         QRectF screenArea;        // absolute screen area for page set from _data.topLeftActPage, screenWidth and _data.printArea
-        YIndexVector yindices;   // of drawables to print on this page (ordered by y, z-order [screenshots:0, other:1] then x)
+        YIndexVector yindices;   // of scribbles to print on this page (ordered by y, z-order [screenshots:0, other:1] then x)
         bool operator==(const struct Page& other) { return pageNumber == other.pageNumber; }
     };
     using PageVector = QVector<Page>;

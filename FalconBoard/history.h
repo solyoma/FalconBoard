@@ -32,8 +32,8 @@ enum HistEvent {
     heItemsPastedBottom,// list of draw events added first drawn item is at index 'drawnItem'
     heItemsPastedTop    // list of draw events added first drawn item is at index 'drawnItem'
                         // last one is at index 'lastDrawnIndex'
-                        // Undo: set _indexLastDrawnItem to that given in previous history item
-                        // Redo: set _indexLastDrawnItem to 'lastDrawnIndex'
+                        // Undo: set _indexLastScribbleItem to that given in previous history item
+                        // Redo: set _indexLastScribbleItem to 'lastDrawnIndex'
                 };
 enum MyRotation { rotNone, 
             rotR90, rotL90, rot180, rotFlipH, rotFlipV,     // these leave the top left corner in place
@@ -42,12 +42,14 @@ enum MyRotation { rotNone,
 enum MyLayer { 
                 mlyBackgroundImage,         // lowest layer: background image
                 mlyScreenShot,              // screenshot layer: may write over it
-                mlyDrawnItem,               // drawables are drawn here
+                mlyScribbleItem,               // scribbles are drawn here
                 mlySprite                   // layer for sprites (moveable images)
              };
 
 /*========================================================
  * Structure to hold item indices for one band or selection
+ *  An ItemIndex may hold scribbles or screenshot images
+ *  Screenshot items have zorder-s below DRAWABLE_ZORDER_BASE
  *-------------------------------------------------------*/
 struct ItemIndex
 {
@@ -56,13 +58,13 @@ struct ItemIndex
     int index;                  // in pHist->_items
     bool operator<(const ItemIndex& other) { return zorder < other.zorder; }
 };
-using ItemIndexVector = QVector<ItemIndex>;
+using ItemIndexVector = QVector<ItemIndex>;  // ordered by 'zorder'
+
 using IntVector = QVector<int>;
 
 
-
 // stores the coordinates of line strokes from pen down to pen up:
-struct DrawnItem        // drawn on layer mltDrawnItem
+struct ScribbleItem        // drawn on layer mltScribbleItem
 {                   
     HistEvent type = heNone;
     int zOrder = 0;
@@ -76,12 +78,12 @@ struct DrawnItem        // drawn on layer mltDrawnItem
     QRectF bndRect;                  // top left-bttom right coordinates of bounding rectangle
                                     // not saved on disk, recreated on read
 
-    DrawnItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
-    DrawnItem(const DrawnItem& di);
-    DrawnItem(const DrawnItem&& di) noexcept;
-    DrawnItem& operator=(const DrawnItem& di);
+    ScribbleItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
+    ScribbleItem(const ScribbleItem& di);
+    ScribbleItem(const ScribbleItem&& di) noexcept;
+    ScribbleItem& operator=(const ScribbleItem& di);
 
-    DrawnItem& operator=(const DrawnItem&& di)  noexcept;
+    ScribbleItem& operator=(const ScribbleItem&& di)  noexcept;
 
     void clear();       // clears points and sets type to heNone
 
@@ -98,15 +100,15 @@ struct DrawnItem        // drawn on layer mltDrawnItem
     void Rotate(MyRotation rot, QRectF inThisrectangle, float alpha=0.0);    // alpha used only for 'rotAlpha'
 };
 
-inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di);
-inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di);
+inline QDataStream& operator<<(QDataStream& ofs, const ScribbleItem& di);
+inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di);
 
 
 // ******************************************************
 // image to shown on background
-struct ScreenShotImage {           // shown on layer mlyScreenShot below the drawings
+struct ScreenShotImage {       // shown on layer mlyScreenShot below the drawings
     QImage image;              // image from the disk or from screenshot
-    QPointF topLeft;            // relative to (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
+    QPointF topLeft;           // relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
     bool isVisible = true;
     int zOrder;     // of images is the index of this image on the pimages list in History
             // canvasRect relative to (0,0)
@@ -137,7 +139,7 @@ public:
 };
 
 //*********************************************************
-using DrawnItemVector = QVector<DrawnItem>;
+using ScribbleItemVector = QVector<ScribbleItem>;
 
 /*========================================================
  * One history element
@@ -156,8 +158,8 @@ struct HistoryItem      // base class
     virtual int ZOrder() const { return 0; }
 
     virtual QPointF TopLeft() const { return QPointF(); }
-    virtual DrawnItem* GetVisibleDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem
-    virtual DrawnItem* GetDrawable(int index = 0) const { return nullptr; } // returns pointer to the index-th DrawnItem even when it is not visible
+    virtual ScribbleItem* GetVisibleScribble(int index = 0) const { return nullptr; } // returns pointer to the index-th ScribbleItem
+    virtual ScribbleItem* GetScribble(int index = 0) const { return nullptr; } // returns pointer to the index-th ScribbleItem even when it is not visible
     virtual ScreenShotImage* GetScreenShotImage() const { return nullptr; }
     virtual ItemIndex ItxFrom(int index) const { ItemIndex itx; itx.index = index; itx.zorder = ZOrder(); return itx; }
 
@@ -172,7 +174,7 @@ struct HistoryItem      // base class
     virtual int Undo() { return 1; }        // returns amount _actItem in History need to be changed (go below 1 item)
     virtual int Redo() { return 0; }        // returns amount _actItem in History need to be changed (after ++_actItem still add this to it)
     virtual QRectF Area() const { return QRectF(); }  // encompassing rectangle for all points
-    virtual bool IsDrawable() const { return false; }
+    virtual bool IsScribble() const { return false; }
     virtual bool IsImage() const { return type == heScreenShot; }
     virtual bool Hidden() const { return true; }    // must not draw it
     virtual bool IsSaveable() const  { return !Hidden(); }    // use when items may be hidden
@@ -182,36 +184,36 @@ struct HistoryItem      // base class
 
 //--------------------------------------------
 // type heScribble, heEraser
-struct HistoryDrawnItem : public HistoryItem
+struct HistoryScribbleItem : public HistoryItem
 {
-    DrawnItem drawnItem;                // store data into this
-    HistoryDrawnItem(History* pHist, DrawnItem& dri);
-    HistoryDrawnItem(const HistoryDrawnItem& other);
-    HistoryDrawnItem(const HistoryDrawnItem&& other) noexcept;
+    ScribbleItem drawnItem;                // store data into this
+    HistoryScribbleItem(History* pHist, ScribbleItem& dri);
+    HistoryScribbleItem(const HistoryScribbleItem& other);
+    HistoryScribbleItem(const HistoryScribbleItem&& other) noexcept;
 
     void SetVisibility(bool visible) override;
     bool Hidden() const override;
 
-    HistoryDrawnItem& operator=(const HistoryDrawnItem& other);
-    HistoryDrawnItem& operator=(const HistoryDrawnItem&& other) noexcept;
+    HistoryScribbleItem& operator=(const HistoryScribbleItem& other);
+    HistoryScribbleItem& operator=(const HistoryScribbleItem&& other) noexcept;
 
     int ZOrder() const override;
     QPointF TopLeft() const override { return drawnItem.bndRect.topLeft(); }
-    DrawnItem* GetVisibleDrawable(int index = 0) const override;
-    DrawnItem* GetDrawable(int index = 0) const override;
+    ScribbleItem* GetVisibleScribble(int index = 0) const override;
+    ScribbleItem* GetScribble(int index = 0) const override;
     QRectF Area() const override;
     int Size() const override { return 1; }
     bool Translatable() const override { return drawnItem.isVisible; }
     void Translate(QPointF p, int minY) override;
     void Rotate(MyRotation rot, QRectF encRect, float alpha=0.0) override;
-    bool IsDrawable() const override { return true; }
+    bool IsScribble() const override { return true; }
     // no new undo/redo needed
 };
 
 //--------------------------------------------
 struct HistoryDeleteItems : public HistoryItem
 {
-    ItemIndexVector deletedList;   // absolute indexes of drawable elements in '*pHist'
+    ItemIndexVector deletedList;   // absolute indexes of scribble elements in '*pHist'
     int Undo() override;
     int Redo() override;
     HistoryDeleteItems(History* pHist, ItemIndexVector& selected);
@@ -219,8 +221,8 @@ struct HistoryDeleteItems : public HistoryItem
     HistoryDeleteItems& operator=(const HistoryDeleteItems& other);
     HistoryDeleteItems(HistoryDeleteItems&& other) noexcept;
     HistoryDeleteItems& operator=(const HistoryDeleteItems&& other) noexcept;
-    DrawnItem* GetDrawable(int index = 0) const override { return nullptr; }
-    DrawnItem* GetVisibleDrawable(int index = 0) const override { return nullptr; }
+    ScribbleItem* GetScribble(int index = 0) const override { return nullptr; }
+    ScribbleItem* GetVisibleScribble(int index = 0) const override { return nullptr; }
 };
 //--------------------------------------------
 // remove an empty rectangular region by moving
@@ -245,7 +247,7 @@ struct HistoryRemoveSpaceItem : HistoryItem // using _selectedRect
 // When pasting items into _items from bottom up 
 //   'HistoryPasteItemBottom' item (its absolute index is in  
 //          HistoryPasteItemTop::indexOfBottomItem
-//   'HistoryDrawnItems' items athat were pasted
+//   'HistoryScribbleItems' items athat were pasted
 //   'HistoryPasteItemTop' item
 struct HistoryPasteItemBottom : HistoryItem
 {
@@ -280,8 +282,8 @@ struct HistoryPasteItemTop : HistoryItem
 
     int Size() const override { return count; }
 
-    DrawnItem* GetDrawable(int index = 0) const override; // only for top get (count - index)-th below this one
-    DrawnItem* GetVisibleDrawable(int index = 0) const override; // only for top get (count - index)-th below this one
+    ScribbleItem* GetScribble(int index = 0) const override; // only for top get (count - index)-th below this one
+    ScribbleItem* GetVisibleScribble(int index = 0) const override; // only for top get (count - index)-th below this one
 
     bool Hidden() const override;       // only for top: when the first element is hidden, all hidden
     // bool IsSaveable() const override;
@@ -348,7 +350,7 @@ struct HistoryScreenShotItem : public HistoryItem
     bool Translatable() const override;
     void Translate(QPointF p, int minY) override;
     void Rotate(MyRotation rot, QRectF encRect, float alpha=0.0) override;
-    bool IsDrawable() const override { return true; }
+    bool IsScribble() const override { return true; }
     ScreenShotImage* GetScreenShotImage() const override;
 };
 //--------------------------------------------
@@ -391,7 +393,7 @@ struct Sprite
     bool itemsDeleted = true;   // unless Alt+
 
     ItemIndexVector       nSelectedItemsList;     // indices into 'pHist->_items', that are completely inside the rubber band rectangle
-    DrawnItemVector       items;      // each point of items[..] is relative to top-left of sprite (0,0)
+    ScribbleItemVector       items;      // each point of items[..] is relative to top-left of sprite (0,0)
     ScreenShotImageList   images;     // image top left is relative to top left of sprite (0,0)
 };
 
@@ -470,12 +472,12 @@ private:
 class History  // stores all drawing sections and keeps track of undo and redo
 {
     bool _inLoad = false;               // in function Load() / needed for correct z- order settings
-    HistoryItemVector _items,           // items in the order added. Items need not be drawable.
-                                        // drawable elements on this list may be either visible or hidden
-                      _redo;            // from _items for redo. Items need not be drawable.
-                                        // drawable elements on this list may be either visible or hidden
-    IntVector   _yxOrder;               // indices of all drawables in '_items' ordered by y then x    
-                                        // undrawable items have no indices in here
+    HistoryItemVector _items,           // items in the order added. Items need not be scribble.
+                                        // scribble elements on this list may be either visible or hidden
+                      _redo;            // from _items for redo. Items need not be scribble.
+                                        // scribble elements on this list may be either visible or hidden
+    IntVector   _yxOrder;               // indices of all scribbles in '_items' ordered by y then x    
+                                        // unscribble items have no indices in here
     friend class _yitems;
     QRect _clpRect;                     // clipping rectangle for selecting points to draw
                                         // before searching operations set this when it is changed
@@ -483,18 +485,18 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     int _indexOfFirstVisible = -1;      // in _yxorder
 
-    int _lastZorder = DRAWABLE_ZORDER_BASE;  // increased when drawable elements adedd to _items, does not get decreasd when they are taken off!
+    int _lastZorder = DRAWABLE_ZORDER_BASE;  // increased when scribble elements adedd to _items, does not get decreasd when they are taken off!
     int _lastImage = 0;                 // z-order of images
 
     Bands _bands;                       // used to cathegorize visible _items
-    DrawnItemVector     _copiedItems;   // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
+    ScribbleItemVector     _copiedItems;   // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
     ScreenShotImageList _copiedImages;  // copy images on _nSelectedList to this
     QRectF _copiedRect;                 // bounding rectangle for copied items used for paste operation
 
     ItemIndexVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band
                     _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
                     _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
-    int _nIndexOfFirstScreenShot;       // index of the first drawable (not image) element that is below a given y (always calulate)
+    int _nIndexOfFirstScreenShot;       // index of the first scribble (not image) element that is below a given y (always calulate)
     QRect _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
                                         // when _nSelectedItemList is empty
     bool _modified = false;
@@ -547,7 +549,7 @@ public:
     void clear();
     int size() const;   // _items's size
     int CountOfVisible() const; // visible from yxOrder
-    int CountOfDrawable() const { return _yxOrder.size(); }
+    int CountOfScribble() const { return _yxOrder.size(); }
     int SelectedSize() const { return _nSelectedItemsList.size(); }
 
     HistoryItem* operator[](int index);   // index: absolute index
@@ -563,7 +565,7 @@ public:
     bool CanRedo() const { return _redo.size(); }
 
     HistoryItem* operator[](int index) const { return _items[index]; }                  // index: physical index in _items
-    HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder - only drawables
+    HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder - only scribbles
     {
         return _yitems(yindex);
     }
@@ -577,7 +579,7 @@ public:
     HistoryItem* addClearRoll();
     HistoryItem* addClearVisibleScreen();
     HistoryItem* addClearDown();
-    HistoryItem* addDrawnItem(DrawnItem& dri);
+    HistoryItem* addScribbleItem(ScribbleItem& dri);
     HistoryItem* addDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
     HistoryItem* addPastedItems(QPointF topLeft, Sprite *pSprite=nullptr);   // using 'this' and either '_copiedList'  or  pSprite->... lists
     HistoryItem* addRecolor(MyPenKind pk);
@@ -593,14 +595,14 @@ public:
     QRectF       Undo();        // returns top left after undo 
     HistoryItem* Redo();
 
-    int History::GetDrawablesInside(QRect rect, HistoryItemVector& hv);
+    int History::GetScribblesInside(QRect rect, HistoryItemVector& hv);
 
     void AddToSelection(int index=-1);
     int CollectItemsInside(QRect rect);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
 
-    const QVector<DrawnItem>& CopiedItems() const { return _copiedItems;  }
+    const QVector<ScribbleItem>& CopiedItems() const { return _copiedItems;  }
     int CopiedCount() const { return _copiedItems.size();  }
     const QRectF BoundingRect() const { return _selectionRect; }
     const ItemIndexVector& Selected() const { return _nSelectedItemsList;  }

@@ -122,7 +122,7 @@ private:
     void ChangePenColorByKeyboard(int key);
 #endif
 private:
-    History _history;               // every drawable element with undo/redo
+    History _history;               // every scribble element with undo/redo
     bool _mustRedrawArea = true;    // else no redraw
     bool _redrawPending = false;    // redraw requested when it was not enabled
            // page setup
@@ -199,7 +199,7 @@ private:
 
     QPointF  _firstPointC, // canvas relative first point drawn
             _lastPointC; // canvas relative last point drawn relative to visible image
-    DrawnItem _lastDrawnItem;
+    ScribbleItem _lastScribbleItem;
     QCursor _savedCursor;
     bool _cursorSaved = false;
 
@@ -219,19 +219,19 @@ private:
     void _ClearCanvas();
 
     void _MoveToActualPosition(QRect rect);
-    int _CollectDrawables(HistoryItemVector &hv); // for actual clipping rect
+    int _CollectScribbles(HistoryItemVector &hv); // for actual clipping rect
 #ifndef _VIEWER
-    bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastDrawnItem.points[0]
+    bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
     QPointF _CorrectForDirection(QPointF &newp);     // using _startSet and _isHorizontal
 #endif
 
     bool _DrawFreehandLineTo(QPointF endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
     void _DrawLineTo(QPointF endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
-    void _DrawAllPoints(DrawnItem* pdrni);
+    void _DrawAllPoints(ScribbleItem* pdrni);
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
-    bool _ReplotItem(HistoryItem* pdrni); 
+    bool _ReplotScribbleItem(HistoryItem* pdrni); 
     void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);
     void _DrawPageGuides(QPainter& painter);

@@ -201,9 +201,9 @@ static struct SortedPageNumbers
 
     void AddPoints(HistoryItem* phi, int Yindex, PageNum2 &pgn) // to 'pgns'
     {
-        DrawnItem* pdrni;
+        ScribbleItem* pdrni;
 
-        pdrni = phi->GetVisibleDrawable(0);    // only one element for drawable / printable
+        pdrni = phi->GetVisibleScribble(0);    // only one element for scribble / printable
         Insert(PageForPoint(pdrni->points[0], Yindex, pgn));
         // TODO when the line segment between 2 consecutive points goes through more than one page
         //          example: horizontal, vertical line, circle, etc *********
@@ -268,9 +268,9 @@ int MyPrinter::_CalcPages()
 {
     sortedPageNumbers.Init( QRect(0, 0, _data.screenPageWidth, _data.screenPageHeight) );
 
-    int nSize = _pHist->CountOfDrawable();
+    int nSize = _pHist->CountOfScribble();
 
-    // for each drawable determine pages it apperas on and prepare
+    // for each scribble determine pages it apperas on and prepare
     // a list of pages ordered first by y then by x page indices
     HistoryItem* phi;
     PageNum2 pgn;
@@ -297,7 +297,7 @@ int MyPrinter::_CalcPages()
                 }
             }
         }
-        else                            // scribbles, ereases and other (future) drawables
+        else                            // scribbles, ereases and other (future) scribbles
         {                               // must be checked point by point
             switch (phi->type)
             {
@@ -407,7 +407,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
     }
     else if (phi->type == heScribble || phi->type == heEraser)
     {             // paint over transparent layer
-        DrawnItem* pdrni = phi->GetVisibleDrawable(0);
+        ScribbleItem* pdrni = phi->GetVisibleScribble(0);
         MyPenKind pk = pdrni->penKind;
         int pw = pdrni->penWidth * _data.magn;
         bool erasemode = pdrni->type == heEraser ? true : false;

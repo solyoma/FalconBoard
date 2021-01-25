@@ -15,10 +15,10 @@ static void SwapWH(QRectF& r)
 
 //-------------------------------------------------
 
-DrawnItem::DrawnItem(HistEvent he, int zorder) noexcept : type(he), zOrder(zorder) {}
-DrawnItem::DrawnItem(const DrawnItem& di) { *this = di; }
-DrawnItem::DrawnItem(const DrawnItem&& di) noexcept { *this = di; }
-DrawnItem& DrawnItem::operator=(const DrawnItem& di)
+ScribbleItem::ScribbleItem(HistEvent he, int zorder) noexcept : type(he), zOrder(zorder) {}
+ScribbleItem::ScribbleItem(const ScribbleItem& di) { *this = di; }
+ScribbleItem::ScribbleItem(const ScribbleItem&& di) noexcept { *this = di; }
+ScribbleItem& ScribbleItem::operator=(const ScribbleItem& di)
 {
 	type = di.type;
 	zOrder = di.zOrder;
@@ -29,7 +29,7 @@ DrawnItem& DrawnItem::operator=(const DrawnItem& di)
 	return *this;
 }
 
-DrawnItem& DrawnItem::operator=(const DrawnItem&& di)  noexcept
+ScribbleItem& ScribbleItem::operator=(const ScribbleItem&& di)  noexcept
 {
 	type = di.type;
 	zOrder = di.zOrder;
@@ -40,14 +40,14 @@ DrawnItem& DrawnItem::operator=(const DrawnItem&& di)  noexcept
 	return *this;
 }
 
-void DrawnItem::clear()
+void ScribbleItem::clear()
 {
 	points.clear();
 	bndRect = QRect();
 	type = heNone;
 }
 
-bool DrawnItem::IsExtension(const QPointF& p, const QPointF& p1, const QPointF& p2) // vectors p->p1 and p1->p are parallel?
+bool ScribbleItem::IsExtension(const QPointF& p, const QPointF& p1, const QPointF& p2) // vectors p->p1 and p1->p are parallel?
 {
 	//return false;       // DEBUG as it is not working yet
 
@@ -62,7 +62,7 @@ bool DrawnItem::IsExtension(const QPointF& p, const QPointF& p1, const QPointF& 
 	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && (vp.x() * vpp.x() > 0);
 }
 
-void DrawnItem::add(QPointF p)
+void ScribbleItem::add(QPointF p)
 {
 	int n = points.size() - 1;
 	                    // we need at least one point already in the array
@@ -76,19 +76,19 @@ void DrawnItem::add(QPointF p)
 		points.push_back(p);
 }
 
-void DrawnItem::add(int x, int y)
+void ScribbleItem::add(int x, int y)
 {
 	QPointF p(x, y);
 	add(p);
 }
 
-void DrawnItem::Smooth()
+void ScribbleItem::Smooth()
 {
 	// smoothing points so that small variations in them vanish
 	// ???
 }
 
-void DrawnItem::SetBoundingRectangle()
+void ScribbleItem::SetBoundingRectangle()
 {
 	bndRect = QRect();
 	if (points.isEmpty())
@@ -116,12 +116,12 @@ void DrawnItem::SetBoundingRectangle()
 
 }
 
-bool DrawnItem::intersects(const QRectF& arect) const
+bool ScribbleItem::intersects(const QRectF& arect) const
 {
 	return bndRect.intersects(arect);
 }
 
-void DrawnItem::Translate(QPointF dr, int minY)
+void ScribbleItem::Translate(QPointF dr, int minY)
 {
 	if (bndRect.y() < minY || !isVisible)
 		return;
@@ -131,7 +131,7 @@ void DrawnItem::Translate(QPointF dr, int minY)
 	bndRect.translate(dr);
 }
 
-void DrawnItem::Rotate(MyRotation rotation, QRectF encRect, float alpha)	// rotate around the center of encRect
+void ScribbleItem::Rotate(MyRotation rotation, QRectF encRect, float alpha)	// rotate around the center of encRect
 {
 	int erx = encRect.x(), ery = encRect.y(),
 		erw = encRect.width(),
@@ -224,7 +224,7 @@ void DrawnItem::Rotate(MyRotation rotation, QRectF encRect, float alpha)	// rota
 
 }
 
-inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
+inline QDataStream& operator<<(QDataStream& ofs, const ScribbleItem& di)
 {
 	ofs << (qint32)di.type << di.zOrder << (qint32)di.penKind << (qint32)di.penWidth;
 	ofs << (qint32)di.points.size();
@@ -233,7 +233,7 @@ inline QDataStream& operator<<(QDataStream& ofs, const DrawnItem& di)
 	return ofs;
 }
 		   // reads ONLY after the type is read in!
-inline QDataStream& operator>>(QDataStream& ifs, DrawnItem& di)
+inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di)
 {
 	qint32 n;
 	ifs >> n; di.zOrder = n;
@@ -389,71 +389,71 @@ bool HistoryItem::operator<(const HistoryItem& other)
 
 //--------------------------------------------
 // type heScribble, heEraser
-HistoryDrawnItem::HistoryDrawnItem(History* pHist, DrawnItem& dri) : HistoryItem(pHist, dri.type), drawnItem(dri)
+HistoryScribbleItem::HistoryScribbleItem(History* pHist, ScribbleItem& dri) : HistoryItem(pHist, dri.type), drawnItem(dri)
 {
 	type = dri.type;
 	drawnItem.SetBoundingRectangle();
 }
 
-HistoryDrawnItem::HistoryDrawnItem(const HistoryDrawnItem& other) : HistoryItem(other.pHist)
+HistoryScribbleItem::HistoryScribbleItem(const HistoryScribbleItem& other) : HistoryItem(other.pHist)
 {
 	*this = other;
 }
-HistoryDrawnItem::HistoryDrawnItem(const HistoryDrawnItem&& other) noexcept: HistoryItem(other.pHist)
+HistoryScribbleItem::HistoryScribbleItem(const HistoryScribbleItem&& other) noexcept: HistoryItem(other.pHist)
 {
 	*this = other;
 }
 
-void HistoryDrawnItem::SetVisibility(bool visible)
+void HistoryScribbleItem::SetVisibility(bool visible)
 {
 	drawnItem.isVisible = visible;
 }
 
-bool HistoryDrawnItem::Hidden() const
+bool HistoryScribbleItem::Hidden() const
 {
 	return !drawnItem.isVisible;
 }
 
-HistoryDrawnItem& HistoryDrawnItem::operator=(const HistoryDrawnItem& other)
+HistoryScribbleItem& HistoryScribbleItem::operator=(const HistoryScribbleItem& other)
 {
 	pHist = other.pHist;
 	type = other.type;
 	drawnItem = other.drawnItem;
 	return *this;
 }
-HistoryDrawnItem& HistoryDrawnItem::operator=(const HistoryDrawnItem&& other) noexcept
+HistoryScribbleItem& HistoryScribbleItem::operator=(const HistoryScribbleItem&& other) noexcept
 {
 	pHist = other.pHist;
 	type = other.type;
 	drawnItem = other.drawnItem;
 	return *this;
 }
-int HistoryDrawnItem::ZOrder() const
+int HistoryScribbleItem::ZOrder() const
 {
 	return drawnItem.zOrder;
 }
 
-DrawnItem* HistoryDrawnItem::GetVisibleDrawable(int index) const
+ScribbleItem* HistoryScribbleItem::GetVisibleScribble(int index) const
 {
-	return (index || Hidden()) ? nullptr : const_cast<DrawnItem*>(&drawnItem);
+	return (index || Hidden()) ? nullptr : const_cast<ScribbleItem*>(&drawnItem);
 }
 
-DrawnItem* HistoryDrawnItem::GetDrawable(int index) const
+ScribbleItem* HistoryScribbleItem::GetScribble(int index) const
 {
-	return (index) ? nullptr : const_cast<DrawnItem*>(&drawnItem);
+	return (index) ? nullptr : const_cast<ScribbleItem*>(&drawnItem);
 }
 
-QRectF HistoryDrawnItem::Area() const
+QRectF HistoryScribbleItem::Area() const
 {
 	return drawnItem.bndRect;
 }
 
-void HistoryDrawnItem::Translate(QPointF p, int minY)
+void HistoryScribbleItem::Translate(QPointF p, int minY)
 {
 	drawnItem.Translate(p, minY);
 }
 
-void HistoryDrawnItem::Rotate(MyRotation rot, QRectF encRect, float alpha)
+void HistoryScribbleItem::Rotate(MyRotation rot, QRectF encRect, float alpha)
 {
 	drawnItem.Rotate(rot, encRect);
 }
@@ -671,18 +671,18 @@ void HistoryPasteItemTop::Rotate(MyRotation rot, QRectF encRect, float alpha)
 		(*pHist)[indexOfBottomItem + i]->Rotate(rot, encRect);
 }
 
-DrawnItem* HistoryPasteItemTop::GetDrawable(int which) const
+ScribbleItem* HistoryPasteItemTop::GetScribble(int which) const
 {
 	if (which < 0 || which >= count)
 		return nullptr;
-	return (*pHist)[indexOfBottomItem + 1 + which]->GetDrawable(0);
+	return (*pHist)[indexOfBottomItem + 1 + which]->GetScribble(0);
 }
 
-DrawnItem* HistoryPasteItemTop::GetVisibleDrawable(int which) const
+ScribbleItem* HistoryPasteItemTop::GetVisibleScribble(int which) const
 {
 	if (which < 0 || which >= count)
 		return nullptr;
-	return (*pHist)[indexOfBottomItem + 1 + which]->GetVisibleDrawable(0);
+	return (*pHist)[indexOfBottomItem + 1 + which]->GetVisibleScribble(0);
 }
 
 QRectF HistoryPasteItemTop::Area() const
@@ -739,8 +739,8 @@ int  HistoryReColorItem::Undo()
 	for (auto i : selectedList)
 	{
 		int index = 0;
-		DrawnItem* pdri;
-		while ((pdri = (*pHist)[i.index]->GetVisibleDrawable(index)))
+		ScribbleItem* pdri;
+		while ((pdri = (*pHist)[i.index]->GetVisibleScribble(index)))
 			pdri->penKind = penKindList[index++];
 	}
 	return 1;
@@ -750,8 +750,8 @@ int  HistoryReColorItem::Redo()
 	for (auto i : selectedList)
 	{
 		int index = 0;
-		DrawnItem* pdri;
-		while ((pdri = (*pHist)[i.index]->GetVisibleDrawable(index)))
+		ScribbleItem* pdri;
+		while ((pdri = (*pHist)[i.index]->GetVisibleScribble(index)))
 		{
 			penKindList[index++] = pdri->penKind;
 			pdri->penKind = pk;
@@ -1091,7 +1091,7 @@ void History::_push_back(HistoryItem* pi)
 	int s = _items.size();					 // physical index to put into _yxOrder 
 	_items.push_back(pi);					 // always append
 
-	if (pi->IsDrawable())	// Only drawable elements are put into _yxOrder
+	if (pi->IsScribble())	// Only scribble elements are put into _yxOrder
 	{
 		_bands.Add(s);	// screenshots are marked in _items
 
@@ -1256,8 +1256,8 @@ bool History::Save(QString name)
 			ofs << (*pImages)[((HistoryScreenShotItem*)ph)->which];
 			continue;
 		}
-		DrawnItem* pdrni;
-		while ((pdrni = ph->GetVisibleDrawable(++index)) != nullptr)
+		ScribbleItem* pdrni;
+		while ((pdrni = ph->GetVisibleScribble(++index)) != nullptr)
 			ofs << *pdrni;
 	}
 	_modified = false;
@@ -1293,7 +1293,7 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 
 	_inLoad = true;
 
-	DrawnItem di;
+	ScribbleItem di;
 	ScreenShotImage bimg;
 	int i = 0, n;
 	while (!ifs.atEnd())
@@ -1321,7 +1321,7 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 
 		++i;
 
-		HistoryItem* phi = addDrawnItem(di);
+		HistoryItem* phi = addScribbleItem(di);
 
 	}
 	_modified = false;
@@ -1358,7 +1358,7 @@ HistoryItem* History::addClearDown()
 	return pi;
 }
 
-HistoryItem* History::addDrawnItem(DrawnItem& itm)			// may be after an undo, so
+HistoryItem* History::addScribbleItem(ScribbleItem& itm)			// may be after an undo, so
 {				                                            // delete all scribbles after the last visible one (items[lastItem].drawnIndex)
 	if (_inLoad)
 	{
@@ -1367,7 +1367,7 @@ HistoryItem* History::addDrawnItem(DrawnItem& itm)			// may be after an undo, so
 	}
 	else
 		itm.zOrder = _lastZorder++;		// each scribbles are above any image (until 10 million images)
-	HistoryDrawnItem * p = new HistoryDrawnItem(this, itm);
+	HistoryScribbleItem * p = new HistoryScribbleItem(this, itm);
 	return _AddItem(p);
 }
 
@@ -1391,7 +1391,7 @@ HistoryItem* History::addDeleteItems(Sprite* pSprite)
 
 HistoryItem* History::addPastedItems(QPointF topLeft, Sprite *pSprite)			   // tricky
 {
-	DrawnItemVector       *pCopiedItems = pSprite ? &pSprite->items : &_copiedItems;      
+	ScribbleItemVector       *pCopiedItems = pSprite ? &pSprite->items : &_copiedItems;      
 	ScreenShotImageList	  *pCopiedImages = pSprite ? &pSprite->images : &_copiedImages;
 	QRectF				  *pCopiedRect = pSprite ? &pSprite->rect : &_copiedRect;
 
@@ -1424,12 +1424,12 @@ HistoryItem* History::addPastedItems(QPointF topLeft, Sprite *pSprite)			   // t
 		HistoryScreenShotItem* p = new HistoryScreenShotItem(this, n);
 		_AddItem(p);
 	}
-  // ------------ add drawable items
-	HistoryDrawnItem* pdri;
-	for (DrawnItem di : *pCopiedItems)	// do not modify copied item list
+  // ------------ add scribble items
+	HistoryScribbleItem* pdri;
+	for (ScribbleItem di : *pCopiedItems)	// do not modify copied item list
 	{
 		di.Translate(topLeft, 0);
-		pdri = new HistoryDrawnItem(this, di);
+		pdri = new HistoryScribbleItem(this, di);
 		_AddItem(pdri);
 	}
   // ------------Add top item
@@ -1537,8 +1537,8 @@ QRectF History::Undo()      // returns top left after undo
 		phi = _items[ actItem ];	// here so index is never negative 
 		_redo.push_back(phi);
 
-		// only drawable elements are in _yxOrder!
-		if (phi->IsDrawable())
+		// only scribble elements are in _yxOrder!
+		if (phi->IsScribble())
 		{
 			int yi = _YIndexForIndex(actItem);
 			_yxOrder.remove(yi);
@@ -1553,7 +1553,7 @@ QRectF History::Undo()      // returns top left after undo
 	return rect;
 }
 
-int History::GetDrawablesInside(QRect rect, HistoryItemVector &hv)
+int History::GetScribblesInside(QRect rect, HistoryItemVector &hv)
 {
 	ItemIndexVector iv;
 	_bands.ItemsForArea(rect, iv);
@@ -1613,7 +1613,7 @@ void History::AddToSelection(int index)
 }
 
 /*========================================================
- * TASK:   collects indices from _yxOrder for drawable 
+ * TASK:   collects indices from _yxOrder for scribble 
  *			items that are inside a rectangular area
  *			into '_nSelectedItemsList', 
  *
@@ -1646,7 +1646,7 @@ int History::CollectItemsInside(QRect rect) // only
 	
 	// first add images to list
 	_bands.ItemsForArea(rect, _nItemsLeftOfList, _nSelectedItemsList, _nItemsRightOfList, _selectionRect);	
-							// collect indices for visible, drawable elements completely inside 'rect'
+							// collect indices for visible, scribble elements completely inside 'rect'
 	if (_nSelectedItemsList.isEmpty())		// save for removing empty space
 		_selectionRect = rect;
 
@@ -1662,13 +1662,13 @@ int History::CollectItemsInside(QRect rect) // only
  * RETURNS:
  * REMARKS: - if sprite is null copies items into 
  *				'_copiedItems' else into the sprite
- *			- origin of drawables in '_copiedItems'
+ *			- origin of scribbles in '_copiedItems'
  *				will be (0,0)
  *			- '_selectionRect''s top left will also be (0,0)
  *-------------------------------------------------------*/
 void History::CopySelected(Sprite *sprite)
 {
-	DrawnItemVector* pCopiedItems = sprite ? &sprite->items : &_copiedItems;
+	ScribbleItemVector* pCopiedItems = sprite ? &sprite->items : &_copiedItems;
 	ScreenShotImageList *pCopiedImages = sprite ? &sprite->images : &_copiedImages;
 	if (sprite)
 		sprite->nSelectedItemsList = _nSelectedItemsList;
@@ -1690,18 +1690,18 @@ void History::CopySelected(Sprite *sprite)
 			else
 			{
 				int index = 0; // index in source
-				const DrawnItem* pdrni = item->GetVisibleDrawable();
+				const ScribbleItem* pdrni = item->GetVisibleScribble();
 				while (pdrni)
 				{
 					pCopiedItems->push_back(*pdrni);
 					(*pCopiedItems)[pCopiedItems->size() - 1].Translate( -_selectionRect.topLeft(), -1);
-					pdrni = item->GetVisibleDrawable(++index);
+					pdrni = item->GetVisibleScribble(++index);
 				}
 			}
 		}
 		_copiedRect = _selectionRect.translated( - _selectionRect.topLeft());
 
-		std::sort(pCopiedItems->begin(), pCopiedItems->end(), [](DrawnItem &pl, DrawnItem &pr) {return pl.zOrder < pr.zOrder; });
+		std::sort(pCopiedItems->begin(), pCopiedItems->end(), [](ScribbleItem &pl, ScribbleItem &pr) {return pl.zOrder < pr.zOrder; });
 		std::sort(pCopiedImages->begin(), pCopiedImages->end(), [](ScreenShotImage &pl, ScreenShotImage &pr) {return pl.zOrder < pr.zOrder; });
 
 		if (sprite)
@@ -1755,14 +1755,14 @@ void Bands::SetParam(History* pHist, int bandHeight)
 	int yix = -1;
 	while ((phi = pHist->atYIndex(++yix)) != nullptr)
 	{
-		if (phi->IsDrawable() && !phi->Hidden())
+		if (phi->IsScribble() && !phi->Hidden())
 			Add(_pHist->IndexForYIndex(yix));
 	}
 }
 
 
 /*========================================================
- * TASK:	add drawable to bands
+ * TASK:	add scribble to bands
  * PARAMS:	index:in _items (zorder > DRAWABLE_ZORDER_BASE) 
  *				or in 'pImages' 
  * GLOBALS:
@@ -1804,7 +1804,7 @@ void Bands::_ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector &hv, bool 
 
 
 /*========================================================
- * TASK:	collects drawable items inside band 'bandIndex' 
+ * TASK:	collects scribble items inside band 'bandIndex' 
  *			into three lists: items that are inside, left 
  *			or right of 'rect'
  * PARAMS: bandIndex,

@@ -315,25 +315,25 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 }
             }
 
-			if (bPaste)
+			else if (bPaste)
 			{           // _history's copied item list is valid, each item is canvas relative
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
 				QPointF dr = _rubberRect.translated(_topLeft.toPoint()).topLeft(); 
 
                 HistoryItem* phi = _history.addPastedItems(dr);
                 if(phi)
-				    _ReplotItem(phi);
+				    _ReplotScribbleItem(phi);   // only user lines, images are plotted only in paintEvent
 
                 emit CanUndo(true);
                 emit CanRedo(false);
 			}
-            if (bRecolor)
+            else if (bRecolor)
             {
                 ChangePenColorByKeyboard(key);
                 RecolorSelected(key);
             }
 
-            if (bRotate && bCollected)
+            else if (bRotate && bCollected)
             {
                 MyRotation rot = rotNone;
                 switch (key)
@@ -353,11 +353,11 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 }
             }
 
-            if (key == Qt::Key_R)    // draw rectangle with margin or w,o, margin with Shift
+            else if (key == Qt::Key_R)    // draw rectangle with margin or w,o, margin with Shift
             {
                 _actPenWidth = _penWidth;
-                _lastDrawnItem.clear();
-                _lastDrawnItem.type = heScribble;
+                _lastScribbleItem.clear();
+                _lastScribbleItem.type = heScribble;
                             // when any draweables is selected draw the rectangle with 1 pixel margins on all sides
                 int margin = /* !_mods.testFlag(Qt::ShiftModifier)*/ _history.SelectedSize() ? _actPenWidth/2+1 : 0;
 
@@ -368,32 +368,32 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 x4 = x1;                                    y4 = y3;
 
                 _firstPointC = _lastPointC = QPointF(x1, y1);
-                _lastDrawnItem.add(QPointF(x1,y1) + _topLeft);
+                _lastScribbleItem.add(QPointF(x1,y1) + _topLeft);
                 _DrawLineTo(QPointF(x2, y2));
-                _lastDrawnItem.add(QPointF(x2, y2) + _topLeft);
+                _lastScribbleItem.add(QPointF(x2, y2) + _topLeft);
                 _DrawLineTo(QPointF(x3, y3));
-                _lastDrawnItem.add(QPointF(x3, y3) + _topLeft);
+                _lastScribbleItem.add(QPointF(x3, y3) + _topLeft);
                 _DrawLineTo(QPointF(x4, y4));
-                _lastDrawnItem.add(QPointF(x4, y4) + _topLeft);
+                _lastScribbleItem.add(QPointF(x4, y4) + _topLeft);
                 _DrawLineTo(QPointF(x1, y1));
-                _lastDrawnItem.add(QPointF(x1, y1) + _topLeft);
+                _lastScribbleItem.add(QPointF(x1, y1) + _topLeft);
 
-                _lastDrawnItem.penKind = _myPenKind;
-                _lastDrawnItem.penWidth = _actPenWidth;
+                _lastScribbleItem.penKind = _myPenKind;
+                _lastScribbleItem.penWidth = _actPenWidth;
 
                 _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
                 _rubberBand->setGeometry( _rubberRect );
-                HistoryItem *pdrni =_history.addDrawnItem(_lastDrawnItem);
+                HistoryItem *pdrni =_history.addScribbleItem(_lastScribbleItem);
                 _history.AddToSelection();
 
                 emit CanUndo(true);
                 emit CanRedo(false);
             }
-            if (key == Qt::Key_C && !bCopy)   // draw ellipse
+            else if (key == Qt::Key_C && !bCopy)   // draw ellipse
             {
                 _actPenWidth = _penWidth;
-                _lastDrawnItem.clear();
-                _lastDrawnItem.type = heScribble;
+                _lastScribbleItem.clear();
+                _lastScribbleItem.type = heScribble;
 
                 QPainterPath myPath;
                 QRectF rf = _rubberRect;
@@ -403,7 +403,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 if (polList.size())
                 {
                     _lastPointC = QPointF( polList[0][0].x(), polList[0][0].y());
-                    _lastDrawnItem.add(_lastPointC + _topLeft);
+                    _lastScribbleItem.add(_lastPointC + _topLeft);
                     for (auto p : polList)
                     {
                         for (auto ptf : p)
@@ -411,20 +411,20 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                             pt = QPointF( (int)ptf.x(),(int)ptf.y() );
                             _DrawLineTo(pt);
                             _lastPointC = pt;
-                            _lastDrawnItem.add(_lastPointC + _topLeft);
+                            _lastScribbleItem.add(_lastPointC + _topLeft);
                         }
                     }
                     _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
                     _rubberBand->setGeometry( _rubberRect );
-                    HistoryItem *pdrni =_history.addDrawnItem(_lastDrawnItem);
-                    pdrni->GetDrawable()->bndRect.adjust(-_actPenWidth/2.0, -_actPenWidth / 2.0,_actPenWidth / 2.0, _actPenWidth / 2.0);
+                    HistoryItem *pdrni =_history.addScribbleItem(_lastScribbleItem);
+                    pdrni->GetScribble()->bndRect.adjust(-_actPenWidth/2.0, -_actPenWidth / 2.0,_actPenWidth / 2.0, _actPenWidth / 2.0);
                     _history.AddToSelection();
 
                     emit CanUndo(true);
                     emit CanRedo(false);
                 }
             }
-            if (bRemove)
+            else if (bRemove)
                 _RemoveRubberBand();
 
         }
@@ -547,7 +547,7 @@ void DrawArea::mousePressEvent(QMouseEvent* event)
 //DEBUG_LOG(QString("mousePress #2:  drawn: => last=(%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
 
 //            if (_DrawFreehandLineTo(event->pos()))
-//                _lastDrawnItem.add(_lastPointC + _topLeft);
+//                _lastScribbleItem.add(_lastPointC + _topLeft);
 //            _mods.setFlag(Qt::ShiftModifier, true);
         }
         else
@@ -599,7 +599,7 @@ void DrawArea::mouseMoveEvent(QMouseEvent* event)
             else
             {
                 if (_DrawFreehandLineTo(event->pos()))
-                    _lastDrawnItem.add(_lastPointC + _topLeft);
+                    _lastScribbleItem.add(_lastPointC + _topLeft);
             }
         }
 #endif
@@ -667,10 +667,10 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 #ifndef _VIEWER
 //DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
                 if (_DrawFreehandLineTo(event->pos()))
-                    _lastDrawnItem.add(_lastPointC + _topLeft);
+                    _lastScribbleItem.add(_lastPointC + _topLeft);
 
-//DEBUG_LOG(QString("Mouse release #2: _lastPoint: (%1,%2)\n__lastDrwanItem point size:%3").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(_lastDrawnItem.points.size()))
-                _history.addDrawnItem(_lastDrawnItem);
+//DEBUG_LOG(QString("Mouse release #2: _lastPoint: (%1,%2)\n__lastDrwanItem point size:%3").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(_lastScribbleItem.points.size()))
+                _history.addScribbleItem(_lastScribbleItem);
 
                 emit CanUndo(true);
                 emit CanRedo(false);
@@ -806,7 +806,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                         else
                         {
                             if (_DrawFreehandLineTo(event->pos()))
-                                _lastDrawnItem.add(_lastPointC + _topLeft);
+                                _lastScribbleItem.add(_lastPointC + _topLeft);
                         }
                     }
 #endif
@@ -830,7 +830,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
                     {
                         _DrawFreehandLineTo(event->pos());
 
-                        _history.addDrawnItem(_lastDrawnItem);
+                        _history.addScribbleItem(_lastScribbleItem);
 
                         emit CanUndo(true);
                         emit CanRedo(false);
@@ -909,31 +909,37 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
  *                  bottom  background image if any
  *          - paint these in bottom to top order on this widget 
  *          - event->rect() is widget relative
+ *          - area to paint is clipped to event->rect()
+ *              any other clipping is applied on top of this
  *-------------------------------------------------------*/
 void DrawArea::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);             // show image on widget
     QRectF dirtyRect = event->rect();
     painter.fillRect(dirtyRect, _backgroundColor);             // draw on here
-    if(!_background.isNull())                                  // bottom : background layer
+
+// bottom layer: background with possible background image
+    if(!_background.isNull()) 
         painter.drawImage(dirtyRect, _background, dirtyRect);
     if (_bGridOn)
         _DrawGrid(painter);
-            // images below drawing
-    QRectF r = dirtyRect.translated(_topLeft);           // screen -> absolute coord
-    ScreenShotImage* pimg = _belowImages.FirstVisible(r);    // pimg intersects r
-    while (pimg)                                               // image layer
+
+// screenshots layer: images below user drawn lines
+    QRectF r = dirtyRect.translated(_topLeft);              // screen -> absolute coord
+    ScreenShotImage* pimg = _belowImages.FirstVisible(r);   // pimg intersects r
+    while (pimg)                                            // image layer
     {
-        QRectF intersectRect = pimg->Area(r);      // absolute
+        QRectF intersectRect = pimg->Area(_clippingRect);      // absolute
         painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
         pimg = _belowImages.NextVisible();
     }
-            // top of these the drawing
+// _canvas layer: the scribbles
     painter.drawImage(dirtyRect, _canvas, dirtyRect);          // canvas layer
 
+// page guides layer:
     if (_bPageGuidesOn)
         _DrawPageGuides(painter);
-
+// sprite layer
     if(_pSprite)
         painter.drawImage(dirtyRect.translated(_pSprite->topLeft), _pSprite->image, dirtyRect);  // sprite layer: dirtyRect: actual area below sprite 
 }
@@ -979,7 +985,7 @@ void DrawArea::_RemoveRubberBand()
 /*========================================================
  * TASK:    starts drawing at position _lastPosition
  * PARAMS:  NONE
- * GLOBALS: _spaceBarDown, _eraseMode, _lastDrawnItem,
+ * GLOBALS: _spaceBarDown, _eraseMode, _lastScribbleItem,
  *          _actPenWidth, _actpenColor, _lastPoint, _topLeft
  * RETURNS:
  * REMARKS: -
@@ -989,24 +995,24 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
     if (_spaceBarDown)      // no drawing
         return;
 
-    _lastDrawnItem.clear();
+    _lastScribbleItem.clear();
     if (_erasemode)
-        _lastDrawnItem.type = heEraser;
+        _lastScribbleItem.type = heEraser;
     else
-        _lastDrawnItem.type = heScribble;
+        _lastScribbleItem.type = heScribble;
     _actPenWidth = _penWidth;
 
-    _lastDrawnItem.penKind = _myPenKind;
-    _lastDrawnItem.penWidth = _actPenWidth;
-    _lastDrawnItem.add(_lastPointC + _topLeft);
+    _lastScribbleItem.penKind = _myPenKind;
+    _lastScribbleItem.penWidth = _actPenWidth;
+    _lastScribbleItem.add(_lastPointC + _topLeft);
 }
 
 /*========================================================
  * TASK:    starts drawing at position set by the event
  *          saves first point in _firstPointC, _lastPointC
- *          and _lastDrawnItem
+ *          and _lastScribbleItem
  * PARAMS:  event - mouse or tablet event
- * GLOBALS: _spaceBarDown, _eraseMode, _lastDrawnItem,
+ * GLOBALS: _spaceBarDown, _eraseMode, _lastScribbleItem,
  *          _actPenWidth, _actpenColor, _lastPoint, _topLeft
  * RETURNS:
  * REMARKS: -
@@ -1052,7 +1058,7 @@ void DrawArea::_ModifyIfSpecialDirection(QPointF& qpC)
  * RETURNS: true : if is allowed to save 'newEndPointC'
  *          false: constrain requested but we do not know 
  *              yet in which direction
- * REMARKS: - Expects _lastDrawnItem to contain at least 
+ * REMARKS: - Expects _lastScribbleItem to contain at least 
  *              two points
  *          - without contraint does not modify newEndPoint
  *              and always returns true
@@ -1127,9 +1133,9 @@ void DrawArea::_MoveToActualPosition(QRect rect)
 
 }
 
- int DrawArea::_CollectDrawables(HistoryItemVector &hv)
+ int DrawArea::_CollectScribbles(HistoryItemVector &hv)
 {
-    return _history.GetDrawablesInside(_clippingRect, hv);
+    return _history.GetScribblesInside(_clippingRect, hv);
     
     //if (_history.SetFirstItemToDraw() < 0)  // returns index of first visible item after the last clear screen
     //    return hv;                          // so when no such iteme exists we're done with empty list
@@ -1221,7 +1227,17 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
     _lastPointC = endPointC;
 }
 
-void DrawArea::_DrawAllPoints(DrawnItem* pdrni)
+
+/*========================================================
+ * TASK:    draws the polyline stored in drawnable on
+ *          '_canvas'
+ * PARAMS:  pdrni - valid pointer to a DrawnAble item
+ * GLOBALS: _canvas,_myPenKind, _actPenWidth, _erasemode
+ *          _clippingRect, _lastPointC, _topLeft
+ * RETURNS:
+ * REMARKS: - no errro checking on pdrni
+ *-------------------------------------------------------*/
+void DrawArea::_DrawAllPoints(ScribbleItem* pdrni)
 {
     _myPenKind = pdrni->penKind;
     _actPenWidth = pdrni->penWidth;
@@ -1471,11 +1487,11 @@ void DrawArea::_Redraw(bool clear)
     bool saveEraseMode = _erasemode;
 
     HistoryItemVector forPage;
-    _CollectDrawables(forPage);  // using _yxOrder and _items sorted in ascending Z-number
+    _CollectScribbles(forPage);  // using _yxOrder and _items sorted in ascending Z-number
     if(clear)
         _ClearCanvas();
     for (auto phi : forPage)
-        _ReplotItem(phi);
+        _ReplotScribbleItem(phi);
     
     _myPenKind = savekind;
     _penWidth = savewidth;
@@ -1523,12 +1539,22 @@ void DrawArea::_RestoreCursor()
     }
 }
 
-bool DrawArea::_ReplotItem(HistoryItem* phi)
+
+/*========================================================
+ * TASK:    plots visible 'Drawnable's onto _canvas
+ *              if it intersects _clippingRect
+ * PARAMS:  phi - possibly nullpointer to a HistoryItem
+ * GLOBALS: _clippingRect
+ * RETURNS:
+ * REMARKS: - images noot plotted here, not even when they 
+ *             are part of a pasted stack of items
+ *-------------------------------------------------------*/
+bool DrawArea::_ReplotScribbleItem(HistoryItem* phi)
 {
     if (!phi || phi->IsImage() || !phi->Area().intersects(_clippingRect))
         return false;
 
-    DrawnItem* pdrni;     // used when we must draw something onto the screen
+    ScribbleItem* pdrni;     // used when we must draw something onto the screen
 
     auto plot = [&]()   // lambda to plot point pointed by pdrni
                 {
@@ -1551,17 +1577,17 @@ bool DrawArea::_ReplotItem(HistoryItem* phi)
     {
         case heScribble:
         case heEraser:    
-            if( (pdrni = phi->GetVisibleDrawable(0)))
+            if( (pdrni = phi->GetVisibleScribble(0)))
                 plot();
             break;
         case heItemsDeleted:    // nothing to do
             break;
         case heItemsPastedTop:
-            pdrni = phi->GetVisibleDrawable();
+            pdrni = phi->GetVisibleScribble();
             for (int i = 1; pdrni; ++i)
             {
                 plot();
-                pdrni = phi->GetVisibleDrawable(i);
+                pdrni = phi->GetVisibleScribble(i);
             }
             break;
         default:
