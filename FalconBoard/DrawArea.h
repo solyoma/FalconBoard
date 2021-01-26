@@ -5,7 +5,7 @@
 #include <QColor>
 #include <QImage>
 #include <QBitmap>
-#include <QPointF>
+#include <QPoint>
 #include <QWidget>
 #include <QRubberBand>
 #include <QTabletEvent>
@@ -16,6 +16,7 @@
 #include "pagesetup.h"
 #include "pdfsetup.h"
 #include "myprinter.h"
+#include "myevent.h"
 
 using namespace std::chrono_literals;
 
@@ -62,7 +63,7 @@ public:
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
     void SetPenKind(MyPenKind newKind, int newWidth);
 
-    void SetOrigin() { _topLeft = QPointF(); }
+    void SetOrigin() { _topLeft = QPoint(); }
 
     void AddScreenShotImage(QImage& image);
 
@@ -108,14 +109,20 @@ protected:
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;
 
-    void mousePressEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void wheelEvent(QWheelEvent* event) override;
     void paintEvent(QPaintEvent* event) override;
     void resizeEvent(QResizeEvent* event) override;
 
+    void wheelEvent(QWheelEvent* event) override;
+
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
     void tabletEvent(QTabletEvent* event) override;
+
+    // MyEvent type common handlers for the above group
+    void MyButtonPressEvent(MyPointerEvent* pe);
+    void MyMoveEvent(MyPointerEvent* pe);
+    void MyButtonReleaseEvent(MyPointerEvent* pe);
 
 #ifndef _VIEWER
 private:
@@ -145,7 +152,9 @@ private:
     bool    _isHorizontal;          // when _shitKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
                                     // and used in line drawing
 
-    bool    _scribbling = false;    // true for mouse darwing (_spaceBarDown == false)
+    bool    _allowPen = true;       // true if message is only accepted from the pen
+    bool    _allowMouse = true;     // true if message is only accepted from the mouse
+    bool    _scribbling = false;    // true for mouse drawing (_spaceBarDown == false)
     bool    _pendown = false;       // true for pen
     bool    _erasemode = false;
     bool    _debugmode = false;     // can only be toggled when debug compile and Ctrl+D is pressed 
@@ -194,10 +203,10 @@ private:
     QColor _gridColor = "#d0d0d0";          // for white system color scheme
     QColor _pageGuideColor = "#fcd475";     // - " - r 
 
-    QPointF  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
+    QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _lastMove;  // value of last canvas move 
 
-    QPointF  _firstPointC, // canvas relative first point drawn
+    QPoint  _firstPointC, // canvas relative first point drawn
             _lastPointC; // canvas relative last point drawn relative to visible image
     ScribbleItem _lastScribbleItem;
     QCursor _savedCursor;
@@ -213,25 +222,25 @@ private:
     QRect   _rubberRect;        // used to select histoy items
     void  _RemoveRubberBand();
     void _InitiateDrawingIngFromLastPos();   // from _lastPoint
-    void _InitiateDrawing(QEvent* event);
-    void _InitRubberBand(QEvent* event);
+    void _InitiateDrawing(MyPointerEvent* event);
+    void _InitRubberBand( MyPointerEvent* event);
 #endif
     void _ClearCanvas();
 
     void _MoveToActualPosition(QRect rect);
     int _CollectScribbles(HistoryItemVector &hv); // for actual clipping rect
 #ifndef _VIEWER
-    bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
-    QPointF _CorrectForDirection(QPointF &newp);     // using _startSet and _isHorizontal
+    bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
+    QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
 #endif
 
-    bool _DrawFreehandLineTo(QPointF endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
-    void _DrawLineTo(QPointF endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
+    bool _DrawFreehandLineTo(QPoint endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
+    void _DrawLineTo(QPoint endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
-    void _DrawAllPoints(ScribbleItem* pdrni);
+    void _DrawAllPoints(ScribbleItem* pscrbl);
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
-    bool _ReplotScribbleItem(HistoryItem* pdrni); 
+    bool _ReplotScribbleItem(HistoryItem* pscrbl); 
     void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);
     void _DrawPageGuides(QPainter& painter);
@@ -239,11 +248,11 @@ private:
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
 #ifndef _VIEWER
-    void _ModifyIfSpecialDirection(QPointF & qp);   // modify qp by multiplying with the start vector
+    void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
 #endif
-    void _SetOrigin(QPointF qp);  // sets new topleft and displays it on label
-    void _ShiftOrigin(QPointF delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down
-    void _ShiftAndDisplayBy(QPointF delta, bool smooth = false);
+    void _SetOrigin(QPoint qp);  // sets new topleft and displays it on label
+    void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down
+    void _ShiftAndDisplayBy(QPoint delta, bool smooth = false);
     void _PageUp();
     void _PageDown();
     void _Home(bool toTop);
@@ -255,9 +264,9 @@ private:
     bool _PdfPageSetup();               // false: cancelled
     bool _NoPrintProblems();           // false: some problems
 #ifndef _VIEWER
-    void _ShowCoordinates(const QPointF& qp);
-    Sprite * _CreateSprite(QPointF cursorPos, QRect& rect, bool itemsDeleted);
-    void _MoveSprite(QPointF pt);
+    void _ShowCoordinates(const QPoint& qp);
+    Sprite * _CreateSprite(QPoint cursorPos, QRect& rect, bool itemsDeleted);
+    void _MoveSprite(QPoint pt);
     void _PasteSprite();
 #endif
 };

@@ -11,7 +11,7 @@ void Snipper::mousePressEvent(QMouseEvent* mevent)
 	if (_tabletInput)
 		return;
 
-	if (mevent->button() == Qt::LeftButton)
+	if( (mevent->button() == Qt::LeftButton)/* || (mevent->button() == Qt::RightButton) */)
 	{
 		_rubber_origin = mevent->pos();
 		if (!_rubberBand)
@@ -45,7 +45,7 @@ void Snipper::mouseReleaseEvent(QMouseEvent* event)
 		{
 			rect = _rubberBand->geometry();
 		}
-		event->accept();
+//		event->accept();
 		delete _rubberBand;
 		_rubberBand = nullptr;
 		emit SnipperReady(rect);

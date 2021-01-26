@@ -190,6 +190,7 @@
   <ItemGroup>
     <ClInclude Include="common.h" />
     <ClInclude Include="history.h" />
+    <ClInclude Include="myevent.h" />
     <ClInclude Include="myprinter.h" />
     <QtMoc Include="pdfsetup.h" />
     <QtMoc Include="printprogress.h" />

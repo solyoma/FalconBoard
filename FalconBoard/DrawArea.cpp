@@ -102,7 +102,7 @@ int DrawArea::Load(QString name)
         QMessageBox::about(this, tr(WindowTitle), QString( tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res-1));
     if(res && res != -1)    // TODO send message if read error
     {
-        _topLeft = QPointF(0, 0);
+        _topLeft = QPoint(0, 0);
         _Redraw();
     }
     emit CanUndo(true);
@@ -166,7 +166,7 @@ void DrawArea::AddScreenShotImage(QImage& image)
 
     if (x < 0) x = 0;
     if (y < 0) y = 0;
-    bimg.topLeft = QPointF(x, y) + _topLeft;
+    bimg.topLeft = QPoint(x, y) + _topLeft;
     _belowImages.push_back(bimg);
     _history.addScreenShot(_belowImages.size()-1);
     emit CanUndo(true);
@@ -197,7 +197,7 @@ bool DrawArea::RecolorSelected(int key)
     if (!_rubberBand)
         return false;
     if(!_history.SelectedSize())
-        _history.CollectItemsInside(_rubberRect.translated(_topLeft.toPoint()));
+        _history.CollectItemsInside(_rubberRect.translated(_topLeft));
 
     MyPenKind pk = PenKindFromKey(key);
     HistoryItem* phi = _history.addRecolor(pk);
@@ -234,7 +234,7 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
 //                                                  _clippingRect.translated(-_topLeft).width(), _clippingRect.translated(-_topLeft).height());
 // /DEBUG            
 
-        painter.fillRect(_clippingRect.translated(_topLeft.toPoint()), qRgba(255, 255, 255, 0));
+        painter.fillRect(_clippingRect.translated(_topLeft), qRgba(255, 255, 255, 0));
     }
     update();
 }
@@ -318,7 +318,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			else if (bPaste)
 			{           // _history's copied item list is valid, each item is canvas relative
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
-				QPointF dr = _rubberRect.translated(_topLeft.toPoint()).topLeft(); 
+				QPoint dr = _rubberRect.translated(_topLeft).topLeft(); 
 
                 HistoryItem* phi = _history.addPastedItems(dr);
                 if(phi)
@@ -367,23 +367,23 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 x3 = x2;                                    y3 = y1 + _rubberRect.height() + 2 * margin;
                 x4 = x1;                                    y4 = y3;
 
-                _firstPointC = _lastPointC = QPointF(x1, y1);
-                _lastScribbleItem.add(QPointF(x1,y1) + _topLeft);
-                _DrawLineTo(QPointF(x2, y2));
-                _lastScribbleItem.add(QPointF(x2, y2) + _topLeft);
-                _DrawLineTo(QPointF(x3, y3));
-                _lastScribbleItem.add(QPointF(x3, y3) + _topLeft);
-                _DrawLineTo(QPointF(x4, y4));
-                _lastScribbleItem.add(QPointF(x4, y4) + _topLeft);
-                _DrawLineTo(QPointF(x1, y1));
-                _lastScribbleItem.add(QPointF(x1, y1) + _topLeft);
+                _firstPointC = _lastPointC = QPoint(x1, y1);
+                _lastScribbleItem.add(QPoint(x1,y1) + _topLeft);
+                _DrawLineTo(QPoint(x2, y2));
+                _lastScribbleItem.add(QPoint(x2, y2) + _topLeft);
+                _DrawLineTo(QPoint(x3, y3));
+                _lastScribbleItem.add(QPoint(x3, y3) + _topLeft);
+                _DrawLineTo(QPoint(x4, y4));
+                _lastScribbleItem.add(QPoint(x4, y4) + _topLeft);
+                _DrawLineTo(QPoint(x1, y1));
+                _lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
 
                 _lastScribbleItem.penKind = _myPenKind;
                 _lastScribbleItem.penWidth = _actPenWidth;
 
                 _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
                 _rubberBand->setGeometry( _rubberRect );
-                HistoryItem *pdrni =_history.addScribbleItem(_lastScribbleItem);
+                HistoryItem *pscrbl =_history.addScribbleItem(_lastScribbleItem);
                 _history.AddToSelection();
 
                 emit CanUndo(true);
@@ -396,19 +396,19 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _lastScribbleItem.type = heScribble;
 
                 QPainterPath myPath;
-                QRectF rf = _rubberRect;
+                QRect rf = _rubberRect;
                 myPath.addEllipse(rf);
                 QList<QPolygonF> polList = myPath.toSubpathPolygons();
-                QPointF pt;
+                QPoint pt;
                 if (polList.size())
                 {
-                    _lastPointC = QPointF( polList[0][0].x(), polList[0][0].y());
+                    _lastPointC = QPoint( polList[0][0].x(), polList[0][0].y());
                     _lastScribbleItem.add(_lastPointC + _topLeft);
                     for (auto p : polList)
                     {
                         for (auto ptf : p)
                         {
-                            pt = QPointF( (int)ptf.x(),(int)ptf.y() );
+                            pt = QPoint( (int)ptf.x(),(int)ptf.y() );
                             _DrawLineTo(pt);
                             _lastPointC = pt;
                             _lastScribbleItem.add(_lastPointC + _topLeft);
@@ -416,8 +416,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                     }
                     _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
                     _rubberBand->setGeometry( _rubberRect );
-                    HistoryItem *pdrni =_history.addScribbleItem(_lastScribbleItem);
-                    pdrni->GetScribble()->bndRect.adjust(-_actPenWidth/2.0, -_actPenWidth / 2.0,_actPenWidth / 2.0, _actPenWidth / 2.0);
+                    HistoryItem *pscrbl =_history.addScribbleItem(_lastScribbleItem);
+                    pscrbl->GetScribble()->bndRect.adjust(-_actPenWidth/2.0, -_actPenWidth / 2.0,_actPenWidth / 2.0, _actPenWidth / 2.0);
                     _history.AddToSelection();
 
                     emit CanUndo(true);
@@ -494,116 +494,15 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 
 void DrawArea::mousePressEvent(QMouseEvent* event)
 {
-    _mods = event->modifiers();
-#ifndef _VIEWER
-    if (event->button() == Qt::RightButton || 
-        (event->button() == Qt::LeftButton && _mods.testFlag(Qt::ControlModifier)) )
-    {
-        _InitRubberBand(event);
-#else
-        _lastPointC = event->pos();     // used for moving the canvas around
-#endif
-
-#ifndef _VIEWER
-    }
-    else 
-#endif
-    if (event->button() == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
-    {
-        if (_spaceBarDown)
-            _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
-
-        _scribbling = true;
-#ifndef _VIEWER
-        if (_rubberBand )
-        {
-            if (_history.SelectedSize() &&  _rubberRect.contains(event->pos()))         
-            {
-                if (_CreateSprite(event->pos(), _rubberRect, !_mods.testFlag(Qt::AltModifier)))
-                {
-                    if (_mods.testFlag(Qt::AltModifier) /*&& _mods.testFlag(Qt::ControlModifier)*/)
-                        /* do nothing */;
-                    else
-                    {
-                        _history.addDeleteItems(_pSprite);
-                        _Redraw();
-                    }
-//                    QApplication::processEvents();
-                }
-                
-            }
-
-            _RemoveRubberBand();
-        }
-
-//        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
-//DEBUG_LOG(QString("mousePress #1: first:(%1,%2) last=(%3,%4)").arg(_firstPointC.x()).arg(_firstPointC.y()).arg(_lastPointC.x()).arg(_lastPointC.y()))
-        if (_mods.testFlag(Qt::ShiftModifier) )
-        {
-//            _mods.setFlag(Qt::ShiftModifier, false);
-            _firstPointC = _lastPointC;
-            _InitiateDrawingIngFromLastPos();
-//            _DrawLineTo(event->pos() );
-//DEBUG_LOG(QString("mousePress #2:  drawn: => last=(%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
-
-//            if (_DrawFreehandLineTo(event->pos()))
-//                _lastScribbleItem.add(_lastPointC + _topLeft);
-//            _mods.setFlag(Qt::ShiftModifier, true);
-        }
-        else
-            _InitiateDrawing(event);        // resets _lastPointC to event_>pos()
-#endif
-    }
-
+    MyPointerEvent* pe = new MyPointerEvent(false, event);
+    MyButtonPressEvent(pe);
     emit WantFocus();
 }
 
 void DrawArea::mouseMoveEvent(QMouseEvent* event)
 {
-    _mods = event->modifiers();
-#ifndef _VIEWER
-    _ShowCoordinates(event->pos());
-    if ((event->buttons() &  Qt::RightButton) ||
-        (event->buttons() & Qt::LeftButton && event->modifiers().testFlag(Qt::ControlModifier)) && _rubberBand)
-    {
-        QPoint epos = event->pos();
-        if (event->modifiers().testFlag(Qt::ShiftModifier))
-            epos.setX(_rubberBand->geometry().x() + (epos.y() - _rubberBand->geometry().y()) );
-        _rubberBand->setGeometry(QRect(_rubber_origin, epos).normalized()); // means: top < bottom, left < right
-    }
-    else
-#endif
-    if ((event->buttons() & Qt::LeftButton) && _scribbling)
-    {
-        QPointF  dr = (event->pos() - _lastPointC);   // displacement vector
-        if (!dr.manhattanLength())
-            return;
-
-#ifndef _VIEWER
-        if (_pSprite)     // move sprite
-        {
-            _MoveSprite(dr);
-            _lastPointC = event->pos();
-        }
-        else
-        {
-#endif
-            if (_spaceBarDown)
-            {
-                _ShiftOrigin(dr);
-                _Redraw();
-
-                _lastPointC = event->pos();
-            }
-#ifndef _VIEWER
-            else
-            {
-                if (_DrawFreehandLineTo(event->pos()))
-                    _lastScribbleItem.add(_lastPointC + _topLeft);
-            }
-        }
-#endif
-    }
+    MyPointerEvent* pe = new MyPointerEvent(false, event);
+    MyMoveEvent(pe);
 }
 
 void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
@@ -634,7 +533,7 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
     const constexpr int tolerance = 3;
     if ( dy > tolerance || dy < -tolerance || dx > tolerance || dx < -tolerance)
     {
-        _ShiftAndDisplayBy(QPointF(dx, dy));
+        _ShiftAndDisplayBy(QPoint(dx, dy));
 
         degv = degh = 0;
         dx = dy = 0;
@@ -650,8 +549,222 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
 
 void DrawArea::mouseReleaseEvent(QMouseEvent* event)
 {
-    _mods = event->modifiers();
-    if (event->button() == Qt::LeftButton && _scribbling)
+    MyPointerEvent* pe = new MyPointerEvent(false, event);
+    MyButtonReleaseEvent(pe);
+    emit WantFocus();
+}
+
+
+void DrawArea::tabletEvent(QTabletEvent* event)
+{
+    if (!_allowPen)
+        return;
+//// DEBUG
+//#ifndef _VIEWER
+// #if defined _DEBUG
+//    if(_rubberBand)
+//        qDebug("Tablet Button: rubberband size:%d,%d", _rubberBand->size().width(), _rubberBand->size().height());
+// #endif
+//#endif
+//// /DEBUG
+    MyPointerEvent* pe = new MyPointerEvent(true, event);
+
+    QTabletEvent::PointerType pointerT = event->pointerType();
+
+    switch (event->type())
+    {
+        case QEvent::TabletPress:
+            MyButtonPressEvent(pe);
+            event->accept();
+            break;
+
+        case QEvent::TabletMove:
+#ifndef Q_OS_IOS
+//        if (event->device() == QTabletEvent::RotationStylus)
+//            updateCursor(event);
+#endif
+            MyMoveEvent(pe);
+            event->accept();
+            break;
+
+        case QEvent::TabletRelease:
+            MyButtonReleaseEvent(pe);
+            emit PointerTypeChange(QTabletEvent::Cursor);
+            event->accept();
+            break;
+
+        default:
+            event->ignore();
+            break;
+    }
+}
+
+/*=============================================================
+* TASK:	    Common button press handling for mouse and tablet
+* PARAMS:	
+* GLOBALS:	
+* RETURNS:	
+* REMARKS:	
+*------------------------------------------------------------*/
+void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
+{
+    if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen))
+        return;
+    if (event->fromPen)
+        _allowMouse = false;
+    else
+        _allowPen = false;
+#ifndef _VIEWER
+    // Even for tablets when no pen pressure
+    if ( event->button == Qt::RightButton ||
+        (event->button == Qt::LeftButton && event->mods.testFlag(Qt::ControlModifier)))
+    {
+        _InitRubberBand(event);
+#else
+    _lastPointC = event->pos;     // used for moving the canvas around
+#endif
+
+#ifndef _VIEWER
+    }
+    else
+#endif
+    if (event->pressure != 0.0 && event->button == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
+    {
+        if (_spaceBarDown)
+            _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
+
+        if(event->fromPen)
+        {
+            _pendown = true;
+            emit PointerTypeChange(event->pointerT);
+        }
+        else
+            _scribbling = true;
+#ifndef _VIEWER
+        if (_rubberBand)
+        {
+            if (_history.SelectedSize() && _rubberRect.contains(event->pos))
+            {
+                if (_CreateSprite(event->pos, _rubberRect, !event->mods.testFlag(Qt::AltModifier)))
+                {
+                    if (event->mods.testFlag(Qt::AltModifier) /*&& _mods.testFlag(Qt::ControlModifier)*/)
+                        /* do nothing */;
+                    else
+                    {
+                        _history.addDeleteItems(_pSprite);
+                        _Redraw();
+                    }
+//                    QApplication::processEvents();
+                }
+
+            }
+
+            _RemoveRubberBand();
+        }
+
+//        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
+//DEBUG_LOG(QString("mousePress #1: first:(%1,%2) last=(%3,%4)").arg(_firstPointC.x()).arg(_firstPointC.y()).arg(_lastPointC.x()).arg(_lastPointC.y()))
+        if (event->mods.testFlag(Qt::ShiftModifier))
+        {
+//            _mods.setFlag(Qt::ShiftModifier, false);
+            _firstPointC = _lastPointC;
+            _InitiateDrawingIngFromLastPos();
+//            _DrawLineTo(event->pos );
+//DEBUG_LOG(QString("mousePress #2:  drawn: => last=(%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
+
+//            if (_DrawFreehandLineTo(event->pos))
+//                _lastScribbleItem.add(_lastPointC + _topLeft);
+//            event->mods.setFlag(Qt::ShiftModifier, true);
+        }
+        else
+            _InitiateDrawing(event);        // resets _lastPointC to event_>pos()
+#endif
+    }
+#ifndef _VIEWER
+	_ShowCoordinates(event->pos);
+#endif
+}
+
+void DrawArea::MyMoveEvent(MyPointerEvent* event)
+{
+    if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen))
+        return;
+#ifndef _VIEWER
+    _ShowCoordinates(event->pos);
+
+    if ((event->buttons & Qt::RightButton) ||
+        (event->buttons & Qt::LeftButton && event->mods.testFlag(Qt::ControlModifier)) && _rubberBand)
+    {
+        QPoint epos = event->pos;
+        if (event->mods.testFlag(Qt::ShiftModifier))        // constrain rubberband to a square
+            epos.setX(_rubberBand->geometry().x() + (epos.y() - _rubberBand->geometry().y()));
+        _rubberBand->setGeometry(QRect(_rubber_origin, epos).normalized()); // means: top < bottom, left < right
+
+// DEBUG
+//#if defined _DEBUG
+//        qDebug("%s: rubberband size:%d,%d", (event->fromPen ? "tablet":"mouse:"),_rubberBand->size().width(), _rubberBand->size().height());
+//#endif
+// /DEBUG
+    }
+    else
+#endif
+                // mouse                                             pen
+        if ( ((event->buttons & Qt::LeftButton) && _scribbling) || _pendown)
+        {
+            static QPoint lastpos;
+            static int counter; // only refresh screen when this is REFRESH_LIMIT
+                                // because tablet events frequency is large
+            const int REFRESH_LIMIT = 10;
+            QPoint pos = event->pos;
+            if (lastpos == pos)
+                return;
+            else
+                lastpos = pos;
+
+            QPoint  dr = (event->pos - _lastPointC);   // displacement vector
+            if (!dr.manhattanLength() )
+                return;
+
+#ifndef _VIEWER
+            if (_pSprite)     // move sprite
+            {
+                _MoveSprite(dr);
+                _lastPointC = event->pos;
+            }
+            else
+            {
+#endif
+                if (_spaceBarDown)
+                {
+                    if(event->fromPen)
+                    {
+                        ++counter;
+                        if (counter >= REFRESH_LIMIT)
+                        {
+                            counter = 0;
+                            _Redraw();
+                        }
+                    }
+                    _ShiftOrigin(dr);
+                    if(!event->fromPen)
+                        _Redraw();
+
+                    _lastPointC = event->pos;
+                }
+#ifndef _VIEWER
+                else
+                {
+                    if (_DrawFreehandLineTo(event->pos) )
+                        _lastScribbleItem.add(_lastPointC + _topLeft);
+                }
+            }
+#endif
+        }
+}
+
+void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
+{
+    if ((event->button == Qt::LeftButton && _scribbling) || _pendown)
     {
 #ifndef _VIEWER
         if (_pSprite)
@@ -666,7 +779,7 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
             {
 #ifndef _VIEWER
 //DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
-                if (_DrawFreehandLineTo(event->pos()))
+                if (_DrawFreehandLineTo(event->pos))
                     _lastScribbleItem.add(_lastPointC + _topLeft);
 
 //DEBUG_LOG(QString("Mouse release #2: _lastPoint: (%1,%2)\n__lastDrwanItem point size:%3").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(_lastScribbleItem.points.size()))
@@ -680,20 +793,26 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
                 _RestoreCursor();
 #ifndef _VIEWER
         }
-#endif
+#endif 
         _scribbling = false;
+        _pendown = false;
         _startSet = false;
     }
 #ifndef _VIEWER
     else if (_rubberBand)
     {
+// DEBUG
+//#if defined _DEBUG
+//        qDebug("Button Release: rubberband size:%d,%d", _rubberBand->size().width(), _rubberBand->size().height());
+//#endif
+// /DEBUG
         if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
         {
             _rubberRect = _rubberBand->geometry();
-            _history.CollectItemsInside(_rubberRect.translated(_topLeft.toPoint()));
+            _history.CollectItemsInside(_rubberRect.translated(_topLeft));
             if (_history.SelectedSize())
             {
-                _rubberBand->setGeometry(_history.BoundingRect().translated(-_topLeft).toRect());
+                _rubberBand->setGeometry(_history.BoundingRect().translated(-_topLeft));
                 _rubberRect = _rubberBand->geometry(); // _history.BoundingRect().translated(-_topLeft);
             }
         }
@@ -702,154 +821,7 @@ void DrawArea::mouseReleaseEvent(QMouseEvent* event)
         event->accept();
     }
 #endif
-}
-
-
-void DrawArea::tabletEvent(QTabletEvent* event)
-{
-    QTabletEvent::PointerType pointerT = event->pointerType();
-
-    auto mb = event->buttons();
-    _mods = event->modifiers();
-
-    switch (event->type())
-    {
-        case QEvent::TabletPress:
-            if (event->pressure())   // because messages come here for pen buttons even without the pen touching the tablet
-            {
-#ifndef _VIEWER
-                if (_rubberBand)
-                {
-                    if (_history.SelectedSize() && _rubberRect.contains(event->pos()))
-                    {
-                        if (_CreateSprite(event->pos(), _rubberRect, !_mods.testFlag(Qt::AltModifier)))
-                        {
-                            _history.addDeleteItems(_pSprite);
-                            _Redraw();
-        //                    QApplication::processEvents();
-                        }
-
-                    }
-                }
-                _RemoveRubberBand();
-#endif
-                if (!_pendown)
-                {
-                    if (_spaceBarDown)
-                        _SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
-                    _pendown = true;
-                    emit PointerTypeChange(pointerT);
-#ifndef _VIEWER
-                    if (_mods.testFlag(Qt::ShiftModifier))
-                    {
-                        _firstPointC = _lastPointC;
-                        _InitiateDrawingIngFromLastPos();
-                    }
-                    else
-                        _InitiateDrawing(event);
-#endif
-                }
-            }
-#ifndef _VIEWER
-            else if (event->button() == Qt::RightButton)
-                _InitRubberBand(event);
-#endif
-            event->accept();
-            break;
-        case QEvent::TabletMove:
-#ifndef Q_OS_IOS
-//        if (event->device() == QTabletEvent::RotationStylus)
-//            updateCursor(event);
-#endif
-            if (_pendown)
-            {
-                static QPointF lastpos;
-                static int counter; // only refresh screen when this is REFRESH_LIMIT
-                                    // because tablet events frequency is large
-                const int REFRESH_LIMIT = 10;
-                QPointF pos = event->pos();
-                if (lastpos == pos)
-                {
-                    event->accept();
-                    break;
-                }
-                else
-                {
-                    lastpos = pos;
-                }
-
-                QPointF  dr = (pos - _lastPointC);   // displacement vector
-                if (dr.manhattanLength())
-                {
-
-#ifndef _VIEWER
-                    if (_pSprite)     // move sprite
-                    {
-                        _MoveSprite(dr);
-                        _lastPointC = event->pos();
-                    }
-                    else
-                    {
-#endif
-                        if (_spaceBarDown)
-                        {
-                            ++counter;
-                            if (counter >= REFRESH_LIMIT)
-                            {
-                                counter = 0;
-                                _Redraw();
-                            }
-                            _ShiftOrigin(dr);
-                            _lastPointC = event->pos();
-                        }
-#ifndef _VIEWER
-                        else
-                        {
-                            if (_DrawFreehandLineTo(event->pos()))
-                                _lastScribbleItem.add(_lastPointC + _topLeft);
-                        }
-                    }
-#endif
-                }
-            }
-            event->accept();
-            break;
-        case QEvent::TabletRelease:
-            if (_pendown)// && event->buttons() == Qt::NoButton)
-            {
-#ifndef _VIEWER
-                if (_pSprite)
-                {
-                    _PasteSprite();
-                    _Redraw();
-                }
-                else
-                {
-#endif
-                    if (!_spaceBarDown)
-                    {
-                        _DrawFreehandLineTo(event->pos());
-
-                        _history.addScribbleItem(_lastScribbleItem);
-
-                        emit CanUndo(true);
-                        emit CanRedo(false);
-                    }
-                    else
-                        _RestoreCursor();
-#ifndef _VIEWER
-                }
-#endif
-                _pendown = false;
-                _startSet = false;
-            }
-            emit PointerTypeChange(QTabletEvent::Cursor);
-            event->accept();
-            break;
-        default:
-            event->ignore();
-            break;
-    }
+        _allowMouse = _allowPen = true;
 }
 
 void DrawArea::_DrawGrid(QPainter& painter)
@@ -915,7 +887,7 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
 void DrawArea::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);             // show image on widget
-    QRectF dirtyRect = event->rect();
+    QRect dirtyRect = event->rect();
     painter.fillRect(dirtyRect, _backgroundColor);             // draw on here
 
 // bottom layer: background with possible background image
@@ -925,11 +897,11 @@ void DrawArea::paintEvent(QPaintEvent* event)
         _DrawGrid(painter);
 
 // screenshots layer: images below user drawn lines
-    QRectF r = dirtyRect.translated(_topLeft);              // screen -> absolute coord
+    QRect r = dirtyRect.translated(_topLeft);              // screen -> absolute coord
     ScreenShotImage* pimg = _belowImages.FirstVisible(r);   // pimg intersects r
     while (pimg)                                            // image layer
     {
-        QRectF intersectRect = pimg->Area(_clippingRect);      // absolute
+        QRect intersectRect = pimg->Area(_clippingRect);      // absolute
         painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
         pimg = _belowImages.NextVisible();
     }
@@ -954,9 +926,9 @@ void DrawArea::resizeEvent(QResizeEvent* event)
     int h = height();
     int w = width();
     if (_limited && _topLeft.x() + w > _screenWidth)
-        _ShiftOrigin(QPointF( (_topLeft.x() + w - _screenWidth),0));
+        _ShiftOrigin(QPoint( (_topLeft.x() + w - _screenWidth),0));
 
-    _canvasRect = QRect(0, 0, w, h).translated(_topLeft.toPoint());     // 0,0 relative rectangle
+    _canvasRect = QRect(0, 0, w, h).translated(_topLeft);     // 0,0 relative rectangle
     _clippingRect = _canvasRect;
 
     if (width() > _canvas.width() || height() > _canvas.height()) 
@@ -964,7 +936,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
         int newWidth =  qMax(w + 128,  _canvas.width());
         int newHeight = qMax(h + 128, _canvas.height());
         _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
-        _history.SetClippingRect(QRect(_topLeft.toPoint(), QSize(newWidth, newHeight)));
+        _history.SetClippingRect(QRect(_topLeft, QSize(newWidth, newHeight)));
 
         _Redraw();
     }
@@ -1017,16 +989,16 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
  * RETURNS:
  * REMARKS: -
  *-------------------------------------------------------*/
-void DrawArea::_InitiateDrawing(QEvent* event)
+void DrawArea::_InitiateDrawing(MyPointerEvent* event)
 {
-    _firstPointC = _lastPointC = _pendown ? ((QTabletEvent*)event)->pos() : ((QMouseEvent*)event)->pos();
+    _firstPointC = _lastPointC = event->pos;
 
     _InitiateDrawingIngFromLastPos();
 }
 
-void DrawArea::_InitRubberBand(QEvent* event)
+void DrawArea::_InitRubberBand(MyPointerEvent* event)
 {
-    _rubber_origin = event->type() == QEvent::MouseButtonPress ? ((QMouseEvent*)event)->pos() : ((QTabletEvent*)event)->pos();
+    _rubber_origin = event->pos;
     if (!_rubberBand)
         _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
     _rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
@@ -1035,7 +1007,7 @@ void DrawArea::_InitRubberBand(QEvent* event)
 }
 
 
-void DrawArea::_ModifyIfSpecialDirection(QPointF& qpC)
+void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
 {       // when '_horizontal' is valid only keep the changes in coordinate in one direction
         // qpC canvas relative
     if (_startSet)
@@ -1063,7 +1035,7 @@ void DrawArea::_ModifyIfSpecialDirection(QPointF& qpC)
  *          - without contraint does not modify newEndPoint
  *              and always returns true
  *-------------------------------------------------------*/
-bool DrawArea::_CanSavePoint(QPointF& newEndPointC)   // endPoint relative to canvas, not _topLeft
+bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to canvas, not _topLeft
 {
 //DEBUG_LOG(QString("CanSavePoint #1: firstPointC:(%1,%2) newEndPointC=(%3,%4)").arg(_firstPointC.x()).arg(_firstPointC.y()).arg(newEndPointC.x()).arg(newEndPointC.y()))
      if (!_startSet && (_mods.testFlag(Qt::ShiftModifier) && (_pendown || _scribbling)))
@@ -1099,7 +1071,7 @@ bool DrawArea::_CanSavePoint(QPointF& newEndPointC)   // endPoint relative to ca
     return true;
 }
 
-QPointF DrawArea::_CorrectForDirection(QPointF &newpC)     // newpC canvas relative
+QPoint DrawArea::_CorrectForDirection(QPoint &newpC)     // newpC canvas relative
 {
     if (_startSet)  
     {
@@ -1126,7 +1098,7 @@ void DrawArea::_MoveToActualPosition(QRect rect)
 
         if (l != _topLeft.x() || t != _topLeft.y())
         {
-            _SetOrigin(QPointF(l, t));
+            _SetOrigin(QPoint(l, t));
             _Redraw();
         }
     }
@@ -1165,7 +1137,7 @@ void DrawArea::_MoveToActualPosition(QRect rect)
  *              does not draw the point until a direction
  *                  was established
   *-------------------------------------------------------*/
-bool DrawArea::_DrawFreehandLineTo(QPointF endPointC)
+bool DrawArea::_DrawFreehandLineTo(QPoint endPointC)
 {
     bool result = true;
 #ifndef _VIEWER
@@ -1194,7 +1166,7 @@ bool DrawArea::_DrawFreehandLineTo(QPointF endPointC)
  *              does not draw the point until a direction 
  *                  was established
  *-------------------------------------------------------*/
-void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative 
+void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
 {
     QPainter painter(&_canvas);
     QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
@@ -1221,7 +1193,7 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 
     painter.drawLine(_lastPointC, endPointC);
     int rad = (_actPenWidth / 2) + 2;
-    update(QRect(_lastPointC.toPoint(), endPointC.toPoint()).normalized()
+    update(QRect(_lastPointC, endPointC).normalized()
         .adjusted(-rad, -rad, +rad, +rad));
 
     _lastPointC = endPointC;
@@ -1231,17 +1203,17 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 /*========================================================
  * TASK:    draws the polyline stored in drawnable on
  *          '_canvas'
- * PARAMS:  pdrni - valid pointer to a DrawnAble item
+ * PARAMS:  pscrbl - valid pointer to a ScribbleAble item
  * GLOBALS: _canvas,_myPenKind, _actPenWidth, _erasemode
  *          _clippingRect, _lastPointC, _topLeft
  * RETURNS:
- * REMARKS: - no errro checking on pdrni
+ * REMARKS: - no errro checking on pscrbl
  *-------------------------------------------------------*/
-void DrawArea::_DrawAllPoints(ScribbleItem* pdrni)
+void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 {
-    _myPenKind = pdrni->penKind;
-    _actPenWidth = pdrni->penWidth;
-    _erasemode = pdrni->type == heEraser ? true : false;
+    _myPenKind = pscrbl->penKind;
+    _actPenWidth = pscrbl->penWidth;
+    _erasemode = pscrbl->type == heEraser ? true : false;
 
     
     QPainter painter(&_canvas);
@@ -1254,26 +1226,26 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pdrni)
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter.setRenderHint(QPainter::HighQualityAntialiasing);
 
-    QRect rect = _clippingRect.translated(-_topLeft.toPoint()); // _canvas relative
+    QRect rect = _clippingRect.translated(-_topLeft); // _canvas relative
     painter.setClipRect(rect );
 
-    _lastPointC = pdrni->points[0] - _topLeft;
-    QPointF pt;
-    if(pdrni->points.size() > 1)
-        pt = pdrni->points[1] - _topLeft;
+    _lastPointC = pscrbl->points[0] - _topLeft;
+    QPoint pt;
+    if(pscrbl->points.size() > 1)
+        pt = pscrbl->points[1] - _topLeft;
     else
-        pt = pdrni->points[0] - _topLeft + QPointF(1,1);
+        pt = pscrbl->points[0] - _topLeft + QPoint(1,1);
 
-    for (int i = 1; i < pdrni->points.size()-1; ++i)
+    for (int i = 1; i < pscrbl->points.size()-1; ++i)
     {
         painter.drawLine(_lastPointC, pt);
         _lastPointC = pt;
-        pt = pdrni->points[i+1] - _topLeft;
+        pt = pscrbl->points[i+1] - _topLeft;
     }
     painter.drawLine(_lastPointC, pt);
 
     int rad = (_actPenWidth / 2) + 2;
-    rect = rect.intersected(pdrni->bndRect.toRect().translated(-_topLeft.toPoint())).normalized();
+    rect = rect.intersected(pscrbl->bndRect.translated(-_topLeft)).normalized();
    
     if (!rect.isNull())
     {
@@ -1294,7 +1266,7 @@ void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTranspar
     newImage.fill(color);
     QPainter painter(&newImage);
     painter.setCompositionMode(QPainter::CompositionMode_Source); //??
-    painter.drawImage(QPointF(0, 0), *image);
+    painter.drawImage(QPoint(0, 0), *image);
     *image = newImage;
 }
 
@@ -1302,7 +1274,7 @@ void DrawArea::ClearHistory()
 {
     _history.clear();
     _ClearCanvas();
-    _SetOrigin(QPointF() );  // new _topLeft and _canvasRect
+    _SetOrigin(QPoint() );  // new _topLeft and _canvasRect
 
     emit CanUndo(false);
     emit CanRedo(false);
@@ -1374,14 +1346,14 @@ bool DrawArea::_PdfPageSetup()
                 mtb = pdfDlg->pdfMarginTB * dpi;
         if (_prdata.flags & pfLandscape)
         {
-            _prdata.printArea = QRectF(mtb, mlr, h, w);
+            _prdata.printArea = QRect(mtb, mlr, h, w);
             _prdata.magn = h / _prdata.screenPageWidth;
             _prdata.pdfMarginLR = mtb;  
             _prdata.pdfMarginTB = mlr;
         }
         else
         {
-            _prdata.printArea = QRectF(mlr, mtb, w, h);
+            _prdata.printArea = QRect(mlr, mtb, w, h);
             _prdata.magn = w / _prdata.screenPageWidth;
             _prdata.pdfMarginLR = mlr;
             _prdata.pdfMarginTB = mtb;
@@ -1541,7 +1513,7 @@ void DrawArea::_RestoreCursor()
 
 
 /*========================================================
- * TASK:    plots visible 'Drawnable's onto _canvas
+ * TASK:    plots visible 'Scribbleable's onto _canvas
  *              if it intersects _clippingRect
  * PARAMS:  phi - possibly nullpointer to a HistoryItem
  * GLOBALS: _clippingRect
@@ -1554,40 +1526,40 @@ bool DrawArea::_ReplotScribbleItem(HistoryItem* phi)
     if (!phi || phi->IsImage() || !phi->Area().intersects(_clippingRect))
         return false;
 
-    ScribbleItem* pdrni;     // used when we must draw something onto the screen
+    ScribbleItem* pscrbl;     // used when we must draw something onto the screen
 
-    auto plot = [&]()   // lambda to plot point pointed by pdrni
+    auto plot = [&]()   // lambda to plot point pointed by pscrbl
                 {
-        if (!pdrni->isVisible || !pdrni->intersects(_clippingRect))   // if the clipping rectangle has no intersection with         
+        if (!pscrbl->isVisible || !pscrbl->intersects(_clippingRect))   // if the clipping rectangle has no intersection with         
             return;                              // the scribble
 
         // DEBUG
         // draw rectange around item to see if item intersects the rectangle
         //{
         //    QPainter painter(&_canvas);
-        //    QRect rect = pdrni->rect.adjusted(-1,-1,0,0);   // 1px pen left and top:inside rectangle, put pen outside rectangle
+        //    QRect rect = pscrbl->rect.adjusted(-1,-1,0,0);   // 1px pen left and top:inside rectangle, put pen outside rectangle
         //    painter.setPen(QPen(QColor(qRgb(132,123,45)), 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         //    painter.drawRect(rect);
         //}
         // /DEBUG            
-        _DrawAllPoints(pdrni);
+        _DrawAllPoints(pscrbl);
     };
 
     switch(phi->type)
     {
         case heScribble:
         case heEraser:    
-            if( (pdrni = phi->GetVisibleScribble(0)))
+            if( (pscrbl = phi->GetVisibleScribble(0)))
                 plot();
             break;
         case heItemsDeleted:    // nothing to do
             break;
         case heItemsPastedTop:
-            pdrni = phi->GetVisibleScribble();
-            for (int i = 1; pdrni; ++i)
+            pscrbl = phi->GetVisibleScribble();
+            for (int i = 1; pscrbl; ++i)
             {
                 plot();
-                pdrni = phi->GetVisibleScribble(i);
+                pscrbl = phi->GetVisibleScribble(i);
             }
             break;
         default:
@@ -1604,7 +1576,7 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
     {
         _RemoveRubberBand();
 
-        QRect rect = _history.Undo().toRect();
+        QRect rect = _history.Undo();
         _MoveToActualPosition(rect); 
 //        _clippingRect = rect;
         _ClearCanvas();
@@ -1624,7 +1596,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 
     _RemoveRubberBand();
 
-    _MoveToActualPosition(phi->Area().toRect());
+    _MoveToActualPosition(phi->Area());
 // ??    _clippingRect = phi->Area();
 
     _Redraw();
@@ -1681,18 +1653,18 @@ void DrawArea::SetPageGuidesOn(bool on)
     _Redraw();
 }
 
-void DrawArea::_SetOrigin(QPointF o)
+void DrawArea::_SetOrigin(QPoint o)
 {
     _topLeft = o;
 #ifndef _VIEWER
     _RemoveRubberBand();
 #endif
-    _canvasRect.moveTo(_topLeft.toPoint());
+    _canvasRect.moveTo(_topLeft);
     _clippingRect = _canvasRect;
     _history.SetClippingRect(_canvasRect);
 
 #ifndef _VIEWER
-    _ShowCoordinates(_topLeft);
+    _ShowCoordinates(QPoint());
 #endif
 }
 
@@ -1706,9 +1678,9 @@ void DrawArea::_SetOrigin(QPointF o)
  * REMARKS: - delta.x() < 0 - move viewport right
  *          - delta.y() < 0 - move viewport down
  *-------------------------------------------------------*/
-void DrawArea::_ShiftOrigin(QPointF delta)    
+void DrawArea::_ShiftOrigin(QPoint delta)    
 {
-    QPointF o = _topLeft;       // origin of screen top left relative to "paper"
+    QPoint o = _topLeft;       // origin of screen top left relative to "paper"
 
     o -= delta;                // calculate new screen origin
 
@@ -1739,7 +1711,7 @@ void DrawArea::_ShiftOrigin(QPointF delta)
  *          - delta.x() < 0 - moves viewport right
  *            delta.y() < 0 - moves viewport down
  *-------------------------------------------------------*/
-void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
+void DrawArea::_ShiftAndDisplayBy(QPoint delta, bool smooth)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
 {
     if (_topLeft.y() - delta.y() < 0.0)
         delta.setY(_topLeft.y());
@@ -1748,7 +1720,7 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
     if (delta.x() < 0 && _limited && _topLeft.x() - delta.x() + width() >= _screenWidth)
         delta.setX(_topLeft.x() + width() - _screenWidth);
 
-    if(delta.toPoint().isNull() )
+    if(delta.isNull() )
        return;      // nothing to do
 
 
@@ -1761,7 +1733,7 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
               rectRe;                              // _topLeft relative  
         int w = width(),
             h = height();
-        rectSrc = _canvasRect.translated(-_topLeft.toPoint()-delta.toPoint());  // relative to viewport
+        rectSrc = _canvasRect.translated(-_topLeft-delta);  // relative to viewport
         rectSrc.adjust(0, 0, -qAbs(delta.x()), -qAbs(delta.y()));
         rectDst = rectSrc;
         rectDst.moveTo(0, 0);
@@ -1785,7 +1757,7 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
 
         _ShiftOrigin(delta);
 
-        rectRe.translate(_topLeft.toPoint());
+        rectRe.translate(_topLeft);
         _clippingRect = rectRe;
         _history.SetClippingRect(rectRe);
         _Redraw(false);
@@ -1801,17 +1773,17 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
 }
 void DrawArea::_PageUp()
 {
-    QPointF pt(0, geometry().height()/3*2);
+    QPoint pt(0, geometry().height()/3*2);
     _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_PageDown()
 {
-    QPointF pt(0, -geometry().height() / 3 * 2);
+    QPoint pt(0, -geometry().height() / 3 * 2);
     _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Home(bool toTop)
 {
-    QPointF pt = _topLeft;
+    QPoint pt = _topLeft;
 
     if(!toTop)
         pt.setY(0);   // do not move in y direction
@@ -1826,29 +1798,38 @@ void DrawArea::_End()
 
 void DrawArea::_Up(int amount)
 {
-    QPointF pt(0, amount);
+    QPoint pt(0, amount);
     _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Down(int amount)
 {
-    QPointF pt(0, -amount);
+    QPoint pt(0, -amount);
     _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Left(int amount)
 {
-    QPointF pt(amount,0);
+    QPoint pt(amount,0);
     _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Right(int amount)
 {
-    QPointF pt(-amount,0);
+    QPoint pt(-amount,0);
     _ShiftAndDisplayBy(pt, false);
 }
 
 #ifndef _VIEWER
-void DrawArea::_ShowCoordinates(const QPointF& qp)
+void DrawArea::_ShowCoordinates(const QPoint& qp)
 {
-    emit TextToToolbar(QString("  x:%1, y:%2").arg(qp.x()).arg(qp.y()));
+    static QPoint prevPoint = QPoint(0, 0),
+                    qpt;
+    if (qp.isNull())
+        qpt = prevPoint;
+    else
+        qpt = prevPoint = qp;
+
+    qpt += _topLeft;
+
+    emit TextToToolbar(QString(tr("   Top Left: x:%1, y:%2 | Cursor: x:%3, y:%4 ")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()));
 }
 
 // ****************************** Sprite ******************************
@@ -1865,7 +1846,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
  *              so paste operation still pastes the non sprite
  *              data
  *-------------------------------------------------------*/
-Sprite* DrawArea::_CreateSprite(QPointF pos, QRect &rect, bool deleted)
+Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect, bool deleted)
 {
     _pSprite = new Sprite(&_history);       // copies selected items into lists
     _pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
@@ -1878,7 +1859,7 @@ Sprite* DrawArea::_CreateSprite(QPointF pos, QRect &rect, bool deleted)
     QRect sr, tr;   // source & target
     for (ScreenShotImage& si : _pSprite->images)
     {
-        tr = QRect(si.topLeft.toPoint(), _pSprite->rect.size().toSize() );        // (0,0, width, height)
+        tr = QRect(si.topLeft, _pSprite->rect.size() );
         sr = si.image.rect();       // -"-
 
         if (sr.width() > tr.width())
@@ -1912,7 +1893,7 @@ Sprite* DrawArea::_CreateSprite(QPointF pos, QRect &rect, bool deleted)
         painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
                             Qt::RoundJoin));
 
-        QPointF p0 = di.points[0];        // sprite relative coordinates
+        QPoint p0 = di.points[0];        // sprite relative coordinates
         for (auto &p : di.points)
         {
             painter.drawLine(p0, p);
@@ -1936,7 +1917,7 @@ Sprite* DrawArea::_CreateSprite(QPointF pos, QRect &rect, bool deleted)
     return _pSprite;
 }
 
-void DrawArea::_MoveSprite(QPointF dr)
+void DrawArea::_MoveSprite(QPoint dr)
 {
 //        QRect updateRect = _pSprite->rect.translated(_pSprite->topLeft);      // original rectangle
         _pSprite->topLeft += dr;
@@ -1964,7 +1945,7 @@ void DrawArea::_PasteSprite()
     Sprite* ps = _pSprite;
     _pSprite = nullptr;             // so the next paint event finds no sprite
     _history.addPastedItems(ps->topLeft + _topLeft, ps);    // add at window relative position: top left = (0,0)
-    QRect updateRect = ps->rect.translated(ps->topLeft).toRect();    // original rectangle
+    QRect updateRect = ps->rect.translated(ps->topLeft);    // original rectangle
     update(updateRect);
     delete ps;
 }

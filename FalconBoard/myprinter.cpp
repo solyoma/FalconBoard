@@ -77,8 +77,8 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
         if (_printer->orientation() == QPrinter::Landscape)
             _data.flags |= pfLandscape;
         _data.dpi = _printer->resolution();
-        _data.printArea = _printer->pageRect(QPrinter::DevicePixel);
-        _data.printArea.moveTopLeft(QPointF(0, 0));    // margins are set by the printer
+        _data.printArea = _printer->pageRect();
+        _data.printArea.moveTopLeft(QPoint(0, 0));    // margins are set by the printer
 
         _data.magn = (float)_data.printArea.width() / (float)_data.screenPageWidth;
         _data.screenPageHeight = (int)((float)_data.printArea.height() / _data.magn);
@@ -190,7 +190,7 @@ static struct SortedPageNumbers
                 yindices.insert(ix, pgn.yindices[0]);
         }
     }
-    PageNum2 &PageForPoint(const QPointF& p, int Yindex, PageNum2 &pgn)
+    PageNum2 &PageForPoint(const QPoint& p, int Yindex, PageNum2 &pgn)
     {
         pgn.yindices[0].yix = Yindex;
 
@@ -201,15 +201,15 @@ static struct SortedPageNumbers
 
     void AddPoints(HistoryItem* phi, int Yindex, PageNum2 &pgn) // to 'pgns'
     {
-        ScribbleItem* pdrni;
+        ScribbleItem* pscrbl;
 
-        pdrni = phi->GetVisibleScribble(0);    // only one element for scribble / printable
-        Insert(PageForPoint(pdrni->points[0], Yindex, pgn));
+        pscrbl = phi->GetVisibleScribble(0);    // only one element for scribble / printable
+        Insert(PageForPoint(pscrbl->points[0], Yindex, pgn));
         // TODO when the line segment between 2 consecutive points goes through more than one page
         //          example: horizontal, vertical line, circle, etc *********
 
-        for (int i = 1; i < pdrni->points.size(); ++i)
-            Insert(PageForPoint(pdrni->points[i], Yindex, pgn) );
+        for (int i = 1; i < pscrbl->points.size(); ++i)
+            Insert(PageForPoint(pscrbl->points[i], Yindex, pgn) );
     }
 
 } sortedPageNumbers;
@@ -364,7 +364,7 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
     return nullptr;
 }
 
-int MyPrinter::_PageForPoint(const QPointF p)
+int MyPrinter::_PageForPoint(const QPoint p)
 {
     for (int i = 0; i < _pages.size(); ++i)
         if (_pages[i].screenArea.contains(p))
@@ -389,11 +389,11 @@ bool MyPrinter::_PrintItem(Yindex yi)
     if(phi->IsImage())
     {                               // paint over background layer
         ScreenShotImage* psi = phi->GetScreenShotImage();
-        QRectF srcRect = phi->Area().intersected(_actPage.screenArea); // screen coordinates
-        QPointF dp =  srcRect.topLeft() - _actPage.screenArea.topLeft(); // screen relative coord.
+        QRect srcRect = phi->Area().intersected(_actPage.screenArea); // screen coordinates
+        QPoint dp =  srcRect.topLeft() - _actPage.screenArea.topLeft(); // screen relative coord.
         srcRect.moveTopLeft(dp);  
 
-        QRectF dstRect = QRectF( QPointF(srcRect.x()*_data.magn, srcRect.y() * _data.magn), QSize(srcRect.width() * _data.magn, srcRect.height() * _data.magn)) ;
+        QRect dstRect = QRect( QPoint(srcRect.x()*_data.magn, srcRect.y() * _data.magn), QSize(srcRect.width() * _data.magn, srcRect.height() * _data.magn)) ;
         Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
 		if (_data.flags & pfDontPrintImages)    // print placeholder
         {
@@ -407,13 +407,13 @@ bool MyPrinter::_PrintItem(Yindex yi)
     }
     else if (phi->type == heScribble || phi->type == heEraser)
     {             // paint over transparent layer
-        ScribbleItem* pdrni = phi->GetVisibleScribble(0);
-        MyPenKind pk = pdrni->penKind;
-        int pw = pdrni->penWidth * _data.magn;
-        bool erasemode = pdrni->type == heEraser ? true : false;
+        ScribbleItem* pscrbl = phi->GetVisibleScribble(0);
+        MyPenKind pk = pscrbl->penKind;
+        int pw = pscrbl->penWidth * _data.magn;
+        bool erasemode = pscrbl->type == heEraser ? true : false;
 
-        QPointF actP = pdrni->points[0] - _actPage.screenArea.topLeft(),
-                nextP = actP + QPointF(1.0, 1.0);
+        QPoint actP = pscrbl->points[0] - _actPage.screenArea.topLeft(),
+                nextP = actP + QPoint(1.0, 1.0);
 
         _painter->setPen(QPen(drawColors[pk], pw, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         if (erasemode)
@@ -422,12 +422,12 @@ bool MyPrinter::_PrintItem(Yindex yi)
             _painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         _painter->setRenderHint(QPainter::Antialiasing);
 
-        if(pdrni->points.size() == 1)
+        if(pscrbl->points.size() == 1)
             _painter->drawLine(actP * _data.magn, actP * _data.magn);
         else
-            for (int i = 1; i < pdrni->points.size(); ++i)
+            for (int i = 1; i < pscrbl->points.size(); ++i)
             {
-                nextP = pdrni->points[i] - _actPage.screenArea.topLeft();
+                nextP = pscrbl->points[i] - _actPage.screenArea.topLeft();
                 _painter->drawLine(actP * _data.magn, nextP * _data.magn);
                 actP = nextP;
             }
@@ -495,7 +495,7 @@ void MyPrinter::_PreparePage(int which)
         }
     }
     // end composition
-    _painterPage->drawImage(QPointF(0,0), *_pItemImage);
+    _painterPage->drawImage(QPoint(0,0), *_pItemImage);
 
     drawColors.SetDarkMode(b);
 
@@ -505,7 +505,7 @@ void MyPrinter::_PreparePage(int which)
 bool MyPrinter::_PrintPage(int which, bool last)
 {
     _PreparePage(which);    // into _pPageImage
-    _printPainter->drawImage(QPointF(_data.printArea.left(), _data.printArea.top()), *_pPageImage); // printable area may be less than paper size
+    _printPainter->drawImage(QPoint(_data.printArea.left(), _data.printArea.top()), *_pPageImage); // printable area may be less than paper size
     if(!last)
         _printer->newPage();
     

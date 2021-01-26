@@ -316,7 +316,7 @@ void FalconBoard::_CreateAndAddActions()
 #ifndef _VIEWER
 void FalconBoard::_AddSaveVisibleAsMenu()
 {
-    QMenu *pSaveAsVisibleMenu = new QMenu(QApplication::tr("Save Visible &As..."), this);
+    QMenu *pSaveAsVisibleMenu = new QMenu(QApplication::tr("Save Visi&ble As..."), this);
     for (QAction* action : qAsConst(_saveAsActs))
         pSaveAsVisibleMenu->addAction(action);
     ui.menu_File->insertMenu(ui.actionPageSetup, pSaveAsVisibleMenu);
@@ -1124,7 +1124,7 @@ void FalconBoard::SlotForScreenshotReady(QRect gmetry)
     image =QImage(gmetry.size(), QImage::Format_ARGB32);
 
     QPainter *painter = new QPainter(&image);   // need to delete it before the label is deleted
-    painter->drawImage(QPointF(0,0), plblScreen->pixmap()->toImage(), gmetry);
+    painter->drawImage(QPoint(0,0), plblScreen->pixmap()->toImage(), gmetry);
     delete painter;
     _drawArea->AddScreenShotImage(image);
 
