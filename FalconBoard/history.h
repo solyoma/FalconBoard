@@ -611,6 +611,7 @@ public:
     bool IsModified() const { return _modified & CanUndo(); }
     bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
     bool CanRedo() const { return _redo.size(); }
+    void ClearUndo() { _readCount = _items.size(); }
 
     HistoryItem* operator[](int index) const { return _items[index]; }                  // index: physical index in _items
     HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder - only scribbles

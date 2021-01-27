@@ -1272,9 +1272,7 @@ void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTranspar
 
 void DrawArea::ClearHistory()
 {
-    _history.clear();
-    _ClearCanvas();
-    _SetOrigin(QPoint() );  // new _topLeft and _canvasRect
+    _history.ClearUndo();
 
     emit CanUndo(false);
     emit CanRedo(false);
