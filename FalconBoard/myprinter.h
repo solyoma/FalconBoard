@@ -111,7 +111,7 @@ private:
     void _PrintGrid();
     void _PreparePage(int which);
     bool _PrintPage(int page, bool last);  // using _history last: no new page after this
-    bool _Print(int from=1, int to=0x7fffffff);   // pages
+    bool _Print(int from=1, int to=0x70000000);   // pages
     bool _Print(QVector<int>& pages);             // list of pages
     QPrintDialog* _DoPrintDialog();   // if 'Print' pressed recalculates page data () else returns nullptr
     int _PageForPoint(const QPoint p);

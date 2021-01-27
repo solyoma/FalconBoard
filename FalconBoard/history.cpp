@@ -509,8 +509,7 @@ int  HistoryRemoveSpaceItem::Redo()
 {
 	if (modifiedList.isEmpty())	 // vertical movement
 	{
-		int minY = (*pHist)[first]->Area().y();
-		pHist->Translate(first, QPoint(0, -delta), minY);	 // -delta < 0 move up
+		pHist->TranslateAllItemsBelow(QPoint(0, -delta), y);	 // -delta < 0 move up
 	}
 	else	// horizontal movement
 	{
@@ -532,8 +531,7 @@ int  HistoryRemoveSpaceItem::Undo()
 {
 	if (modifiedList.isEmpty())	 // vertical movement
 	{
-		int minY = (*pHist)[first]->Area().y();
-		pHist->Translate(first, QPoint(0, delta), minY);	  //delte > 0 move down
+		pHist->TranslateAllItemsBelow(QPoint(0, delta), y-delta);	  //delte > 0 move down
 	}
 	else	// horizontal movement
 	{
@@ -545,7 +543,7 @@ int  HistoryRemoveSpaceItem::Undo()
 }
 
 HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(History* pHist, ItemIndexVector& toModify, int first, int distance) :
-	HistoryItem(pHist), modifiedList(toModify), first(first), delta(distance)
+	HistoryItem(pHist), modifiedList(toModify), y(y), delta(distance)
 {
 	type = heSpaceDeleted;
 	Redo();
@@ -559,7 +557,7 @@ HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(HistoryRemoveSpaceItem& other) : 
 HistoryRemoveSpaceItem& HistoryRemoveSpaceItem::operator=(const HistoryRemoveSpaceItem& other)
 {
 	modifiedList = other.modifiedList;
-	first = other.first;
+	y = other.y;
 	delta = other.delta;
 	return *this;
 }
@@ -571,7 +569,7 @@ HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(HistoryRemoveSpaceItem&& other)  
 HistoryRemoveSpaceItem& HistoryRemoveSpaceItem::operator=(const HistoryRemoveSpaceItem&& other)  noexcept
 {
 	modifiedList = other.modifiedList;
-	first = other.first;
+	y = other.y;
 	delta = other.delta;
 	return *this;
 }
@@ -764,7 +762,7 @@ QRect HistoryReColorItem::Area() const { return boundingRectangle; }
 //---------------------------------------------------
 
 HistoryInsertVertSpace::HistoryInsertVertSpace(History* pHist, int top, int pixelChange) :
-	HistoryItem(pHist), minY(top), heightInPixels(pixelChange)
+	HistoryItem(pHist), y(top), heightInPixels(pixelChange)
 {
 	type = heVertSpace;
 	Redo();
@@ -777,24 +775,24 @@ HistoryInsertVertSpace::HistoryInsertVertSpace(const HistoryInsertVertSpace& oth
 HistoryInsertVertSpace& HistoryInsertVertSpace::operator=(const HistoryInsertVertSpace& other)
 {
 	type = heVertSpace;
-	minY = other.minY; heightInPixels = other.heightInPixels; pHist = other.pHist;
+	y = other.y; heightInPixels = other.heightInPixels; pHist = other.pHist;
 	return *this;
 }
 
 int  HistoryInsertVertSpace::Undo()
 {
-	pHist->InserVertSpace(minY, -heightInPixels);
+	pHist->InserVertSpace(y+heightInPixels, -heightInPixels);
 	return 1;
 }
 
 int  HistoryInsertVertSpace::Redo()
 {
-	pHist->InserVertSpace(minY, heightInPixels);
+	pHist->InserVertSpace(y, heightInPixels);
 	return 0;
 }
 QRect HistoryInsertVertSpace::Area() const
 {
-	return QRect(0, minY, 100, 100);
+	return QRect(0, y, 100, 100);
 }
 
 //--------------------------------------------
@@ -1093,7 +1091,7 @@ void History::_push_back(HistoryItem* pi)
 
 	if (pi->IsScribble())	// Only scribble elements are put into _yxOrder
 	{
-		_bands.Add(s);	// screenshots are marked in _items
+		_bands.Add(s);	// screenshots in _items has a zorder less than DRAWABLE_ZORDER_BASE
 
 		int yi = _YIndexForXY(pi->TopLeft());    // yi either to element with same x,y values or the one which is higher or at the right
 		if (yi == _yxOrder.size() )  // all elements at xy were less than for this one
@@ -1146,7 +1144,7 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 
 	_push_back(p);
 
-	_redo.clear();	// no undo after new item addade
+	_redo.clear();	// no undo after new item added
 
 	_modified = true;
 
@@ -1202,11 +1200,7 @@ HistoryItem* History::operator[](int index)	// absolute index
  * PARAMS:  file name
  * GLOBALS:
  * RETURNS:
- * REMARKS: - drawn items follow each other in the order
- *              they were used.
- *          - if a clear screen was somewhere it contains
- *              the index of the last drawn item before it
- *              so only items after it are saved
+ * REMARKS: - ordering by band and then by z-order
  *-------------------------------------------------------*/
 bool History::Save(QString name)
 {
@@ -1227,28 +1221,38 @@ bool History::Save(QString name)
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
 	ofs << MAGIC_VERSION;
-
-	for (int i =0; i < _bands.ItemCount(); ++i )
+	ItemIndexVector iv;
+	for (int i =0; i < _bands.Size(); ++i )
 	{
-		HistoryItem* ph = _items[ _bands.IndexForItemNumber(i) ];		// ordered by y then x coordinate
-		if (ph->Hidden())		// hidden elements are not saved
-			continue;
-
-		if (ofs.status() != QDataStream::Ok)
+		if (_bands.ItemsStartingInBand(i, iv))
 		{
-			f.remove();
-			return false;
-		}
+			for (auto ind : iv)
+			{
+				HistoryItem* phi = _items[ind.index];		// ordered by y then x coordinate
+				if (phi->Hidden())					// hidden elements are not saved
+					continue;
 
-		int index = -1;
-		if (ph->IsImage() )
-		{
-			ofs << (*pImages)[((HistoryScreenShotItem*)ph)->which];
-			continue;
+				if (ofs.status() != QDataStream::Ok)
+				{
+					f.remove();
+					return false;
+				}
+
+				int index = -1;
+				if (phi->IsImage())
+				{
+					ofs << (*pImages)[((HistoryScreenShotItem*)phi)->which];
+					continue;
+				}
+				else
+				{
+					ScribbleItem* pscrbl;
+					while ((pscrbl = phi->GetVisibleScribble(++index)) != nullptr)
+						ofs << *pscrbl;
+				}
+			}
 		}
-		ScribbleItem* pscrbl;
-		while ((pscrbl = ph->GetVisibleScribble(++index)) != nullptr)
-			ofs << *pscrbl;
+		iv.clear();
 	}
 	_modified = false;
 	if (QFile::exists(name + "~"))
@@ -1313,7 +1317,7 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 	}
 	_modified = false;
 	_inLoad = false;
-	return  _items.size();
+	return  _readCount = _items.size();
 }
 
 //--------------------- Add Items ------------------------------------------
@@ -1321,7 +1325,7 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 HistoryItem* History::addClearRoll()
 {
 	_SaveClippingRect();
-	_clpRect = QRect(0, 0, 0x7fffffff, 0x7fffffff);
+	_clpRect = QRect(0, 0, 0x70000000, 0x70000000);
 	HistoryItem* pi = addClearVisibleScreen();
 	_RestoreClippingRect();
 	return pi;
@@ -1330,7 +1334,7 @@ HistoryItem* History::addClearRoll()
 HistoryItem* History::addClearVisibleScreen()
 {
 	ItemIndexVector toBeDeleted;
-	_bands.ItemsForArea(_clpRect, toBeDeleted);
+	_bands.ItemsVisibleForArea(_clpRect, toBeDeleted);
 
 	HistoryDeleteItems* p = new HistoryDeleteItems(this, toBeDeleted);
 	return _AddItem(p);
@@ -1339,7 +1343,7 @@ HistoryItem* History::addClearVisibleScreen()
 HistoryItem* History::addClearDown()
 {
 	_SaveClippingRect();
-	_clpRect.setHeight(0x7fffffff);
+	_clpRect.setHeight(0x70000000);
 	HistoryItem *pi = addClearVisibleScreen();
 	_RestoreClippingRect();
 	return pi;
@@ -1467,12 +1471,12 @@ HistoryItem* History::addRemoveSpaceItem(QRect& rect)
 {
 	bool bNothingAtRight = _nItemsRightOfList.isEmpty(),
 		bNothingAtLeftAndRight = bNothingAtRight && _nItemsLeftOfList.isEmpty(),
-		bJustVerticalSpace = bNothingAtLeftAndRight && _nIndexOfFirstScreenShot != 0x7FFFFFFF;
+		bJustVerticalSpace = bNothingAtLeftAndRight && _nIndexOfFirstScreenShot != 0x70000000;
 
 	if ((bNothingAtRight && !bNothingAtLeftAndRight) || (bNothingAtLeftAndRight && !bJustVerticalSpace))
 		return nullptr;
 
-	// Here _nIndexofFirstScreenShot is less than 0x7FFFFFFF
+	// Here _nIndexofFirstScreenShot is less than 0x70000000
 	HistoryRemoveSpaceItem* phrs = new HistoryRemoveSpaceItem(this, _nItemsRightOfList, _nIndexOfFirstScreenShot, _nItemsRightOfList.size() ? rect.width() : rect.height());
 	return _AddItem(phrs);
 }
@@ -1480,10 +1484,12 @@ HistoryItem* History::addRemoveSpaceItem(QRect& rect)
 
 //********************************************************************* History ***********************************
 
-void History::Translate(int from, QPoint p, int minY) // from 'first' item to _actItem if they are visible and  top is >= minY
+void History::TranslateAllItemsBelow(QPoint dy, int belowY) // from 'first' item to _actItem if they are visible and  top is >= minY
 {
-	for (; from < _items.size(); ++from)
-		_items[from]->Translate(p, minY);
+	auto it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), belowY, [&](int left, int right) { return _items[left]->Area().top() < belowY; });
+	int from = it - _yxOrder.begin();
+	for (; from < _yxOrder.size(); ++from)
+		_yitems(from)->Translate(dy, belowY);
 	_modified = true;
 }
 
@@ -1495,22 +1501,14 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 
 void History::InserVertSpace(int y, int heightInPixels)
 {
-	QRect rect(0, y, 0x7fffffff, _bands.BandHeight());
-	ItemIndexVector iv;
-	_bands.ItemsForArea(rect, iv, true);
-
-	if (iv.isEmpty())
-		return;
-
-	int minY = _YIndexForIndex(iv[0].index);
 	QPoint dy = QPoint(0, heightInPixels);
-	Translate(minY, dy, y);
+	TranslateAllItemsBelow(dy, y);
 }
 
 QRect History::Undo()      // returns top left after undo
 {
 	int actItem = _items.size();
-	if (!actItem)
+	if (!actItem || actItem == _readCount)		// no more undo
 		return QRect();
 
 	// ------------- first Undo top item
@@ -1543,7 +1541,7 @@ QRect History::Undo()      // returns top left after undo
 int History::GetScribblesInside(QRect rect, HistoryItemVector &hv)
 {
 	ItemIndexVector iv;
-	_bands.ItemsForArea(rect, iv);
+	_bands.ItemsVisibleForArea(rect, iv);
 	for (auto i : iv)
 		hv.push_back(_items[i.index]);
 	return hv.size();
@@ -1627,12 +1625,12 @@ int History::CollectItemsInside(QRect rect) // only
 	_nSelectedItemsList.clear();
 	_nItemsRightOfList.clear();
 	_nItemsLeftOfList.clear();
-	_nIndexOfFirstScreenShot = 0x7FFFFFFF;
+	_nIndexOfFirstScreenShot = 0x70000000;
 
 	_selectionRect = QRect();     // minimum size of selection (0,0) relative!
 	
 	// first add images to list
-	_bands.ItemsForArea(rect, _nItemsLeftOfList, _nSelectedItemsList, _nItemsRightOfList, _selectionRect);	
+	_bands.SelectItemsForArea(rect, _nItemsLeftOfList, _nSelectedItemsList, _nItemsRightOfList, _selectionRect);	
 							// collect indices for visible, scribble elements completely inside 'rect'
 	if (_nSelectedItemsList.isEmpty())		// save for removing empty space
 		_selectionRect = rect;
@@ -1703,11 +1701,20 @@ Sprite::Sprite(History* ph) :pHist(ph)
 
 // ********************************** BANDS *************
 
-int Bands::_GetBand(int y)
+
+/*========================================================
+ * TASK:	get existing band in which y lies or insert/append
+ *			a new band if no such band exists
+ * PARAMS:	y - >0, coordinate of point
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - we need band_index to check if this band exists
+ *-------------------------------------------------------*/
+int Bands::_AddBandFor(int y)
 {
 	int nband = y / _bandHeight;
 	Band newBand;
-	int iband = _FindBand(y, _bandHeight );		// check if this band exists
+	int iband = _FindBandFor( y );		// check if this band exists
 	if (iband == _bands.size() || _bands[iband].band_index != nband)	// all bands are either below this one
 	{																	// or we found the first band above
 		newBand.band_index = iband;
@@ -1717,14 +1724,22 @@ int Bands::_GetBand(int y)
 	return iband;
 }
 
-int Bands::_NextBand(int aix, int y)	// aix - index of actual band in _bands., y coord
+
+/*========================================================
+ * TASK:	Gets index of existing band for a given y
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS: band index in _bands if there exists a band
+ *				which has y inside, -1 otherwise
+ * REMARKS: - bands are not contiguous
+ *-------------------------------------------------------*/
+int Bands::_GetBand(int y)
 {
-	if(aix * _bandHeight > y)
-		return -1;			// no more bands
-
-	int nix = _GetBand(y);
-
-	return nix == aix ? -1 : nix;
+	int nband = y / _bandHeight;
+	int iband = _FindBandFor(y);		// check if this band exists
+	if (iband == _bands.size())
+		return -1;
+	return iband;
 }
 
 void Bands::SetParam(History* pHist, int bandHeight)
@@ -1749,9 +1764,11 @@ void Bands::SetParam(History* pHist, int bandHeight)
 
 
 /*========================================================
- * TASK:	add scribble to bands
+ * TASK:	add scribble or screenshot to as many bands
+ *			as it spans
  * PARAMS:	index:in _items (zorder > DRAWABLE_ZORDER_BASE) 
- *				or in 'pImages' 
+ *				or in 'pImages' whose Area() is used
+ *				to see which bands it intersects
  * GLOBALS:
  * RETURNS:
  * REMARKS: -
@@ -1759,32 +1776,73 @@ void Bands::SetParam(History* pHist, int bandHeight)
 void Bands::Add(int index)
 {
 	HistoryItem* phi = (*_pHist)[index];
-	int ib = _GetBand(phi->Area().top() );
-	_Insert(_bands[ib], index);	// z-ordered 
-
-	int y = phi->Area().y() + phi->Area().height();
-	while( (ib = _NextBand(ib, y)) > 0)
-		_Insert(_bands[ib], index);
+	int y = phi->Area().y(),
+		h = y + phi->Area().height();
+	int ib = -1;			// no item added yet
+	while (y <= h)
+	{
+		if (ib < 0)			// only added once to count
+			++_itemCount;
+		ib = _AddBandFor(y);
+		_Insert(_bands[ib], index);	// to items in band, z-ordered 
+		y += _bandHeight;
+	}
 }
 
+
+/*========================================================
+ * TASK:	remove scribble or screenshot from band(s)
+ *			if the band becomes empty removes the band too
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
 void Bands::Remove(int index)
 {
 	HistoryItem* phi = (*_pHist)[index];
-	int ib = _GetBand(phi->Area().top());
-	_bands[ib].Remove(index);
-
-	int y = phi->Area().y() + phi->Area().height();
-	while ((ib = _NextBand(ib, y)) > 0)
-		_bands[ib].Remove(index);
+	int y = phi->Area().y(),
+		h = y + phi->Area().height();
+	int ib = -1;		// no item removed yet
+	while (y <= h)
+	{
+		if (ib < 0 && _itemCount)		// only remove once from count
+			--_itemCount;
+		ib = _GetBand(y);
+		if (ib < 0)	// shouldn't !
+			return;
+		_bands[ib].Remove(index);	// to items in band, z-ordered 
+		if (_bands[ib].indices.isEmpty())	// no items left in band
+			_bands.removeAt(ib);
+		y += _bandHeight;
+	}
 }
 
-void Bands::_ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector &hv, bool insidersOnly)
+int Bands::ItemsStartingInBand(int bandIndex, ItemIndexVector& iv)
+{
+	for (auto ind : _bands[bandIndex].indices)
+	{
+		if (_ItemStartsInBand(bandIndex, (*_pHist)[ind.index]))
+			iv.push_back(ind);
+	}
+	return iv.size();
+}
+
+/*========================================================
+ * TASK:	gets all items that has any part 
+ *				inside that band into vectro hv
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -	does not clear hv !
+ *-------------------------------------------------------*/
+void Bands::_ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector& hv, bool insidersOnly)
 {
 	Band& band = _bands[bandIndex];
 	for (auto ind : band.indices)
 	{
 		HistoryItem* phi = (*_pHist)[ind.index];
-		if( (insidersOnly && rect.contains(phi->Area())) || (!insidersOnly && phi->Area().intersects(rect)) )
+		if( (insidersOnly && rect.contains(phi->Area())) || (!insidersOnly && rect.intersects(phi->Area() ) ) )
 			hv.push_back(ind);
 	}
 }
@@ -1803,7 +1861,7 @@ void Bands::_ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector &hv, bool 
  * REMARKS: - items with bounding rectangles whose corners
  *				are outside band ara not collected
  *-------------------------------------------------------*/
-void Bands::_ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect& unionRect)
+void Bands::_SelectItemsFromBand(int bandIndex, QRect& rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect& unionRect)
 {
 	int topBand, bottomBand;    // indices of bands where this item starts and ends
 	Band& band = _bands[bandIndex];
@@ -1858,46 +1916,54 @@ void Bands::_ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector& hvLeft, I
  *							rect are return
  * GLOBALS:
  * RETURNS:
- * REMARKS: -
+ * REMARKS: - does not change _bands
+ *			- gets items from the bands that are inside this area 
+ *			- only items in a band that has their top coordinates
+ *				inside that band are returned for a band
  *-------------------------------------------------------*/
-void Bands::ItemsForArea(QRect& rect, ItemIndexVector &hv, bool insidersOnly)
+void Bands::ItemsVisibleForArea(QRect& rect, ItemIndexVector &hv, bool insidersOnly)
 {
-	if (_bands.isEmpty())
+	if (_bands.isEmpty() || !ItemCount())
 		return;
 
 	int y = rect.top();
-	int ib = _GetBand(y);			// topmost band
-	_ItemsForBand(ib, rect, hv, insidersOnly);
-
-	y = rect.y() + rect.height();
-	while (y > (ib + 1) * _bandHeight)	// there is another band for
+	int ib = _FindBandFor(y);	// it may found the next band below y
+	y += rect.height();
+	do
 	{
-		ib = _NextBand(ib, y);
 		_ItemsForBand(ib, rect, hv, insidersOnly);
-	}
+		++ib;
+	} while (ib != _bands.size() && y < (_bands[ib].band_index+1) * _bandHeight);
 }
 
-void Bands::ItemsForArea(QRect& rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect &unionRect)
+void Bands::SelectItemsForArea(QRect& rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect &unionRect)
 {
-	if (_bands.isEmpty())
+	if (_bands.isEmpty() || !ItemCount())
 		return;
 
 	int y = rect.top();
-	int ib = _GetBand(y);			// topmost band
-	Band& band = _bands[ib];
-	_ItemsForBand(ib, rect, hvLeft, hvInside, hvRight, unionRect);
-
-	y = rect.y() + rect.height();
-	while (y > (ib + 1) * _bandHeight)	// there is another band for
+	int ib = _FindBandFor(y);	// it may found the next band below y
+	y += rect.height();
+	do
 	{
-		ib = _NextBand(ib, y);
-		_ItemsForBand(ib, rect, hvLeft, hvInside, hvRight, unionRect);
+		_SelectItemsFromBand(ib, rect, hvLeft, hvInside, hvRight, unionRect);
+		++ib;
 	}
+	while (ib != _bands.size() && y < (_bands[ib].band_index+1) * _bandHeight);
 }
 
-int Bands::_FindBand(int y, int bandHeight) const
+/*========================================================
+ * TASK:	finds band that contains the y coordinate or
+ *			the band after it or the band size
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - caller must check if this is the correct band
+ *			 for y
+ *-------------------------------------------------------*/
+int Bands::_FindBandFor(int y) const
 {
-	int	nband = y / bandHeight;	// look for this band_ind
+	int	nband = y / _bandHeight;	// look for this band_ind
 
 	QList<Band>::const_iterator iter;
 
@@ -1915,6 +1981,22 @@ void Bands::_Insert(Band& band, int index)
 	auto iter = std::lower_bound(band.indices.begin(), band.indices.end(), zind);
 	int i = iter - band.indices.begin();
 	band.indices.insert(i, zind);
+}
+
+
+/*========================================================
+ * TASK:	Checks if item starts in this band
+ * PARAMS:	bi	 - valid band_index
+ *			phi		- pointer to historyItem
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
+int Bands::_ItemStartsInBand(int bi, HistoryItem* phi)
+{
+	QRect rhi = phi->Area();
+	return  (rhi.top() >= _bands[bi].band_index * _bandHeight) &&
+			(rhi.bottom() + 1 > rhi.top());
 }
 
 void Bands::Band::Remove(int ix) // z-order irrelevant
