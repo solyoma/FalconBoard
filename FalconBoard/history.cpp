@@ -1170,6 +1170,7 @@ void History::clear()		// does not clear lists of copied items and screen snippe
 	_bands.Clear();
 
 	_lastZorder = DRAWABLE_ZORDER_BASE;
+	_readCount = 0;
 
 	_modified = false;
 }

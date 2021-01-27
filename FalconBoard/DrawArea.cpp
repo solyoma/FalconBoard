@@ -210,8 +210,9 @@ bool DrawArea::RecolorSelected(int key)
 
 void DrawArea::NewData()
 {
-    ClearHistory();
+    _history.clear();
     ClearBackground();
+    _ClearCanvas();
     _erasemode = false; // previous last operation mightr be an erease
 }
 
