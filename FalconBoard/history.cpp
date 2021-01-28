@@ -1929,12 +1929,16 @@ void Bands::ItemsVisibleForArea(QRect& rect, ItemIndexVector &hv, bool insidersO
 
 	int y = rect.top();
 	int ib = _FindBandFor(y);	// it may found the next band below y
+	if (ib == _bands.size())
+		return;
 	y += rect.height();
 	do
 	{
 		_ItemsForBand(ib, rect, hv, insidersOnly);
+		if (y < (_bands[ib].band_index + 1) * _bandHeight)	// bottom of rect is in this band
+			break;
 		++ib;
-	} while (ib != _bands.size() && y < (_bands[ib].band_index+1) * _bandHeight);
+	} while (ib != _bands.size());
 }
 
 void Bands::SelectItemsForArea(QRect& rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect &unionRect)
@@ -1944,13 +1948,17 @@ void Bands::SelectItemsForArea(QRect& rect, ItemIndexVector& hvLeft, ItemIndexVe
 
 	int y = rect.top();
 	int ib = _FindBandFor(y);	// it may found the next band below y
+	if (ib == _bands.size())
+		return;
 	y += rect.height();
 	do
 	{
 		_SelectItemsFromBand(ib, rect, hvLeft, hvInside, hvRight, unionRect);
+		if (y < (_bands[ib].band_index + 1) * _bandHeight)	// bottom of rect is in this band
+			break;
 		++ib;
 	}
-	while (ib != _bands.size() && y < (_bands[ib].band_index+1) * _bandHeight);
+	while (ib != _bands.size());
 }
 
 /*========================================================
