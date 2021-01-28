@@ -13,11 +13,14 @@ UI_DIR += ./Debug/Ui
 RCC_DIR += ./Debug/rcc
 win32:RC_FILE = FalconBoardViewer.rc
 HEADERS += ../FalconBoard/common.h \
-    ../FalconBoard/history.h \
-    ../FalconBoard/FalconBoard.h \
     ../FalconBoard/DrawArea.h \
-    ../FalconBoard/pagesetup.h \
+    ../FalconBoard/FalconBoard.h \
+    ../FalconBoard/history.h \
+    ../FalconBoard/myevent.h \
     ../FalconBoard/myprinter.h \
+    ../FalconBoard/pagesetup.h \
+    ../FalconBoard/pdfesetup.h \
+    ../FalconBoard/printprogress.h \
     ../FalconBoard/snipper.h
 SOURCES += ../FalconBoard/DrawArea.cpp \
     ../FalconBoard/history.cpp \
@@ -26,8 +29,11 @@ SOURCES += ../FalconBoard/DrawArea.cpp \
     ../FalconBoard/FalconBoard.cpp \
     ../FalconBoard/pagesetup.cpp \
     ../FalconBoard/myprinter.cpp
+    ../FalconBoard/printprogress.cpp \
+    ../FalconBoard/snipper.cpp
 FORMS += ../FalconBoard/FalconBoard.ui \
     ../FalconBoard/pagesetup.ui \
+    ../FalconBoard/pdfesetup.ui \
     ../FalconBoard/printprogress.ui
 RESOURCES += ../FalconBoard/FalconBoard.qrc
 INCLUDES += ../MyWhiteBoard
