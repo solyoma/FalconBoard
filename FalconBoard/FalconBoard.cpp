@@ -72,10 +72,12 @@ void FalconBoard::RestoreState()
 
     restoreGeometry(s.value("geometry").toByteArray());
     restoreState(s.value("windowState").toByteArray());
+    QString qs = s.value("version", "0").toString();       // (immediate toInt() looses digits)
+    long ver = qs.toInt(0,0);                                   // format Major.mInor.Sub
 
-    QString qs = s.value("version", sVersion).toString();
-    if (qs != sVersion)
+    if ((ver & 0xFFFFFF00) != (nVersion & 0xFFFFFF00) )        // sub version number not used
         return;
+
     qs = s.value("mode", "s").toString();
 
     switch (qs[0].unicode())
@@ -165,8 +167,9 @@ void FalconBoard::SaveState()
 
 	s.setValue("geometry", saveGeometry());
 	s.setValue("windowState", saveState());
-
-	s.setValue("version", sVersion);
+    QString qsVersion("0x%1");
+    qsVersion = qsVersion.arg(nVersion, 8, 16, QLatin1Char('0') );
+	s.setValue("version", qsVersion);
 	s.setValue("mode", _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
 	s.setValue("grid", (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
 	s.setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);

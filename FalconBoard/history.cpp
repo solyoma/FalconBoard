@@ -1221,7 +1221,7 @@ bool History::Save(QString name)
 
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
-	ofs << MAGIC_VERSION;
+	ofs << MAGIC_VERSION;	// file version
 	ItemIndexVector iv;
 	for (int i =0; i < _bands.Size(); ++i )
 	{
