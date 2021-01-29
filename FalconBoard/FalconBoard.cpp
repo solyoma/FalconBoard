@@ -847,7 +847,8 @@ void FalconBoard::on_actionHelp_triggered()
         tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl</p>")
 #ifndef _VIEWER
         +
-        tr("<p>F4<br>&nbsp;&nbsp;Take a screenshot of an area using the right mouse button</p>")+
+        tr("<p>F4<br>&nbsp;&nbsp;Take a screenshot of an area using the right mouse button. "
+              " An image can be selected by clicking/tapping on it while holding down the Ctrl key.</p>")+
         tr("<p><i>Select brush colors</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5. Eraser: E</p>")+
         tr("<p>Left and right bracket keys '[',']' change brush size</p>")+
         tr("<p>Draw a straight line from last position by holding down a Shift key while pressing Left, ")+

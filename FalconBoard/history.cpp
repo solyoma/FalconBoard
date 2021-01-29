@@ -275,9 +275,9 @@ inline QDataStream& operator>>(QDataStream& ifs, ScreenShotImage& bimg)
 
 //------------------------------------------------
 
-QRect ScreenShotImage::Area(const QRect& canvasRect) const
+QRect ScreenShotImage::AreaOnCanvas(const QRect& canvasRect) const
 {
-	return QRect(topLeft, QSize(image.width(), image.height())).intersected(canvasRect);
+	return Area().intersected(canvasRect);
 }
 
 void ScreenShotImage::Translate(QPoint p, int minY)
@@ -311,9 +311,9 @@ void ScreenShotImageList::Add(QImage& image, QPoint pt, int zorder)
 	(*this).push_back(img);
 }
 
-QRect ScreenShotImageList::Area(int index, const QRect& canvasRect) const
+QRect ScreenShotImageList::AreaOnCanvas(int index, const QRect& canvasRect) const
 {
-	return (*this)[index].Area(canvasRect);
+	return (*this)[index].AreaOnCanvas(canvasRect);
 }
 
 ScreenShotImage* ScreenShotImageList::ScreenShotAt(int index)
@@ -339,7 +339,7 @@ ScreenShotImage* ScreenShotImageList::NextVisible()
 	{
 		if ((*this)[_index].isVisible)
 		{
-			if (!Area(_index, _canvasRect).isNull())
+			if (!AreaOnCanvas(_index, _canvasRect).isNull())
 				return &(*this)[_index];
 		}
 	}
@@ -364,6 +364,32 @@ void ScreenShotImageList::Rotate(int which, MyRotation rot, QRect encRect, float
 void ScreenShotImageList::Clear()
 {
 	QList<ScreenShotImage>::clear();
+}
+
+/*========================================================
+ * TASK:	search for topmost image in list 'pImages'
+ * PARAMS:	p - paper relative point (logical coord.)
+ * GLOBALS:
+ * RETURNS:	index of found or -1
+ * REMARKS: -
+ *-------------------------------------------------------*/
+int ScreenShotImageList::ImageIndexFor(QPoint& p) const
+{
+	int z = -1;
+	int found = -1;
+	for (int i = 0; i < size(); ++i)
+	{
+		ScreenShotImage ssi = operator[](i);
+		if (ssi.Area().contains(p))
+		{
+			if (ssi.zOrder > z)
+			{
+				z = ssi.zOrder;
+				found = i;
+			}
+		}
+	}
+	return found;
 }
 
 /*========================================================
@@ -1453,9 +1479,11 @@ HistoryItem* History::addScreenShot(int index)
 	HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, index);
 
 	if (!_inLoad)
-		(*pImages)[index].zOrder = _lastImage = index;
+		(*pImages)[index].zOrder = _nextImageZorder = index;
 	else
-		(*pImages)[index].zOrder = _lastImage++;
+		(*pImages)[index].zOrder = _nextImageZorder++;
+
+	(*pImages)[index].itemIndex = _items.size();	// _AddItem increases this
 
 	return _AddItem(phss);
 }
@@ -1548,6 +1576,7 @@ int History::GetScribblesInside(QRect rect, HistoryItemVector &hv)
 	return hv.size();
 }
 
+
 /*========================================================
  * TASK:	Redo changes to history
  * PARAMS:	none
@@ -1637,6 +1666,23 @@ int History::CollectItemsInside(QRect rect) // only
 		_selectionRect = rect;
 
 	return _nSelectedItemsList.size();
+}
+
+int History::SelectTopmostImageFor(QPoint& p)
+{
+	_nSelectedItemsList.clear();
+	_nItemsRightOfList.clear();
+	_nItemsLeftOfList.clear();
+
+	int i = ImageIndexFor(p);		// index in _ScreenShotImages
+	if (i < 0)
+		return i;
+
+	ScreenShotImage& ssi = (*pImages)[i];
+	ItemIndex ind = { ssi.zOrder, ssi.itemIndex };
+	_nSelectedItemsList.push_back(ind);
+	_selectionRect = ssi.Area();
+	return i;
 }
 
 

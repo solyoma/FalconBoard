@@ -817,6 +817,16 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
                 _rubberRect = _rubberBand->geometry(); // _history.BoundingRect().translated(-_topLeft);
             }
         }
+        else if (event->mods.testFlag(Qt::ControlModifier))     // Ctrl + click: select image if any
+        {
+            QPoint p = event->pos + _topLeft;
+            int i = _history.SelectTopmostImageFor(p);
+            if (i >= 0)
+            {
+                _rubberBand->setGeometry((*_history.pImages)[i].Area().translated(-_topLeft));
+                _rubberRect = _rubberBand->geometry(); // _history.BoundingRect().translated(-_topLeft);
+            }
+        }
         else
             _RemoveRubberBand();
         event->accept();
@@ -902,7 +912,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
     ScreenShotImage* pimg = _belowImages.FirstVisible(r);   // pimg intersects r
     while (pimg)                                            // image layer
     {
-        QRect intersectRect = pimg->Area(_clippingRect);      // absolute
+        QRect intersectRect = pimg->AreaOnCanvas(_clippingRect);      // absolute
         painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
         pimg = _belowImages.NextVisible();
     }
