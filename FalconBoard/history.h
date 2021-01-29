@@ -108,13 +108,15 @@ inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di);
 // image to shown on background
 struct ScreenShotImage {       // shown on layer mlyScreenShot below the drawings
     QImage image;              // image from the disk or from screenshot
-    QPoint topLeft;           // relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
+    QPoint topLeft;            // relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
     bool isVisible = true;
+    int itemIndex;             // in history::_item
     int zOrder;     // of images is the index of this image on the pimages list in History
-            // canvasRect relative to (0,0)
+    QRect Area() const { return QRect(topLeft, QSize(image.width(), image.height())); }
+            // canvasRect relative to paper (0,0)
             // result: relative to image
-            // isNull() true when no intersection
-    QRect Area(const QRect& canvasRect) const;
+            // isNull() true when no intersection with canvasRect
+    QRect AreaOnCanvas(const QRect& canvasRect) const;
     void Translate(QPoint p, int minY); // only if not deleted and top is > minY
     void Rotate(MyRotation rot, QRect encRect, float alpha=0.0);    // only used for 'rotAlpha'
 };
@@ -129,13 +131,14 @@ class  ScreenShotImageList : public  QList<ScreenShotImage>
 public:
     void Add(QImage& image, QPoint pt, int zorder);
     // canvasRect and result are relative to (0,0)
-    QRect Area(int index, const QRect& canvasRect) const;
+    QRect AreaOnCanvas(int index, const QRect& canvasRect) const;
     ScreenShotImage* ScreenShotAt(int index);
     ScreenShotImage* FirstVisible(const QRect& canvasRect);
     ScreenShotImage* NextVisible();
     void Translate(int which, QPoint p, int minY);  // only if not deleted and top is > minY
     void Rotate(int which, MyRotation rot, QRect encRect, float alpha=0.0);
     void Clear();
+    int ImageIndexFor(QPoint &p) const; // -1: no such image else index in 'pImages'
 };
 
 //*********************************************************
@@ -336,6 +339,7 @@ struct HistoryScreenShotItem : public HistoryItem
     int which;      // index in History's screen shot image list
                     // originally zOrder of image equals to this
                     // when images order change (TODO) this may not be true
+                    // must be smaller than DRAWABLE_ZORDER_BASE and no check is made!
     HistoryScreenShotItem(History* pHist, int which);
     HistoryScreenShotItem(const HistoryScreenShotItem &other);
     HistoryScreenShotItem& operator=(const HistoryScreenShotItem& other);
@@ -535,13 +539,13 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _indexOfFirstVisible = -1;      // in _yxorder
 
     int _lastZorder = DRAWABLE_ZORDER_BASE;  // increased when scribble elements adedd to _items, does not get decreasd when they are taken off!
-    int _lastImage = 0;                 // z-order of images
+    int _nextImageZorder = 0;                 // z-order of images
 
     ScribbleItemVector     _copiedItems;   // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
     ScreenShotImageList _copiedImages;  // copy images on _nSelectedList to this
     QRect _copiedRect;                 // bounding rectangle for copied items used for paste operation
 
-    ItemIndexVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band
+    ItemIndexVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
                     _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
                     _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
     int _nIndexOfFirstScreenShot;       // index of the first scribble (not image) element that is below a given y (always calulate)
@@ -645,9 +649,11 @@ public:
     HistoryItem* Redo();
 
     int History::GetScribblesInside(QRect rect, HistoryItemVector& hv);
+    int ImageIndexFor(QPoint& p) const { return pImages->ImageIndexFor(p); } // -1: no such image else index in 'pImages'
 
     void AddToSelection(int index=-1);
     int CollectItemsInside(QRect rect);
+    int SelectTopmostImageFor(QPoint& p);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
 
