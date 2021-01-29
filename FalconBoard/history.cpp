@@ -380,6 +380,32 @@ int ScreenShotImageList::ImageIndexFor(QPoint& p) const
 	for (int i = 0; i < size(); ++i)
 	{
 		ScreenShotImage ssi = operator[](i);
+		if (ssi.Area().contains(p))
+		{
+			if (ssi.zOrder > z)
+			{
+				z = ssi.zOrder;
+				found = i;
+			}
+		}
+	}
+	return found;
+}
+
+/*========================================================
+ * TASK:	search for topmost image in list 'pImages'
+ * PARAMS:	p - paper relative point (logical coord.)
+ * GLOBALS:
+ * RETURNS:	index of found or -1
+ * REMARKS: -
+ *-------------------------------------------------------*/
+int ScreenShotImageList::ImageIndexFor(QPoint& p) const
+{
+	int z = -1;
+	int found = -1;
+	for (int i = 0; i < size(); ++i)
+	{
+		ScreenShotImage ssi = operator[](i);
 		if (ssi.isVisible && ssi.Area().contains(p))
 		{
 			if (ssi.zOrder > z)
