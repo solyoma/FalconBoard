@@ -380,32 +380,6 @@ int ScreenShotImageList::ImageIndexFor(QPoint& p) const
 	for (int i = 0; i < size(); ++i)
 	{
 		ScreenShotImage ssi = operator[](i);
-		if (ssi.Area().contains(p))
-		{
-			if (ssi.zOrder > z)
-			{
-				z = ssi.zOrder;
-				found = i;
-			}
-		}
-	}
-	return found;
-}
-
-/*========================================================
- * TASK:	search for topmost image in list 'pImages'
- * PARAMS:	p - paper relative point (logical coord.)
- * GLOBALS:
- * RETURNS:	index of found or -1
- * REMARKS: -
- *-------------------------------------------------------*/
-int ScreenShotImageList::ImageIndexFor(QPoint& p) const
-{
-	int z = -1;
-	int found = -1;
-	for (int i = 0; i < size(); ++i)
-	{
-		ScreenShotImage ssi = operator[](i);
 		if (ssi.isVisible && ssi.Area().contains(p))
 		{
 			if (ssi.zOrder > z)
@@ -1433,7 +1407,24 @@ HistoryItem* History::addDeleteItems(Sprite* pSprite)
 	return _AddItem(p);
 }
 
-HistoryItem* History::addPastedItems(QPoint topLeft, Sprite *pSprite)			   // tricky
+
+/*========================================================
+ * TASK:		add items copied or combined into a sprite
+ * PARAMS:		topLeft - paste here
+ *				pSprite - pointer to sprite
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - pasted items are sandwiched between a bootom
+ *				and a top marker. 
+ *			- When the original items were deleted after 
+ *				added to a sprite a HistoryDeleteItem is at
+ *				the top of the item stack. As we want the
+ *				Undo for paste a single operation, we must
+ *				undo this deleteion too, therefore we NEED
+ *				the top and bottom markers even for a single
+ *				pasted item
+ *-------------------------------------------------------*/
+HistoryItem* History::addPastedItems(QPoint topLeft, Sprite* pSprite)			   // tricky
 {
 	ScribbleItemVector    *pCopiedItems = pSprite ? &pSprite->items : &_copiedItems;      
 	ScreenShotImageList	  *pCopiedImages = pSprite ? &pSprite->images : &_copiedImages;
