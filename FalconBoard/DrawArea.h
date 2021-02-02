@@ -99,6 +99,7 @@ public slots:
     void ExportPdf(QString fileName, QString &directory);   // filename w.o. directory
     void PageSetup();
     void SlotForPrimaryScreenChanged(QScreen*);
+    void SlotForGridSpacingChanged(int);
 #ifndef _VIEWER
     void Undo();
     void Redo();

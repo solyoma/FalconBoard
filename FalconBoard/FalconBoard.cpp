@@ -48,6 +48,8 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &FalconBoard::SlotForPointerType);
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &FalconBoard::SlotForRubberBandSelection);
 #endif
+    connect(this, &FalconBoard::GridSpacingChanged, _drawArea, &DrawArea::SlotForGridSpacingChanged);
+
     connect(qApp, &QApplication::primaryScreenChanged, _drawArea, &DrawArea::SlotForPrimaryScreenChanged);
     RestoreState();
 
@@ -125,6 +127,13 @@ void FalconBoard::RestoreState()
     if (!qs.isEmpty())
         _drawArea->OpenBackgroundImage(qs);
 #endif
+    _nGridSpacing = s.value("gridspacing", 64).toInt();
+    if (_nGridSpacing < 5)
+        _nGridSpacing = 64;
+    _psbGridSpacing->setValue(_nGridSpacing);
+    if (_nGridSpacing != 64)
+        emit GridSpacingChanged(_nGridSpacing);
+
     qs = s.value("data", QString()).toString();
     if (!qs.isEmpty())
     {
@@ -143,6 +152,8 @@ void FalconBoard::RestoreState()
     if (!_sImageName.isEmpty() && !_drawArea->OpenBackgroundImage(_sImageName))
         _sImageName.clear();
 #endif
+
+    // recent documents
     s.beginGroup("recent");
     int cnt = s.value("cnt", 0).toInt();
     
@@ -186,6 +197,8 @@ void FalconBoard::SaveState()
 	s.setValue("lastPDFDir", _lastPDFDir);
 	s.setValue("lastFile", _lastFile);
 	s.setValue("bckgrnd", _sImageName);
+    if(_nGridSpacing != 64)
+        s.setValue("gridspacing", _nGridSpacing);
 
     if (_recentList.size())
     {
@@ -280,7 +293,6 @@ void FalconBoard::_CreateAndAddActions()
 #ifndef _VIEWER
     ui.mainToolBar->addSeparator();
 
-
     ui.mainToolBar->addWidget(new QLabel(tr("Pen Width:")));
     _psbPenWidth = new QSpinBox();
     _psbPenWidth->setMinimum(1);
@@ -293,6 +305,19 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addWidget(_psbPenWidth);
 
     ui.mainToolBar->addSeparator();
+
+    ui.mainToolBar->addWidget(new QLabel(tr("Grid size:")));
+    _psbGridSpacing = new QSpinBox();
+    _psbGridSpacing->setMinimum(10);
+    _psbGridSpacing->setMaximum(128);
+    _psbGridSpacing->setSingleStep(10);
+    _psbGridSpacing->setValue(_nGridSpacing);
+    rect = _psbGridSpacing->geometry();
+    rect.setWidth(60);
+    _psbGridSpacing->setGeometry(rect);
+    ui.mainToolBar->addWidget(_psbGridSpacing);
+
+    ui.mainToolBar->addSeparator();
     ui.mainToolBar->addAction(ui.action_Screenshot);
 
     ui.mainToolBar->addSeparator();
@@ -303,6 +328,9 @@ void FalconBoard::_CreateAndAddActions()
     // more than one valueChanged() function exists
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenWidthChanged);
     connect(_psbPenWidth, &QSpinBox::editingFinished, this, &FalconBoard::slotPenWidthEditingFinished);
+
+    connect(_psbGridSpacing, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotGridSpacingChanged);
+    connect(_psbGridSpacing, &QSpinBox::editingFinished, this, &FalconBoard::slotGridSpacingEditingFinished);
 
     connect(_drawArea, &DrawArea::CanUndo, this, &FalconBoard::SlotForUndo);
     connect(_drawArea, &DrawArea::CanRedo, this, &FalconBoard::SlotForRedo);
@@ -871,9 +899,9 @@ void FalconBoard::on_actionHelp_triggered()
         tr("<p>R key<br>&nbsp;&nbsp;<i>Draw a rectangle</i> around the selected area.")+
         tr("<p>C key<br>&nbsp;&nbsp;<i>Draw an ellipse (or circle)</i> inside the selected area.")+
         tr("<p><i>Move</i> selected drawings with Left button, move copy by Alt+Left button.</p>")+
-        tr("<p>To paste selection select an area at destination with right button and use keyboard shortcut.</p>")+
-        tr("<p>When an area is selected you can:</p>")+
-        tr("<p>F5<br>&nbsp;&nbsp;<i>Insert vertical space</i> from top of selected area</p>")
+        tr("<p>Copy selection with Ctrl+C, Paste by selecting an area at destination then use Ctrl+V.</p>")+
+        tr("<p>F5<br>&nbsp;&nbsp;<i>Insert vertical space</i> from top of selected area<br>"
+           "(Moves all drawings down below the top of this selection)</p>")
 #endif
     );
 }
@@ -901,6 +929,20 @@ void FalconBoard::on_actionShowGrid_triggered()
 void FalconBoard::on_actionFixedGrid_triggered()
 {
     _drawArea->SetGridOn(ui.actionShowGrid->isChecked(), ui.actionFixedGrid->isChecked());
+}
+
+void FalconBoard::on_actionGridSize_triggered()
+{
+    bool ok;
+    int n = QInputDialog::getInt(this, tr("falconBoard - Grid spacing"),
+                                         tr("Spacing in pixels:"), _nGridSpacing,
+                                         5, 128, 10, &ok);
+    if (ok && n != _nGridSpacing)
+    {
+        _nGridSpacing = n;
+        emit GridSpacingChanged(n);
+    }
+            
 }
 
 void FalconBoard::on_actionShowPageGuides_triggered()
@@ -1076,6 +1118,20 @@ void FalconBoard::slotPenWidthChanged(int val)
 }
 
 void FalconBoard::slotPenWidthEditingFinished()
+{
+    ui.centralWidget->setFocus();
+}
+
+void FalconBoard::slotGridSpacingChanged(int val)
+{
+    if (_busy)		// from program
+        return;
+    // from user
+    _nGridSpacing = val;
+    emit GridSpacingChanged(val);
+}
+
+void FalconBoard::slotGridSpacingEditingFinished()
 {
     ui.centralWidget->setFocus();
 }

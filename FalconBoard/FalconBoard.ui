@@ -114,6 +114,7 @@
      </property>
      <addaction name="actionShowGrid"/>
      <addaction name="actionFixedGrid"/>
+     <addaction name="actionGridSize"/>
     </widget>
     <widget class="QMenu" name="menu_Paper">
      <property name="title">
@@ -582,6 +583,14 @@
    </property>
    <property name="text">
     <string>&amp;Limited</string>
+   </property>
+  </action>
+  <action name="actionGridSize">
+   <property name="text">
+    <string>Grid Size...</string>
+   </property>
+   <property name="toolTip">
+    <string>Select spacing of grid lines</string>
    </property>
   </action>
  </widget>

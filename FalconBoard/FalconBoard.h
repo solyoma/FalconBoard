@@ -37,9 +37,15 @@ protected:
 	void closeEvent(QCloseEvent* event) override;
 	void showEvent(QShowEvent* event) override;
 
+public slots:
+	void slotGridSpacingChanged(int val);
+	void slotGridSpacingEditingFinished();
+
 private slots:
 	void on_actionShowGrid_triggered();
 	void on_actionFixedGrid_triggered();
+	void on_actionGridSize_triggered();
+
 	void on_actionShowPageGuides_triggered();
 
 	void on_actionLoad_triggered();
@@ -115,6 +121,8 @@ private slots:
 	   void DrawPenColorBy(int key);
 
 #endif
+   signals:
+	   void GridSpacingChanged(int spacing);
 
 private:
 	Ui::FalconBoardClass ui;
@@ -151,6 +159,7 @@ private:
 
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
+	QSpinBox * _psbGridSpacing = nullptr;	// - " -
 	QLabel* _plblMsg = nullptr;			// -" -
 
 	QList<QAction*> _saveAsActs;
@@ -174,6 +183,7 @@ private:
 	ScreenMode _screenMode = smSystem;
 
 	QString _lastDir, _lastFile, _lastPDFDir;
+	int _nGridSpacing = 64;
 
 	void RestoreState();
 	void SaveState();

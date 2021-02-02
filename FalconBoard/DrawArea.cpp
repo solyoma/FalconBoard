@@ -1301,6 +1301,12 @@ void DrawArea::SlotForPrimaryScreenChanged(QScreen* ps)
     _history.SetBandHeight(ps->geometry().height());
 }
 
+void DrawArea::SlotForGridSpacingChanged(int spacing)
+{
+    _nGridSpacingX = _nGridSpacingY = spacing;
+    _Redraw();
+}
+
 void DrawArea::PageSetup()      // public slot
 {
     static float fact[] = {1.0, 1.0/2.54, 1.0/25.4};   // inch, cm, mm
