@@ -945,6 +945,21 @@ void FalconBoard::on_actionGridSize_triggered()
             
 }
 
+void FalconBoard::slotGridSpacingChanged(int val)
+{
+    if (_busy)		// from program
+        return;
+    // from user
+    _nGridSpacing = val;
+    emit GridSpacingChanged(val);
+}
+
+void FalconBoard::slotGridSpacingEditingFinished()
+{
+    ui.centralWidget->setFocus();
+}
+
+
 void FalconBoard::on_actionShowPageGuides_triggered()
 {
     _drawArea->SetPageGuidesOn(ui.actionShowPageGuides->isChecked());
@@ -1121,21 +1136,6 @@ void FalconBoard::slotPenWidthEditingFinished()
 {
     ui.centralWidget->setFocus();
 }
-
-void FalconBoard::slotGridSpacingChanged(int val)
-{
-    if (_busy)		// from program
-        return;
-    // from user
-    _nGridSpacing = val;
-    emit GridSpacingChanged(val);
-}
-
-void FalconBoard::slotGridSpacingEditingFinished()
-{
-    ui.centralWidget->setFocus();
-}
-
 void FalconBoard::SlotForUndo(bool b)
 {
     ui.actionUndo->setEnabled(b);
