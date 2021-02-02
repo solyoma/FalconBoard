@@ -1,6 +1,6 @@
 # FalconBoard
 
-Last modified: Jan 28. 2021
+Last modified: Feb 2. 2021
 
 FalconBoard (previous name MyWhiteboard) is a cross platform open source 
 whiteboard / blackboard application with unique features that makes it 
