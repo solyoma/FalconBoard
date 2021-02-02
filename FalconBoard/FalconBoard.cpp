@@ -131,8 +131,7 @@ void FalconBoard::RestoreState()
     if (_nGridSpacing < 5)
         _nGridSpacing = 64;
     _psbGridSpacing->setValue(_nGridSpacing);
-    if (_nGridSpacing != 64)
-        emit GridSpacingChanged(_nGridSpacing);
+    emit GridSpacingChanged(_nGridSpacing);
 
     qs = s.value("data", QString()).toString();
     if (!qs.isEmpty())
@@ -197,8 +196,7 @@ void FalconBoard::SaveState()
 	s.setValue("lastPDFDir", _lastPDFDir);
 	s.setValue("lastFile", _lastFile);
 	s.setValue("bckgrnd", _sImageName);
-    if(_nGridSpacing != 64)
-        s.setValue("gridspacing", _nGridSpacing);
+    s.setValue("gridspacing", _nGridSpacing);
 
     if (_recentList.size())
     {

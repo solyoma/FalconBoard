@@ -1171,6 +1171,11 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 	_push_back(p);
 
 	_redo.clear();	// no undo after new item added
+	if (p->type == heScreenShot)
+	{
+		HistoryScreenShotItem* phi = reinterpret_cast<HistoryScreenShotItem*>(p);
+		(*pImages)[phi->which].itemIndex = _items.size() - 1;		// always the last element
+	}
 
 	_modified = true;
 

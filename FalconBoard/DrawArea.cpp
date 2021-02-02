@@ -616,8 +616,8 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
     else
         _allowPen = false;
 #ifndef _VIEWER
-    // Even for tablets when no pen pressure
-    if ( event->button == Qt::RightButton ||
+    
+    if ( event->button == Qt::RightButton ||        // Even for tablets when no pen pressure
         (event->button == Qt::LeftButton && event->mods.testFlag(Qt::ControlModifier)))
     {
         _InitRubberBand(event);
