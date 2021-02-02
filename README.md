@@ -11,7 +11,7 @@ pens of different width, screen capture PDF output and more (see below).
 The project also contains a separate viewer that only displays and prints
 saved drawings, but cannot modify them.
 
-*Features* (Version 1.1.2) : 
+*Features* (Version 1.1) : 
 
    -  Works under Windows and Linux, and (I hope) on Macs too.
    -  Usable with the mouse and with a Wacom graphics tablet. 
