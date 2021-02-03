@@ -4,6 +4,7 @@
 
 
 #include <algorithm>
+#include <limits>
 
 #include <QtGui>
 #include <QFile>
@@ -476,7 +477,7 @@ private:
     {
 
         int band_index;           // needed because _bands is not contiguous  
-        int top;                  // y coordinate of topmost item in band
+        int topItemY = std::numeric_limits<int>::max();   // y coordinate of topmost item in band, max if not set
         ItemIndexVector indices;  // z-ordered indices in _items for visible items
         bool operator<(const Band &other) const { return band_index < other.band_index;  }
         bool operator<(int n) const { return band_index < n;  };

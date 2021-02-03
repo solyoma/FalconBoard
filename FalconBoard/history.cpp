@@ -1787,7 +1787,9 @@ int Bands::_AddBandFor(int y)
 	int iband = _FindBandFor( y );		// check if this band exists
 	if (iband == _bands.size() || _bands[iband].band_index != nband)	// all bands are either below this one
 	{																	// or we found the first band above
-		newBand.band_index = iband;
+		newBand.band_index = nband;
+		if (newBand.topItemY > y)
+			newBand.topItemY = y;
 		_bands.insert(iband, newBand);
 	}
 	// else 	// found 

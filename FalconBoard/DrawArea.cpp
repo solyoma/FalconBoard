@@ -1007,6 +1007,14 @@ void DrawArea::_InitiateDrawing(MyPointerEvent* event)
     _InitiateDrawingIngFromLastPos();
 }
 
+
+/*========================================================
+ * TASK:    Cretae rubber band and store uts parameter
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
 void DrawArea::_InitRubberBand(MyPointerEvent* event)
 {
     _rubber_origin = event->pos;
@@ -1018,9 +1026,19 @@ void DrawArea::_InitRubberBand(MyPointerEvent* event)
 }
 
 
+
+/*========================================================
+ * TASK:    confines drawing in either horizontal or
+ *              vertical afte drawing started
+ *            changes in coordinate in one direction
+ * PARAMS:  qpC - actual coordinate canvas relative
+ * GLOBALS: _startsSet, _isHorizontal
+ * RETURNS:
+ * REMARKS: - if _startsSet and not horizontal then
+ *              vertical
+ *-------------------------------------------------------*/
 void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
-{       // when '_horizontal' is valid only keep the changes in coordinate in one direction
-        // qpC canvas relative
+{
     if (_startSet)
     {
         if (_isHorizontal)

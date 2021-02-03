@@ -41,7 +41,9 @@
   <PropertyGroup Label="UserMacros" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
-  </ImportGroup><PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" /><PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <QtInstall>msvc2019</QtInstall>
     <QtModules>core;gui;printsupport;widgets</QtModules>
@@ -64,7 +66,8 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;..\FalconBoard;$(Qt_INCLUDEPATH_);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-    <MultiProcessorCompilation>true</MultiProcessorCompilation></ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
@@ -80,7 +83,8 @@
       <PreprocessorDefinitions>_VIEWER;$(Qt_DEFINES_);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;..\FalconBoard;$(Qt_INCLUDEPATH_);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
-    <MultiProcessorCompilation>true</MultiProcessorCompilation></ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
@@ -109,6 +113,7 @@
   <ItemGroup>
     <ClInclude Include="..\FalconBoard\common.h" />
     <ClInclude Include="..\FalconBoard\history.h" />
+    <ClInclude Include="..\FalconBoard\myevent.h" />
     <ClInclude Include="..\FalconBoard\myprinter.h" />
     <QtMoc Include="..\FalconBoard\pdfsetup.h" />
     <QtMoc Include="..\FalconBoard\printprogress.h" />

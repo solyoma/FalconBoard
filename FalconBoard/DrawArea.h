@@ -146,9 +146,6 @@ private:
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
     Qt::KeyboardModifiers _mods;
 
-    //bool    _shiftKeyDown = false;  // used for constraints to draw horizontal vertical or slanted lines
-    //bool    _altKeyDown = false;    // move background image
-
     bool    _startSet = false;      // calculate start vector
     bool    _isHorizontal;          // when _shitKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
                                     // and used in line drawing

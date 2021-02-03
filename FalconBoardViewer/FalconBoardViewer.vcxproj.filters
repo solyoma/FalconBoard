@@ -94,6 +94,9 @@
     <ClInclude Include="..\FalconBoard\common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\FalconBoard\myevent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="..\FalconBoard\FalconBoard.qrc">
