@@ -701,22 +701,30 @@ void FalconBoard::on_actionNew_triggered()
     _backgroundImageName.clear();
 }
 #endif
-void FalconBoard::_LoadData(QString fileName)
+
+bool FalconBoard::_LoadData(QString fileName)
 {
     _drawArea->EnableRedraw(false);
-
+    int res = -1;
     if (!fileName.isEmpty())
     {
-        _drawArea->Load(fileName);
+        res = _drawArea->Load(fileName);
+        if (res > 0)     // 0: read error, -1: no file
+        {
 #ifndef _VIEWER
-        _SetPenKind();
+            _SetPenKind();
 #endif
-        _saveName = fileName;
+            _saveName = fileName;
 
-        _AddToRecentList(_saveName);
+            _AddToRecentList(_saveName);
+        }
+        else
+            _saveName.clear();
     }
 
     _drawArea->EnableRedraw(true);
+
+    return res > 0;
 }
 
 void FalconBoard::_AddToRecentList(QString path)
@@ -748,8 +756,9 @@ void FalconBoard::on_actionLoad_triggered()
                                                     _lastDir, // QDir::currentPath(),
                                                     tr("FalconBoard files (*.mwb);;All files (*)"));
     _SaveLastDirectory(fileName);
-    _LoadData(fileName);
-    setWindowTitle(sWindowTitle + QString(" - %1").arg(_saveName));
+    if (!_LoadData(fileName))
+        fileName = "Untitled";
+    setWindowTitle(sWindowTitle + QString(" - %1").arg(fileName));
 
 #ifndef _VIEWER
     if (_eraserOn)
@@ -774,8 +783,9 @@ void FalconBoard::_sa_actionRecentFile_triggered(int which)
 #endif
     QString& fileName = _recentList[which];
     _SaveLastDirectory(fileName);
-    _LoadData(fileName);
-    setWindowTitle(sWindowTitle + QString(" - %1").arg(_saveName));
+    if (!_LoadData(fileName))
+        fileName = "Untitled";
+    setWindowTitle(sWindowTitle + QString(" - %1").arg(fileName));
 //    _busy = false;
 }
 

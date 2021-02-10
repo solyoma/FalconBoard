@@ -98,14 +98,14 @@ int DrawArea::Load(QString name)
         QMessageBox::about(this, tr(WindowTitle), QString( tr("'%1'\nInvalid file")).arg(qs));
     else if(res == -1)
         QMessageBox::about(this, tr(WindowTitle), QString(tr("File\n'%1'\n not found")).arg(qs));
-    else if(res < 0)
-        QMessageBox::about(this, tr(WindowTitle), QString( tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res-1));
+    else if(res < 0)    // i.e. < -1
+        QMessageBox::about(this, tr(WindowTitle), QString( tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res-2));
     if(res && res != -1)    // TODO send message if read error
     {
         _topLeft = QPoint(0, 0);
         _Redraw();
     }
-    emit CanUndo(true);
+    emit CanUndo(false);    // no undo or redo after open file
     emit CanRedo(false);
     update();
     return res;
@@ -765,6 +765,9 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 
 void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 {
+    if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen) || (_allowMouse && _allowPen))
+        return;
+
     if ((event->button == Qt::LeftButton && _scribbling) || _pendown)
     {
 #ifndef _VIEWER

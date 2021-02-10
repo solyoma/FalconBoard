@@ -20,10 +20,9 @@ enum HistEvent {
         // these are types saved on disk
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
-    heEllipse,         // ellipse as a series of points
+    heScreenShot,
         // these are not saved
     heRecolor,         // save old color, set new color
-    heScreenShot,
     heItemsDeleted,         // store the list of items deleted in this event
     heSpaceDeleted,         // empty space is deleted
     heVertSpace,            // insert vertical space

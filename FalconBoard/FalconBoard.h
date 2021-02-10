@@ -196,7 +196,7 @@ private:
 	void _SetupIconsForPenColors(ScreenMode sm);		// depend on mode
 
 	void _SaveLastDirectory(QString fileName);
-	void _LoadData(QString fileName);
+	bool _LoadData(QString fileName);
 	void _AddToRecentList(QString path);
 
 	void _CreateAndAddActions();

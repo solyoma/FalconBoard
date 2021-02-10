@@ -1296,20 +1296,32 @@ bool History::Save(QString name)
 	return true;
 }
 
+
+/*========================================================
+ * TASK:	Loads saved file
+ * PARAMS:	name - full path name of file to load
+ * GLOBALS:
+ * RETURNS: -1: file does not exist
+ *			< -1: file read error number of records read so 
+ *				far  is -(ret. value+2)
+ *			 0:	read error
+ *			>0: count of items read
+ * REMARKS: - beware of old version files
+ *-------------------------------------------------------*/
 int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-1 when read error
 {
 	QFile f(name);
 	f.open(QIODevice::ReadOnly);
 	if (!f.isOpen())
-		return -1;
+		return -1;			// File not found
 
 	QDataStream ifs(&f);
 	qint32 id, version;
 	ifs >> id;
 	if (id != MAGIC_ID)
-		return 0;
+		return 0;			// read error
 	ifs >> version;
-	if ((version >> 24) != 'V')
+	if ((version >> 24) != 'V')	// invalid/damaged  file or old version format
 		return 0;
 
 	clear();
@@ -1339,7 +1351,7 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 		if (ifs.status() != QDataStream::Ok)
 		{
 			_inLoad = false;
-			return -_items.size() - 1;
+			return -_items.size() - 2;
 		}
 
 		++i;
