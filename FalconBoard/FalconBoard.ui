@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>FalconBoard</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="FalconBoard.qrc">
+    <normaloff>:/FalconBoard/Resources/falconboard.ico</normaloff>:/FalconBoard/Resources/falconboard.ico</iconset>
+  </property>
   <property name="styleSheet">
    <string notr="true"/>
   </property>

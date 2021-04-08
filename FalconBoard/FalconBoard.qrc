@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="FalconBoard">
+    <file>Resources/falconboard.ico</file>
+    <file>Resources/falconboard.png</file>
     <file>Resources/close.png</file>
     <file>Resources/eraser.png</file>
     <file>Resources/move.png</file>
