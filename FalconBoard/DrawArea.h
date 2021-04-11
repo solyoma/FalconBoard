@@ -63,6 +63,8 @@ public:
         if (index < 0 || index >= _historyList.size())
             return false;
         _currentHistoryIndex = index;
+        _history = _historyList[index];
+        _Redraw(true);
         return true;
     }
 

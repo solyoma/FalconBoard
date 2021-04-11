@@ -141,7 +141,6 @@ void FalconBoard::RestoreState()
     if (!_lastPDFDir.isEmpty() && _lastPDFDir[_lastPDFDir.size() - 1] != '/')
         _lastPDFDir += "/";
     _nLastTab = s.value("lastTab", 0).toInt();
-    _pTabs->clear();
     int nFilesToRestore = s.value("tabSize", 0).toInt();
     if (nFilesToRestore)
     {
@@ -358,7 +357,7 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.action_Screenshot);
 
     ui.mainToolBar->addSeparator();
-    _pTabs = new QTabWidget();
+    _pTabs = new QTabBar();
     ui.mainToolBar->addWidget(_pTabs);
     _pTabs->setMovable(true);
     _pTabs->setVisible(false);
@@ -382,6 +381,10 @@ void FalconBoard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::DecreaseBrushSize, this, &FalconBoard::SlotDecreaseBrushSize);
 
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
+
+    connect(_pTabs, &QTabBar::currentChanged, this, &FalconBoard::SlotForTabChanged);
+    connect(_pTabs, &QTabBar::tabCloseRequested, this, &FalconBoard::SlotForTabCloseRequested);
+    connect(_pTabs, &QTabBar::tabMoved, this, &FalconBoard::SlotForTabMoved);
     
 #endif
 }
@@ -393,7 +396,7 @@ int FalconBoard::_AddNewTab(QString fname) // and new history record
 
     if (fname.isEmpty())
         fname = "Untitled";
-    int n = _pTabs->addTab(new QWidget(), _FileNameToTabText(fname));
+    int n = _pTabs->addTab(_FileNameToTabText(fname));
     if(n >= 0)
         _pTabs->setCurrentIndex(n);
     _drawArea->AddHistory(fname);
@@ -1035,6 +1038,21 @@ void FalconBoard::on_actionDarkMode_triggered()
 void FalconBoard::on_actionBlackMode_triggered()
 {
     _SetupMode(smBlack);
+}
+
+void FalconBoard::SlotForTabChanged(int index)
+{
+    _drawArea->SetCurrentHistory(index);
+}
+
+void FalconBoard::SlotForTabCloseRequested(int index)
+{
+    _drawArea->RemoveHistory(index);
+}
+
+void FalconBoard::SlotForTabMoved(int from, int to)
+{
+    _drawArea->MoveHistory(to); // should I set the currenthistoryindex?
 }
 
 void FalconBoard::on_actionShowGrid_triggered()

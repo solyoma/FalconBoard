@@ -117,6 +117,10 @@ private slots:
 	void on_actionDarkMode_triggered();
 	void on_actionBlackMode_triggered();
 
+	void SlotForTabChanged(int index);
+	void SlotForTabCloseRequested(int index);
+	void SlotForTabMoved(int from, int to);
+
 #ifndef _VIEWER
    signals:
 	   void DrawPenColorBy(int key);
@@ -160,8 +164,8 @@ private:
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
-	QTabWidget* _pTabs = nullptr;
-	QLabel* _plblMsg = nullptr;			// put on status bar
+	QTabBar  * _pTabs = nullptr;
+	QLabel   * _plblMsg = nullptr;		// put on status bar
 
 	QList<QAction*> _saveAsActs;
 
