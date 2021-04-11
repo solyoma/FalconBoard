@@ -22,6 +22,7 @@
 //class DrawArea;
 
 const int HISTORY_DEPTH = 20;
+const int MAX_NUMBER_OF_TABS = 10;
 constexpr int NUM_COLORS = 6; // black/white, red, green, blue, eraser and yellow/purple
 
 enum ScreenMode { smSystem, smDark, smBlack };
@@ -105,7 +106,7 @@ private slots:
 
 #endif
 	void on_actionPageSetup_triggered();
-	void on_actionPrint_triggered() { _drawArea->Print(_saveName);  }
+	void on_actionPrint_triggered() { _drawArea->Print();  }
 	void on_actionExportToPdf_triggered();
 
 
@@ -153,14 +154,14 @@ private:
 	QIcon   _iconScreenShot	   ;
 
 	QString _backgroundImageName;	// get format from extension
-	QString _saveName;				// last saved data file
 	QString _sImageName;			// background image
 	QByteArray _fileFormat = "png";
 
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
-	QLabel* _plblMsg = nullptr;			// -" -
+	QTabWidget* _pTabs = nullptr;
+	QLabel* _plblMsg = nullptr;			// put on status bar
 
 	QList<QAction*> _saveAsActs;
 
@@ -182,7 +183,8 @@ private:
 
 	ScreenMode _screenMode = smSystem;
 
-	QString _lastDir, _lastFile, _lastPDFDir;
+	QString _lastDir, _lastPDFDir;
+	int _nLastTab = 0;
 	int _nGridSpacing = 64;
 
 	void RestoreState();
@@ -196,14 +198,30 @@ private:
 	void _SetupIconsForPenColors(ScreenMode sm);		// depend on mode
 
 	void _SaveLastDirectory(QString fileName);
-	bool _LoadData(QString fileName);
+	bool IsOverwritable() const
+	{
+		bool bOverwritable = _drawArea->HistoryName().isEmpty() &&
+			!_drawArea->IsModified();
+#ifndef _VIEWER
+// do not ask for save if the current data is not modified
+		//if (!bOverwritable && !_SaveIfYouWant(true))
+		//	return;
+#else
+		//bool bOverwritable = (_drawArea->HistoryListSize() == 1) &&
+		//	_drawArea->HistoryName().isEmpty() &&
+		//	!_drawArea->IsModified();
+#endif
+		return bOverwritable;
+	}
+	bool _LoadData(int index);	// into the index-th history
 	void _AddToRecentList(QString path);
 
 	void _CreateAndAddActions();
+
 #ifndef _VIEWER
 	void _AddSaveVisibleAsMenu();
-	bool _SaveIfYouWant(bool mustAsk = false);
-	bool _SaveFile();
+	bool _SaveIfYouWant(bool mustAsk = false, bool any=false);
+	bool _SaveFile(const QString name);
 	bool _SaveBackgroundImage();
 		 
 	void _SelectPenForAction(QAction* paction);
@@ -228,6 +246,10 @@ private:
 	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
 #endif
 
+	QString _FileNameToTabText(QString& fname);
+
+	int _AddNewTab(QString fname = QString());
+	void _SetTabText(int index, QString& fname);
 	void _SetupMode(ScreenMode mode);
 	void _ClearRecentMenu();
 	void _PopulateRecentMenu();	// from recentList

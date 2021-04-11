@@ -51,7 +51,8 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     connect(this, &FalconBoard::GridSpacingChanged, _drawArea, &DrawArea::SlotForGridSpacingChanged);
 
     connect(qApp, &QApplication::primaryScreenChanged, _drawArea, &DrawArea::SlotForPrimaryScreenChanged);
-    RestoreState();
+
+    RestoreState();     // sets up all history item names, and loads the last used one
 
     _SetupIconsForPenColors(_screenMode);
 
@@ -133,19 +134,37 @@ void FalconBoard::RestoreState()
     _psbGridSpacing->setValue(_nGridSpacing);
     emit GridSpacingChanged(_nGridSpacing);
 
-    qs = s.value("data", QString()).toString();
-    if (!qs.isEmpty())
-    {
-        _saveName = qs;      // only load on show()  _LoadData(qs);
-        setWindowTitle(sWindowTitle + QString(" - %1").arg(_saveName));
-    }
     _lastDir  = s.value("lastDir",  "").toString();
     if (!_lastDir.isEmpty() && _lastDir[_lastDir.size() - 1] != '/')
         _lastDir += "/";
     _lastPDFDir  = s.value("lastPDFDir",  "").toString();
     if (!_lastPDFDir.isEmpty() && _lastPDFDir[_lastPDFDir.size() - 1] != '/')
         _lastPDFDir += "/";
-    _lastFile = s.value("lastFile", "untitled.mwb").toString();
+    _nLastTab = s.value("lastTab", 0).toInt();
+    _pTabs->clear();
+    int nFilesToRestore = s.value("tabSize", 0).toInt();
+    if (nFilesToRestore)
+    {
+        bool b = false; // window title set?
+        for(int n = 1; n <= nFilesToRestore && n < 10;++n)
+        {
+            qs = QString("fn%1").arg(n);
+            qs = s.value(qs, QString()).toString();
+            if (!qs.isEmpty())
+            {
+                if (!b)
+                    b = true, setWindowTitle(sWindowTitle + QString(" - %1").arg(qs));
+                _AddNewTab(qs);
+            }
+        }
+    }
+    else        // nothing to restore: create first tab
+    {
+        _AddNewTab();    // + new empty history
+    }
+    if (_nLastTab > _pTabs->count())
+        _nLastTab = 0;
+
     _sImageName = s.value("bckgrnd", "").toString();
 #ifndef _VIEWER
     if (!_sImageName.isEmpty() && !_drawArea->OpenBackgroundImage(_sImageName))
@@ -191,10 +210,29 @@ void FalconBoard::SaveState()
 	if (ui.actionSaveBackgroundImage->isChecked())
 		s.setValue("img", _sImageName);
 #endif
-	s.setValue("data", _saveName);
+    int nFilesToRestore = _pTabs->count();
+    if (nFilesToRestore == 0)
+    {
+        s.remove("tabSize");
+        s.remove("lastTab");
+    }
+    else
+    {
+    	s.setValue("lastTab", _nLastTab);
+        s.setValue("tabSize", nFilesToRestore);
+        if (nFilesToRestore)
+        {
+            QString qs;
+            for (int n = 1; n <= nFilesToRestore && n < 10; ++n)
+            {
+                qs = QString("fn%1").arg(n);
+                s.setValue(qs, _drawArea->HistoryName(n));
+            }
+        }
+    }
+
 	s.setValue("lastDir", _lastDir);
 	s.setValue("lastPDFDir", _lastPDFDir);
-	s.setValue("lastFile", _lastFile);
 	s.setValue("bckgrnd", _sImageName);
     s.setValue("gridspacing", _nGridSpacing);
 
@@ -208,6 +246,7 @@ void FalconBoard::SaveState()
     }
     else
         s.remove("recent");
+    s.setValue("histSize", _drawArea->HistoryListSize());
 
 }
 
@@ -319,8 +358,13 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.action_Screenshot);
 
     ui.mainToolBar->addSeparator();
+    _pTabs = new QTabWidget();
+    ui.mainToolBar->addWidget(_pTabs);
+    _pTabs->setMovable(true);
+    _pTabs->setVisible(false);
+    _pTabs->setTabsClosable(true);
+   // status bar
     _plblMsg = new QLabel();
-//    ui.mainToolBar->addWidget(_plblMsg);
     statusBar()->addWidget(_plblMsg);
 
     // more than one valueChanged() function exists
@@ -342,6 +386,20 @@ void FalconBoard::_CreateAndAddActions()
 #endif
 }
 
+int FalconBoard::_AddNewTab(QString fname) // and new history record
+{
+    if (_pTabs->count() == MAX_NUMBER_OF_TABS)
+        return -1;
+
+    if (fname.isEmpty())
+        fname = "Untitled";
+    int n = _pTabs->addTab(new QWidget(), _FileNameToTabText(fname));
+    if(n >= 0)
+        _pTabs->setCurrentIndex(n);
+    _drawArea->AddHistory(fname);
+    return n;
+}
+
 #ifndef _VIEWER
 void FalconBoard::_AddSaveVisibleAsMenu()
 {
@@ -352,12 +410,14 @@ void FalconBoard::_AddSaveVisibleAsMenu()
     ui.menu_File->insertSeparator(ui.actionPageSetup);
 }
 
-bool FalconBoard::_SaveIfYouWant(bool mustAsk)
+bool FalconBoard::_SaveIfYouWant(bool mustAsk, bool any)
 {
-    if (_drawArea->IsModified() )
+    int n;
+    if ((n =_drawArea->IsModified(any)) )    // any=false: current only
     {
+        const QString & saveName = _drawArea->HistoryName();
         QMessageBox::StandardButton ret;
-        if (!ui.actionSaveData->isChecked() || mustAsk || _saveName.isEmpty())
+        if (!ui.actionSaveData->isChecked() || mustAsk || saveName.isEmpty())
         {
             ret = QMessageBox::warning(this, tr(WindowTitle),
                 tr("Data have been modified.\n"
@@ -370,10 +430,10 @@ bool FalconBoard::_SaveIfYouWant(bool mustAsk)
 
         if (ret == QMessageBox::Save)
         {
-            if (_saveName.isEmpty())
+            if (saveName.isEmpty())
                 on_actionSaveAs_triggered();
             else 
-                return _SaveFile();
+                return _SaveFile(saveName);
         }
         else if (ret == QMessageBox::Cancel)
             return false;
@@ -381,11 +441,11 @@ bool FalconBoard::_SaveIfYouWant(bool mustAsk)
     return true;
 }
 
-bool FalconBoard::_SaveFile()
+bool FalconBoard::_SaveFile(const QString name)
 {
-    if (_drawArea->Save(_saveName))
+    if (_drawArea->Save(name))
     {
-        _AddToRecentList(_saveName);
+        _AddToRecentList(name);
         return true;
     }
     return false;
@@ -502,6 +562,24 @@ void FalconBoard::_ConnectDisconnectScreenshotLabel(bool join )
     }
 }
 #endif
+QString FalconBoard::_FileNameToTabText(QString& fname)
+{
+    int i = fname.lastIndexOf('/'),  // get file name, -1 is Ok
+        j = fname.lastIndexOf(".mwb");
+    if (j < 0)
+        j = fname.length();
+    return fname.mid(i + 1, j - i);
+}
+void FalconBoard::_SetTabText(int index, QString& fname)
+{
+    if (index >= _pTabs->count())
+        return;
+    if (index < 0)
+        index = _pTabs->currentIndex();
+
+    _pTabs->setTabText(index, _FileNameToTabText(fname));
+}
+
 void FalconBoard::_SetupMode(ScreenMode mode)
 {
     QString ss,
@@ -659,7 +737,7 @@ void FalconBoard::_PopulateRecentMenu()
 void FalconBoard::closeEvent(QCloseEvent* event)
 {
 #ifndef _VIEWER
-    if (_SaveIfYouWant())
+    if (_SaveIfYouWant(true))
 	{
 		event->accept();
 #endif
@@ -678,8 +756,12 @@ void FalconBoard::showEvent(QShowEvent* event)
     if (!_firstShown)
     {
         _firstShown = true;
-        if (!_saveName.isEmpty())
-            _LoadData(_saveName);   // enables redraw
+        if (_pTabs->count())
+        {
+            _LoadData(_nLastTab);   // only load first tab
+            if (_pTabs->count() > 1)
+                _pTabs->setVisible(true);
+        }
         else
             _drawArea->EnableRedraw(true);
     }
@@ -688,40 +770,38 @@ void FalconBoard::showEvent(QShowEvent* event)
 #ifndef _VIEWER
 void FalconBoard::on_actionNew_triggered()
 {
-    if (!_SaveIfYouWant(true))    // must ask if data changed, false: cancelled
+    if (_pTabs->count() == MAX_NUMBER_OF_TABS)
+    {
+        QMessageBox::warning(this, "falconBoard", tr("Maximum mumber of TABs reached. Please close some TABs to proceed."));
         return;
+    }
+// no need to save: creating new TAB
+//    if (!_SaveIfYouWant(true))    // must ask if data changed, false: cancelled
+//        return;
 
     bool b = QMessageBox::question(this, "falconBoard", tr("Do you want to limit the editable area horizontally to the screen width?\n"
                                                            " You may change this any time in Options/Page"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
     ui.actionLimitedPage->setChecked(b);
     _drawArea->SetLimitedPage(b);
     _drawArea->NewData();
-    _saveName.clear();
     setWindowTitle(sWindowTitle);
     _backgroundImageName.clear();
 }
 #endif
 
-bool FalconBoard::_LoadData(QString fileName)
+bool FalconBoard::_LoadData(int index)
 {
     _drawArea->EnableRedraw(false);
-    int res = -1;
-    if (!fileName.isEmpty())
+    _drawArea->SetCurrentHistory(index);
+
+    int res = _drawArea->Load();    // into current history
+    if (res > 0)     // 0: read error, -1: no file
     {
-        res = _drawArea->Load(fileName);
-        if (res > 0)     // 0: read error, -1: no file
-        {
 #ifndef _VIEWER
-            _SetPenKind();
+        _SetPenKind();
 #endif
-            _saveName = fileName;
-
-            _AddToRecentList(_saveName);
-        }
-        else
-            _saveName.clear();
+        _AddToRecentList(_drawArea->HistoryName());
     }
-
     _drawArea->EnableRedraw(true);
 
     return res > 0;
@@ -746,18 +826,33 @@ void FalconBoard::_AddToRecentList(QString path)
     _PopulateRecentMenu();
 }
 
+
+/*========================================================
+ * TASK:    Loads file into actual TAB, if it is empty or 
+ *             into new TAB if not
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: -
+ *-------------------------------------------------------*/
 void FalconBoard::on_actionLoad_triggered()
 {
-#ifndef _VIEWER
-    _SaveIfYouWant(true);   // must ask if data changed
-#endif
+//#ifndef _VIEWER
+//    _SaveIfYouWant(true);   // must ask when data changed
+//#endif
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Load Data"), 
                                                     _lastDir, // QDir::currentPath(),
                                                     tr("FalconBoard files (*.mwb);;All files (*)"));
     _SaveLastDirectory(fileName);
-    if (!_LoadData(fileName))
+    int n = _pTabs->currentIndex();
+    if (!IsOverwritable())
+        n = _AddNewTab();   // "untitled" + sets current tab and adds history item and set it to current too
+                            
+    if (n>= 0 && !_LoadData(-1))
         fileName = "Untitled";
+    if (n >= 0)
+        _pTabs->setTabText(n, _FileNameToTabText(fileName));
     setWindowTitle(sWindowTitle + QString(" - %1").arg(fileName));
 
 #ifndef _VIEWER
@@ -777,15 +872,25 @@ void FalconBoard::on_actionCleaRecentList_triggered()
 void FalconBoard::_sa_actionRecentFile_triggered(int which)
 {
 //    _busy = true;   // do not delete signal mapper during a mapping
-#ifndef _VIEWER
-    if (!_SaveIfYouWant(true))    // must ask if data changed, false: cancelled
-        return;
-#endif
+        // viewer: open in new tab unless this is the first one
+        // and no file has been opened yet
+
+    bool bOverwritable = IsOverwritable();
     QString& fileName = _recentList[which];
     _SaveLastDirectory(fileName);
-    if (!_LoadData(fileName))
-        fileName = "Untitled";
-    setWindowTitle(sWindowTitle + QString(" - %1").arg(fileName));
+    bool res = true;
+    if (bOverwritable)  // then load into current tab 
+    {
+        if (!_LoadData(-1))        // to current TAB 
+            fileName = "Untitled";
+    }
+    else              // try to add a new TAB and load data there
+    {
+        if (_drawArea->HistoryListSize() < MAX_NUMBER_OF_TABS)
+            res = _AddNewTab(fileName) >= 0;   // also appends history and loads from file
+    }
+    if(res)
+        setWindowTitle(sWindowTitle + QString(" - %1").arg(fileName));
 //    _busy = false;
 }
 
@@ -795,30 +900,33 @@ void FalconBoard::_SaveLastDirectory(QString fileName)
     {
         int n = fileName.lastIndexOf('/');
         _lastDir = fileName.left(n + 1);
-        _lastFile = fileName.mid(n + 1);
+// using _nLastTab instead        _lastFile = fileName.mid(n + 1);
     }
 }
 
 #ifndef _VIEWER
 void FalconBoard::on_actionSave_triggered()
 {
-    if (_saveName.isEmpty())
+    QString fname = _drawArea->HistoryName();
+    if (fname.isEmpty())
         on_actionSaveAs_triggered();
     else
-        _SaveFile();
+        _SaveFile(fname);
 }
-void FalconBoard::on_actionSaveAs_triggered()
+void FalconBoard::on_actionSaveAs_triggered() // current tab
 {
-    QString initialPath = _lastDir + _lastFile; // QDir::currentPath() + "/untitled.mwb";
+    QString fname = _drawArea->HistoryName();
+    if (fname.isEmpty())
+        fname = "untitled.mwb";
+    QString initialPath = _lastDir + fname; // QDir::currentPath() + "/untitled.mwb";
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
                         initialPath, tr("FalconBoard Files (*.mwb);; All Files (*))"));
     if (fileName.isEmpty())
         return;
     _SaveLastDirectory(fileName);
-    _saveName = fileName;
-    _SaveFile();
-    setWindowTitle(sWindowTitle + QString(" - %1").arg(_saveName));
-
+    _SaveFile(fileName);
+    setWindowTitle(sWindowTitle + QString(" - %1").arg(fileName));
+    _SetTabText(-1, fileName);
 }
 
 void FalconBoard::on_actionLoadBackground_triggered()
@@ -1237,8 +1345,9 @@ void FalconBoard::on_actionPageSetup_triggered()
 
 void FalconBoard::on_actionExportToPdf_triggered()
 {
-    int pos = _saveName.lastIndexOf('/');
-    QString name = _lastPDFDir + _saveName.mid(pos+1);
+    QString saveName = _drawArea->HistoryName();
+    int pos = saveName.lastIndexOf('/');
+    QString name = _lastPDFDir + saveName.mid(pos+1);
     _drawArea->ExportPdf(name, _lastPDFDir);
 }
 

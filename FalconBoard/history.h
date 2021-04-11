@@ -124,12 +124,17 @@ struct ScreenShotImage {       // shown on layer mlyScreenShot below the drawing
 inline QDataStream& operator<<(QDataStream& ofs, const ScreenShotImage& bimg);
 inline QDataStream& operator>>(QDataStream& ifs, ScreenShotImage& bimg);
 
+
+/*========================================================
+ * A List of screenshots loaded for a history
+ *-------------------------------------------------------*/
 class  ScreenShotImageList : public  QList<ScreenShotImage>
 {
     int _index = -1;
     QRect _canvasRect;
 public:
     void Add(QImage& image, QPoint pt, int zorder);
+    void Drop(int index) { /* TODO */ }   // removes from list without changing the index of the other images
     // canvasRect and result are relative to (0,0)
     QRect AreaOnCanvas(int index, const QRect& canvasRect) const;
     ScreenShotImage* ScreenShotAt(int index);
@@ -521,7 +526,10 @@ private:
 class History  // stores all drawing sections and keeps track of undo and redo
 {
     friend class Bands;
+    friend class HistoryScreenShotItem;
 
+    QString _fileName,                  // file for history
+            _loadedName;                // set only after the file is loaded, used to check reloads
     bool _inLoad = false;               // in function Load() / needed for correct z- order settings
     HistoryItemVector _items,           // items in the order added. Items need not be scribble.
                                         // scribble elements on this list may be either visible or hidden
@@ -541,17 +549,24 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _lastZorder = DRAWABLE_ZORDER_BASE;  // increased when scribble elements adedd to _items, does not get decreasd when they are taken off!
     int _nextImageZorder = 0;                 // z-order of images
 
-    ScribbleItemVector     _copiedItems;   // copy items on _nSelectedList into this list for pasting anywhere even in newly opened documents
-    ScreenShotImageList _copiedImages;  // copy images on _nSelectedList to this
-    QRect _copiedRect;                 // bounding rectangle for copied items used for paste operation
+    ScreenShotImageList *_pCopiedImages = nullptr; // put copied images on this list 
+    ScribbleItemVector *_pCopiedItems = nullptr;   // points to list in Draw Area 
+    QRect *_pCopiedRect = nullptr;                 // bounding rectangle for copied items used for paste operation
+
+                                             // copy items on _nSelectedItemsList into this list for pasting anywhere even in newly opened documents
+    ScreenShotImageList  _belowImages;     // one or more images from screenshots
 
     ItemIndexVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
                     _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
                     _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
-    int _nIndexOfFirstScreenShot;       // index of the first scribble (not image) element that is below a given y (always calulate)
+    int _nIndexOfFirstScreenShot=0;       // index of the first scribble (not image) element that is below a given y (always calulate)
     QRect _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
                                         // when _nSelectedItemList is empty
+
+    IntVector _images;      // indices into _belowImages
+
     bool _modified = false;
+
 
     HistoryItem* _AddItem(HistoryItem* p);
 
@@ -577,8 +592,6 @@ class History  // stores all drawing sections and keeps track of undo and redo
     void _RestoreClippingRect();
 
 public:
-    ScreenShotImageList* pImages = nullptr;  // set in DrawArea constructor
-
     History() noexcept { _bands.SetParam(this, -1);  }
     History(const History& o);
     History(const History&& o) noexcept;
@@ -597,9 +610,21 @@ public:
         else
             _bands.Remove(index); 
     }
+    void SetCopiedLists(ScreenShotImageList* pImgList, ScribbleItemVector* pItemList, QRect *pCopiedRect)
+    {
+        _pCopiedImages  = pImgList;
+        _pCopiedItems   = pItemList;
+        _pCopiedRect    = pCopiedRect;
+    }
 
-    void clear();
-    int size() const;   // _items's size
+    void ClearImageList() { _images.clear(); }
+    int Countimages() { return _images.size(); }
+    int AddImage(int index) { _images.push_back(index); }
+    ScreenShotImage& Image(int index) { return _belowImages[index]; }
+    ScreenShotImageList &ScreenShotList() { return _belowImages; }
+
+    void Clear();
+    int Size() const;   // _items's size
     int CountOfVisible() const; // visible from yxOrder
     int CountOfScribble() const { return _yxOrder.size(); }
     int SelectedSize() const { return _nSelectedItemsList.size(); }
@@ -609,9 +634,15 @@ public:
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
     const qint32 MAGIC_VERSION = 0x56010000; // V 01.00.00
 
+    QString Name() const { return _fileName; }
     bool Save(QString name);
 
-    int Load(QString name);         // returns _ites.size() when Ok, -items.size()-1 when read error
+    void SetName(QString name)
+    {
+        _fileName = name;
+        Clear();
+    }
+    int Load(bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
     bool IsModified() const { return _modified & CanUndo(); }
     bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
     bool CanRedo() const { return _redo.size(); }
@@ -629,17 +660,17 @@ public:
     QPoint BottomRightVisible(QSize screenSize) const;      // returns bottom right coordinate of last visible item
 
 //--------------------- Add Items ------------------------------------------
-    HistoryItem* addClearRoll();
-    HistoryItem* addClearVisibleScreen();
-    HistoryItem* addClearDown();
-    HistoryItem* addScribbleItem(ScribbleItem& dri);
-    HistoryItem* addDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
-    HistoryItem* addPastedItems(QPoint topLeft, Sprite *pSprite=nullptr);   // using 'this' and either '_copiedList'  or  pSprite->... lists
-    HistoryItem* addRecolor(MyPenKind pk);
-    HistoryItem* addInsertVertSpace(int y, int heightInPixels);
-    HistoryItem* addScreenShot(int index);
-    HistoryItem* addRotationItem(MyRotation rot);
-    HistoryItem* addRemoveSpaceItem(QRect &rect);
+    HistoryItem* AddClearRoll();
+    HistoryItem* AddClearVisibleScreen();
+    HistoryItem* AddClearDown();
+    HistoryItem* AddScribbleItem(ScribbleItem& dri);
+    HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
+    HistoryItem* AddPastedItems(QPoint topLeft, Sprite *pSprite=nullptr);    // using 'this' and either '_copiedList'  or  pSprite->... lists
+    HistoryItem* AddRecolor(MyPenKind pk);
+    HistoryItem* AddInsertVertSpace(int y, int heightInPixels);              // height < 0: delete space
+    HistoryItem* AddScreenShot(ScreenShotImage &bimg);                       // to _belowImages
+    HistoryItem* AddRotationItem(MyRotation rot);
+    HistoryItem* AddRemoveSpaceItem(QRect &rect);
     // --------------------- drawing -----------------------------------
     void TranslateAllItemsBelow(QPoint delta, int belowY);
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
@@ -649,7 +680,7 @@ public:
     HistoryItem* Redo();
 
     int History::GetScribblesInside(QRect rect, HistoryItemVector& hv);
-    int ImageIndexFor(QPoint& p) const { return pImages->ImageIndexFor(p); } // -1: no such image else index in 'pImages'
+    int ImageIndexFor(QPoint& p) const { return _belowImages.ImageIndexFor(p); } // -1: no such image else index in 'pImages'
 
     void AddToSelection(int index=-1);
     int CollectItemsInside(QRect rect);
@@ -657,8 +688,8 @@ public:
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
 
-    const QVector<ScribbleItem>& CopiedItems() const { return _copiedItems;  }
-    int CopiedCount() const { return _copiedItems.size();  }
+    const QVector<ScribbleItem>& CopiedItems() const { return *_pCopiedItems;  }
+    int CopiedCount() const { return _pCopiedItems->size();  }
     const QRect BoundingRect() const { return _selectionRect; }
     const ItemIndexVector& Selected() const { return _nSelectedItemsList;  }
 };

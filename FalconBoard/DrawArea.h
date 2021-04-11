@@ -11,6 +11,7 @@
 #include <QTabletEvent>
 
 #include <thread>
+#include <vector>
 
 #include "history.h"
 #include "pagesetup.h"
@@ -41,15 +42,54 @@ public:
     enum CursorShape {csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
     DrawArea(QWidget* parent = nullptr);
+    virtual ~DrawArea()
+    {
+        for (auto ph : _historyList)
+            delete ph;
+        _historyList.clear();
+    }
 
     void SetPrinterData(const MyPrinterData& prdata);
 
     void ClearBackground();
 
-    int Load(QString name);
+    int AddHistory(const QString name = QString(), int indexAt = 1000000); // with name it loads it as well
+    int RemoveHistory(int index);
+    void MoveHistory(int to);   // from _currentHistoryIndex
+
+
+    bool SetCurrentHistory(int index)   // use this before others
+    {
+        if (index < 0 || index >= _historyList.size())
+            return false;
+        _currentHistoryIndex = index;
+        return true;
+    }
+
+    QString HistoryName(int index = -1) const
+    {
+        if (index < 0)
+            index = _currentHistoryIndex;
+        if (index < 0 || index >= _historyList.size())
+            return QString();
+        return _historyList[index]->Name();
+    }
+
+    void SetHistoryName(QString fileName)
+    {
+        _history->SetName(fileName);
+    }
+
+    int Load();         // into current history
     bool EnableRedraw(bool value);
 #ifndef _VIEWER
-    bool Save(QString name) { return  _history.Save(name); }
+    bool Save(QString name, int index=-1) 
+    { 
+        if (index < 0) 
+            index = _currentHistoryIndex;
+        return  _historyList[index]->Save(name); 
+    }
+
     bool OpenBackgroundImage(const QString& fileName);
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
 //    void SetBackgroundImage(QImage& image);
@@ -67,8 +107,29 @@ public:
 
     void AddScreenShotImage(QImage& image);
 
+    int HistoryListSize() const { return _historyList.size(); }
 
-    bool IsModified() const { return  _history.IsModified(); }
+
+
+    /*========================================================
+     * TASK:    check history if it is modified
+     * PARAMS:  any - if true check all histories until the 
+     *              first modified is found
+     * GLOBALS:
+     * RETURNS: any=false: current history is modified
+     *              true:  the index of the first modified history 
+     * REMARKS: - only need to set any to true when closing the app.
+     *-------------------------------------------------------*/
+    int IsModified(bool any = false) const
+    {
+        if (!any)
+            return _historyList[_currentHistoryIndex]->IsModified();
+        // else 
+        for(int i = 0; i < _historyList.size(); ++i)
+            if(_historyList[i]->IsModified())
+                return  i; 
+        return 0;
+    }
     MyPenKind PenKind() const { return _myPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
 
@@ -77,6 +138,15 @@ public:
 
     void SetGridOn(bool on, bool fixed);
     void SetPageGuidesOn(bool on);
+
+    void Print(int index = -1)
+    {
+        if (index < 0)
+            index = _currentHistoryIndex;
+        if (index <0 || index > _historyList.size())
+            return;
+        Print(HistoryName(index));
+    }
 
 signals:
     void CanUndo(bool state);     // state: true -> can undo
@@ -130,7 +200,10 @@ private:
     void ChangePenColorByKeyboard(int key);
 #endif
 private:
-    History _history;               // every scribble element with undo/redo
+    History *_history;              // actual history (every scribble element with undo/redo)
+    std::vector<History*> _historyList;   // many histories are possible
+    int _currentHistoryIndex = -1;   // actual history index, -1: none
+
     bool _mustRedrawArea = true;    // else no redraw
     bool _redrawPending = false;    // redraw requested when it was not enabled
            // page setup
@@ -179,8 +252,11 @@ private:
     //      _grid           - not an image. Just drawn after background when it must be shown moves together with the canvas window
     //      _background     - image loaded from file
     //      the DrawArea widget - background color
-    ScreenShotImageList _belowImages;    // one or more images from screenshots
-    QImage  _background,   
+    ScreenShotImageList _copiedImages;     // copy images on _nSelectedList to this
+    ScribbleItemVector _copiedItems;       // other items to this list 
+    QRect _copiedRect;                     // bounding rectangle for copied items used for paste operation
+
+    QImage  _background,
             _canvas;        // transparent layer, draw on this then show background and this on the widget
                             // origin: (0,0) point on canvas first shown
     // to move selected area around

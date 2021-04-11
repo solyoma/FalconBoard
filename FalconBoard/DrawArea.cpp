@@ -36,15 +36,15 @@
 // !!!
 DrawColors drawColors;      // global used here and for print, declared in common.h
 
-
-
 //----------------------------- DrawArea ---------------------
 DrawArea::DrawArea(QWidget* parent)    : QWidget(parent)
 {
     setAttribute(Qt::WA_StaticContents);
     setAttribute(Qt::WA_TabletTracking);
     setCursor(Qt::CrossCursor);
-    _history.pImages = &_belowImages;
+    _historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
+    //_historyList.push_back(new History());     // this way no reallocations, so _history remains valid
+    //_history = _historyList[0];
 }
 
 void DrawArea::SetPrinterData(const MyPrinterData& prdata)
@@ -59,7 +59,7 @@ void DrawArea::ClearRoll()
 #ifndef _VIEWER
     _RemoveRubberBand();
 #endif
-    _history.addClearRoll();
+    _history->AddClearRoll();
     _ClearCanvas();
 }
 
@@ -68,7 +68,7 @@ void DrawArea::ClearVisibleScreen()
 #ifndef _VIEWER
     _RemoveRubberBand();
 #endif
-    _history.addClearVisibleScreen();
+    _history->AddClearVisibleScreen();
     _ClearCanvas();
 }
 
@@ -77,7 +77,7 @@ void DrawArea::ClearDown()
 #ifndef _VIEWER
     _RemoveRubberBand();
 #endif
-    _history.addClearDown();
+    _history->AddClearDown();
     _ClearCanvas();
 }
 
@@ -88,12 +88,71 @@ void DrawArea::ClearBackground()
     update();
 }
 
-int DrawArea::Load(QString name)
-{
-    _belowImages.clear();
 
-    int res = _history.Load(name);
-    QString qs = name.mid(name.lastIndexOf('/')+1);
+/*========================================================
+ * TASK:    adds new history and set it to be the current one
+ *          if a name is given loads the history as well
+ * PARAMS:  indexAt - insert at this position. 
+ *                  if > capacity then at the end
+ *          name: name for new history. String may be empty
+ *                  in which case a new unsaved page is added
+ * GLOBALS: _history
+ * RETURNS: index of added history or 
+ *              -1 if capacity reached or
+ *              -2 if file name given but could not load it
+ *          but file did not exist
+ * REMARKS: - adding history is unsucessfull if it is full
+ *          - capacity is always smaller than 100000!
+ *-------------------------------------------------------*/
+int DrawArea::AddHistory(const QString name, int indexAt )
+{
+    if(_historyList.capacity() == _historyList.size())
+        return -1;
+    History* ph = new History();
+    ph->SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
+    if (!name.isEmpty())
+        ph->SetName(name);
+
+    if (indexAt > _historyList.capacity())
+    {
+        _historyList.push_back(ph);
+        indexAt = _historyList.size() - 1;
+    }
+    else
+        _historyList.insert(_historyList.begin() + indexAt, ph);
+
+    _currentHistoryIndex = indexAt;
+    _history = _historyList[indexAt];
+    if (!name.isEmpty())
+        if (!_history->Load())
+            return -2;
+    return indexAt;
+}
+
+int DrawArea::RemoveHistory(int index)
+{
+    if(index < 0 || index > _historyList.size())
+        return -1;
+    _historyList.erase(_historyList.begin() + index);
+    if (_currentHistoryIndex >= index)
+        --_currentHistoryIndex;
+    _history = _historyList[_currentHistoryIndex];
+    return _currentHistoryIndex;
+}
+
+void DrawArea::MoveHistory(int to)
+{
+    _historyList.erase(_historyList.begin() + _currentHistoryIndex);
+    _currentHistoryIndex = to;
+    _historyList.insert(_historyList.begin() + to, _history);
+}
+
+int DrawArea::Load()
+{
+//    _history->ScreenShotList().clear();
+    int res = _history->Load(); // only loads if names diferent
+
+    QString qs = _history->Name(); //  .mid(_history->Name().lastIndexOf('/') + 1);
     if (!res)
         QMessageBox::about(this, tr(WindowTitle), QString( tr("'%1'\nInvalid file")).arg(qs));
     else if(res == -1)
@@ -167,8 +226,7 @@ void DrawArea::AddScreenShotImage(QImage& image)
     if (x < 0) x = 0;
     if (y < 0) y = 0;
     bimg.topLeft = QPoint(x, y) + _topLeft;
-    _belowImages.push_back(bimg);
-    _history.addScreenShot(_belowImages.size()-1);
+    _history->AddScreenShot(bimg);
     emit CanUndo(true);
     emit CanRedo(false);
 }
@@ -177,7 +235,7 @@ void DrawArea::AddScreenShotImage(QImage& image)
 void DrawArea::InsertVertSpace()
 {
     _RemoveRubberBand();
-    _history.addInsertVertSpace(_rubberRect.y() + _topLeft.y(), _rubberRect.height());
+    _history->AddInsertVertSpace(_rubberRect.y() + _topLeft.y(), _rubberRect.height());
     _Redraw();
 }
 MyPenKind DrawArea::PenKindFromKey(int key)
@@ -196,11 +254,11 @@ bool DrawArea::RecolorSelected(int key)
 {
     if (!_rubberBand)
         return false;
-    if(!_history.SelectedSize())
-        _history.CollectItemsInside(_rubberRect.translated(_topLeft));
+    if(!_history->SelectedSize())
+        _history->CollectItemsInside(_rubberRect.translated(_topLeft));
 
     MyPenKind pk = PenKindFromKey(key);
-    HistoryItem* phi = _history.addRecolor(pk);
+    HistoryItem* phi = _history->AddRecolor(pk);
 //    _RemoveRubberBand();
     if (phi)
         _Redraw();
@@ -208,12 +266,12 @@ bool DrawArea::RecolorSelected(int key)
 }
 #endif
 
-void DrawArea::NewData()
+void DrawArea::NewData()    // current history
 {
-    _history.clear();
+    _history->Clear();
     ClearBackground();
     _ClearCanvas();
-    _erasemode = false; // previous last operation mightr be an erease
+    _erasemode = false; // previous last operation might have been an erease
 }
 
 void DrawArea::_ClearCanvas() // uses _clippingRect
@@ -296,21 +354,21 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
             if (bDelete || bCopy || bRecolor || bRotate)
             {
-                if ((bCollected = _history.SelectedSize()) && !bDelete && !bRotate)
+                if ((bCollected = _history->SelectedSize()) && !bDelete && !bRotate)
                 {
-                    _history.CopySelected();
+                    _history->CopySelected();
                     _itemsCopied = true;        // never remove selected list
                 }
             }
                 // if !bCollected then history's _selectedList is empty, but the rubberRect is set into _selectionRect
             if ((bCut || bDelete) && bCollected)
             {
-                _history.addDeleteItems();
+                _history->AddDeleteItems();
                 _Redraw();
             }
             else if (bDelete && !bCollected)     // delete on empty area
             {
-                if (_history.addRemoveSpaceItem(_rubberRect))     // there was something (not delete below the last item)
+                if (_history->AddRemoveSpaceItem(_rubberRect))     // there was something (not delete below the last item)
                 {
                     _Redraw();
                 }
@@ -321,7 +379,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
 				QPoint dr = _rubberRect.translated(_topLeft).topLeft(); 
 
-                HistoryItem* phi = _history.addPastedItems(dr);
+                HistoryItem* phi = _history->AddPastedItems(dr);
                 if(phi)
 				    _ReplotScribbleItem(phi);   // only user lines, images are plotted only in paintEvent
 
@@ -347,7 +405,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 }
                 if (rot != rotNone)
                 {
-                    _history.addRotationItem(rot);
+                    _history->AddRotationItem(rot);
                     _Redraw();
 					emit CanUndo(true);
 					emit CanRedo(false);
@@ -360,7 +418,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _lastScribbleItem.clear();
                 _lastScribbleItem.type = heScribble;
                             // when any draweables is selected draw the rectangle with 1 pixel margins on all sides
-                int margin = /* !_mods.testFlag(Qt::ShiftModifier)*/ _history.SelectedSize() ? _actPenWidth/2+1 : 0;
+                int margin = /* !_mods.testFlag(Qt::ShiftModifier)*/ _history->SelectedSize() ? _actPenWidth/2+1 : 0;
 
                 int x1, y1, x2, y2, x3, y3, x4, y4;
                 x1 = _rubberRect.x()-margin;                y1 = _rubberRect.y() - margin;
@@ -384,8 +442,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
                 _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
                 _rubberBand->setGeometry( _rubberRect );
-                HistoryItem *pscrbl =_history.addScribbleItem(_lastScribbleItem);
-                _history.AddToSelection();
+                HistoryItem *pscrbl =_history->AddScribbleItem(_lastScribbleItem);
+                _history->AddToSelection();
 
                 emit CanUndo(true);
                 emit CanRedo(false);
@@ -417,9 +475,9 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                     }
                     _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
                     _rubberBand->setGeometry( _rubberRect );
-                    HistoryItem *pscrbl =_history.addScribbleItem(_lastScribbleItem);
+                    HistoryItem *pscrbl =_history->AddScribbleItem(_lastScribbleItem);
                     pscrbl->GetScribble()->bndRect.adjust(-_actPenWidth/2.0, -_actPenWidth / 2.0,_actPenWidth / 2.0, _actPenWidth / 2.0);
-                    _history.AddToSelection();
+                    _history->AddToSelection();
 
                     emit CanUndo(true);
                     emit CanRedo(false);
@@ -644,7 +702,7 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 #ifndef _VIEWER
         if (_rubberBand)
         {
-            if (_history.SelectedSize() && _rubberRect.contains(event->pos))
+            if (_history->SelectedSize() && _rubberRect.contains(event->pos))
             {
                 if (_CreateSprite(event->pos, _rubberRect, !event->mods.testFlag(Qt::AltModifier)))
                 {
@@ -652,7 +710,7 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
                         /* do nothing */;
                     else
                     {
-                        _history.addDeleteItems(_pSprite);
+                        _history->AddDeleteItems(_pSprite);
                         _Redraw();
                     }
 //                    QApplication::processEvents();
@@ -787,7 +845,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
                     _lastScribbleItem.add(_lastPointC + _topLeft);
 
 //DEBUG_LOG(QString("Mouse release #2: _lastPoint: (%1,%2)\n__lastDrwanItem point size:%3").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(_lastScribbleItem.points.size()))
-                _history.addScribbleItem(_lastScribbleItem);
+                _history->AddScribbleItem(_lastScribbleItem);
 
                 emit CanUndo(true);
                 emit CanRedo(false);
@@ -813,21 +871,21 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
         if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
         {
             _rubberRect = _rubberBand->geometry();
-            _history.CollectItemsInside(_rubberRect.translated(_topLeft));
-            if (_history.SelectedSize())
+            _history->CollectItemsInside(_rubberRect.translated(_topLeft));
+            if (_history->SelectedSize())
             {
-                _rubberBand->setGeometry(_history.BoundingRect().translated(-_topLeft));
-                _rubberRect = _rubberBand->geometry(); // _history.BoundingRect().translated(-_topLeft);
+                _rubberBand->setGeometry(_history->BoundingRect().translated(-_topLeft));
+                _rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
             }
         }
         else if (event->mods.testFlag(Qt::ControlModifier))     // Ctrl + click: select image if any
         {
             QPoint p = event->pos + _topLeft;
-            int i = _history.SelectTopmostImageFor(p);
+            int i = _history->SelectTopmostImageFor(p);
             if (i >= 0)
             {
-                _rubberBand->setGeometry((*_history.pImages)[i].Area().translated(-_topLeft));
-                _rubberRect = _rubberBand->geometry(); // _history.BoundingRect().translated(-_topLeft);
+                _rubberBand->setGeometry(_history->Image(i).Area().translated(-_topLeft));
+                _rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
             }
         }
         else
@@ -912,12 +970,12 @@ void DrawArea::paintEvent(QPaintEvent* event)
 
 // screenshots layer: images below user drawn lines
     QRect r = dirtyRect.translated(_topLeft);              // screen -> absolute coord
-    ScreenShotImage* pimg = _belowImages.FirstVisible(r);   // pimg intersects r
+    ScreenShotImage* pimg = _history->ScreenShotList().FirstVisible(r);   // pimg intersects r
     while (pimg)                                            // image layer
     {
         QRect intersectRect = pimg->AreaOnCanvas(_clippingRect);      // absolute
         painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
-        pimg = _belowImages.NextVisible();
+        pimg = _history->ScreenShotList().NextVisible();
     }
 // _canvas layer: the scribbles
     painter.drawImage(dirtyRect, _canvas, dirtyRect);          // canvas layer
@@ -950,7 +1008,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
         int newWidth =  qMax(w + 128,  _canvas.width());
         int newHeight = qMax(h + 128, _canvas.height());
         _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
-        _history.SetClippingRect(QRect(_topLeft, QSize(newWidth, newHeight)));
+        _history->SetClippingRect(QRect(_topLeft, QSize(newWidth, newHeight)));
 
         _Redraw();
     }
@@ -1139,13 +1197,13 @@ void DrawArea::_MoveToActualPosition(QRect rect)
 
  int DrawArea::_CollectScribbles(HistoryItemVector &hv)
 {
-    return _history.GetScribblesInside(_clippingRect, hv);
+    return _history->GetScribblesInside(_clippingRect, hv);
     
-    //if (_history.SetFirstItemToDraw() < 0)  // returns index of first visible item after the last clear screen
+    //if (_history->SetFirstItemToDraw() < 0)  // returns index of first visible item after the last clear screen
     //    return hv;                          // so when no such iteme exists we're done with empty list
 
     //HistoryItem* phi;
-    //while ((phi = _history.GetOneStep()))   // add next not hidden item to vector in y order
+    //while ((phi = _history->GetOneStep()))   // add next not hidden item to vector in y order
     //    hv.push_back(phi);                  
     //                                        // but draw them in z-order
     //std::sort(hv.begin(), hv.end(), [](HistoryItem* pl, HistoryItem* pr) {return pl->ZOrder() < pr->ZOrder(); });
@@ -1304,7 +1362,7 @@ void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTranspar
 
 void DrawArea::ClearHistory()
 {
-    _history.ClearUndo();
+    _history->ClearUndo();
 
     emit CanUndo(false);
     emit CanRedo(false);
@@ -1319,7 +1377,7 @@ void DrawArea::ClearHistory()
  *-------------------------------------------------------*/
 void DrawArea::SlotForPrimaryScreenChanged(QScreen* ps)
 {
-    _history.SetBandHeight(ps->geometry().height());
+    _history->SetBandHeight(ps->geometry().height());
 }
 
 void DrawArea::SlotForGridSpacingChanged(int spacing)
@@ -1465,7 +1523,7 @@ void DrawArea::Print(QString name, QString* pdir)
 		_prdata.nGridSpacingX = _nGridSpacingX;
 		_prdata.nGridSpacingY = _nGridSpacingY;
 		_prdata.gridIsFixed = _gridIsFixed;
-        _printer = new MyPrinter(this, &_history, _prdata);     // _prdata may be modified!
+        _printer = new MyPrinter(this, _history, _prdata);     // _prdata may be modified!
         if (_NoPrintProblems())   // only when not Ok
         {
             _printer->Print();
@@ -1608,11 +1666,11 @@ bool DrawArea::_ReplotScribbleItem(HistoryItem* phi)
 #ifndef _VIEWER
 void DrawArea::Undo()               // must draw again all underlying scribbles
 {
-    if (_history.CanUndo())
+    if (_history->CanUndo())
     {
         _RemoveRubberBand();
 
-        QRect rect = _history.Undo();
+        QRect rect = _history->Undo();
         _MoveToActualPosition(rect); 
 //        _clippingRect = rect;
         _ClearCanvas();
@@ -1621,12 +1679,12 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
         _clippingRect = _canvasRect;
         emit CanRedo(true);
     }
-    emit CanUndo(_history.CanUndo());
+    emit CanUndo(_history->CanUndo());
 }
 
 void DrawArea::Redo()       // need only to draw undone items, need not redraw everything
 {                           // unless top left or items color changed
-    HistoryItem* phi = _history.Redo();
+    HistoryItem* phi = _history->Redo();
     if (!phi)
         return;
 
@@ -1639,8 +1697,8 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 
     _clippingRect = _canvasRect;
 
-    emit CanUndo(_history.CanUndo() );
-    emit CanRedo(_history.CanRedo());
+    emit CanUndo(_history->CanUndo() );
+    emit CanRedo(_history->CanRedo());
 }
 void DrawArea::ChangePenColorSlot(int key)
 {
@@ -1697,7 +1755,7 @@ void DrawArea::_SetOrigin(QPoint o)
 #endif
     _canvasRect.moveTo(_topLeft);
     _clippingRect = _canvasRect;
-    _history.SetClippingRect(_canvasRect);
+    _history->SetClippingRect(_canvasRect);
 
 #ifndef _VIEWER
     _ShowCoordinates(QPoint());
@@ -1795,11 +1853,11 @@ void DrawArea::_ShiftAndDisplayBy(QPoint delta, bool smooth)    // delta changes
 
         rectRe.translate(_topLeft);
         _clippingRect = rectRe;
-        _history.SetClippingRect(rectRe);
+        _history->SetClippingRect(rectRe);
         _Redraw(false);
         update();
         _clippingRect = _canvasRect;
-        _history.SetClippingRect(_canvasRect);
+        _history->SetClippingRect(_canvasRect);
     }
     else
     {
@@ -1827,7 +1885,7 @@ void DrawArea::_Home(bool toTop)
 }
 void DrawArea::_End()
 {
-    _topLeft = _history.BottomRightVisible(geometry().size() );
+    _topLeft = _history->BottomRightVisible(geometry().size() );
     _SetOrigin(_topLeft);
     _Redraw();
 }
@@ -1884,7 +1942,7 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
  *-------------------------------------------------------*/
 Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect, bool deleted)
 {
-    _pSprite = new Sprite(&_history);       // copies selected items into lists
+    _pSprite = new Sprite(_history);       // copies selected items into lists
     _pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
     _pSprite->topLeft = rect.topLeft();     // sprite top left
     _pSprite->dp = pos - rect.topLeft();    // cursor position rel. to sprite
@@ -1980,7 +2038,7 @@ void DrawArea::_PasteSprite()
 {
     Sprite* ps = _pSprite;
     _pSprite = nullptr;             // so the next paint event finds no sprite
-    _history.addPastedItems(ps->topLeft + _topLeft, ps);    // add at window relative position: top left = (0,0)
+    _history->AddPastedItems(ps->topLeft + _topLeft, ps);    // add at window relative position: top left = (0,0)
     QRect updateRect = ps->rect.translated(ps->topLeft);    // original rectangle
     update(updateRect);
     delete ps;

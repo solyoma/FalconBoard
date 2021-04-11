@@ -165,7 +165,7 @@
     <string>Open</string>
    </property>
    <property name="toolTip">
-    <string>Load saved data into memory</string>
+    <string>Load whiteboard data into the selected tab</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -183,7 +183,7 @@
     <string>Save...</string>
    </property>
    <property name="toolTip">
-    <string>Save</string>
+    <string>Save actual tab into file</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -196,6 +196,9 @@
    </property>
    <property name="text">
     <string>S&amp;ave As...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save actual tab into file with a new name</string>
    </property>
   </action>
   <action name="actionExit">
@@ -403,7 +406,7 @@
     <string>Save &amp;Visible</string>
    </property>
    <property name="toolTip">
-    <string>Save visible image (not the lines)</string>
+    <string>Save visible image (not the lines themselves)</string>
    </property>
   </action>
   <action name="actionClearBackgroundImage">
@@ -515,6 +518,9 @@
    <property name="text">
     <string>&amp;Export to Pdf ...</string>
    </property>
+   <property name="toolTip">
+    <string>Export actual TAB to Pdf</string>
+   </property>
   </action>
   <action name="actionCleaRecentList">
    <property name="text">
@@ -595,6 +601,14 @@
    </property>
    <property name="toolTip">
     <string>Select spacing of grid lines</string>
+   </property>
+  </action>
+  <action name="actionNewTab">
+   <property name="text">
+    <string>New Tab</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new, empty  document in a new TAB</string>
    </property>
   </action>
  </widget>

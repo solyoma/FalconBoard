@@ -10,7 +10,6 @@ static void SwapWH(QRect& r)
 	int w = r.width();
 	r.setWidth(r.height());
 	r.setHeight(w);
-
 }
 
 //-------------------------------------------------
@@ -846,34 +845,34 @@ HistoryScreenShotItem::~HistoryScreenShotItem()
 
 int  HistoryScreenShotItem::Undo() // hide
 {
-	(*pHist->pImages)[which].isVisible = false;
+	(pHist->_belowImages)[which].isVisible = false;
 	return 1;
 }
 
 int  HistoryScreenShotItem::Redo() // show
 {
-	(*pHist->pImages)[which].isVisible = true;
+	pHist->_belowImages[which].isVisible = true;
 	return 0;
 }
 
 int HistoryScreenShotItem::ZOrder() const
 {
-	return  (*pHist->pImages)[which].zOrder;
+	return  pHist->_belowImages[which].zOrder;
 }
 
 QPoint HistoryScreenShotItem::TopLeft() const
 {
-	return (*pHist->pImages)[which].topLeft;
+	return pHist->_belowImages[which].topLeft;
 }
 
 QRect HistoryScreenShotItem::Area() const
 {
-	return QRect((*pHist->pImages)[which].topLeft, (*pHist->pImages)[which].image.size());
+	return QRect(pHist->_belowImages[which].topLeft, pHist->_belowImages[which].image.size());
 }
 
 bool HistoryScreenShotItem::Hidden() const
 {
-	return !(*pHist->pImages)[which].isVisible;
+	return !pHist->_belowImages[which].isVisible;
 }
 
 bool HistoryScreenShotItem::Translatable() const
@@ -883,22 +882,22 @@ bool HistoryScreenShotItem::Translatable() const
 
 void HistoryScreenShotItem::SetVisibility(bool visible)
 {
-	(*pHist->pImages)[which].isVisible = visible;
+	pHist->_belowImages[which].isVisible = visible;
 }
 
 void HistoryScreenShotItem::Translate(QPoint p, int minY)
 {
-	(*pHist->pImages)[which].Translate(p, minY);
+	pHist->_belowImages[which].Translate(p, minY);
 }
 
 void HistoryScreenShotItem::Rotate(MyRotation rot, QRect encRect, float alpha)
 {
-	(*pHist->pImages)[which].Rotate(rot, encRect);
+	pHist->_belowImages[which].Rotate(rot, encRect);
 }
 
 ScreenShotImage* HistoryScreenShotItem::GetScreenShotImage() const
 {
-	return &(*pHist->pImages)[which];
+	return &pHist->_belowImages[which];
 }
 
 //---------------------------------------------------------
@@ -996,7 +995,7 @@ History::History(const History&& o) noexcept
 
 History::~History()
 {
-	clear();
+	Clear();
 }
 
 /*========================================================
@@ -1174,7 +1173,7 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 	if (p->type == heScreenShot)
 	{
 		HistoryScreenShotItem* phi = reinterpret_cast<HistoryScreenShotItem*>(p);
-		(*pImages)[phi->which].itemIndex = _items.size() - 1;		// always the last element
+		_belowImages[phi->which].itemIndex = _items.size() - 1;		// always the last element
 	}
 
 	_modified = true;
@@ -1187,7 +1186,7 @@ bool History::_IsSaveable(int i)
 	return _items[i]->IsSaveable();
 }
 
-void History::clear()		// does not clear lists of copied items and screen snippets
+void History::Clear()		// does not clear lists of copied items and screen snippets and _fileName
 {
 	for (auto i : _items)
 		delete i;
@@ -1197,16 +1196,18 @@ void History::clear()		// does not clear lists of copied items and screen snippe
 	_items.clear();
 	_redo.clear();
 	_yxOrder.clear();
-	pImages->Clear();
+	_belowImages.Clear();
 	_bands.Clear();
 
 	_lastZorder = DRAWABLE_ZORDER_BASE;
 	_readCount = 0;
 
+	_loadedName.clear();
+
 	_modified = false;
 }
 
-int History::size() const 
+int History::Size() const 
 { 
 	return _items.size(); 
 }
@@ -1273,7 +1274,7 @@ bool History::Save(QString name)
 				int index = -1;
 				if (phi->IsImage())
 				{
-					ofs << (*pImages)[((HistoryScreenShotItem*)phi)->which];
+					ofs << _belowImages[((HistoryScreenShotItem*)phi)->which];
 					continue;
 				}
 				else
@@ -1298,8 +1299,8 @@ bool History::Save(QString name)
 
 
 /*========================================================
- * TASK:	Loads saved file
- * PARAMS:	name - full path name of file to load
+ * TASK:	Loads saved file whose name is set into _fileName
+ * PARAMS:	'force' load it even when already loaded
  * GLOBALS:
  * RETURNS: -1: file does not exist
  *			< -1: file read error number of records read so 
@@ -1307,10 +1308,14 @@ bool History::Save(QString name)
  *			 0:	read error
  *			>0: count of items read
  * REMARKS: - beware of old version files
+ *			- when 'force' clears data first
  *-------------------------------------------------------*/
-int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-1 when read error
+int History::Load(bool force)  
 {
-	QFile f(name);
+	if (!force && _fileName == _loadedName)
+		return _readCount;
+
+	QFile f(_fileName);
 	f.open(QIODevice::ReadOnly);
 	if (!f.isOpen())
 		return -1;			// File not found
@@ -1324,7 +1329,7 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 	if ((version >> 24) != 'V')	// invalid/damaged  file or old version format
 		return 0;
 
-	clear();
+	Clear();
 
 	_inLoad = true;
 
@@ -1337,9 +1342,9 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 		if ((HistEvent(n) == heScreenShot))
 		{
 			ifs >> bimg;
-			pImages->push_back(bimg);
+			_belowImages.push_back(bimg);
 
-			int n = pImages->size() - 1;
+			int n = _belowImages.size() - 1;
 			HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, n);
 			_AddItem(phss);
 			continue;
@@ -1356,26 +1361,29 @@ int History::Load(QString name)  // returns _ites.size() when Ok, -items.size()-
 
 		++i;
 
-		HistoryItem* phi = addScribbleItem(di);
+		HistoryItem* phi = AddScribbleItem(di);
 
 	}
 	_modified = false;
 	_inLoad = false;
+
+	_loadedName = _fileName;
+
 	return  _readCount = _items.size();
 }
 
 //--------------------- Add Items ------------------------------------------
 
-HistoryItem* History::addClearRoll()
+HistoryItem* History::AddClearRoll()
 {
 	_SaveClippingRect();
 	_clpRect = QRect(0, 0, 0x70000000, 0x70000000);
-	HistoryItem* pi = addClearVisibleScreen();
+	HistoryItem* pi = AddClearVisibleScreen();
 	_RestoreClippingRect();
 	return pi;
 }
 
-HistoryItem* History::addClearVisibleScreen()
+HistoryItem* History::AddClearVisibleScreen()
 {
 	ItemIndexVector toBeDeleted;
 	_bands.ItemsVisibleForArea(_clpRect, toBeDeleted);
@@ -1384,16 +1392,16 @@ HistoryItem* History::addClearVisibleScreen()
 	return _AddItem(p);
 }
 
-HistoryItem* History::addClearDown()
+HistoryItem* History::AddClearDown()
 {
 	_SaveClippingRect();
 	_clpRect.setHeight(0x70000000);
-	HistoryItem *pi = addClearVisibleScreen();
+	HistoryItem *pi = AddClearVisibleScreen();
 	_RestoreClippingRect();
 	return pi;
 }
 
-HistoryItem* History::addScribbleItem(ScribbleItem& itm)			// may be after an undo, so
+HistoryItem* History::AddScribbleItem(ScribbleItem& itm)			// may be after an undo, so
 {				                                            // delete all scribbles after the last visible one (items[lastItem].scribbleIndex)
 	if (_inLoad)
 	{
@@ -1414,7 +1422,7 @@ HistoryItem* History::addScribbleItem(ScribbleItem& itm)			// may be after an un
  * RETURNS: pointer to delete item on _items
  * REMARKS: 
  *-------------------------------------------------------*/
-HistoryItem* History::addDeleteItems(Sprite* pSprite)
+HistoryItem* History::AddDeleteItems(Sprite* pSprite)
 {
 	ItemIndexVector* pList = pSprite ? &pSprite->nSelectedItemsList : &_nSelectedItemsList;
 
@@ -1441,11 +1449,11 @@ HistoryItem* History::addDeleteItems(Sprite* pSprite)
  *				the top and bottom markers even for a single
  *				pasted item
  *-------------------------------------------------------*/
-HistoryItem* History::addPastedItems(QPoint topLeft, Sprite* pSprite)			   // tricky
+HistoryItem* History::AddPastedItems(QPoint topLeft, Sprite* pSprite)			   // tricky
 {
-	ScribbleItemVector    *pCopiedItems = pSprite ? &pSprite->items : &_copiedItems;      
-	ScreenShotImageList	  *pCopiedImages = pSprite ? &pSprite->images : &_copiedImages;
-	QRect				  *pCopiedRect = pSprite ? &pSprite->rect : &_copiedRect;
+	ScribbleItemVector    *pCopiedItems = pSprite ? &pSprite->items		: _pCopiedItems;      
+	ScreenShotImageList	  *pCopiedImages = pSprite ? &pSprite->images	: _pCopiedImages;
+	QRect				  *pCopiedRect = pSprite ? &pSprite->rect		: _pCopiedRect;
 
 	if (!pCopiedItems->size() && !pCopiedImages->size())
 		return nullptr;          // do not add an empty list
@@ -1471,9 +1479,9 @@ HistoryItem* History::addPastedItems(QPoint topLeft, Sprite* pSprite)			   // tr
 	for (ScreenShotImage si : *pCopiedImages)
 	{
 		si.itemIndex = _items.size();	// new historyItem will be here in _items
-		int n = pImages->size();		// and here in pImages
-		pImages->push_back(si);
-		(*pImages)[n].Translate(topLeft, -1);
+		int n = _belowImages.size();		// and here in pImages
+		_belowImages.push_back(si);
+		_belowImages[n].Translate(topLeft, -1);
 		HistoryScreenShotItem* p = new HistoryScreenShotItem(this, n);
 		_AddItem(p);
 	}
@@ -1494,7 +1502,7 @@ HistoryItem* History::addPastedItems(QPoint topLeft, Sprite* pSprite)			   // tr
 	return _AddItem(pt);
 }
 
-HistoryItem* History::addRecolor(MyPenKind pk)
+HistoryItem* History::AddRecolor(MyPenKind pk)
 {
 	if (!_nSelectedItemsList.size())
 		return nullptr;          // do not add an empty list
@@ -1503,27 +1511,29 @@ HistoryItem* History::addRecolor(MyPenKind pk)
 	return _AddItem(p);
 }
 
-HistoryItem* History::addInsertVertSpace(int y, int heightInPixels)
+HistoryItem* History::AddInsertVertSpace(int y, int heightInPixels)
 {
 	HistoryInsertVertSpace* phi = new HistoryInsertVertSpace(this, y, heightInPixels);
 	return _AddItem(phi);
 }
 
-HistoryItem* History::addScreenShot(int index)
+HistoryItem* History::AddScreenShot(ScreenShotImage &bimg)
 {
+	int index = _belowImages.size();
+	_belowImages.push_back(bimg);
 	HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, index);
 
 	if (!_inLoad)
-		(*pImages)[index].zOrder = _nextImageZorder = index;
+		_belowImages[index].zOrder = _nextImageZorder = index;
 	else
-		(*pImages)[index].zOrder = _nextImageZorder++;
+		_belowImages[index].zOrder = _nextImageZorder++;
 
-	(*pImages)[index].itemIndex = _items.size();	// _AddItem increases this
+	_belowImages[index].itemIndex = _items.size();	// _AddItem increases this
 
 	return _AddItem(phss);
 }
 
-HistoryItem* History::addRotationItem(MyRotation rot)
+HistoryItem* History::AddRotationItem(MyRotation rot)
 {
 	if (!_nSelectedItemsList.size())
 		return nullptr;          // do not add an empty list
@@ -1531,7 +1541,7 @@ HistoryItem* History::addRotationItem(MyRotation rot)
 	return _AddItem(phss);
 }
 
-HistoryItem* History::addRemoveSpaceItem(QRect& rect)
+HistoryItem* History::AddRemoveSpaceItem(QRect& rect)
 {
 	bool bNothingAtRight = _nItemsRightOfList.isEmpty(),
 		bNothingAtLeftAndRight = bNothingAtRight && _nItemsLeftOfList.isEmpty(),
@@ -1713,7 +1723,7 @@ int History::SelectTopmostImageFor(QPoint& p)
 	if (i < 0)
 		return i;
 
-	ScreenShotImage& ssi = (*pImages)[i];
+	ScreenShotImage& ssi = _belowImages[i];
 	ItemIndex ind = { ssi.zOrder, ssi.itemIndex };
 	_nSelectedItemsList.push_back(ind);
 	_selectionRect = ssi.Area();
@@ -1735,8 +1745,8 @@ int History::SelectTopmostImageFor(QPoint& p)
  *-------------------------------------------------------*/
 void History::CopySelected(Sprite *sprite)
 {
-	ScribbleItemVector* pCopiedItems = sprite ? &sprite->items : &_copiedItems;
-	ScreenShotImageList *pCopiedImages = sprite ? &sprite->images : &_copiedImages;
+	ScribbleItemVector* pCopiedItems = sprite ? &sprite->items : _pCopiedItems;
+	ScreenShotImageList *pCopiedImages = sprite ? &sprite->images : _pCopiedImages;
 	if (sprite)
 		sprite->nSelectedItemsList = _nSelectedItemsList;
 
@@ -1750,7 +1760,7 @@ void History::CopySelected(Sprite *sprite)
 			const HistoryItem* item = _items[ix.index];
 			if (ix.zorder < DRAWABLE_ZORDER_BASE)	// then image
 			{
-				ScreenShotImage* pbmi = &(*pImages)[dynamic_cast<const HistoryScreenShotItem*>(item)->which];
+				ScreenShotImage* pbmi = &_belowImages[dynamic_cast<const HistoryScreenShotItem*>(item)->which];
 				pCopiedImages->push_back(*pbmi);
 				(*pCopiedImages)[pCopiedImages->size() - 1].Translate( -_selectionRect.topLeft(), -1);
 			}
@@ -1766,13 +1776,13 @@ void History::CopySelected(Sprite *sprite)
 				}
 			}
 		}
-		_copiedRect = _selectionRect.translated( - _selectionRect.topLeft());
+		*_pCopiedRect = _selectionRect.translated( - _selectionRect.topLeft());
 
 		std::sort(pCopiedItems->begin(), pCopiedItems->end(), [](ScribbleItem &pl, ScribbleItem &pr) {return pl.zOrder < pr.zOrder; });
 		std::sort(pCopiedImages->begin(), pCopiedImages->end(), [](ScreenShotImage &pl, ScreenShotImage &pr) {return pl.zOrder < pr.zOrder; });
 
 		if (sprite)
-			sprite->rect = _copiedRect;	// (0,0, width, height)
+			sprite->rect = *_pCopiedRect;	// (0,0, width, height)
 	}
 }
 
