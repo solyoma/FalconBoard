@@ -92,10 +92,11 @@ void DrawArea::ClearBackground()
 /*========================================================
  * TASK:    adds new history and set it to be the current one
  *          if a name is given loads the history as well
- * PARAMS:  indexAt - insert at this position. 
- *                  if > capacity then at the end
- *          name: name for new history. String may be empty
+ * PARAMS:  name: name for new history. String may be empty
  *                  in which case a new unsaved page is added
+ *          indexAt - insert at this position. 
+ *                  if > capacity then at the end
+ *          loadIt - if name is not empty also load data
  * GLOBALS: _history
  * RETURNS: index of added history or 
  *              -1 if capacity reached or
@@ -104,11 +105,11 @@ void DrawArea::ClearBackground()
  * REMARKS: - adding history is unsucessfull if it is full
  *          - capacity is always smaller than 100000!
  *-------------------------------------------------------*/
-int DrawArea::AddHistory(const QString name, int indexAt )
+int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
 {
-    if(_historyList.capacity() == _historyList.size())
+    if(_historyList.capacity() == HistoryListSize())
         return -1;
-    History* ph = new History();
+    DHistory* ph = new DHistory();
     ph->SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
     if (!name.isEmpty())
         ph->SetName(name);
@@ -116,27 +117,68 @@ int DrawArea::AddHistory(const QString name, int indexAt )
     if (indexAt > _historyList.capacity())
     {
         _historyList.push_back(ph);
-        indexAt = _historyList.size() - 1;
+        indexAt = HistoryListSize() - 1;
     }
     else
         _historyList.insert(_historyList.begin() + indexAt, ph);
 
+    bool b = _currentHistoryIndex == indexAt;
     _currentHistoryIndex = indexAt;
     _history = _historyList[indexAt];
-    if (!name.isEmpty())
+    if (!name.isEmpty() && loadIt)
         if (!_history->Load())
             return -2;
+    if (!b)
+        _Redraw(true);
     return indexAt;
 }
 
+bool DrawArea::SwitchToHistory(int index)   // use this before others
+{
+    if (index >= HistoryListSize())
+        return false;
+    if (index >= 0)
+    {
+        _historyList[_currentHistoryIndex]->topLeft = _topLeft;
+        _currentHistoryIndex = index;
+        _history = _historyList[index];
+    }
+    else
+        index = _currentHistoryIndex;
+    int res = _history->Load();   // only when it wasn't loaded before
+    _topLeft = _history->topLeft;
+    _SetCanvasRect();
+    _Redraw(true);
+    return res >= 0;
+}
+
+
+/*========================================================
+ * TASK:    removes the index-th history from the list
+ * PARAMS:  index - remove this
+ * GLOBALS:
+ * RETURNS: index of current history, -1 if no such exists
+ * REMARKS: - _history will only change if the removed
+ *              item is the current one
+ *-------------------------------------------------------*/
 int DrawArea::RemoveHistory(int index)
 {
-    if(index < 0 || index > _historyList.size())
+    if(index < 0 || index > HistoryListSize())
         return -1;
+
+    bool bRedraw = false;
     _historyList.erase(_historyList.begin() + index);
     if (_currentHistoryIndex >= index)
+    {
         --_currentHistoryIndex;
-    _history = _historyList[_currentHistoryIndex];
+        bRedraw = true;
+    }
+    if (HistoryListSize() == 0)    // last history cleared
+        _history = nullptr;
+    else 
+        _history = _historyList[_currentHistoryIndex];
+    if (bRedraw)
+        _Redraw();
     return _currentHistoryIndex;
 }
 
@@ -968,14 +1010,17 @@ void DrawArea::paintEvent(QPaintEvent* event)
     if (_bGridOn)
         _DrawGrid(painter);
 
-// screenshots layer: images below user drawn lines
-    QRect r = dirtyRect.translated(_topLeft);              // screen -> absolute coord
-    ScreenShotImage* pimg = _history->ScreenShotList().FirstVisible(r);   // pimg intersects r
-    while (pimg)                                            // image layer
+    if (_history)
     {
-        QRect intersectRect = pimg->AreaOnCanvas(_clippingRect);      // absolute
-        painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft) );
-        pimg = _history->ScreenShotList().NextVisible();
+        // screenshots layer: images below user drawn lines
+        QRect r = dirtyRect.translated(_topLeft);              // screen -> absolute coord
+        ScreenShotImage* pimg = _history->ScreenShotList().FirstVisible(r);   // pimg intersects r
+        while (pimg)                                            // image layer
+        {
+            QRect intersectRect = pimg->AreaOnCanvas(_clippingRect);      // absolute
+            painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft));
+            pimg = _history->ScreenShotList().NextVisible();
+        }
     }
 // _canvas layer: the scribbles
     painter.drawImage(dirtyRect, _canvas, dirtyRect);          // canvas layer
@@ -1000,7 +1045,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
     if (_limited && _topLeft.x() + w > _screenWidth)
         _ShiftOrigin(QPoint( (_topLeft.x() + w - _screenWidth),0));
 
-    _canvasRect = QRect(0, 0, w, h).translated(_topLeft);     // 0,0 relative rectangle
+    _SetCanvasRect();
     _clippingRect = _canvasRect;
 
     if (width() > _canvas.width() || height() > _canvas.height()) 
@@ -1008,7 +1053,8 @@ void DrawArea::resizeEvent(QResizeEvent* event)
         int newWidth =  qMax(w + 128,  _canvas.width());
         int newHeight = qMax(h + 128, _canvas.height());
         _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
-        _history->SetClippingRect(QRect(_topLeft, QSize(newWidth, newHeight)));
+        if(_history)
+            _history->SetClippingRect(QRect(_topLeft, QSize(newWidth, newHeight)));
 
         _Redraw();
     }
@@ -1541,9 +1587,15 @@ void DrawArea::ExportPdf(QString fileName, QString& directory)
 
 void DrawArea::_Redraw(bool clear)
 {
+
     if (!_mustRedrawArea)
     {
         _redrawPending = true;
+        return;
+    }
+    if (!_history)
+    {
+        _ClearCanvas();
         return;
     }
 
@@ -1661,6 +1713,11 @@ bool DrawArea::_ReplotScribbleItem(HistoryItem* phi)
     }
                                     
     return true;
+}
+
+void DrawArea::_SetCanvasRect()
+{
+    _clippingRect = _canvasRect = QRect(0, 0, width(), height()).translated(_topLeft);     // 0,0 relative rectangle
 }
 
 #ifndef _VIEWER

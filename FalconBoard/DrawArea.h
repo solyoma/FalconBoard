@@ -33,6 +33,20 @@ inline void SleepFor(std::chrono::milliseconds mseconds)
 }
 // ******************************************************
 
+class DHistory : public History
+{
+public:
+    QPoint topLeft;
+
+    DHistory() noexcept : History() {}
+    DHistory(const DHistory& o) : History(o), topLeft(o.topLeft) {}
+    DHistory(const DHistory&& o) noexcept : History(o), topLeft(o.topLeft) {};
+    ~DHistory() {}
+
+};
+
+using HistoryList = std::vector<DHistory*>;
+
 class DrawArea : public QWidget
 {       
     Q_OBJECT
@@ -52,29 +66,33 @@ public:
     void SetPrinterData(const MyPrinterData& prdata);
 
     void ClearBackground();
-
-    int AddHistory(const QString name = QString(), int indexAt = 1000000); // with name it loads it as well
+             //  **************** history handling **************
+    int AddHistory(const QString name = QString(), bool loadIt = true, int indexAt = 1000000); // with name it may load it as well
+    bool SwitchToHistory(int index);   // use this before others
     int RemoveHistory(int index);
     void MoveHistory(int to);   // from _currentHistoryIndex
 
-
-    bool SetCurrentHistory(int index)   // use this before others
+    QString HistoryName(QString default) const
     {
-        if (index < 0 || index >= _historyList.size())
-            return false;
-        _currentHistoryIndex = index;
-        _history = _historyList[index];
-        _Redraw(true);
-        return true;
+        return HistoryName(-1, default);
     }
 
-    QString HistoryName(int index = -1) const
+    QString HistoryName(int index = -1, QString default=QString()) const       // may be empty!
     {
         if (index < 0)
-            index = _currentHistoryIndex;
-        if (index < 0 || index >= _historyList.size())
+            return _history ? _history->Name() : default;
+            
+        if (index >= HistoryListSize())
             return QString();
-        return _historyList[index]->Name();
+        return _historyList[index]->Name(); // may be empty!
+    }
+
+    int SameFileAlreadyUsed(QString& name)
+    {
+        for (int i=0; i < _historyList.size(); ++i)
+            if (_historyList[i]->Name() == name)
+                return i;
+        return -1;
     }
 
     void SetHistoryName(QString fileName)
@@ -82,6 +100,7 @@ public:
         _history->SetName(fileName);
     }
 
+    //------------------------------------------------------
     int Load();         // into current history
     bool EnableRedraw(bool value);
 #ifndef _VIEWER
@@ -109,7 +128,7 @@ public:
 
     void AddScreenShotImage(QImage& image);
 
-    int HistoryListSize() const { return _historyList.size(); }
+    int HistoryListSize() const { return (int)_historyList.size(); }
 
 
 
@@ -127,11 +146,16 @@ public:
         if (!any)
             return _historyList[_currentHistoryIndex]->IsModified();
         // else 
-        for(int i = 0; i < _historyList.size(); ++i)
+        for(int i = 0; i < HistoryListSize(); ++i)
             if(_historyList[i]->IsModified())
                 return  i; 
         return 0;
     }
+    int IsModified(int index) const
+    {
+        return _historyList[index < 0 ? _currentHistoryIndex : index]->IsModified();
+    }
+
     MyPenKind PenKind() const { return _myPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
 
@@ -145,7 +169,7 @@ public:
     {
         if (index < 0)
             index = _currentHistoryIndex;
-        if (index <0 || index > _historyList.size())
+        if (index <0 || index > HistoryListSize())
             return;
         Print(HistoryName(index));
     }
@@ -202,8 +226,8 @@ private:
     void ChangePenColorByKeyboard(int key);
 #endif
 private:
-    History *_history;              // actual history (every scribble element with undo/redo)
-    std::vector<History*> _historyList;   // many histories are possible
+    DHistory *_history=nullptr;            // actual history (every scribble element with undo/redo)
+    HistoryList _historyList;   // many histories are possible
     int _currentHistoryIndex = -1;   // actual history index, -1: none
 
     bool _mustRedrawArea = true;    // else no redraw
@@ -289,7 +313,7 @@ private:
     bool _cursorSaved = false;
 
 
-    QRect   _canvasRect;
+    QRect   _canvasRect;    // 0,0 relative rectangle
     QRect   _clippingRect;  // only need to draw here
 
 #ifndef _VIEWER
@@ -317,6 +341,7 @@ private:
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
     bool _ReplotScribbleItem(HistoryItem* pscrbl); 
+    void _SetCanvasRect();
     void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);
     void _DrawPageGuides(QPainter& painter);

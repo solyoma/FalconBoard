@@ -525,6 +525,7 @@ private:
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
+    friend class DHistory;  // in DrawArea.h
     friend class Bands;
     friend class HistoryScreenShotItem;
 
@@ -595,7 +596,7 @@ public:
     History() noexcept { _bands.SetParam(this, -1);  }
     History(const History& o);
     History(const History&& o) noexcept;
-    ~History();
+    virtual ~History();
 
     void SetBandHeight(int h) { _bands.SetParam(this, h); }
     void SetClippingRect(const QRect& rect) { _clpRect = rect;  }
@@ -624,6 +625,7 @@ public:
     ScreenShotImageList &ScreenShotList() { return _belowImages; }
 
     void Clear();
+    void ClearName() { if (_items.isEmpty()) _fileName.clear(); }
     int Size() const;   // _items's size
     int CountOfVisible() const; // visible from yxOrder
     int CountOfScribble() const { return _yxOrder.size(); }

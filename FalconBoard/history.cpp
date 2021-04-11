@@ -1186,7 +1186,7 @@ bool History::_IsSaveable(int i)
 	return _items[i]->IsSaveable();
 }
 
-void History::Clear()		// does not clear lists of copied items and screen snippets and _fileName
+void History::Clear()		// does not clear lists of copied items and screen snippets
 {
 	for (auto i : _items)
 		delete i;

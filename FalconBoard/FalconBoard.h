@@ -23,6 +23,7 @@
 
 const int HISTORY_DEPTH = 20;
 const int MAX_NUMBER_OF_TABS = 10;
+const QString UNTITLED = QString("Untitled");
 constexpr int NUM_COLORS = 6; // black/white, red, green, blue, eraser and yellow/purple
 
 enum ScreenMode { smSystem, smDark, smBlack };
@@ -162,6 +163,7 @@ private:
 	QByteArray _fileFormat = "png";
 
 	DrawArea * _drawArea;
+	int		_actTabIndex=-1;	// needed for tab change in slot as QTabBar send switch after already switcghed
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
 	QTabBar  * _pTabs = nullptr;
@@ -204,7 +206,7 @@ private:
 	void _SaveLastDirectory(QString fileName);
 	bool IsOverwritable() const
 	{
-		bool bOverwritable = _drawArea->HistoryName().isEmpty() &&
+		bool bOverwritable = _drawArea->HistoryName(UNTITLED).isEmpty() &&
 			!_drawArea->IsModified();
 #ifndef _VIEWER
 // do not ask for save if the current data is not modified
@@ -212,12 +214,12 @@ private:
 		//	return;
 #else
 		//bool bOverwritable = (_drawArea->HistoryListSize() == 1) &&
-		//	_drawArea->HistoryName().isEmpty() &&
+		//	_drawArea->HistoryName(UNTITLED).isEmpty() &&
 		//	!_drawArea->IsModified();
 #endif
 		return bOverwritable;
 	}
-	bool _LoadData(int index);	// into the index-th history
+	bool _LoadData(int index = -1);	// into the index-th history (-1: current)
 	void _AddToRecentList(QString path);
 
 	void _CreateAndAddActions();
@@ -252,10 +254,11 @@ private:
 
 	QString _FileNameToTabText(QString& fname);
 
-	int _AddNewTab(QString fname = QString());
+	int _AddNewTab(QString fname = QString(), bool loadIt = true);
 	void _SetTabText(int index, QString& fname);
 	void _SetupMode(ScreenMode mode);
 	void _ClearRecentMenu();
 	void _PopulateRecentMenu();	// from recentList
+	void _SetWindowTitle(QString qs);
 };
 #endif
