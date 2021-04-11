@@ -1239,6 +1239,9 @@ bool History::Save(QString name)
 {
 	// only save visible items
 
+	if (name != _loadedName)
+		_loadedName =_fileName = name;
+
 	if (_bands.ItemCount() == 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));

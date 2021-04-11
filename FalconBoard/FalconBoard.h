@@ -22,8 +22,8 @@
 //class DrawArea;
 
 const int HISTORY_DEPTH = 20;
-const int MAX_NUMBER_OF_TABS = 10;
-const QString UNTITLED = QString("Untitled");
+const int MAX_NUMBER_OF_TABS = 30;
+const QString UNTITLED = QString("Untitled.mwb");
 constexpr int NUM_COLORS = 6; // black/white, red, green, blue, eraser and yellow/purple
 
 enum ScreenMode { smSystem, smDark, smBlack };
@@ -163,7 +163,7 @@ private:
 	QByteArray _fileFormat = "png";
 
 	DrawArea * _drawArea;
-	int		_actTabIndex=-1;	// needed for tab change in slot as QTabBar send switch after already switcghed
+	int		_nLastTab=-1;	// needed for tab change in slot as QTabBar send switch after already switcghed
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
 	QTabBar  * _pTabs = nullptr;
@@ -190,7 +190,6 @@ private:
 	ScreenMode _screenMode = smSystem;
 
 	QString _lastDir, _lastPDFDir;
-	int _nLastTab = 0;
 	int _nGridSpacing = 64;
 
 	void RestoreState();
