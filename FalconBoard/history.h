@@ -631,7 +631,6 @@ public:
     int CountOfScribble() const { return _yxOrder.size(); }
     int SelectedSize() const { return _nSelectedItemsList.size(); }
 
-    HistoryItem* operator[](int index);   // index: absolute index
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
     const qint32 MAGIC_VERSION = 0x56010000; // V 01.00.00
@@ -650,7 +649,8 @@ public:
     bool CanRedo() const { return _redo.size(); }
     void ClearUndo() { _readCount = _items.size(); }
 
-    HistoryItem* operator[](int index) const { return _items[index]; }                  // index: physical index in _items
+    HistoryItem* operator[](int index);   // index: absolute index
+    HistoryItem* operator[](int index) const { return _items[index]; }  // index: physical index in _items
     HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder - only scribbles
     {
         return _yitems(yindex);

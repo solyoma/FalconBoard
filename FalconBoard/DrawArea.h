@@ -130,31 +130,8 @@ public:
 
     int HistoryListSize() const { return (int)_historyList.size(); }
 
-
-
-    /*========================================================
-     * TASK:    check history if it is modified
-     * PARAMS:  any - if true check all histories until the 
-     *              first modified is found
-     * GLOBALS:
-     * RETURNS: any=false: current history is modified
-     *              true:  the index of the first modified history 
-     * REMARKS: - only need to set any to true when closing the app.
-     *-------------------------------------------------------*/
-    int IsModified(bool any = false) const
-    {
-        if (!any)
-            return _historyList[_currentHistoryIndex]->IsModified();
-        // else 
-        for(int i = 0; i < HistoryListSize(); ++i)
-            if(_historyList[i]->IsModified())
-                return  i; 
-        return 0;
-    }
-    int IsModified(int index) const
-    {
-        return _historyList[index < 0 ? _currentHistoryIndex : index]->IsModified();
-    }
+    int IsModified(bool any = false) const;
+    int IsModified(int index) const;
 
     MyPenKind PenKind() const { return _myPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
@@ -184,6 +161,7 @@ signals:
     void DecreaseBrushSize(int quantity);
     void RubberBandSelection(bool on);  // used when a selection is active
     void PenKindChange(MyPenKind pk);
+    void CloseTab(int tab);
 
 public slots:
     void NewData();

@@ -109,6 +109,10 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
 {
     if(_historyList.capacity() == HistoryListSize())
         return -1;
+
+    if (_history)
+        _history->topLeft = _topLeft;
+
     DHistory* ph = new DHistory();
     ph->SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
     if (!name.isEmpty())
@@ -128,6 +132,9 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
     if (!name.isEmpty() && loadIt)
         if (!_history->Load())
             return -2;
+
+    _topLeft = _history->topLeft;
+
     if (!b)
         _Redraw(true);
     return indexAt;
@@ -137,18 +144,27 @@ bool DrawArea::SwitchToHistory(int index)   // use this before others
 {
     if (index >= HistoryListSize())
         return false;
-    if (index >= 0)
+    if (index != _currentHistoryIndex)
     {
-        _historyList[_currentHistoryIndex]->topLeft = _topLeft;
-        _currentHistoryIndex = index;
-        _history = _historyList[index];
+        _RemoveRubberBand();
+        if (index >= 0)
+        {
+            _history->topLeft = _topLeft;
+            _currentHistoryIndex = index;
+            _history = _historyList[index];
+            _topLeft = _history->topLeft;
+        }
+        else
+            index = _currentHistoryIndex;
     }
-    else
-        index = _currentHistoryIndex;
     int res = _history->Load();   // only when it wasn't loaded before
-    _topLeft = _history->topLeft;
     _SetCanvasRect();
     _Redraw(true);
+#ifndef _VIEWER
+    _ShowCoordinates(QPoint());
+    emit CanUndo(_history->CanUndo());
+    emit CanRedo(_history->CanRedo());
+#endif
     return res >= 0;
 }
 
@@ -206,8 +222,8 @@ int DrawArea::Load()
         _topLeft = QPoint(0, 0);
         _Redraw();
     }
-    emit CanUndo(false);    // no undo or redo after open file
-    emit CanRedo(false);
+    emit CanUndo(_history->CanUndo());    // no undo or redo after open file
+    emit CanRedo(_history->CanRedo());
     update();
     return res;
 }
@@ -269,8 +285,34 @@ void DrawArea::AddScreenShotImage(QImage& image)
     if (y < 0) y = 0;
     bimg.topLeft = QPoint(x, y) + _topLeft;
     _history->AddScreenShot(bimg);
-    emit CanUndo(true);
-    emit CanRedo(false);
+    emit CanUndo(_history->CanUndo());
+    emit CanRedo(_history->CanRedo());
+}
+
+
+/*========================================================
+ * TASK:    check history if it is modified
+ * PARAMS:  any - if true check all histories until the
+ *              first modified is found
+ * GLOBALS:
+ * RETURNS: if any=false: current history index + 1 if modified or 0
+ *              true:  the index of the first modified history + 1
+ * REMARKS: - only need to set 'any' to true when closing the app.
+ *-------------------------------------------------------*/
+int DrawArea::IsModified(bool any) const
+{
+    if (!any)
+        return _historyList[_currentHistoryIndex]->IsModified() ? _currentHistoryIndex + 1 : 0;
+    // else 
+    for (int i = 0; i < HistoryListSize(); ++i)
+        if (_historyList[i]->IsModified())
+            return  i + 1;
+    return 0;
+}
+
+int DrawArea::IsModified(int index) const
+{
+    return _historyList[index < 0 ? _currentHistoryIndex : index]->IsModified();
 }
 
 #ifndef _VIEWER
@@ -422,11 +464,14 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				QPoint dr = _rubberRect.translated(_topLeft).topLeft(); 
 
                 HistoryItem* phi = _history->AddPastedItems(dr);
-                if(phi)
-				    _ReplotScribbleItem(phi);   // only user lines, images are plotted only in paintEvent
+                if (phi)
+                    if (!phi->IsImage())
+                        _ReplotScribbleItem(phi);   // only user lines, images are plotted only in paintEvent
+                    else
+                        update();
 
-                emit CanUndo(true);
-                emit CanRedo(false);
+                emit CanUndo(_history->CanUndo());
+                emit CanRedo(_history->CanRedo());
 			}
             else if (bRecolor)
             {
@@ -449,8 +494,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 {
                     _history->AddRotationItem(rot);
                     _Redraw();
-					emit CanUndo(true);
-					emit CanRedo(false);
+					emit CanUndo(_history->CanUndo());
+					emit CanRedo(_history->CanRedo());
                 }
             }
 
@@ -487,8 +532,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 HistoryItem *pscrbl =_history->AddScribbleItem(_lastScribbleItem);
                 _history->AddToSelection();
 
-                emit CanUndo(true);
-                emit CanRedo(false);
+                emit CanUndo(_history->CanUndo());
+                emit CanRedo(_history->CanRedo());
             }
             else if (key == Qt::Key_C && !bCopy)   // draw ellipse
             {
@@ -521,8 +566,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                     pscrbl->GetScribble()->bndRect.adjust(-_actPenWidth/2.0, -_actPenWidth / 2.0,_actPenWidth / 2.0, _actPenWidth / 2.0);
                     _history->AddToSelection();
 
-                    emit CanUndo(true);
-                    emit CanRedo(false);
+                    emit CanUndo(_history->CanUndo());
+                    emit CanRedo(_history->CanRedo());
                 }
             }
             else if (bRemove)
@@ -557,6 +602,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit IncreaseBrushSize(1);
             else if(key == Qt::Key_BracketLeft )
                 emit DecreaseBrushSize(1);
+            else if(key == Qt::Key_F4 && _mods == Qt::Key_Control)
+                emit CloseTab(_currentHistoryIndex);
 #ifndef _VIEWER
             else if (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5)
                 ChangePenColorByKeyboard(key);
@@ -889,8 +936,8 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 //DEBUG_LOG(QString("Mouse release #2: _lastPoint: (%1,%2)\n__lastDrwanItem point size:%3").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(_lastScribbleItem.points.size()))
                 _history->AddScribbleItem(_lastScribbleItem);
 
-                emit CanUndo(true);
-                emit CanRedo(false);
+                emit CanUndo(_history->CanUndo());
+                emit CanRedo(_history->CanRedo());
 #endif
             }
             else
@@ -1410,8 +1457,8 @@ void DrawArea::ClearHistory()
 {
     _history->ClearUndo();
 
-    emit CanUndo(false);
-    emit CanRedo(false);
+    emit CanUndo(_history->CanUndo());
+    emit CanRedo(_history->CanRedo());
 }
 
 /*========================================================
@@ -1734,7 +1781,7 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 
         _Redraw();
         _clippingRect = _canvasRect;
-        emit CanRedo(true);
+        emit CanRedo(_history->CanRedo());
     }
     emit CanUndo(_history->CanUndo());
 }

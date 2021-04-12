@@ -388,6 +388,7 @@ void FalconBoard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::TextToToolbar, this, &FalconBoard::SlotForLabel);
     connect(_drawArea, &DrawArea::IncreaseBrushSize, this, &FalconBoard::SlotIncreaseBrushSize);
     connect(_drawArea, &DrawArea::DecreaseBrushSize, this, &FalconBoard::SlotDecreaseBrushSize);
+    connect(_drawArea, &DrawArea::CloseTab, this, &FalconBoard::SlotForTabCloseRequested);
 
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
 
@@ -431,10 +432,12 @@ bool FalconBoard::_SaveIfYouWant(bool mustAsk, bool any)
     int ci = _nLastTab;
     int n;
 
-    while ((n =_drawArea->IsModified(any)) )    // any=false: current only
+
+    while ((n =_drawArea->IsModified(any)) )    // any=false: check current only
     {
+        --n;    // returned : index of modified + 1
         _drawArea->SwitchToHistory(n);
-        const QString & saveName = _drawArea->HistoryName(UNTITLED);
+        const QString & saveName = _drawArea->HistoryName();
         QMessageBox::StandardButton ret;
         if (!ui.actionSaveData->isChecked() || mustAsk || saveName.isEmpty())
         {
@@ -456,6 +459,9 @@ bool FalconBoard::_SaveIfYouWant(bool mustAsk, bool any)
         }
         else if (ret == QMessageBox::Cancel)
             return false;
+        _drawArea->RemoveHistory(n);
+        if (!any)
+            break;
     }
     _nLastTab = ci;
     _drawArea->SwitchToHistory(ci);
