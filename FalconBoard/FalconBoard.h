@@ -225,7 +225,7 @@ private:
 
 #ifndef _VIEWER
 	void _AddSaveVisibleAsMenu();
-	bool _SaveIfYouWant(bool mustAsk = false, bool any=false);
+	bool _SaveIfYouWant(int index, bool mustAsk = false, bool any=false);
 	bool _SaveFile(const QString name);
 	bool _SaveBackgroundImage();
 		 

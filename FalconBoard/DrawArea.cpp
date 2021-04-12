@@ -140,7 +140,18 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
     return indexAt;
 }
 
-bool DrawArea::SwitchToHistory(int index)   // use this before others
+
+/*========================================================
+ * TASK: set a new history into _currentHistoryIndex and 
+ *          _history
+ * PARAMS: index: switch to here, if < 0 
+ *         redraw: dredraw history after the switch
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - redraw is false when e.g. not the active 
+ *              tab is closed in FalconBoard
+ *-------------------------------------------------------*/
+bool DrawArea::SwitchToHistory(int index, bool redraw)   // use this before others
 {
     if (index >= HistoryListSize())
         return false;
@@ -151,7 +162,8 @@ bool DrawArea::SwitchToHistory(int index)   // use this before others
 #endif
         if (index >= 0)
         {
-            _history->topLeft = _topLeft;
+            if(_history)    // there is a history
+                _history->topLeft = _topLeft;
             _currentHistoryIndex = index;
             _history = _historyList[index];
             _topLeft = _history->topLeft;
@@ -159,14 +171,18 @@ bool DrawArea::SwitchToHistory(int index)   // use this before others
         else
             index = _currentHistoryIndex;
     }
-    int res = _history->Load();   // only when it wasn't loaded before
-    _SetCanvasRect();
-    _Redraw(true);
+    int res = 1;
+    if (redraw)
+    {
+        res = _history->Load();   // only when it wasn't loaded before
+        _SetCanvasRect();
+        _Redraw(true);
 #ifndef _VIEWER
-    _ShowCoordinates(QPoint());
-    emit CanUndo(_history->CanUndo());
-    emit CanRedo(_history->CanRedo());
+        _ShowCoordinates(QPoint());
+        emit CanUndo(_history->CanUndo());
+        emit CanRedo(_history->CanRedo());
 #endif
+    }
     return res >= 0;
 }
 
@@ -175,29 +191,25 @@ bool DrawArea::SwitchToHistory(int index)   // use this before others
  * TASK:    removes the index-th history from the list
  * PARAMS:  index - remove this
  * GLOBALS:
- * RETURNS: index of current history, -1 if no such exists
- * REMARKS: - _history will only change if the removed
- *              item is the current one
+ * RETURNS: history size
+ * REMARKS: - synchronize with TABs in FalconBoard
+ *          - after called _currentHistoryIndex is invalid
  *-------------------------------------------------------*/
 int DrawArea::RemoveHistory(int index)
 {
     if(index < 0 || index > HistoryListSize())
         return -1;
 
-    bool bRedraw = false;
+    delete _historyList[index];
     _historyList.erase(_historyList.begin() + index);
-    if (_currentHistoryIndex >= index)
+    if (index == _currentHistoryIndex)
     {
-        --_currentHistoryIndex;
-        bRedraw = true;
-    }
-    if (HistoryListSize() == 0)    // last history cleared
+        _currentHistoryIndex = -1;
         _history = nullptr;
-    else 
-        _history = _historyList[_currentHistoryIndex];
-    if (bRedraw)
-        _Redraw();
-    return _currentHistoryIndex;
+    }
+    else if (index < _currentHistoryIndex)
+        --_currentHistoryIndex;
+    return HistoryListSize();;
 }
 
 void DrawArea::MoveHistory(int to)

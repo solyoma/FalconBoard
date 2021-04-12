@@ -404,7 +404,7 @@ int FalconBoard::_AddNewTab(QString fname, bool loadIt) // and new history recor
     if (_pTabs->count() == MAX_NUMBER_OF_TABS)
         return -1;
 
-    int n = _pTabs->addTab(fname.isEmpty() ? UNTITLED : _FileNameToTabText(fname));
+    int n = _pTabs->addTab(_FileNameToTabText( QString(fname.isEmpty() ? UNTITLED : fname)) );
     if (n > 0)  // else tab switch is called 
     {
         _pTabs->setCurrentIndex(n);
@@ -427,16 +427,33 @@ void FalconBoard::_AddSaveVisibleAsMenu()
     ui.menu_File->insertSeparator(ui.actionPageSetup);
 }
 
-bool FalconBoard::_SaveIfYouWant(bool mustAsk, bool any)
+
+/*========================================================
+ * TASK:    if the actual or any history changed and 
+ *          it/they need to be saved then asks for 
+ *          a save confirmation
+ * PARAMS:  index: save this history
+ *          mustAsk: do not autosave it, always ask
+ *          any:    should only check the index-th history
+ *               or all histories
+ * GLOBALS:
+ * RETURNS: true: if no save was required or was saved
+ *          false: save is cancelled
+ * REMARKS: - 'any' must be set to true when the program
+ *              is about to close
+ *          - not only the active history can be saved
+ *-------------------------------------------------------*/
+bool FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool any)
 {
-    int ci = _nLastTab;
+//    int ci = _nLastTab; // actual tab
     int n;
 
+    _drawArea->SwitchToHistory(index, false);   
 
     while ((n =_drawArea->IsModified(any)) )    // any=false: check current only
     {
         --n;    // returned : index of modified + 1
-        _drawArea->SwitchToHistory(n);
+        _drawArea->SwitchToHistory(n, false);
         const QString & saveName = _drawArea->HistoryName();
         QMessageBox::StandardButton ret;
         if (!ui.actionSaveData->isChecked() || mustAsk || saveName.isEmpty())
@@ -459,12 +476,15 @@ bool FalconBoard::_SaveIfYouWant(bool mustAsk, bool any)
         }
         else if (ret == QMessageBox::Cancel)
             return false;
-        _drawArea->RemoveHistory(n);
         if (!any)
             break;
     }
-    _nLastTab = ci;
-    _drawArea->SwitchToHistory(ci);
+
+    //if (ci >= _drawArea->HistoryListSize())
+    //    ci = _drawArea->HistoryListSize() - 1;
+    //_nLastTab = ci;
+    //_drawArea->SwitchToHistory(ci, false);
+    _drawArea->SwitchToHistory(_nLastTab, false);
     return true;
 }
 
@@ -595,7 +615,7 @@ QString FalconBoard::_FileNameToTabText(QString& fname)
         j = fname.lastIndexOf(".mwb");
     if (j < 0)
         j = fname.length();
-    return fname.mid(i + 1, j - i);
+    return fname.mid(i + 1, j - i - 1);
 }
 void FalconBoard::_SetTabText(int index, QString& fname)
 {
@@ -836,7 +856,7 @@ void FalconBoard::on_actionNew_triggered()
 bool FalconBoard::_LoadData(int index)
 {
     _drawArea->EnableRedraw(false);
-    bool res = _drawArea->SwitchToHistory(index); // and loads into current history
+    bool res = _drawArea->SwitchToHistory(index, true); // and loads into current history
 
     if (res)     // loaded
     {
@@ -919,7 +939,7 @@ void FalconBoard::_sa_actionRecentFile_triggered(int which)
         // and no file has been opened yet
 
     bool bOverwritable = IsOverwritable();
-    QString& fileName = _recentList[which];
+    QString fileName = _recentList[which];     // can't be reference: recent list changes in loaddata
     _SaveLastDirectory(fileName);
     bool res = true;
     if (bOverwritable)  // then load into current tab 
@@ -1094,10 +1114,10 @@ void FalconBoard::on_actionBlackMode_triggered()
 
 void FalconBoard::SlotForTabChanged(int index)
 {
-    if (index == _nLastTab)
+    if (index == _nLastTab || !_pTabs->count())
         return;
 
-    _drawArea->SwitchToHistory(index);
+    _drawArea->SwitchToHistory(index, true);
     _nLastTab = index;
     _SetWindowTitle(_drawArea->HistoryName());
 }
@@ -1105,14 +1125,16 @@ void FalconBoard::SlotForTabChanged(int index)
 void FalconBoard::SlotForTabCloseRequested(int index)
 {
 #ifndef _VIEWER
-    _SaveIfYouWant(true);
+    _SaveIfYouWant(index, true);
 #endif
+    int cnt = _drawArea->RemoveHistory(index);
     _pTabs->removeTab(index);
-    if (_drawArea->RemoveHistory(index) < 0)    // last history removed
-        _AddNewTab();                           // adds history too
-    
-    QString qs = _drawArea->HistoryName();
-    _SetWindowTitle(qs);
+    if (!cnt)
+        _AddNewTab();
+    // if the deleted tab was the actual one or
+    //  one above then SlotForTabChanged will load 
+    // the new data, else data has not been changed
+    // and nothing to do
 }
 
 void FalconBoard::SlotForTabMoved(int from, int to)

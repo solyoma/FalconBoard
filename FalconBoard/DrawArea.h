@@ -68,7 +68,7 @@ public:
     void ClearBackground();
              //  **************** history handling **************
     int AddHistory(const QString name = QString(), bool loadIt = true, int indexAt = 1000000); // with name it may load it as well
-    bool SwitchToHistory(int index);   // use this before others
+    bool SwitchToHistory(int index, bool redraw);   // use this before others
     int RemoveHistory(int index);
     void MoveHistory(int to);   // from _currentHistoryIndex
 
@@ -206,7 +206,8 @@ private:
 private:
     DHistory *_history=nullptr;            // actual history (every scribble element with undo/redo)
     HistoryList _historyList;   // many histories are possible
-    int _currentHistoryIndex = -1;   // actual history index, -1: none
+    int _currentHistoryIndex = -1,  // actual history index, -1: none
+        _previousHistoryIndex = -1;  // this was the current index before something happened
 
     bool _mustRedrawArea = true;    // else no redraw
     bool _redrawPending = false;    // redraw requested when it was not enabled
