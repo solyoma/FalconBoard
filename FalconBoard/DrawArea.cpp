@@ -146,7 +146,9 @@ bool DrawArea::SwitchToHistory(int index)   // use this before others
         return false;
     if (index != _currentHistoryIndex)
     {
+#ifndef _VIEWER
         _RemoveRubberBand();
+#endif
         if (index >= 0)
         {
             _history->topLeft = _topLeft;
