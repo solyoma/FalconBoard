@@ -163,11 +163,13 @@ private:
 	QByteArray _fileFormat = "png";
 
 	DrawArea * _drawArea;
-	int		_nLastTab=-1;	// needed for tab change in slot as QTabBar send switch after already switcghed
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
 	QTabBar  * _pTabs = nullptr;
 	QLabel   * _plblMsg = nullptr;		// put on status bar
+
+	int		_nLastTab=-1;	// needed for tab change in slot as QTabBar send switch after already switched
+	int _dontCareForTabChange = false; //true: no history switch and invalidate current history
 
 	QList<QAction*> _saveAsActs;
 
@@ -180,6 +182,9 @@ private:
 	Snipper* plblScreen = nullptr;		// screen grab label
 
 	QString _sBackgroundColor = "#FFFFFF",
+			_sBackgroundHighLigtColor="#D8EAF9",
+			_sSelectedBackgroundColor="#FFF",
+			_sUnselectedBackgroundColor="#d0d0d0",
 			_sTextColor = "#000000",
 			_sDisabledColor = "#ccccc",
 			_sToolBarColor = "#cccccc";

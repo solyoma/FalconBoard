@@ -145,14 +145,22 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
  * TASK: set a new history into _currentHistoryIndex and 
  *          _history
  * PARAMS: index: switch to here, if < 0 
- *         redraw: dredraw history after the switch
+ *              use curent history
+ *         redraw: redraw history after the switch
+ *         invalidate: set invalid current history?
+ *          used only in ShowEvent
  * GLOBALS:
  * RETURNS:
  * REMARKS: - redraw is false when e.g. not the active 
  *              tab is closed in FalconBoard
  *-------------------------------------------------------*/
-bool DrawArea::SwitchToHistory(int index, bool redraw)   // use this before others
+bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use this before others
 {
+    if (invalidate)
+    {
+        _currentHistoryIndex = -1;
+        return true;
+    }
     if (index >= HistoryListSize())
         return false;
     if (index != _currentHistoryIndex)
@@ -160,7 +168,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw)   // use this before othe
 #ifndef _VIEWER
         _RemoveRubberBand();
 #endif
-        if (index >= 0)
+        if (index >= 0)     // store last viewport into previously shown history
         {
             if(_history)    // there is a history
                 _history->topLeft = _topLeft;
@@ -212,11 +220,22 @@ int DrawArea::RemoveHistory(int index)
     return HistoryListSize();;
 }
 
-void DrawArea::MoveHistory(int to)
+
+/*========================================================
+ * TASK:    moves history index' from' to 'to', while
+ *          the 'to'th history is moved to 'from'
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - _history will not change
+ *          - _to == _currentHistoryIndex
+ *-------------------------------------------------------*/
+void DrawArea::MoveHistory(int from, int to)
 {
-    _historyList.erase(_historyList.begin() + _currentHistoryIndex);
-    _currentHistoryIndex = to;
-    _historyList.insert(_historyList.begin() + to, _history);
+    DHistory* pdh = _historyList[to];
+    _historyList[to] = _historyList[from];
+    _historyList[from] = pdh;
+    _currentHistoryIndex = from;
 }
 
 int DrawArea::Load()
@@ -1625,7 +1644,7 @@ void DrawArea::Print(QString name, QString* pdir)
 	{
 		_prdata.topLeftActPage = _topLeft;
 		_prdata.backgroundColor = _backgroundColor;
-		_prdata.gridColor = _gridColor;
+		_prdata.gridColor = (_prdata.flags & pfWhiteBackground) ? "#d0d0d0" : _gridColor;
 		_prdata.pBackgroundImage = &_background;
 		_prdata.nGridSpacingX = _nGridSpacingX;
 		_prdata.nGridSpacingY = _nGridSpacingY;

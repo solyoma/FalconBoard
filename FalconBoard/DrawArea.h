@@ -68,9 +68,9 @@ public:
     void ClearBackground();
              //  **************** history handling **************
     int AddHistory(const QString name = QString(), bool loadIt = true, int indexAt = 1000000); // with name it may load it as well
-    bool SwitchToHistory(int index, bool redraw);   // use this before others
+    bool SwitchToHistory(int index, bool redraw, bool invalidate=false);   // use this before others
     int RemoveHistory(int index);
-    void MoveHistory(int to);   // from _currentHistoryIndex
+    void MoveHistory(int from, int to);   // from _currentHistoryIndex
 
     QString HistoryName(QString default) const
     {

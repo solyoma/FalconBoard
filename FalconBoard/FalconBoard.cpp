@@ -141,7 +141,6 @@ void FalconBoard::RestoreState()
     if (!_lastPDFDir.isEmpty() && _lastPDFDir[_lastPDFDir.size() - 1] != '/')
         _lastPDFDir += "/";
             // tabs
-    _nLastTab = s.value("lastTab", 0).toInt();
 
     s.beginGroup("tabs");
     int nFilesToRestore = s.value("tabSize", 0).toInt();
@@ -154,11 +153,12 @@ void FalconBoard::RestoreState()
             qs = s.value(qs, QString()).toString();
             if (!qs.isEmpty())
             {
-                _AddNewTab(qs, false);
+                _AddNewTab(qs, false);  // do not load data yet
                 if (!b)
                     b = true, setWindowTitle(sWindowTitle + QString(" - %1").arg(qs));
             }
         }
+        _nLastTab = s.value("lastTab", 0).toInt();
     }
     else        // nothing to restore: create first tab
     {
@@ -369,7 +369,7 @@ void FalconBoard::_CreateAndAddActions()
     _pTabs = new QTabBar();
     ui.mainToolBar->addWidget(_pTabs);
     _pTabs->setMovable(true);
-    _pTabs->setVisible(false);
+    _pTabs->setAutoHide(true);
     _pTabs->setTabsClosable(true);
    // status bar
     _plblMsg = new QLabel();
@@ -406,14 +406,12 @@ int FalconBoard::_AddNewTab(QString fname, bool loadIt) // and new history recor
 
     int n = _pTabs->addTab(_FileNameToTabText( QString(fname.isEmpty() ? UNTITLED : fname)) );
     if (n > 0)  // else tab switch is called 
-    {
         _pTabs->setCurrentIndex(n);
-        _nLastTab = n;           // need in switch
-    }
+
     _drawArea->AddHistory(fname, loadIt);
     // DEBUG
     int m = _pTabs->count();
-    _pTabs->setVisible(_pTabs->count() > 1);
+//    _pTabs->setAutoHide(_pTabs->count() > 1);
     return n;
 }
 
@@ -668,6 +666,9 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.actionSave   ->setIcon(_iconSave   );
             ui.action_Screenshot->setIcon(_iconScreenShot);
             _sBackgroundColor = "#FFFFFF";
+            _sBackgroundHighLigtColor = "#D8EAF9";
+            _sSelectedBackgroundColor = "#007acc",
+            _sUnselectedBackgroundColor = "#d0d0d0",
             _sTextColor = "#000000";
             _sDisabledColor = "#AAAAAA";
             _sGridColor = "#d0d0d0";
@@ -686,6 +687,9 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, QColor(Qt::white)));
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#282828";
+            _sSelectedBackgroundColor = "#007acc";
+            _sBackgroundHighLigtColor = "#D8EAF9";
+            _sUnselectedBackgroundColor = "#202020";
             _sTextColor = "#E1E1E1";
             _sDisabledColor = "#AAAAAA";
             _sGridColor = "#202020";
@@ -705,11 +709,14 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, QColor(Qt::white)));
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#000000";
+            _sBackgroundHighLigtColor = "#D8EAF9";
+            _sSelectedBackgroundColor = "#007acc";
+            _sUnselectedBackgroundColor = "#101010";
             _sTextColor = "#CCCCCC";
             _sDisabledColor = "#888888";
             _sGridColor = "#202020";
             _sPageGuideColor = "#2e2204";
-            _sToolBarColor = "#181818";
+            _sToolBarColor = "#101010";
             break;
     }
     if(_eraserOn)
@@ -736,8 +743,17 @@ void FalconBoard::_SetupMode(ScreenMode mode)
              "QMenu::item:disabled {\n"
              "  color:"+ _sDisabledColor + ";\n"
              "}\n"
-             "QStatusBar, QToolBar {\n background-color:" + _sToolBarColor + ";\n"
+             "QStatusBar, QToolBar {\n"
+             " background-color:" + _sToolBarColor + ";\n"
              "}\n"
+             "QTabBar::tab {\n"
+             " color:" + _sTextColor + ";\n"
+             " background-color:"+ _sUnselectedBackgroundColor+";\n"
+             " selection-background-color:"+ _sSelectedBackgroundColor+";\n"
+             "}\n"
+             "QTabBar::tab:selected {\n background-color:" + _sSelectedBackgroundColor + ";\n"
+             "}\n"
+
         ;
 
     setStyleSheet(ss);
@@ -820,10 +836,23 @@ void FalconBoard::showEvent(QShowEvent* event)
         _firstShown = true;
         if (_pTabs->count())
         {
-            _LoadData(_nLastTab);   // only load first tab
+            int n = _nLastTab;      // must switch to this tab
+            if (_pTabs->count() == 1)
+            {
+                _drawArea->SwitchToHistory(0, true);
+            }
+            else if(_nLastTab == _pTabs->currentIndex())
+            {
+                _dontCareForTabChange = true;
+                _pTabs->setCurrentIndex(n ? 0 : 1); // move selection so next selection will work
+
+            }
+            _pTabs->setCurrentIndex(n);     // select last used tab and load data
+            _drawArea->EnableRedraw(true);
+//            _LoadData(_nLastTab);   // only load first tab
     // DEBUG
-            int n = _pTabs->count();
-            _pTabs->setVisible(_pTabs->count() > 1);
+            n = _pTabs->count();
+//            _pTabs->setAutohide(true);
         }
         else
             _drawArea->EnableRedraw(true);
@@ -907,10 +936,13 @@ void FalconBoard::on_actionLoad_triggered()
                                                     tr("Load Data"), 
                                                     _lastDir, // QDir::currentPath(),
                                                     tr("FalconBoard files (*.mwb);;All files (*)"));
+    if (fileName.isEmpty())     // cancelled
+        return;
+
     _SaveLastDirectory(fileName);
     int n = _pTabs->currentIndex();
     if (!IsOverwritable())
-        n = _AddNewTab();   // "untitled" + sets current tab and adds history item and set it to current too
+        n = _AddNewTab(fileName,true);   // sets current tab and adds history item and set it to current too
                             
     if (n>= 0 && !_LoadData(-1))
         fileName.clear();   // load error
@@ -1112,14 +1144,23 @@ void FalconBoard::on_actionBlackMode_triggered()
     _SetupMode(smBlack);
 }
 
-void FalconBoard::SlotForTabChanged(int index)
+void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
 {
-    if (index == _nLastTab || !_pTabs->count())
+    // this function is called only when the _pTabs->currentTab() changes
+    if (!_pTabs->count())
         return;
 
-    _drawArea->SwitchToHistory(index, true);
+    if (_dontCareForTabChange) // so it won't reflect in history change or loading data
+    {
+        _drawArea->SwitchToHistory(index, true, true); // invalidate 
+        _dontCareForTabChange = false;      // care next time
+    }
+    else
+    {
+        _drawArea->SwitchToHistory(index, true);
+        _SetWindowTitle(_drawArea->HistoryName());
+    }
     _nLastTab = index;
-    _SetWindowTitle(_drawArea->HistoryName());
 }
 
 void FalconBoard::SlotForTabCloseRequested(int index)
@@ -1139,7 +1180,7 @@ void FalconBoard::SlotForTabCloseRequested(int index)
 
 void FalconBoard::SlotForTabMoved(int from, int to)
 {
-    _drawArea->MoveHistory(to); // should I set the currenthistoryindex?
+    _drawArea->MoveHistory(from, to); 
 }
 
 void FalconBoard::on_actionShowGrid_triggered()

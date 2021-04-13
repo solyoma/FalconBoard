@@ -34,7 +34,7 @@ struct MyPrinterData
 
     // colors and others: set these before print in drawarea
     QColor  backgroundColor = "#FFFFFF",
-            gridColor       = "#FFFFFF";
+            gridColor       = "#D0D0D0";
     QImage* pBackgroundImage;
     int nGridSpacingX       = 64,
         nGridSpacingY       = 64;
