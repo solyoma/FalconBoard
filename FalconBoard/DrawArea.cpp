@@ -2174,5 +2174,8 @@ void DrawArea::_PasteSprite()
     QRect updateRect = ps->rect.translated(ps->topLeft);    // original rectangle
     update(updateRect);
     delete ps;
+
+    emit CanUndo(_history->CanUndo());
+    emit CanRedo(_history->CanRedo());
 }
 #endif
