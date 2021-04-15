@@ -484,14 +484,14 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _RemoveRubberBand();
                 _Redraw();
             }
-            else if (bDelete && !bCollected)     // delete on empty area
+            else if (bDelete && !bCollected)     // delete empty area
             {
                 if (_history->AddRemoveSpaceItem(_rubberRect))     // there was something (not delete below the last item)
                 {
+                    _RemoveRubberBand();
                     _Redraw();
                 }
             }
-
 			else if (bPaste)
 			{           // _history's copied item list is valid, each item is canvas relative
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
@@ -503,9 +503,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                         _ReplotScribbleItem(phi);   // only user lines, images are plotted only in paintEvent
                     else
                         update();
-
-                emit CanUndo(_history->CanUndo());
-                emit CanRedo(_history->CanRedo());
 			}
             else if (bRecolor)
             {
@@ -528,11 +525,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 {
                     _history->AddRotationItem(rot);
                     _Redraw();
-					emit CanUndo(_history->CanUndo());
-					emit CanRedo(_history->CanRedo());
                 }
             }
-
             else if (key == Qt::Key_R)    // draw rectangle with margin or w,o, margin with Shift
             {
                 _actPenWidth = _penWidth;
@@ -565,9 +559,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _rubberBand->setGeometry( _rubberRect );
                 HistoryItem *pscrbl =_history->AddScribbleItem(_lastScribbleItem);
                 _history->AddToSelection();
-
-                emit CanUndo(_history->CanUndo());
-                emit CanRedo(_history->CanRedo());
             }
             else if (key == Qt::Key_C && !bCopy)   // draw ellipse
             {
@@ -599,9 +590,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                     HistoryItem *pscrbl =_history->AddScribbleItem(_lastScribbleItem);
                     pscrbl->GetScribble()->bndRect.adjust(-_actPenWidth/2.0, -_actPenWidth / 2.0,_actPenWidth / 2.0, _actPenWidth / 2.0);
                     _history->AddToSelection();
-
-                    emit CanUndo(_history->CanUndo());
-                    emit CanRedo(_history->CanRedo());
                 }
             }
             else if (bRemove)
@@ -645,6 +633,10 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 ChangePenColorByKeyboard(key);
 #endif
 		}
+#ifndef _VIEWER
+        emit CanUndo(_history->CanUndo());
+        emit CanRedo(_history->CanRedo());
+#endif
     }
 }
 

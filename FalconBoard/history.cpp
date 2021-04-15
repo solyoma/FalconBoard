@@ -567,8 +567,8 @@ int  HistoryRemoveSpaceItem::Undo()
 	return 1;
 }
 
-HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(History* pHist, ItemIndexVector& toModify, int first, int distance) :
-	HistoryItem(pHist), modifiedList(toModify), y(y), delta(distance)
+HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(History* pHist, ItemIndexVector& toModify, int distance, int y) :
+	HistoryItem(pHist), modifiedList(toModify), delta(distance), y(y)
 {
 	type = heSpaceDeleted;
 	Redo();
@@ -1547,27 +1547,25 @@ HistoryItem* History::AddRotationItem(MyRotation rot)
 
 HistoryItem* History::AddRemoveSpaceItem(QRect& rect)
 {
-	bool bNothingAtRight = _nItemsRightOfList.isEmpty(),
-		bNothingAtLeftAndRight = bNothingAtRight && _nItemsLeftOfList.isEmpty(),
-		bJustVerticalSpace = bNothingAtLeftAndRight && _nIndexOfFirstScreenShot != 0x70000000;
+	int  nCntRight = _nItemsRightOfList.size(),	// both scribbles and screenshots
+		 nCntLeft   = _nItemsLeftOfList.size();
 
-	if ((bNothingAtRight && !bNothingAtLeftAndRight) || (bNothingAtLeftAndRight && !bJustVerticalSpace))
+	if ((!nCntRight && nCntLeft))
 		return nullptr;
 
-	// Here _nIndexofFirstScreenShot is less than 0x70000000
-	HistoryRemoveSpaceItem* phrs = new HistoryRemoveSpaceItem(this, _nItemsRightOfList, _nIndexOfFirstScreenShot, _nItemsRightOfList.size() ? rect.width() : rect.height());
+	HistoryRemoveSpaceItem* phrs = new HistoryRemoveSpaceItem(this, _nItemsRightOfList, nCntRight ? rect.width() : rect.height(), rect.bottom());
 	return _AddItem(phrs);
 }
 
 
 //********************************************************************* History ***********************************
 
-void History::TranslateAllItemsBelow(QPoint dy, int belowY) // from 'first' item to _actItem if they are visible and  top is >= minY
+void History::TranslateAllItemsBelow(QPoint dy, int thisY) // from 'first' item to _actItem if they are visible and  top is >= minY
 {
-	auto it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), belowY, [&](int left, int right) { return _items[left]->Area().top() < belowY; });
+	auto it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), thisY, [&](int left, int right) { return _items[left]->Area().top() < thisY; });
 	int from = it - _yxOrder.begin();
 	for (; from < _yxOrder.size(); ++from)
-		_yitems(from)->Translate(dy, belowY);
+		_yitems(from)->Translate(dy, thisY);
 	_modified = true;
 }
 

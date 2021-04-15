@@ -233,18 +233,27 @@ struct HistoryDeleteItems : public HistoryItem
     ScribbleItem* GetVisibleScribble(int index = 0) const override { return nullptr; }
 };
 //--------------------------------------------
-// remove an empty rectangular region by moving
-// elements at the right to left, elements at the bottom up
+// remove an empty rectangular region 
+//  before creating this item collect all items to
+//  the left and right of this rectangle into two
+//  lists: 'left' and 'right' then
+// 
+//  if 'right' is not empty moves them to the left
+//      by the width of the rectangle
+//  if 'right' is empty and 'left' is not do nothing
+//  if both 'right' and 'left' are empty
+//      move all items below the rectangle up by the
+//      height of the rectangle
 struct HistoryRemoveSpaceItem : HistoryItem // using _selectedRect
 {
     ItemIndexVector modifiedList; // elements to be moved horizontally (elements on the right)
-                            // empty for vertical shift by delta
-    int delta;              // translate with this amount. if 0?
+                                  // if empty move all below y up
+    int delta;              // translate with this amount left OR up
     int y;                  // topmost coordinate to remove space from
 
     int Undo() override;
     int Redo() override;
-    HistoryRemoveSpaceItem(History* pHist, ItemIndexVector&toModify, int y, int distance);
+    HistoryRemoveSpaceItem(History* pHist, ItemIndexVector&toModify, int distance, int y);
     HistoryRemoveSpaceItem(HistoryRemoveSpaceItem& other);
     HistoryRemoveSpaceItem& operator=(const HistoryRemoveSpaceItem& other);
     HistoryRemoveSpaceItem(HistoryRemoveSpaceItem&& other) noexcept;

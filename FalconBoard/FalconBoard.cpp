@@ -151,12 +151,10 @@ void FalconBoard::RestoreState()
         {
             qs = QString("fn%1").arg(n);
             qs = s.value(qs, QString()).toString();
-            if (!qs.isEmpty())
-            {
-                _AddNewTab(qs, false);  // do not load data yet
-                if (!b)
-                    b = true, setWindowTitle(sWindowTitle + QString(" - %1").arg(qs));
-            }
+            _AddNewTab(qs, false);  // do not load data yet
+            if (!qs.isEmpty() || !b)
+               b = true, setWindowTitle(sWindowTitle + QString(" - %1").arg(qs));
+            
         }
         _nLastTab = s.value("lastTab", 0).toInt();
     }
