@@ -481,6 +481,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
             if ((bCut || bDelete) && bCollected)
             {
                 _history->AddDeleteItems();
+                _RemoveRubberBand();
                 _Redraw();
             }
             else if (bDelete && !bCollected)     // delete on empty area
@@ -635,8 +636,10 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 emit IncreaseBrushSize(1);
             else if(key == Qt::Key_BracketLeft )
                 emit DecreaseBrushSize(1);
-            else if(key == Qt::Key_F4 && _mods == Qt::Key_Control)
+            else if(key == Qt::Key_F4 && _mods .testFlag(Qt::ControlModifier) )
                 emit CloseTab(_currentHistoryIndex);
+            else if ( (key == Qt::Key_Tab || key == Qt::Key_Backtab) && _mods.testFlag(Qt::ControlModifier))
+                emit TabSwitched(key == Qt::Key_Backtab ? -1:1); // Qt: Shit+Tab is Backtab
 #ifndef _VIEWER
             else if (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5)
                 ChangePenColorByKeyboard(key);

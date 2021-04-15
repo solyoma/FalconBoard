@@ -121,6 +121,7 @@ private slots:
 	void SlotForTabChanged(int index);
 	void SlotForTabCloseRequested(int index);
 	void SlotForTabMoved(int from, int to);
+	void SlotForTabSwitched(int direction); //1: right, 2: left - no tab history
 
 #ifndef _VIEWER
    signals:

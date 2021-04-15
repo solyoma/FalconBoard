@@ -1312,6 +1312,7 @@ bool History::Save(QString name)
  *			>0: count of items read
  * REMARKS: - beware of old version files
  *			- when 'force' clears data first
+ *			- both _fileName and _loadedName can be empty
  *-------------------------------------------------------*/
 int History::Load(bool force)  
 {

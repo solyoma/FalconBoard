@@ -162,6 +162,7 @@ signals:
     void RubberBandSelection(bool on);  // used when a selection is active
     void PenKindChange(MyPenKind pk);
     void CloseTab(int tab);
+    void TabSwitched(int direction);
 
 public slots:
     void NewData();

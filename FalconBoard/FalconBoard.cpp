@@ -389,6 +389,7 @@ void FalconBoard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::IncreaseBrushSize, this, &FalconBoard::SlotIncreaseBrushSize);
     connect(_drawArea, &DrawArea::DecreaseBrushSize, this, &FalconBoard::SlotDecreaseBrushSize);
     connect(_drawArea, &DrawArea::CloseTab, this, &FalconBoard::SlotForTabCloseRequested);
+    connect(_drawArea, &DrawArea::TabSwitched, this, &FalconBoard::SlotForTabSwitched);
 
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
 
@@ -942,7 +943,9 @@ void FalconBoard::on_actionLoad_triggered()
     _SaveLastDirectory(fileName);
     int n = _pTabs->currentIndex();
     if (!IsOverwritable())
-        n = _AddNewTab(fileName,true);   // sets current tab and adds history item and set it to current too
+        n = _AddNewTab(fileName, true);   // sets current tab and adds history item and set it to current too
+    else
+        _drawArea->SetHistoryName(fileName);
                             
     if (n>= 0 && !_LoadData(-1))
         fileName.clear();   // load error
@@ -1168,6 +1171,7 @@ void FalconBoard::SlotForTabCloseRequested(int index)
 #ifndef _VIEWER
     _SaveIfYouWant(index, true);
 #endif
+    _AddToRecentList(_drawArea->HistoryName());
     int cnt = _drawArea->RemoveHistory(index);
     _pTabs->removeTab(index);
     if (!cnt)
@@ -1181,6 +1185,21 @@ void FalconBoard::SlotForTabCloseRequested(int index)
 void FalconBoard::SlotForTabMoved(int from, int to)
 {
     _drawArea->MoveHistory(from, to); 
+}
+
+void FalconBoard::SlotForTabSwitched(int direction)
+{
+    int n = _pTabs->currentIndex(), N = _pTabs->count();
+    n += direction;
+    if (direction > 0)
+    {
+        if (n == N)
+            n = 0;
+    }
+    else if (n < 0)
+        n = N - 1;
+
+    _pTabs->setCurrentIndex(n);
 }
 
 void FalconBoard::on_actionShowGrid_triggered()
