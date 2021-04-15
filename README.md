@@ -1,7 +1,7 @@
 # FalconBoard
 ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png)
 
-Last modified: April 8. 2021
+Last modified: April 15. 2021
 
 
 FalconBoard (previous name MyWhiteboard) is a cross platform open source 
@@ -19,8 +19,9 @@ saved drawings, but cannot modify them.
 
    -  Works under Windows and Linux, and (I hope) on Macs too.
    -  Usable with the mouse and with a Wacom graphics tablet. 
-        (No Android or iOS versions yet.)
+        (No Android or iOS versions (yet?))
    -  System, dark and black interface modes.
+   -  A maximum of 30 documents can be open at the same time
    -  Freehand drawing with five different colored pens. Colors depend on
       interface modes (light/dark): black/white, red, green, blue/lighter blue, 
       yellow/magenta.
@@ -33,12 +34,15 @@ saved drawings, but cannot modify them.
        alone or together with Ctrl for faster movement), with the mouse or
        pen on Wacom graphics tablet.
    -  Mark a rectangular area with the right button on mouse or tablet. 
+        If the Shift key is kept down during drawing the selection will
+        be a square.
         If the area contained any complete drawings or screenshots then 
         the selection will constrict around those.
    -  While a selection is active
         - insert vertical space by pressing F5. Height of the space is the 
             height of the selection
         - draw a rectangle around it by pressing the R key
+        - draw an ellipse or a circle inside it by pressing C
         - if there were displayed items inside the area:
             - click inside the area to move the marked items around on the screen,
               release the button to paste it to that position.
@@ -46,15 +50,17 @@ saved drawings, but cannot modify them.
               area with the Del or BackSpace keys.
             - lines completely under the marked area can be re-colored.
         - if the selected area is empty you can:
-              delete empty space from the right  or from below with the Del key. 
+              delete empty space from the right or from above with the Del key. 
         - copy / cut marked area and paste it at any position, even into new
           documents during the same session.
    -  Keyboard shortcuts to most functions (See key F1 - Help).
    -  Optional saving and loading sessions, option to automatic save of data
       and background image on exit.
-   -  Print the whole document or a range of it. (Qt 15 dows not make
-      just to print the current page or a list of pages possible.)
-   -  Export the whole document into a PDF file.
+   -  Print the whole document or a range of it. (Qt 15 does not make it possible
+      to print just the current page or a list of pages.)
+   -  Even documents created in a dark mode can be printed as light mode ones to
+      spare paint.
+   -  Export the whole document into a PDF file. 
    -  You may set a static background image: all you draw are on a different layer above
         the background.
    -  Take a screenshot with F4 from any rectangular area of the desktop and
