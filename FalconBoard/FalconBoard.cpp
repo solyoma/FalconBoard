@@ -159,9 +159,8 @@ void FalconBoard::RestoreState()
         _nLastTab = s.value("lastTab", 0).toInt();
     }
     else        // nothing to restore: create first tab
-    {
         _AddNewTab();    // + new empty history
-    }
+
     if (_nLastTab > _pTabs->count())
         _nLastTab = 0;
 
@@ -215,7 +214,7 @@ void FalconBoard::SaveState()
     s.remove("tabs");
     s.beginGroup("tabs");
     int nFilesToRestore = _pTabs->count();
-    if (nFilesToRestore == 0)
+    if (nFilesToRestore == 0 || _drawArea->HistoryName().isEmpty())
     {
         s.remove("tabSize");
         s.remove("lastTab");
