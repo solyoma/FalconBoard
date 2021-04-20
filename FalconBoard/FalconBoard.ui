@@ -135,8 +135,8 @@
     <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>
-    <addaction name="actionSaveData"/>
-    <addaction name="actionSaveBackgroundImage"/>
+    <addaction name="actionAutoSaveData"/>
+    <addaction name="actionAutoSaveBackgroundImage"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
@@ -426,7 +426,7 @@
     <string>F4</string>
    </property>
   </action>
-  <action name="actionSaveData">
+  <action name="actionAutoSaveData">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -440,7 +440,7 @@
     <string>Automatic save of data at exit</string>
    </property>
   </action>
-  <action name="actionSaveBackgroundImage">
+  <action name="actionAutoSaveBackgroundImage">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -448,10 +448,10 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Auto Save background Image</string>
+    <string>Auto Save Background Image</string>
    </property>
    <property name="toolTip">
-    <string>Save background Image at exit automatically</string>
+    <string>Save background image at exit automatically</string>
    </property>
   </action>
   <action name="action_Yellow">

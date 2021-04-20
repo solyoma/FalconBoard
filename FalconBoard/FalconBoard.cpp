@@ -19,8 +19,8 @@ void FalconBoard::_RemoveMenus()
     ui.actionSaveVisible->setVisible(false);
     ui.actionLoadBackground->setVisible(false);
 
-    ui.actionSaveData->setVisible(false);
-    ui.actionSaveBackgroundImage->setVisible(false);
+    ui.actionAutoSaveData->setVisible(false);
+    ui.actionAutoSaveBackgroundImage->setVisible(false);
 
     removeToolBar(ui.mainToolBar);
 }
@@ -121,8 +121,8 @@ void FalconBoard::RestoreState()
         _penWidth[i] = qsl[i].toInt();
     _psbPenWidth->setValue(_penWidth[0]);
     
-    ui.actionSaveData->setChecked(s.value("saved", false).toBool());
-    ui.actionSaveBackgroundImage->setChecked(s.value("saveb", false).toBool());
+    ui.actionAutoSaveData->setChecked(s.value("saved", false).toBool());
+    ui.actionAutoSaveBackgroundImage->setChecked(s.value("saveb", false).toBool());
 
     qs = s.value("img", QString()).toString();
     if (!qs.isEmpty())
@@ -206,9 +206,9 @@ void FalconBoard::SaveState()
     s.setValue("limited", ui.actionLimitedPage->isChecked());
 #ifndef _VIEWER
 	s.setValue("size", QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]));
-	s.setValue("saved", ui.actionSaveData->isChecked());
-	s.setValue("saveb", ui.actionSaveBackgroundImage->isChecked());
-	if (ui.actionSaveBackgroundImage->isChecked())
+	s.setValue("saved", ui.actionAutoSaveData->isChecked());
+	s.setValue("saveb", ui.actionAutoSaveBackgroundImage->isChecked());
+	if (ui.actionAutoSaveBackgroundImage->isChecked())
 		s.setValue("img", _sImageName);
 #endif
     s.remove("tabs");
@@ -427,11 +427,11 @@ void FalconBoard::_AddSaveVisibleAsMenu()
 /*========================================================
  * TASK:    if the actual or any history changed and 
  *          it/they need to be saved then asks for 
- *          a save confirmation
+ *          a save confirmation then saves it/them
  * PARAMS:  index: save this history
  *          mustAsk: do not autosave it, always ask
- *          any:    should only check the index-th history
- *               or all histories
+ *          any:    true: should check all histories
+ *                  false: only index-th history
  * GLOBALS:
  * RETURNS: true: if no save was required or was saved
  *          false: save is cancelled
@@ -442,9 +442,10 @@ void FalconBoard::_AddSaveVisibleAsMenu()
 bool FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool any)
 {
 //    int ci = _nLastTab; // actual tab
+    bool res = true;    // result: ok
     int n;
 
-    _drawArea->SwitchToHistory(index, false);   
+    _drawArea->SwitchToHistory(index, false);    // do not redraw
 
     while ((n =_drawArea->IsModified(any)) )    // any=false: check current only
     {
@@ -452,11 +453,11 @@ bool FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool any)
         _drawArea->SwitchToHistory(n, false);
         const QString & saveName = _drawArea->HistoryName();
         QMessageBox::StandardButton ret;
-        if (!ui.actionSaveData->isChecked() || mustAsk || saveName.isEmpty())
+        if (!ui.actionAutoSaveData->isChecked() || mustAsk || saveName.isEmpty())
         {
             ret = QMessageBox::warning(this, tr(WindowTitle),
-                tr("Data have been modified.\n"
-                    "Do you want to save your changes?"),
+                QString(tr("<i>%1</i> have been modified.\n"
+                    "Do you want to save your changes?")).arg(saveName),
                 QMessageBox::Save | QMessageBox::Discard
                 | QMessageBox::Cancel);
         }
@@ -468,7 +469,7 @@ bool FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool any)
             if (saveName.isEmpty())
                 on_actionSaveAs_triggered();
             else 
-                return _SaveFile(saveName);
+                res =  _SaveFile(saveName);
         }
         else if (ret == QMessageBox::Cancel)
             return false;
@@ -481,7 +482,7 @@ bool FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool any)
     //_nLastTab = ci;
     //_drawArea->SwitchToHistory(ci, false);
     _drawArea->SwitchToHistory(_nLastTab, false);
-    return true;
+    return res;
 }
 
 bool FalconBoard::_SaveFile(const QString name)
@@ -813,7 +814,10 @@ void FalconBoard::_SetWindowTitle(QString qs)
 void FalconBoard::closeEvent(QCloseEvent* event)
 {
 #ifndef _VIEWER
-    if (_SaveIfYouWant(true,true))
+    if (ui.actionAutoSaveBackgroundImage->isChecked())
+        _SaveBackgroundImage();
+
+    if (_SaveIfYouWant(true,ui.actionAutoSaveData->isChecked(), true))
 	{
 		event->accept();
 #endif
