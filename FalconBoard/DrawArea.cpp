@@ -1400,9 +1400,13 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
     else
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    painter.setRenderHint(QPainter::HighQualityAntialiasing);
+    painter.setRenderHints(QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform, true);
 
-    painter.drawLine(_lastPointC, endPointC);
+    QPointF ep = endPointC,
+            lp = _lastPointC;
+
+    painter.drawLine(lp, ep);    //? better?
+    //painter.drawLine(_lastPointC, endPointC);
     int rad = (_actPenWidth / 2) + 2;
     update(QRect(_lastPointC, endPointC).normalized()
         .adjusted(-rad, -rad, +rad, +rad));
@@ -2173,7 +2177,14 @@ void DrawArea::_PasteSprite()
     _history->AddPastedItems(ps->topLeft + _topLeft, ps);    // add at window relative position: top left = (0,0)
     QRect updateRect = ps->rect.translated(ps->topLeft);    // original rectangle
     update(updateRect);
+    _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+    _rubberRect = updateRect;
+    _rubberBand->setGeometry(updateRect);
+    _rubberBand->show();
     delete ps;
+
+    if (_history)
+        _history->CollectItemsInside(_rubberRect.translated(_topLeft));
 
     emit CanUndo(_history->CanUndo());
     emit CanRedo(_history->CanRedo());

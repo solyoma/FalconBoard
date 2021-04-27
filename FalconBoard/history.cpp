@@ -1788,6 +1788,7 @@ void History::CopySelected(Sprite *sprite)
 	}
 }
 
+// ********************************** Sprite *************
 Sprite::Sprite(History* ph) :pHist(ph) 
 { 
 	ph->CopySelected(this); 
