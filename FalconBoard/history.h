@@ -409,6 +409,7 @@ struct Sprite
     QImage image;       // image of the sprite to paint over the canvas
     QRect rect;         // selection rectangle 0,0, width,height
     bool itemsDeleted = true;   // unless Alt+
+    bool visible = true;// copying should create new invisible sprite
 
     ItemIndexVector       nSelectedItemsList;     // indices into 'pHist->_items', that are completely inside the rubber band rectangle
     ScribbleItemVector       items;      // each point of items[..] is relative to top-left of sprite (0,0)
@@ -703,7 +704,7 @@ public:
         _selectionRect = rect;
     }
 
-    void CollectPasted();   // if items pasted copies them into '_nSelectedItemsList'
+    void CollectPasted(const QRect &rect);   // if items pasted copies them into '_nSelectedItemsList'
 
     const QVector<ScribbleItem>& CopiedItems() const { return *_pCopiedItems;  }
     int CopiedCount() const { return _pCopiedItems->size();  }

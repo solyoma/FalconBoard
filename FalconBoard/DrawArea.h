@@ -287,7 +287,7 @@ private:
             _lastMove;  // value of last canvas move 
 
     QPoint  _firstPointC, // canvas relative first point drawn
-            _lastPointC; // canvas relative last point drawn relative to visible image
+            _lastPointC;  // canvas relative last point drawn relative to visible image
     ScribbleItem _lastScribbleItem;
     QCursor _savedCursor;
     bool _cursorSaved = false;
@@ -346,7 +346,7 @@ private:
     bool _NoPrintProblems();           // false: some problems
 #ifndef _VIEWER
     void _ShowCoordinates(const QPoint& qp);
-    Sprite * _CreateSprite(QPoint cursorPos, QRect& rect, bool itemsDeleted);
+    Sprite * _CreateSprite(QPoint cursorPos, QRect& rect, bool itemsDeleted, bool setVisible=true);
     void _MoveSprite(QPoint pt);
     void _PasteSprite();
 #endif

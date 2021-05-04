@@ -1798,7 +1798,7 @@ void History::CopySelected(Sprite *sprite)
  * REMARKS: - after a paste the topmost item on stack is
  *				historyPasteItemsTop
  *-------------------------------------------------------*/
-void History::CollectPasted()
+void History::CollectPasted(const QRect &rect)
 {
 	int n = _items.size() - 1;
 	HistoryItem* phi = _items[n];
@@ -1813,7 +1813,8 @@ void History::CollectPasted()
 	int m = ((HistoryPasteItemTop*)phi)->count;
 	for (int j = 0; j < m; ++j)
 		_nSelectedItemsList[j].index = n - m + j;
-	// rectangle is already OK
+	
+	_selectionRect = rect;
 
 }
 

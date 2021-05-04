@@ -597,7 +597,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _RemoveRubberBand();
 
         }
-        else
+        else    // no rubberBand
 #endif
         {
 //            _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
@@ -2077,9 +2077,10 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
  *              so paste operation still pastes the non sprite
  *              data
  *-------------------------------------------------------*/
-Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect, bool deleted)
+Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect, bool deleted, bool setVisible)
 {
     _pSprite = new Sprite(_history);       // copies selected items into lists
+    _pSprite->visible = setVisible;
     _pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
     _pSprite->topLeft = rect.topLeft();     // sprite top left
     _pSprite->dp = pos - rect.topLeft();    // cursor position rel. to sprite
@@ -2185,7 +2186,7 @@ void DrawArea::_PasteSprite()
     delete ps;
 
     if (_history)
-        _history->CollectPasted();
+        _history->CollectPasted(_rubberRect);
 
     emit CanUndo(_history->CanUndo());
     emit CanRedo(_history->CanRedo());
