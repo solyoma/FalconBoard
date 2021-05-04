@@ -794,7 +794,7 @@ void FalconBoard::_PopulateRecentMenu()
     QString s;
     for (int i = 0; i < _recentList.size(); ++i)
     {
-        s = QString("%1. %2").arg(i + 1).arg(_recentList[i]);
+        s = QString("&%1. %2").arg(i + 1).arg(_recentList[i]);
         pAction = ui.actionRecentDocuments->addAction(s);
         connect(pAction, SIGNAL(triggered()), &_signalMapper, SLOT(map()));
         _signalMapper.setMapping(pAction, i);
