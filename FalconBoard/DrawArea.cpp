@@ -2186,7 +2186,7 @@ void DrawArea::_PasteSprite()
     delete ps;
 
     if (_history)
-        _history->CollectPasted(_rubberRect);
+        _history->CollectPasted(_rubberRect.translated(_topLeft));
 
     emit CanUndo(_history->CanUndo());
     emit CanRedo(_history->CanRedo());
