@@ -503,6 +503,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                         _ReplotScribbleItem(phi);   // only user lines, images are plotted only in paintEvent
                     else
                         update();
+                _RemoveRubberBand();
 			}
             else if (bRecolor)
             {
@@ -2184,7 +2185,7 @@ void DrawArea::_PasteSprite()
     delete ps;
 
     if (_history)
-        _history->CollectItemsInside(_rubberRect.translated(_topLeft));
+        _history->CollectPasted();
 
     emit CanUndo(_history->CanUndo());
     emit CanRedo(_history->CanRedo());

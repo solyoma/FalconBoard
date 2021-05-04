@@ -231,7 +231,7 @@ private:
 
 #ifndef _VIEWER
 	void _AddSaveVisibleAsMenu();
-	bool _SaveIfYouWant(int index, bool mustAsk = false, bool any=false);
+	bool _SaveIfYouWant(int index, bool mustAsk = false);
 	bool _SaveFile(const QString name);
 	bool _SaveBackgroundImage();
 		 
@@ -260,6 +260,7 @@ private:
 	QString _FileNameToTabText(QString& fname);
 
 	int _AddNewTab(QString fname = QString(), bool loadIt = true);
+	void _CloseTab(int index);
 	void _SetTabText(int index, QString& fname);
 	void _SetupMode(ScreenMode mode);
 	void _ClearRecentMenu();

@@ -1245,7 +1245,7 @@ bool History::Save(QString name)
 	if (_bands.ItemCount() == 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
-		return false;;
+		return false;
 	}
 	
 	QFile f(name + ".tmp");
@@ -1786,6 +1786,35 @@ void History::CopySelected(Sprite *sprite)
 		if (sprite)
 			sprite->rect = *_pCopiedRect;	// (0,0, width, height)
 	}
+}
+
+
+/*========================================================
+ * TASK:	if there were items pasted then copies them onto
+ *			nSelectedList
+ * PARAMS:	none
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - after a paste the topmost item on stack is
+ *				historyPasteItemsTop
+ *-------------------------------------------------------*/
+void History::CollectPasted()
+{
+	int n = _items.size() - 1;
+	HistoryItem* phi = _items[n];
+	if (phi->type != heItemsPastedTop)
+		return;
+
+	_nItemsRightOfList.clear();
+	_nItemsLeftOfList.clear();
+				//      n=4
+				//B 1 2 3 T
+				//      m = 3       n - m,
+	int m = ((HistoryPasteItemTop*)phi)->count;
+	for (int j = 0; j < m; ++j)
+		_nSelectedItemsList[j].index = n - m + j;
+	// rectangle is already OK
+
 }
 
 // ********************************** Sprite *************

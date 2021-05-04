@@ -698,6 +698,12 @@ public:
     int SelectTopmostImageFor(QPoint& p);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
+    void SetSelectionRect(QRect& rect)
+    {
+        _selectionRect = rect;
+    }
+
+    void CollectPasted();   // if items pasted copies them into '_nSelectedItemsList'
 
     const QVector<ScribbleItem>& CopiedItems() const { return *_pCopiedItems;  }
     int CopiedCount() const { return _pCopiedItems->size();  }
