@@ -205,15 +205,15 @@ private:
     void ChangePenColorByKeyboard(int key);
 #endif
 private:
-    DHistory *_history=nullptr;            // actual history (every scribble element with undo/redo)
-    HistoryList _historyList;   // many histories are possible
+    DHistory *_history=nullptr;     // actual history (every scribble and image element with undo/redo)
+    HistoryList _historyList;       // many histories are possible
     int _currentHistoryIndex = -1,  // actual history index, -1: none
-        _previousHistoryIndex = -1;  // this was the current index before something happened
+        _previousHistoryIndex = -1; // this was the current index before something happened
 
     bool _mustRedrawArea = true;    // else no redraw
     bool _redrawPending = false;    // redraw requested when it was not enabled
            // page setup
-    int _screenWidth = 1920,        // screen width ==> _pageWidth (portrait) / _pageHeight (landscape)  
+    int _screenWidth = 1920,        // screen width ==> pageWidth (portrait) / pageHeight (landscape)  
         _screenHeight = 1080;
     bool _limited = false;          // true: page width is fixed (= screen width)
     float _ppi = 96;                // pixels per screen inches

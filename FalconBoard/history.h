@@ -636,7 +636,10 @@ public:
 
     void Clear();
     void ClearName() { if (_items.isEmpty()) _fileName.clear(); }
+
+
     int Size() const;   // _items's size
+    QRect const *CopiedRect() const { return _pCopiedRect; }
     int CountOfVisible() const; // visible from yxOrder
     int CountOfScribble() const { return _yxOrder.size(); }
     int SelectedSize() const { return _nSelectedItemsList.size(); }

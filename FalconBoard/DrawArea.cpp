@@ -446,6 +446,11 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
     else if (event->spontaneous())
     {
 #ifndef _VIEWER
+        bool bPaste = _itemsCopied &&
+            ((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
+                (key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
+                );
+
         if (_rubberBand)    // delete rubberband for any keypress except pure modifiers
         {
             bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
@@ -453,10 +458,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                            ((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
                  bCopy   = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
                                         _mods.testFlag(Qt::ControlModifier),
-                 bPaste  =  _itemsCopied && 
-                            ( (key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
-                              (key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
-                            ),
                  bRemove = (bDelete | bCopy | bCut | bPaste) ||
                            (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C),
                  bCollected = false,
@@ -496,14 +497,11 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			{           // _history's copied item list is valid, each item is canvas relative
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
 				QPoint dr = _rubberRect.translated(_topLeft).topLeft(); 
+                _RemoveRubberBand();
 
                 HistoryItem* phi = _history->AddPastedItems(dr);
                 if (phi)
-                    if (!phi->IsImage())
-                        _ReplotScribbleItem(phi);   // only user lines, images are plotted only in paintEvent
-                    else
-                        update();
-                _RemoveRubberBand();
+                    _Redraw(); // update();
 			}
             else if (bRecolor)
             {
@@ -1105,7 +1103,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
     if (_bPageGuidesOn)
         _DrawPageGuides(painter);
 // sprite layer
-    if(_pSprite)
+    if(_pSprite && _pSprite->visible)
         painter.drawImage(dirtyRect.translated(_pSprite->topLeft), _pSprite->image, dirtyRect);  // sprite layer: dirtyRect: actual area below sprite 
 }
 
@@ -2060,7 +2058,7 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
 
     qpt += _topLeft;
 
-    emit TextToToolbar(QString(tr("   Top Left: x:%1, y:%2 | Cursor: x:%3, y:%4 ")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()));
+    emit TextToToolbar(QString(tr("   Left:%1, Top:%2 | Cursor: x:%3, y:%4 ")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()));
 }
 
 // ****************************** Sprite ******************************
@@ -2068,8 +2066,11 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
 /*========================================================
  * TASK:    Create a new sprite using lists of selected 
  *          items and images
- * PARAMS:  event position and _rubberRect position; both
- *          relative to _topLeft
+ * PARAMS:  pos: event position relative to _topLeft
+ *          rect: from _rubberRect relative to _topLeft
+ *          deleted: was items deleted at original position?
+ *                  false: no copied to sprite
+ *          setVisible: should we display the sprite? (default: true)
  * GLOBALS: _topLeft, _pSprite
  * RETURNS: _pSprite
  * REMARKS: - _nSelectedList is used to create the other lists
@@ -2079,11 +2080,11 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
  *-------------------------------------------------------*/
 Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect, bool deleted, bool setVisible)
 {
-    _pSprite = new Sprite(_history);       // copies selected items into lists
+    _pSprite = new Sprite(_history);        // copies selected items into lists
     _pSprite->visible = setVisible;
     _pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
     _pSprite->topLeft = rect.topLeft();     // sprite top left
-    _pSprite->dp = pos - rect.topLeft();    // cursor position rel. to sprite
+    _pSprite->dp = pos - _pSprite->topLeft; // cursor position rel. to sprite
     _pSprite->image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32);
     _pSprite->image.fill(qRgba(255, 255, 255, 0));     // transparent
 

@@ -106,7 +106,7 @@ private:
 
     bool _AllocateResources();
     bool _FreeResources();
-    int _CalcPages();        // using _data 
+    int  _CalcPages();              // using _data 
     bool _PrintItem(Yindex yi);
     void _PrintGrid();
     void _PreparePage(int which);
