@@ -106,11 +106,11 @@ inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di);
 
 // ******************************************************
 // image to shown on background
-struct ScreenShotImage {       // shown on layer mlyScreenShot below the drawings
+struct ScreenShotImage {       // shown on layer lyScreenShot below the drawings
     QImage image;              // image from the disk or from screenshot
     QPoint topLeft;            // relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
     bool isVisible = true;
-    int itemIndex;             // in history::_item
+    int itemIndex;             // in history::_items
     int zOrder;     // of images is the index of this image on the pimages list in History
     QRect Area() const { return QRect(topLeft, QSize(image.width(), image.height())); }
             // canvasRect relative to paper (0,0)
@@ -402,6 +402,7 @@ class History;
 struct Sprite
 {
     Sprite(History* ph);
+    Sprite(History* ph, ItemIndexVector &pitemindex, QRect &rect, ScreenShotImageList *pimg, ScribbleItemVector *pitems);
 
     History* pHist;
     QPoint topLeft;     // top,left: position of sprite rel. to top left of visible area of canvas
@@ -412,7 +413,7 @@ struct Sprite
     bool visible = true;// copying should create new invisible sprite
 
     ItemIndexVector       nSelectedItemsList;     // indices into 'pHist->_items', that are completely inside the rubber band rectangle
-    ScribbleItemVector       items;      // each point of items[..] is relative to top-left of sprite (0,0)
+    ScribbleItemVector    items;      // each point of items[..] is relative to top-left of sprite (0,0)
     ScreenShotImageList   images;     // image top left is relative to top left of sprite (0,0)
 };
 
@@ -643,6 +644,7 @@ public:
     int CountOfVisible() const; // visible from yxOrder
     int CountOfScribble() const { return _yxOrder.size(); }
     int SelectedSize() const { return _nSelectedItemsList.size(); }
+    ItemIndexVector& SelectedItemsList() { return _nSelectedItemsList; }
 
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!

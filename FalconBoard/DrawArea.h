@@ -292,6 +292,8 @@ private:
     QCursor _savedCursor;
     bool _cursorSaved = false;
 
+    QPoint _lastCursorPos;  // set in MyMoveEvent()
+
 
     QRect   _canvasRect;    // 0,0 relative rectangle
     QRect   _clippingRect;  // only need to draw here
@@ -347,6 +349,8 @@ private:
 #ifndef _VIEWER
     void _ShowCoordinates(const QPoint& qp);
     Sprite * _CreateSprite(QPoint cursorPos, QRect& rect, bool itemsDeleted, bool setVisible=true);
+    Sprite * _PrepareSprite(Sprite *pSprite, QPoint cursorPos, QRect& rect, bool itemsDeleted, bool setVisible=true);
+    Sprite * _SpriteFromLists(); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible
     void _MoveSprite(QPoint pt);
     void _PasteSprite();
 #endif

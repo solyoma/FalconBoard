@@ -817,11 +817,11 @@ void FalconBoard::_SetWindowTitle(QString qs)
 
 void FalconBoard::closeEvent(QCloseEvent* event)
 {
+    bool res = true;        // accept event
 #ifndef _VIEWER
     if (ui.actionAutoSaveBackgroundImage->isChecked())
         _SaveBackgroundImage();
 
-    bool res = true;        // accept event
     int n;   
     // save all changed
     while (res && (n = _drawArea->IsModified(true)))    // returned : n = index of modified + 1

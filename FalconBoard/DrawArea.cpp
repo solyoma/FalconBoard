@@ -42,6 +42,7 @@ DrawArea::DrawArea(QWidget* parent)    : QWidget(parent)
     setAttribute(Qt::WA_StaticContents);
     setAttribute(Qt::WA_TabletTracking);
     setCursor(Qt::CrossCursor);
+    setMouseTracking(true);
     _historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
     //_historyList.push_back(new History());     // this way no reallocations, so _history remains valid
     //_history = _historyList[0];
@@ -602,9 +603,19 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         else    // no rubberBand
 #endif
         {
-//            _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
-
-			if (key == Qt::Key_PageUp)
+#ifndef _VIEWER
+            if (bPaste)         // paste as sprite
+            {
+                if (_history->SelectedSize())    // anything to paste?
+                {
+                    _pSprite = _SpriteFromLists();
+                    _PasteSprite();
+                    _Redraw();
+                }
+            }
+			else 
+#endif
+                if (key == Qt::Key_PageUp)
 				_PageUp();
 			else  if (key == Qt::Key_PageDown)
 				_PageDown();
@@ -866,10 +877,12 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 
 void DrawArea::MyMoveEvent(MyPointerEvent* event)
 {
+#ifndef _VIEWER
+    _ShowCoordinates(event->pos);
+#endif
     if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen))
         return;
 #ifndef _VIEWER
-    _ShowCoordinates(event->pos);
 
     if ((event->buttons & Qt::RightButton) ||
         (event->buttons & Qt::LeftButton && event->mods.testFlag(Qt::ControlModifier)) && _rubberBand)
@@ -2060,6 +2073,8 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
     else
         qpt = prevPoint = qp;
 
+    _lastCursorPos = qpt;
+
     qpt += _topLeft;
 
     emit TextToToolbar(QString(tr("   Left:%1, Top:%2 | Cursor: x:%3, y:%4 ")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()));
@@ -2082,21 +2097,26 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
  *              so paste operation still pastes the non sprite
  *              data
  *-------------------------------------------------------*/
-Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect, bool deleted, bool setVisible)
+Sprite* DrawArea::_CreateSprite(QPoint pos, QRect& rect, bool deleted, bool setVisible)
 {
-    _pSprite = new Sprite(_history);        // copies selected items into lists
-    _pSprite->visible = setVisible;
-    _pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
-    _pSprite->topLeft = rect.topLeft();     // sprite top left
-    _pSprite->dp = pos - _pSprite->topLeft; // cursor position rel. to sprite
-    _pSprite->image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32);
-    _pSprite->image.fill(qRgba(255, 255, 255, 0));     // transparent
+    _pSprite = new Sprite(_history);        // this copies the selected items into lists
+    return _PrepareSprite(_pSprite, pos, rect, deleted, setVisible);
+}
 
-    QPainter painter(&_pSprite->image);
+Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect & rect, bool deleted, bool setVisible)
+{
+    pSprite->visible = setVisible;
+    pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
+    pSprite->topLeft = rect.topLeft();     // sprite top left
+    pSprite->dp = cursorPos - pSprite->topLeft; // cursor position rel. to sprite
+    pSprite->image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32);
+    pSprite->image.fill(qRgba(255, 255, 255, 0));     // transparent
+
+    QPainter painter(&pSprite->image);
     QRect sr, tr;   // source & target
-    for (ScreenShotImage& si : _pSprite->images)
+    for (ScreenShotImage& si : pSprite->images)
     {
-        tr = QRect(si.topLeft, _pSprite->rect.size() );
+        tr = QRect(si.topLeft, pSprite->rect.size() );
         sr = si.image.rect();       // -"-
 
         if (sr.width() > tr.width())
@@ -2115,8 +2135,7 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect, bool deleted, bool setV
     int pw = _actPenWidth;
     bool em = _erasemode;
 
-
-    for (auto& di : _pSprite->items)
+    for (auto& di : pSprite->items)
     {
         _myPenKind = di.penKind;
         _actPenWidth = di.penWidth;
@@ -2141,17 +2160,23 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect &rect, bool deleted, bool setV
     if (_erasemode && !_debugmode)
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter.setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin)) ;
-    painter.drawLine(0, 0, _pSprite->rect.width(), 0);
-    painter.drawLine(_pSprite->rect.width(), 0, _pSprite->rect.width(), _pSprite->rect.height());
-    painter.drawLine(_pSprite->rect.width(), _pSprite->rect.height(), 0, _pSprite->rect.height());
-    painter.drawLine(0, _pSprite->rect.height(), 0, 0);
+    painter.drawLine(0, 0, pSprite->rect.width(), 0);
+    painter.drawLine(pSprite->rect.width(), 0, pSprite->rect.width(), pSprite->rect.height());
+    painter.drawLine(pSprite->rect.width(), pSprite->rect.height(), 0, pSprite->rect.height());
+    painter.drawLine(0, pSprite->rect.height(), 0, 0);
 
     // restore data
     _myPenKind = pk;
     _actPenWidth = pw;
     _erasemode = em;
 
-    return _pSprite;
+    return pSprite;
+}
+
+Sprite* DrawArea::_SpriteFromLists()
+{
+    Sprite *pSprite = new Sprite(_history, _history->SelectedItemsList(), _copiedRect, &_copiedImages, &_copiedItems);
+    return _PrepareSprite(pSprite, _lastCursorPos, _copiedRect.translated(_lastCursorPos), false, true);
 }
 
 void DrawArea::_MoveSprite(QPoint dr)

@@ -1440,7 +1440,7 @@ HistoryItem* History::AddDeleteItems(Sprite* pSprite)
 /*========================================================
  * TASK:		add items copied or combined into a sprite
  * PARAMS:		topLeft - paste here
- *				pSprite - pointer to sprite
+ *				pSprite - pointer to sprite	or nullptr
  * GLOBALS:
  * RETURNS:
  * REMARKS: - pasted items are sandwiched between a bootom
@@ -1822,7 +1822,13 @@ void History::CollectPasted(const QRect &rect)
 }
 
 // ********************************** Sprite *************
-Sprite::Sprite(History* ph) :pHist(ph) 
+Sprite::Sprite(History* ph, ItemIndexVector& ix, QRect &rect, ScreenShotImageList* pimg, ScribbleItemVector* pitems) : pHist(ph), rect(rect), nSelectedItemsList(ix)
+{
+		images = *pimg;
+		items = *pitems;
+}
+
+Sprite::Sprite(History* ph) : pHist(ph)
 { 
 	ph->CopySelected(this); 
 }
