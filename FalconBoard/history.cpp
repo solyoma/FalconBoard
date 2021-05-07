@@ -1822,7 +1822,7 @@ void History::CollectPasted(const QRect &rect)
 }
 
 // ********************************** Sprite *************
-Sprite::Sprite(History* ph, ItemIndexVector& ix, QRect &rect, ScreenShotImageList* pimg, ScribbleItemVector* pitems) : pHist(ph), rect(rect), nSelectedItemsList(ix)
+Sprite::Sprite(QRect &rect, ScreenShotImageList* pimg, ScribbleItemVector* pitems) : pHist(nullptr), rect(rect)
 {
 		images = *pimg;
 		items = *pitems;

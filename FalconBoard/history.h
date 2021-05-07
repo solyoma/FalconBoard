@@ -402,7 +402,7 @@ class History;
 struct Sprite
 {
     Sprite(History* ph);
-    Sprite(History* ph, ItemIndexVector &pitemindex, QRect &rect, ScreenShotImageList *pimg, ScribbleItemVector *pitems);
+    Sprite(QRect &rect, ScreenShotImageList *pimg, ScribbleItemVector *pitems);
 
     History* pHist;
     QPoint topLeft;     // top,left: position of sprite rel. to top left of visible area of canvas

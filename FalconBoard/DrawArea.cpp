@@ -2175,7 +2175,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect & rect
 
 Sprite* DrawArea::_SpriteFromLists()
 {
-    Sprite *pSprite = new Sprite(_history, _history->SelectedItemsList(), _copiedRect, &_copiedImages, &_copiedItems);
+    Sprite *pSprite = new Sprite(_copiedRect, &_copiedImages, &_copiedItems);
     return _PrepareSprite(pSprite, _lastCursorPos, _copiedRect.translated(_lastCursorPos), false, true);
 }
 
