@@ -1791,8 +1791,8 @@ void History::CopySelected(Sprite *sprite)
 
 /*========================================================
  * TASK:	if there were items pasted then copies them onto
- *			nSelectedList
- * PARAMS:	none
+ *			_nSelectedList
+ * PARAMS:	rect - set selectionRect to this
  * GLOBALS:
  * RETURNS:
  * REMARKS: - after a paste the topmost item on stack is
@@ -1811,9 +1811,12 @@ void History::CollectPasted(const QRect &rect)
 				//B 1 2 3 T
 				//      m = 3       n - m,
 	int m = ((HistoryPasteItemTop*)phi)->count;
+	_nSelectedItemsList.resize(m);		// because it is empty when pasted w. rubberBand
 	for (int j = 0; j < m; ++j)
+	{
 		_nSelectedItemsList[j].index = n - m + j;
-	
+		_nSelectedItemsList[j].zorder = _items[n - m + j]->ZOrder();
+	}
 	_selectionRect = rect;
 
 }

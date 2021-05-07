@@ -497,11 +497,15 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			{           // _history's copied item list is valid, each item is canvas relative
                         // get offset to top left of encompassing rect of copied items relative to '_topLeft'
 				QPoint dr = _rubberRect.translated(_topLeft).topLeft(); 
-                _RemoveRubberBand();
 
                 HistoryItem* phi = _history->AddPastedItems(dr);
                 if (phi)
+                {
                     _Redraw(); // update();
+                    _rubberRect = QRect(_rubberRect.topLeft(), _copiedRect.size());
+                    _rubberBand->setGeometry(_rubberRect );
+                    _history->CollectPasted(_rubberRect.translated(_topLeft));
+                }
 			}
             else if (bRecolor)
             {
