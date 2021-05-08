@@ -326,27 +326,27 @@ void DrawArea::AddScreenShotImage(QImage& image)
 
 /*========================================================
  * TASK:    check history if it is modified
- * PARAMS:  any - if true check all histories until the
+ * PARAMS:  fromIndex - start checking at this index, except
+ *              when it is -1: then use '_currentHistoryIndex'
+ *          any - if true check all histories until the
  *              first modified is found
- * GLOBALS:
- * RETURNS: if any=false: current history index + 1 if modified or 0
- *              true:  the index of the first modified history + 1
- * REMARKS: - only need to set 'any' to true when closing the app.
+ * GLOBALS: _currentHistoryIndex
+ * RETURNS: if any= false: history index + 1 if modified or 0
+ *                = true : the index +1 of the first modified 
+ *                  history starting at 'fromIndex'
+ * REMARKS: - only set 'any' to true when closing the program.
  *-------------------------------------------------------*/
-int DrawArea::IsModified(bool any) const
+int DrawArea::IsModified(int fromIndex, bool any) const
 {
+    if (fromIndex < 0)
+        fromIndex = _currentHistoryIndex;
     if (!any)
-        return _historyList[_currentHistoryIndex]->IsModified() ? _currentHistoryIndex + 1 : 0;
+        return _historyList[fromIndex]->IsModified() ? fromIndex + 1 : 0;
     // else 
-    for (int i = 0; i < HistoryListSize(); ++i)
+    for (int i = fromIndex; i < HistoryListSize(); ++i)
         if (_historyList[i]->IsModified())
             return  i + 1;
     return 0;
-}
-
-int DrawArea::IsModified(int index) const
-{
-    return _historyList[index < 0 ? _currentHistoryIndex : index]->IsModified();
 }
 
 #ifndef _VIEWER
@@ -606,7 +606,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 #ifndef _VIEWER
             if (bPaste)         // paste as sprite
             {
-                if (_history->SelectedSize())    // anything to paste?
+                if (!_copiedItems.isEmpty() || !_copiedImages.isEmpty())    // anything to paste?
                 {
                     _pSprite = _SpriteFromLists();
                     _PasteSprite();

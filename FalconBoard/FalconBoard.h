@@ -231,8 +231,11 @@ private:
 
 #ifndef _VIEWER
 	void _AddSaveVisibleAsMenu();
-	bool _SaveIfYouWant(int index, bool mustAsk = false);
-	bool _SaveFile(const QString name);
+
+	SaveResult _saveResult = srSaveSuccess;	// because save as slot can't return a value
+			// for _SaveXX() 0: cancelled, -1 error, 1 success
+	SaveResult _SaveIfYouWant(int index, bool mustAsk = false);
+	SaveResult _SaveFile(const QString name);
 	bool _SaveBackgroundImage();
 		 
 	void _SelectPenForAction(QAction* paction);

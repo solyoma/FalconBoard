@@ -1235,7 +1235,7 @@ HistoryItem* History::operator[](int index)	// absolute index
  * RETURNS:
  * REMARKS: - ordering by band and then by z-order
  *-------------------------------------------------------*/
-bool History::Save(QString name)
+SaveResult History::Save(QString name)
 {
 	// only save visible items
 
@@ -1245,14 +1245,14 @@ bool History::Save(QString name)
 	if (_bands.ItemCount() == 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
-		return false;
+		return srSaveSuccess;
 	}
 	
 	QFile f(name + ".tmp");
 	f.open(QIODevice::WriteOnly);
 
 	if (!f.isOpen())
-		return false;   // can't write file
+		return srFailed;   // can't write file
 
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
@@ -1271,7 +1271,7 @@ bool History::Save(QString name)
 				if (ofs.status() != QDataStream::Ok)
 				{
 					f.remove();
-					return false;
+					return srFailed;
 				}
 
 				int index = -1;
@@ -1297,7 +1297,7 @@ bool History::Save(QString name)
 
 	f.rename(name);
 
-	return true;
+	return srSaveSuccess;
 }
 
 

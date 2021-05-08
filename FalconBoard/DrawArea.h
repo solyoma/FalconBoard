@@ -13,6 +13,7 @@
 #include <thread>
 #include <vector>
 
+#include "common.h"
 #include "history.h"
 #include "pagesetup.h"
 #include "pdfsetup.h"
@@ -104,7 +105,7 @@ public:
     int Load();         // into current history
     bool EnableRedraw(bool value);
 #ifndef _VIEWER
-    bool Save(QString name, int index=-1) 
+    SaveResult Save(QString name, int index=-1) 
     { 
         if (index < 0) 
             index = _currentHistoryIndex;
@@ -130,8 +131,7 @@ public:
 
     int HistoryListSize() const { return (int)_historyList.size(); }
 
-    int IsModified(bool any = false) const;
-    int IsModified(int index) const;
+    int IsModified(int fromIndex=-1, bool any = false) const;
 
     MyPenKind PenKind() const { return _myPenKind;  }
     int PenWidth() const { return    _actPenWidth; }

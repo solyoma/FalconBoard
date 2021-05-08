@@ -25,6 +25,7 @@ enum PrinterFlags :char {
     pfLandscape             = 16,
     pfDontPrintImages       = 32
 };
+enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess};
 
 
 // ******************************************************

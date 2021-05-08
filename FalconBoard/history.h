@@ -651,7 +651,7 @@ public:
     const qint32 MAGIC_VERSION = 0x56010000; // V 01.00.00
 
     QString Name() const { return _fileName; }
-    bool Save(QString name);
+    SaveResult Save(QString name);
 
     void SetName(QString name)
     {
