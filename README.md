@@ -1,13 +1,13 @@
 ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png)
 # FalconBoard
-Last modified: April 15. 2021
+Last modified: June 13. 2021
 
 
 FalconBoard (previous name MyWhiteboard) is a cross platform open source 
 whiteboard / blackboard application with unique features that makes it 
 perfectly suited for classroom or for online lectures. It has a semi 
 infinite canvas, unlimited drawings, unlimited undo and redo, colored 
-pens of different width, screen capture PDF output and more (see below).
+pens of different width, screen capture, printout, PDF output and more (see below).
 
 The project also contains a separate viewer that only displays and prints
 saved drawings, but cannot modify them.
@@ -26,7 +26,7 @@ saved drawings, but cannot modify them.
       yellow/magenta.
    -  Draw straight lines which may be exactly horizontal or vertical.
    -  Draw rectangles, ellipses or circles
-   -  Each Pen and the Eraser pen widths are adjustable separately.
+   -  Each Pen widths and the Eraser pen width are adjustable separately.
    -  Unlimited Undo/Redo during a single session.
    -  "Unlimited" scrolling from top of "paper" by the keyboard 
       (Left, Right, Up, Down, PgUp,PgDown, Home, End, 
@@ -40,7 +40,8 @@ saved drawings, but cannot modify them.
    -  While a selection is active
         - insert vertical space by pressing F5. Height of the space is the 
             height of the selection
-        - draw a rectangle around it by pressing the R key
+        - draw a rectangle around it by pressing the R key. For a contracted
+          selection there is a small padding inside this rectangle
         - draw an ellipse or a circle inside it by pressing C
         - if there were displayed items inside the area:
             - click inside the area to move the marked items around on the screen,
@@ -50,21 +51,22 @@ saved drawings, but cannot modify them.
             - lines completely under the marked area can be re-colored.
         - if the selected area is empty you can:
               delete empty space from the right or from above with the Del key. 
-        - copy / cut marked area and paste it at any position, even into new
-          documents during the same session.
+        - copy / cut marked area and paste it into any open drawings at at any 
+          position, even into new documents during the same session.
    -  Keyboard shortcuts to most functions (See key F1 - Help).
    -  Optional saving and loading sessions, option to automatic save of data
       and background image on exit.
    -  Print the whole document or a range of it. (Qt 15 does not make it possible
       to print just the current page or a list of pages.)
    -  Even documents created in a dark mode can be printed as light mode ones to
-      spare paint.
+      save paint.
    -  Export the whole document into a PDF file. 
    -  You may set a static background image: all you draw are on a different layer above
         the background.
    -  Take a screenshot with F4 from any rectangular area of the desktop and
-      paste it into the middle of the screen to show or connotate. (You may move it
-      around like any drawings by marking it first.)
+      paste it into the middle of the screen to show or connotate. (After paste
+      you may move it around like any drawings.) Ctrl+Click on a screenshot to
+      mark it.
   -   Draw straight horizontal or vertical lines :press the left mouse button or 
         press the pen to the tablet THEN press and hold the Shift key and start
         drawing).
@@ -80,7 +82,7 @@ saved drawings, but cannot modify them.
   
 *Compilation*:
 
-  Compile it with Qt Version 5.15or modify the .ui files 
+  Compile it with Qt Version 5.15 or modify the .ui files 
     (in older Qt versions some fields may be missing from the components 
     e.g. QComboBox.setPlaceHolderText() ).wasn't tested with Qt version 6.
   - On Microsoft Windows you can  compile it with Visual Studio 2017/2019
