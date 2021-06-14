@@ -119,6 +119,16 @@ public:
     MyPenKind PenKindFromKey(int key);  // keyboard press/menu click
     bool RecolorSelected(int key); // true: recolored
     void SetLimitedPage(bool limited) { _limited = limited; }
+
+    void SynthesizeKeyEvent(Qt::Key key);
+/*
+    void RotateImage(MyRotation rot);
+    void FlipImage(bool horiz, bool vert);
+    void DrawRect();    // use _rubberBand
+    void DrawEllipse();
+*/
+
+    void SetScreenshotTransparency(QColor color, bool use);
 #endif
 
     void SetMode(bool darkMode, QString color, QString gridColor, QString pageGuideColor);
@@ -127,7 +137,7 @@ public:
 
     void SetOrigin() { _topLeft = QPoint(); }
 
-    void AddScreenShotImage(QImage& image);
+    void AddScreenShotImage(QPixmap& image);
 
     int HistoryListSize() const { return (int)_historyList.size(); }
 

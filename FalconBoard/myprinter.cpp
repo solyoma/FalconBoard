@@ -403,7 +403,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
             _painterPage->drawLine(dstRect.topRight(), dstRect.bottomLeft());
         }
         else
-            _painterPage->drawImage(dstRect, psi->image, QRect(0, 0, psi->image.width(),psi->image.height()), flag);
+            _painterPage->drawPixmap(dstRect, psi->image, QRect(0, 0, psi->image.width(),psi->image.height()));
     }
     else if (phi->type == heScribble || phi->type == heEraser)
     {             // paint over transparent layer

@@ -106,12 +106,14 @@ inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di);
 
 // ******************************************************
 // image to shown on background
-struct ScreenShotImage {       // shown on layer lyScreenShot below the drawings
-    QImage image;              // image from the disk or from screenshot
-    QPoint topLeft;            // relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
+struct ScreenShotImage {        // shown on layer lyScreenShot below the drawings
+    QPixmap image;              // image from the disk or from screenshot (transparency included)
+    QPoint topLeft;             // relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
+    int itemIndex;              // in history::_items
     bool isVisible = true;
-    int itemIndex;             // in history::_items
-    int zOrder;     // of images is the index of this image on the pimages list in History
+    int zOrder = 0;             // of images is the index of this image on the pimages list in History
+            // hack: because new fields added for transparency of screenshot pixels
+
     QRect Area() const { return QRect(topLeft, QSize(image.width(), image.height())); }
             // canvasRect relative to paper (0,0)
             // result: relative to image
@@ -133,7 +135,7 @@ class  ScreenShotImageList : public  QList<ScreenShotImage>
     int _index = -1;
     QRect _canvasRect;
 public:
-    void Add(QImage& image, QPoint pt, int zorder);
+    void Add(QPixmap& image, QPoint pt, int zorder);
     void Drop(int index) { /* TODO */ }   // removes from list without changing the index of the other images
     // canvasRect and result are relative to (0,0)
     QRect AreaOnCanvas(int index, const QRect& canvasRect) const;
@@ -658,6 +660,7 @@ public:
         _fileName = name;
         Clear();
     }
+
     int Load(bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
     bool IsModified() const { return _modified & CanUndo(); }
     bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read

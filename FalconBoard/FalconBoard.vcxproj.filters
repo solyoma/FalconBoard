@@ -49,6 +49,9 @@
     <ClCompile Include="FalconBoard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="screenshotTransparency.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DrawArea.h">
@@ -69,6 +72,9 @@
     <QtMoc Include="FalconBoard.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="screenshotTransparency.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="pagesetup.ui">
@@ -81,6 +87,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="FalconBoard.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="screenshotTransparency.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

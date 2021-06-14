@@ -1,6 +1,6 @@
 ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png)
 # FalconBoard
-Last modified: June 13. 2021
+Last modified: June 14. 2021
 
 
 FalconBoard (previous name MyWhiteboard) is a cross platform open source 
@@ -66,7 +66,7 @@ saved drawings, but cannot modify them.
    -  Take a screenshot with F4 from any rectangular area of the desktop and
       paste it into the middle of the screen to show or connotate. (After paste
       you may move it around like any drawings.) Ctrl+Click on a screenshot to
-      mark it.
+      mark it. You may select a color to make portion of the screenshot transparent.
   -   Draw straight horizontal or vertical lines :press the left mouse button or 
         press the pen to the tablet THEN press and hold the Shift key and start
         drawing).

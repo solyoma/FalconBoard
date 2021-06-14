@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QSettings>
 #include "DrawArea.h"
+#include "screenshotTransparency.h"
 #include "FalconBoard.h"
 #include "myprinter.h"   // for MyPrinterData
 
@@ -18,6 +19,7 @@ void FalconBoard::_RemoveMenus()
     ui.actionSaveAs->setVisible(false);
     ui.actionSaveVisible->setVisible(false);
     ui.actionLoadBackground->setVisible(false);
+    ui.actionScreenshotTransparency->setVisible(false);
 
     ui.actionAutoSaveData->setVisible(false);
     ui.actionAutoSaveBackgroundImage->setVisible(false);
@@ -127,6 +129,12 @@ void FalconBoard::RestoreState()
     qs = s.value("img", QString()).toString();
     if (!qs.isEmpty())
         _drawArea->OpenBackgroundImage(qs);
+    if ((_useScreenshotTransparency = s.value("transp", false).toBool()))
+    {
+        _screenshotTransparencyColor = s.value("transc", "#ffffff").toString();
+        ui.actionScreenshotTransparency->setChecked(_useScreenshotTransparency);
+    }
+    
 #endif
     _nGridSpacing = s.value("gridspacing", 64).toInt();
     if (_nGridSpacing < 5)
@@ -210,6 +218,16 @@ void FalconBoard::SaveState()
 	s.setValue("saveb", ui.actionAutoSaveBackgroundImage->isChecked());
 	if (ui.actionAutoSaveBackgroundImage->isChecked())
 		s.setValue("img", _sImageName);
+    if (_useScreenshotTransparency)
+    {
+        s.setValue("transp", _useScreenshotTransparency);
+        s.setValue("transc", _screenshotTransparencyColor.name());
+    }
+    else
+    {
+        s.remove("transp");
+        s.remove("transc");
+    }
 #endif
     s.remove("tabs");
     s.beginGroup("tabs");
@@ -275,11 +293,19 @@ void FalconBoard::_SetupIconsForPenColors(ScreenMode sm)
 
 #ifndef _VIEWER
     ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, drawColors[penBlack]) : _iconPen);
-    ui.action_Black->setText(sm == smSystem ? "Blac&k" : "&White");
+    ui.action_Black->setText(drawColors.ActionName(penBlack));
+
     ui.action_Red->setIcon(_ColoredIcon(_iconPen,   drawColors[penRed]));
+    ui.action_Red->setText(drawColors.ActionName(penRed));
+
     ui.action_Green->setIcon(_ColoredIcon(_iconPen, drawColors[penGreen]));
+    ui.action_Green->setText(drawColors.ActionName(penGreen));
+
     ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  drawColors[penBlue]));
+    ui.action_Blue->setText(drawColors.ActionName(penBlue));
+
     ui.action_Yellow->setIcon(_ColoredIcon(_iconPen,drawColors[penYellow]));
+    ui.action_Yellow->setText(drawColors.ActionName(penYellow));
 #endif
 }
 
@@ -554,6 +580,15 @@ void FalconBoard::_SetPenWidth(MyPenKind pk)
     ++_busy;
     _psbPenWidth->setValue(_penWidth[pk-1]);
     --_busy;
+}
+
+void FalconBoard::_SelectTransparentPixelColor()
+{
+    ScreenShotTransparencyDialog *dlg = new ScreenShotTransparencyDialog(this, _screenshotTransparencyColor, _useScreenshotTransparency);
+    if (dlg->exec())
+        dlg->GetResult(_screenshotTransparencyColor, _useScreenshotTransparency);
+    ui.actionScreenshotTransparency->setChecked(_useScreenshotTransparency);
+    delete dlg;
 }
 #endif
 
@@ -1314,6 +1349,41 @@ void FalconBoard::on_action_Eraser_triggered()
     SlotForFocus();
 }
 
+void FalconBoard::on_actionRotateLeft_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_0);
+}
+
+void FalconBoard::on_actionRotateRight_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_9);
+}
+
+void FalconBoard::on_actionRotate180_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_8);
+}
+
+void FalconBoard::on_actionHFlip_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_H);
+}
+
+void FalconBoard::on_actionVFlip_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_V);
+}
+
+void FalconBoard::on_actionDrawRectangle_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_R);
+}
+
+void FalconBoard::on_actionDrawEllipse_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_C);
+}
+
 void FalconBoard::on_action_Screenshot_triggered()
 {
     QScreen* screen = QGuiApplication::primaryScreen();
@@ -1332,6 +1402,11 @@ void FalconBoard::on_action_Screenshot_triggered()
 
     show();
     plblScreen->show();
+}
+
+void FalconBoard::on_actionScreenshotTransparency_triggered()
+{
+    _SelectTransparentPixelColor();   // or set it to unused
 }
 
 void FalconBoard::on_actionClearRoll_triggered()
@@ -1469,13 +1544,20 @@ void FalconBoard::SlotForScreenshotReady(QRect gmetry)
 {
     plblScreen->hide();
 
-    QImage image;
-    image =QImage(gmetry.size(), QImage::Format_ARGB32);
+    QPixmap pixmap;  // need a pixmap for transparency (used Qpixmap previously)
+    pixmap = QPixmap(gmetry.size()); //  , Qpixmap::Format_ARGB32);
 
-    QPainter *painter = new QPainter(&image);   // need to delete it before the label is deleted
-    painter->drawImage(QPoint(0,0), plblScreen->pixmap()->toImage(), gmetry);
+    QPainter *painter = new QPainter(&pixmap);   // need to delete it before the label is deleted
+    painter->drawPixmap(QPoint(0,0), *plblScreen->pixmap(), gmetry);
     delete painter;
-    _drawArea->AddScreenShotImage(image);
+
+    if (_useScreenshotTransparency)
+    {
+        QBitmap bm = pixmap.createMaskFromColor(_screenshotTransparencyColor);
+        pixmap.setMask(bm);
+    }
+
+    _drawArea->AddScreenShotImage(pixmap);
 
     _ConnectDisconnectScreenshotLabel(false);
     delete plblScreen;

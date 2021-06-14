@@ -289,20 +289,28 @@ void ScreenShotImage::Translate(QPoint p, int minY)
 void ScreenShotImage::Rotate(MyRotation rot, QRect encRect, float alpha)
 {
 	QTransform transform;
+	QImage img;
+	bool fliph = false, flipv = true;	// defaullt flip orientations
 	switch (rot)
 	{
 		case rotR90: transform.rotate(270); image = image.transformed(transform, Qt::SmoothTransformation); break;
 		case rotL90: transform.rotate(90);  image = image.transformed(transform, Qt::SmoothTransformation); break;
 		case rot180: transform.rotate(180); image = image.transformed(transform, Qt::SmoothTransformation); break;
-		case rotFlipH: image = image.mirrored(true, false); break;
-		case rotFlipV: image = image.mirrored(false, true); break;
+		case rotFlipH: 
+			fliph = true; 
+			flipv = false;		// NO break here!										// CHECK IF WORKING!
+		case rotFlipV: 
+			img = image.toImage(); 
+			img = img.mirrored(fliph, flipv); 
+			image = image.fromImage(img);  
+			break;
 		default: break;
 	}
 }
 
 // ---------------------------------------------
 
-void ScreenShotImageList::Add(QImage& image, QPoint pt, int zorder)
+void ScreenShotImageList::Add(QPixmap& image, QPoint pt, int zorder)
 {
 	ScreenShotImage img;
 	img.image = image;

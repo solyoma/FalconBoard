@@ -164,6 +164,7 @@
     <ClCompile Include="history.cpp" />
     <ClCompile Include="pagesetup.cpp" />
     <ClCompile Include="pdfsetup.cpp" />
+    <ClCompile Include="screenshotTransparency.cpp" />
     <ClCompile Include="snipper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="FalconBoard.cpp" />
@@ -177,6 +178,7 @@
     <QtUic Include="pagesetup.ui" />
     <QtUic Include="pdfsetup.ui" />
     <QtUic Include="printprogress.ui" />
+    <QtUic Include="screenshotTransparency.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="FalconBoard.qrc" />
@@ -192,6 +194,7 @@
     <ClInclude Include="history.h" />
     <ClInclude Include="myevent.h" />
     <ClInclude Include="myprinter.h" />
+    <QtMoc Include="screenshotTransparency.h" />
     <QtMoc Include="pdfsetup.h" />
     <QtMoc Include="printprogress.h" />
     <QtMoc Include="pagesetup.h" />

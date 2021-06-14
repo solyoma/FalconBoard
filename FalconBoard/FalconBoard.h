@@ -73,7 +73,17 @@ private slots:
 	void on_action_Blue_triggered()  ;
 	void on_action_Yellow_triggered();
 	void on_action_Eraser_triggered();
+
+	void on_actionRotateLeft_triggered();
+	void on_actionRotateRight_triggered();
+	void on_actionRotate180_triggered();
+	void on_actionHFlip_triggered();
+	void on_actionVFlip_triggered();
+	void on_actionDrawRectangle_triggered();
+	void on_actionDrawEllipse_triggered();
+
 	void on_action_Screenshot_triggered();
+	void on_actionScreenshotTransparency_triggered();
 
 	void on_actionClearRoll_triggered();
 	void on_actionClearThisScreen_triggered();
@@ -192,6 +202,8 @@ private:
 
 	QString _sGridColor = "#d0d0d0",
 		    _sPageGuideColor = "#fcd475";
+	bool _useScreenshotTransparency = false;
+	QColor _screenshotTransparencyColor;
 
 	ScreenMode _screenMode = smSystem;
 
@@ -256,6 +268,7 @@ private:
 		 
 	void _SetPenWidth(MyPenKind pk);
 
+	void _SelectTransparentPixelColor();
 
 	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
 #endif

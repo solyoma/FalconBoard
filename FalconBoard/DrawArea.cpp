@@ -308,7 +308,7 @@ void DrawArea::SetPenKind(MyPenKind newKind, int width)
         _penWidth = width;
 }
 
-void DrawArea::AddScreenShotImage(QImage& image)
+void DrawArea::AddScreenShotImage(QPixmap& image)
 {
     ScreenShotImage bimg;
     bimg.image = image;
@@ -382,6 +382,11 @@ bool DrawArea::RecolorSelected(int key)
         _Redraw();
     return true;
 }
+void DrawArea::SynthesizeKeyEvent(Qt::Key key)
+{
+    QKeyEvent event(QEvent::KeyPress, key, Qt::NoModifier);
+    keyPressEvent(&event);
+}
 #endif
 
 void DrawArea::NewData()    // current history
@@ -422,6 +427,7 @@ void DrawArea::ChangePenColorByKeyboard(int key)
     MyPenKind pk = PenKindFromKey(key);
     emit PenKindChange(pk);
 }
+
 #endif
 
 void DrawArea::keyPressEvent(QKeyEvent* event)
@@ -444,7 +450,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         _spaceBarDown = true;
         QWidget::keyPressEvent(event);
     }
-    else if (event->spontaneous())
+    else // if (event->spontaneous())
     {
 #ifndef _VIEWER
         bool bPaste = _itemsCopied &&
@@ -1109,7 +1115,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
         while (pimg)                                            // image layer
         {
             QRect intersectRect = pimg->AreaOnCanvas(_clippingRect);      // absolute
-            painter.drawImage(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft));
+            painter.drawPixmap(intersectRect.translated(-_topLeft), pimg->image, intersectRect.translated(-pimg->topLeft));
             pimg = _history->ScreenShotList().NextVisible();
         }
     }
@@ -2128,7 +2134,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect & rect
         if (tr.height() < sr.height())
             tr.setHeight(sr.height());
 
-        painter.drawImage(tr, si.image, sr);
+        painter.drawPixmap(tr, si.image, sr);
     }
         // save color and line width
     MyPenKind pk = _myPenKind;

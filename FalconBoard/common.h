@@ -40,6 +40,7 @@ class DrawColors
         MyPenKind kind;
         QColor lightColor,    // _dark = false - for light mode
                darkColor;     // _dark = true  - for dark mode
+        QString lightName, darkName; // Menu names for dark and light modes
         _clr() : kind(penNone), lightColor(QColor()), darkColor(QColor()) { }
     } _colors[5];
     const int _COLOR_COUNT = 5;
@@ -57,18 +58,32 @@ public:
         _colors[0].kind = penBlack;
         _colors[0].lightColor = Qt::black;
         _colors[0].darkColor = Qt::white;
+        _colors[0].lightName = QObject::tr("Blac&k");
+        _colors[0].darkName  = QObject::tr("&White");
+
         _colors[1].kind = penRed;
         _colors[1].lightColor = Qt::red;
         _colors[1].darkColor = Qt::red;
+        _colors[1].lightName = QObject::tr("&Red");
+        _colors[1].darkName  = QObject::tr("&Red");
+
         _colors[2].kind = penGreen;
         _colors[2].lightColor = "#007d1a";
         _colors[2].darkColor = Qt::green;
+        _colors[2].lightName = QObject::tr("&Green");
+        _colors[2].darkName  = QObject::tr("&Green");
+
         _colors[3].kind = penBlue;
         _colors[3].lightColor = Qt::blue;
         _colors[3].darkColor = "#82dbfc";
+        _colors[3].lightName = QObject::tr("&Blue");
+        _colors[3].darkName  = QObject::tr("&Blue");
+
         _colors[4].kind = penYellow;
         _colors[4].lightColor = "#b704be";
         _colors[4].darkColor = Qt::yellow;
+        _colors[4].lightName = QObject::tr("&Purple");
+        _colors[4].darkName  = QObject::tr("&Yellow");
     }
     bool SetDarkMode(bool dark) // returns previous mode
     {
@@ -81,6 +96,12 @@ public:
     {
         int i = _penColorIndex(pk);
         return   (i < 0 ? _invalid : (_dark ? _colors[i].darkColor : _colors[i].lightColor));
+    }
+    QString &ActionName(MyPenKind pk)
+    { 
+        static QString what = "???";
+        int i = _penColorIndex(pk);
+        return (i < 0 ? what : (_dark ? _colors[i].darkName : _colors[i].lightName));
     }
 };
 

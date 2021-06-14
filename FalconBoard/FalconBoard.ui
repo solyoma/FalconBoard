@@ -67,19 +67,34 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
+    <widget class="QMenu" name="menuPen_Color">
+     <property name="title">
+      <string>Pen Color</string>
+     </property>
+     <addaction name="action_Black"/>
+     <addaction name="action_Red"/>
+     <addaction name="action_Green"/>
+     <addaction name="action_Blue"/>
+     <addaction name="action_Yellow"/>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
-    <addaction name="action_Black"/>
-    <addaction name="action_Red"/>
-    <addaction name="action_Green"/>
-    <addaction name="action_Blue"/>
-    <addaction name="action_Yellow"/>
+    <addaction name="menuPen_Color"/>
     <addaction name="action_Eraser"/>
     <addaction name="separator"/>
     <addaction name="action_Screenshot"/>
     <addaction name="separator"/>
     <addaction name="action_InsertVertSpace"/>
+    <addaction name="separator"/>
+    <addaction name="actionRotateLeft"/>
+    <addaction name="actionRotateRight"/>
+    <addaction name="actionRotate180"/>
+    <addaction name="actionHFlip"/>
+    <addaction name="actionVFlip"/>
+    <addaction name="separator"/>
+    <addaction name="actionDrawEllipse"/>
+    <addaction name="actionRectangle"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -132,6 +147,8 @@
     <addaction name="menu_Mode"/>
     <addaction name="menuGrid"/>
     <addaction name="actionShowPageGuides"/>
+    <addaction name="separator"/>
+    <addaction name="actionScreenshotTransparency"/>
     <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>
@@ -227,9 +244,6 @@
    <property name="text">
     <string>Blac&amp;k</string>
    </property>
-   <property name="shortcut">
-    <string>1</string>
-   </property>
   </action>
   <action name="action_Red">
    <property name="checkable">
@@ -241,9 +255,6 @@
    </property>
    <property name="text">
     <string>&amp;Red</string>
-   </property>
-   <property name="shortcut">
-    <string>2</string>
    </property>
   </action>
   <action name="action_Green">
@@ -257,9 +268,6 @@
    <property name="text">
     <string>&amp;Green</string>
    </property>
-   <property name="shortcut">
-    <string>3</string>
-   </property>
   </action>
   <action name="action_Blue">
    <property name="checkable">
@@ -271,9 +279,6 @@
    </property>
    <property name="text">
     <string>&amp;Blue</string>
-   </property>
-   <property name="shortcut">
-    <string>4</string>
    </property>
   </action>
   <action name="actionHelp">
@@ -465,9 +470,6 @@
    <property name="text">
     <string>&amp;Yellow</string>
    </property>
-   <property name="shortcut">
-    <string>5</string>
-   </property>
   </action>
   <action name="actionVertical_space">
    <property name="enabled">
@@ -609,6 +611,81 @@
    </property>
    <property name="toolTip">
     <string>Create a new, empty  document in a new TAB</string>
+   </property>
+  </action>
+  <action name="actionScreenshotTransparency">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Screenshot &amp;transparency...</string>
+   </property>
+   <property name="toolTip">
+    <string>Select color which will be transparent on screenshots</string>
+   </property>
+  </action>
+  <action name="actionide">
+   <property name="text">
+    <string>ide</string>
+   </property>
+  </action>
+  <action name="actionRotateLeft">
+   <property name="text">
+    <string>Rotate Left 9&amp;0°</string>
+   </property>
+   <property name="toolTip">
+    <string>Rotates completely selected linesimages to the left</string>
+   </property>
+   <property name="statusTip">
+    <string/>
+   </property>
+  </action>
+  <action name="actionRotateRight">
+   <property name="text">
+    <string>Rotate Right &amp;90°</string>
+   </property>
+   <property name="toolTip">
+    <string>Rotates completely selected linesimages to the right</string>
+   </property>
+  </action>
+  <action name="actionHFlip">
+   <property name="text">
+    <string>Flip &amp;Horizontal</string>
+   </property>
+   <property name="toolTip">
+    <string>Flip completely selected lines/images horizontally</string>
+   </property>
+  </action>
+  <action name="actionVFlip">
+   <property name="text">
+    <string>Flip &amp;Vertical</string>
+   </property>
+   <property name="toolTip">
+    <string>Flip completely selected lines/images vertically</string>
+   </property>
+  </action>
+  <action name="actionDrawEllipse">
+   <property name="text">
+    <string>Draw an ellipse or a &amp;Circle</string>
+   </property>
+   <property name="toolTip">
+    <string>Right button to draw enclosing rectangle, Hold down Shift for a circle</string>
+   </property>
+  </action>
+  <action name="actionRectangle">
+   <property name="text">
+    <string>Draw a &amp;Rectangle</string>
+   </property>
+   <property name="toolTip">
+    <string>Right button to draw rectangle, Hold down Shift for a square</string>
+   </property>
+  </action>
+  <action name="actionRotate180">
+   <property name="text">
+    <string>Rotate 1&amp;80°</string>
+   </property>
+   <property name="toolTip">
+    <string>Rotates completely selected lines/images</string>
    </property>
   </action>
  </widget>
