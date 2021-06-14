@@ -13,7 +13,8 @@ The project also contains a separate viewer that only displays and prints
 saved drawings, but cannot modify them.
 
 ## Screenshots:
-![image](https://user-images.githubusercontent.com/37068759/108632072-54544c00-746d-11eb-9dfe-11a1120055f1.png)
+![falconBoard-dark-mode](https://user-images.githubusercontent.com/37068759/121942239-8d803700-cd50-11eb-8493-e239f46e7da7.jpg)
+![falconBoard-light-mode](https://user-images.githubusercontent.com/37068759/121942173-79d4d080-cd50-11eb-8ffe-dd9b99eed039.jpg)
 ## Features (Version 1.1) : 
 
    -  Works under Windows and Linux, and (I hope) on Macs too.
