@@ -41,7 +41,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 #ifdef _VIEWER
     _RemoveMenus();        // viewer has none of these
 #else
-    _AddSaveVisibleAsMenu();
+    _AddSaveVisibleAsMenu();                                                                                              
 #endif
 
     QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents); // for tablet
@@ -1374,7 +1374,7 @@ void FalconBoard::on_actionVFlip_triggered()
     _drawArea->SynthesizeKeyEvent(Qt::Key_V);
 }
 
-void FalconBoard::on_actionDrawRectangle_triggered()
+void FalconBoard::on_actionRectangle_triggered()
 {
     _drawArea->SynthesizeKeyEvent(Qt::Key_R);
 }

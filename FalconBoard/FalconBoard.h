@@ -79,7 +79,7 @@ private slots:
 	void on_actionRotate180_triggered();
 	void on_actionHFlip_triggered();
 	void on_actionVFlip_triggered();
-	void on_actionDrawRectangle_triggered();
+	void on_actionRectangle_triggered();
 	void on_actionDrawEllipse_triggered();
 
 	void on_action_Screenshot_triggered();

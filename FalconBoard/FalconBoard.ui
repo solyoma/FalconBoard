@@ -244,6 +244,9 @@
    <property name="text">
     <string>Blac&amp;k</string>
    </property>
+   <property name="shortcut">
+    <string>1</string>
+   </property>
   </action>
   <action name="action_Red">
    <property name="checkable">
@@ -255,6 +258,9 @@
    </property>
    <property name="text">
     <string>&amp;Red</string>
+   </property>
+   <property name="shortcut">
+    <string>2</string>
    </property>
   </action>
   <action name="action_Green">
@@ -268,6 +274,9 @@
    <property name="text">
     <string>&amp;Green</string>
    </property>
+   <property name="shortcut">
+    <string>3</string>
+   </property>
   </action>
   <action name="action_Blue">
    <property name="checkable">
@@ -279,6 +288,9 @@
    </property>
    <property name="text">
     <string>&amp;Blue</string>
+   </property>
+   <property name="shortcut">
+    <string>4</string>
    </property>
   </action>
   <action name="actionHelp">
@@ -469,6 +481,9 @@
    </property>
    <property name="text">
     <string>&amp;Yellow</string>
+   </property>
+   <property name="shortcut">
+    <string>5</string>
    </property>
   </action>
   <action name="actionVertical_space">
