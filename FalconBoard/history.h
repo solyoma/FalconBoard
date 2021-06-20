@@ -21,6 +21,7 @@ enum HistEvent {
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
     heScreenShot,
+    heText,
         // these are not saved
     heRecolor,         // save old color, set new color
     heItemsDeleted,         // store the list of items deleted in this event
@@ -70,13 +71,14 @@ struct ScribbleItem        // drawn on layer mltScribbleItem
     int zOrder = 0;
     bool isVisible = true;
 
-    MyPenKind penKind = penBlack;
+    FalconPenKind penKind = penBlack;
     int penWidth =1;
     QPolygon points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
     MyRotation rot = rotNone;       // used only when rotation item added
     float rAlpha = 0;               // for 'rotAlpha': rotation around  center of bounding box
     QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
                                     // not saved on disk, recreated on read
+    QPainterPath pPath;         // used for faster successive displays
 
     ScribbleItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
     ScribbleItem(const ScribbleItem& di);
@@ -103,6 +105,25 @@ struct ScribbleItem        // drawn on layer mltScribbleItem
 inline QDataStream& operator<<(QDataStream& ofs, const ScribbleItem& di);
 inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di);
 
+struct TextItem {
+    QString _text;                  // so that a text(0 fucntion can be created
+    QPoint topLeft;                 // just left-to-right drawing
+    QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
+                                    // not saved on disk, recreated on read
+    QString fontAsString;           // list of all properties separated by commas
+
+    TextItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
+    TextItem(const TextItem& di);
+    TextItem(const TextItem&& di) noexcept;
+    TextItem& operator=(const TextItem& di);
+
+    TextItem& operator=(const TextItem&& di)  noexcept;
+
+    void setText(QString txt);
+    QString text() const { return _text; }
+
+    inline void setFont(QString font) { fontAsString = font; }
+};
 
 // ******************************************************
 // image to shown on background
@@ -321,13 +342,13 @@ struct HistoryPasteItemTop : HistoryItem
 struct HistoryReColorItem : HistoryItem
 {
     ItemIndexVector selectedList;                 // indexes  to elements in '*pHist'
-    QVector<MyPenKind> penKindList;         // colors for elements in selectedList
-    MyPenKind pk;                           
+    QVector<FalconPenKind> penKindList;         // colors for elements in selectedList
+    FalconPenKind pk;                           
     QRect boundingRectangle;            // to scroll here when undo/redo
 
     int Undo() override;
     int Redo() override;
-    HistoryReColorItem(History* pHist, ItemIndexVector&selectedList, MyPenKind pk);
+    HistoryReColorItem(History* pHist, ItemIndexVector&selectedList, FalconPenKind pk);
     HistoryReColorItem(HistoryReColorItem& other);
     HistoryReColorItem& operator=(const HistoryReColorItem& other);
     HistoryReColorItem(HistoryReColorItem&& other) noexcept;
@@ -686,7 +707,7 @@ public:
     HistoryItem* AddScribbleItem(ScribbleItem& dri);
     HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
     HistoryItem* AddPastedItems(QPoint topLeft, Sprite *pSprite=nullptr);    // using 'this' and either '_copiedList'  or  pSprite->... lists
-    HistoryItem* AddRecolor(MyPenKind pk);
+    HistoryItem* AddRecolor(FalconPenKind pk);
     HistoryItem* AddInsertVertSpace(int y, int heightInPixels);              // height < 0: delete space
     HistoryItem* AddScreenShot(ScreenShotImage &bimg);                       // to _belowImages
     HistoryItem* AddRotationItem(MyRotation rot);

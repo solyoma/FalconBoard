@@ -556,7 +556,7 @@ void FalconBoard::_SetPenKind()
 	}
 }
 
-void FalconBoard::_SetPenKind(MyPenKind newPen)
+void FalconBoard::_SetPenKind(FalconPenKind newPen)
 {
     _actPen = newPen;
     _SelectPen();
@@ -574,7 +574,7 @@ void FalconBoard::_SetGreenPen() { _SetPenKind(penGreen); }
 void FalconBoard::_SetBluePen()  { _SetPenKind (penBlue); }
 void FalconBoard::_SetYellowPen()  { _SetPenKind (penYellow); }
 
-void FalconBoard::_SetPenWidth(MyPenKind pk)
+void FalconBoard::_SetPenWidth(FalconPenKind pk)
 {
     _drawArea->SetPenKind(pk, _penWidth[pk-1]);
     ++_busy;
@@ -1518,7 +1518,7 @@ void FalconBoard::SlotForFocus()
 void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sent by tablet
 {
     static bool penEraser = false;     // set to true if not erasemode just
-    static MyPenKind pk = penBlack;
+    static FalconPenKind pk = penBlack;
     switch (pt)                         // eraser end of stylus used
     {
         case QTabletEvent::Eraser:      // only when eraser side selected
@@ -1587,7 +1587,7 @@ void FalconBoard::SlotForLabel(QString text)
 {
     _plblMsg->setText(text);
 }
-void FalconBoard::SlotForPenKindChange(MyPenKind pk)
+void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 {
     _SetPenKind(pk);
 }

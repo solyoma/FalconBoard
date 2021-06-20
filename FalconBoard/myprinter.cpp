@@ -408,7 +408,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
     else if (phi->type == heScribble || phi->type == heEraser)
     {             // paint over transparent layer
         ScribbleItem* pscrbl = phi->GetVisibleScribble(0);
-        MyPenKind pk = pscrbl->penKind;
+        FalconPenKind pk = pscrbl->penKind;
         int pw = pscrbl->penWidth * _data.magn;
         bool erasemode = pscrbl->type == heEraser ? true : false;
 

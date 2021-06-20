@@ -16,7 +16,7 @@ const QString sWindowTitle =
 
 
 
-enum MyPenKind { penNone=0, penBlack=1, penRed=2, penGreen=3, penBlue=4, penYellow=6, penEraser=5};
+enum FalconPenKind { penNone=0, penBlack=1, penRed=2, penGreen=3, penBlue=4, penYellow=6, penEraser=5};
 enum PrinterFlags :char {
     pfPrintBackgroundImage  = 1,
     pfWhiteBackground       = 2,		// or use display mode which may be dark
@@ -26,7 +26,45 @@ enum PrinterFlags :char {
     pfDontPrintImages       = 32
 };
 enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess};
+enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
 
+// ******************************************************
+//  KELL EZ???
+// 
+//----------------------------- MyPainter -------------------
+#if 0
+#include <QPainter>
+class FalconPainter
+{
+    QImage *_canvas = nullptr;
+    QFont _font;
+    QColor _penColor, _brushColor;
+    int _penWidth;
+    Qt::PenStyle _penStyle = Qt::SolidLine;
+    QPainter::CompositionMode _compMode;
+public:
+    FalconPainter(QImage *canvas=nullptr):_canvas(canvas) {}
+
+    inline void SetFont(QFont& font) { _font = font; }
+    inline void FontFromString(QString sfont) { _font.fromString(sfont); }
+    inline QFont Font() const {
+        return  _font;
+    }
+    inline QString FontToString() const { return _font.toString();  }
+    inline void SetCompositionMode(QPainter::CompositionMode cm) { _compMode = cm; }
+    inline void SetPen(QColor& penColor, int width = 0, Qt::PenStyle style=Qt::SolidLine) 
+    { 
+        _penColor = penColor;
+        if(width > 0) 
+            _penWidth = width;
+        _penStyle = style;
+    }
+    inline void SetPen(QString colorName, int width= -1, Qt::PenStyle style = Qt::SolidLine) { _penColor = colorName; }
+    inline void SetPenStyle(Qt::PenStyle penStyle) { _penStyle = penStyle; }
+
+    void DrawLine(); // uses _brushColor
+};
+#endif
 
 // ******************************************************
 //----------------------------- DrawColors -------------------
@@ -37,7 +75,7 @@ class DrawColors
     bool _dark = false;
     struct _clr
     {
-        MyPenKind kind;
+        FalconPenKind kind;
         QColor lightColor,    // _dark = false - for light mode
                darkColor;     // _dark = true  - for dark mode
         QString lightName, darkName; // Menu names for dark and light modes
@@ -45,7 +83,7 @@ class DrawColors
     } _colors[5];
     const int _COLOR_COUNT = 5;
 
-    int _penColorIndex(MyPenKind pk)
+    int _penColorIndex(FalconPenKind pk)
     {
         for (int i = 0; i < _COLOR_COUNT; ++i)
             if (_colors[i].kind == pk)
@@ -92,12 +130,12 @@ public:
         return b;
     }
     bool IsDarkMode() const { return _dark; }
-    QColor& operator[](MyPenKind pk)
+    QColor& operator[](FalconPenKind pk)
     {
         int i = _penColorIndex(pk);
         return   (i < 0 ? _invalid : (_dark ? _colors[i].darkColor : _colors[i].lightColor));
     }
-    QString &ActionName(MyPenKind pk)
+    QString &ActionName(FalconPenKind pk)
     { 
         static QString what = "???";
         int i = _penColorIndex(pk);

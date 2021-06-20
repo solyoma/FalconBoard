@@ -113,7 +113,7 @@ private slots:
 	void SlotDecreaseBrushSize(int ds);
 
 	void SlotForLabel(QString text);
-	void SlotForPenKindChange(MyPenKind pk);
+	void SlotForPenKindChange(FalconPenKind pk);
 
 #endif
 	void on_actionPageSetup_triggered();
@@ -155,7 +155,7 @@ private:
 
 	bool	_eraserOn = false;
 	int		_penWidth[NUM_COLORS] = { 3,3,3,3,30,3 };	// historical: penEraser = 5
-	MyPenKind _actPen = penBlack;
+	FalconPenKind _actPen = penBlack;
 
 		// default icons
 	QIcon	_iconPen;	// set from white and change colors as required
@@ -256,7 +256,7 @@ private:
 
 	void _SetPenKind();
 
-	void _SetPenKind(MyPenKind color);
+	void _SetPenKind(FalconPenKind color);
 
 	void _SetCursor(DrawArea::CursorShape cs);
 
@@ -266,7 +266,7 @@ private:
 	void _SetBluePen() ;
 	void _SetYellowPen() ;
 		 
-	void _SetPenWidth(MyPenKind pk);
+	void _SetPenWidth(FalconPenKind pk);
 
 	void _SelectTransparentPixelColor();
 

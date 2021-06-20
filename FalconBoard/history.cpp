@@ -128,6 +128,7 @@ void ScribbleItem::Translate(QPoint dr, int minY)
 	for (int i = 0; i < points.size(); ++i)
 		points[i] = points[i] + dr;
 	bndRect.translate(dr);
+	pPath.translate(dr);
 }
 
 void ScribbleItem::Rotate(MyRotation rotation, QRect encRect, float alpha)	// rotate around the center of encRect
@@ -220,7 +221,7 @@ void ScribbleItem::Rotate(MyRotation rotation, QRect encRect, float alpha)	// ro
 		rot = rotation;
 	else
 		rot = rotNone;		// undone: no rotation set yet
-
+	pPath.clear();		// re-generate again
 }
 
 inline QDataStream& operator<<(QDataStream& ofs, const ScribbleItem& di)
@@ -236,7 +237,7 @@ inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di)
 {
 	qint32 n;
 	ifs >> n; di.zOrder = n;
-	ifs >> n; di.penKind = (MyPenKind)n;
+	ifs >> n; di.penKind = (FalconPenKind)n;
 	ifs >> n; di.penWidth = n;
 
 	qint32 x, y;
@@ -721,7 +722,7 @@ QRect HistoryPasteItemTop::Area() const
 	return boundingRect;
 }
 //---------------------------------------------------
-HistoryReColorItem::HistoryReColorItem(History* pHist, ItemIndexVector& selectedList, MyPenKind pk) :
+HistoryReColorItem::HistoryReColorItem(History* pHist, ItemIndexVector& selectedList, FalconPenKind pk) :
 	HistoryItem(pHist), selectedList(selectedList), pk(pk)
 {
 	type = heRecolor;
@@ -1514,7 +1515,7 @@ HistoryItem* History::AddPastedItems(QPoint topLeft, Sprite* pSprite)			   // tr
 	return _AddItem(pt);
 }
 
-HistoryItem* History::AddRecolor(MyPenKind pk)
+HistoryItem* History::AddRecolor(FalconPenKind pk)
 {
 	if (!_nSelectedItemsList.size())
 		return nullptr;          // do not add an empty list
