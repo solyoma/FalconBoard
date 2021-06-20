@@ -12,6 +12,7 @@
 #include <QIODevice>
 
 #include "common.h"
+#include "bands.h"
 
 constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 
@@ -21,6 +22,7 @@ enum HistEvent {
     heScribble,        // series of points from start to finish of scribble
     heEraser,          // eraser used
     heScreenShot,
+    heText,
         // these are not saved
     heRecolor,         // save old color, set new color
     heItemsDeleted,         // store the list of items deleted in this event
@@ -46,23 +48,6 @@ enum MyLayer {
                 mlySprite                   // layer for sprites (moveable images)
              };
 
-/*========================================================
- * Structure to hold item indices for one band or selection
- *  An ItemIndex may hold scribbles or screenshot images
- *  Screenshot items have zorder-s below DRAWABLE_ZORDER_BASE
- *-------------------------------------------------------*/
-struct ItemIndex
-{
-    int zorder;                 // indices are ordered in ascending zorder
-                                // if < DRAWABLE_ZORDER_BASE then image
-    int index;                  // in pHist->_items
-    bool operator<(const ItemIndex& other) { return zorder < other.zorder; }
-};
-using ItemIndexVector = QVector<ItemIndex>;  // ordered by 'zorder'
-
-using IntVector = QVector<int>;
-
-
 // stores the coordinates of line strokes from pen down to pen up:
 struct ScribbleItem        // drawn on layer mltScribbleItem
 {                   
@@ -70,13 +55,14 @@ struct ScribbleItem        // drawn on layer mltScribbleItem
     int zOrder = 0;
     bool isVisible = true;
 
-    MyPenKind penKind = penBlack;
+    FalconPenKind penKind = penBlack;
     int penWidth =1;
     QPolygon points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
     MyRotation rot = rotNone;       // used only when rotation item added
     float rAlpha = 0;               // for 'rotAlpha': rotation around  center of bounding box
     QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
                                     // not saved on disk, recreated on read
+    QPainterPath pPath;         // used for faster successive displays
 
     ScribbleItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
     ScribbleItem(const ScribbleItem& di);
@@ -103,6 +89,25 @@ struct ScribbleItem        // drawn on layer mltScribbleItem
 inline QDataStream& operator<<(QDataStream& ofs, const ScribbleItem& di);
 inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di);
 
+struct TextItem {
+    QString _text;                  // so that a text(0 fucntion can be created
+    QPoint topLeft;                 // just left-to-right drawing
+    QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
+                                    // not saved on disk, recreated on read
+    QString fontAsString;           // list of all properties separated by commas
+
+    TextItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
+    TextItem(const TextItem& di);
+    TextItem(const TextItem&& di) noexcept;
+    TextItem& operator=(const TextItem& di);
+
+    TextItem& operator=(const TextItem&& di)  noexcept;
+
+    void setText(QString txt);
+    QString text() const { return _text; }
+
+    inline void setFont(QString font) { fontAsString = font; }
+};
 
 // ******************************************************
 // image to shown on background
@@ -321,13 +326,13 @@ struct HistoryPasteItemTop : HistoryItem
 struct HistoryReColorItem : HistoryItem
 {
     ItemIndexVector selectedList;                 // indexes  to elements in '*pHist'
-    QVector<MyPenKind> penKindList;         // colors for elements in selectedList
-    MyPenKind pk;                           
+    QVector<FalconPenKind> penKindList;         // colors for elements in selectedList
+    FalconPenKind pk;                           
     QRect boundingRectangle;            // to scroll here when undo/redo
 
     int Undo() override;
     int Redo() override;
-    HistoryReColorItem(History* pHist, ItemIndexVector&selectedList, MyPenKind pk);
+    HistoryReColorItem(History* pHist, ItemIndexVector&selectedList, FalconPenKind pk);
     HistoryReColorItem(HistoryReColorItem& other);
     HistoryReColorItem& operator=(const HistoryReColorItem& other);
     HistoryReColorItem(HistoryReColorItem&& other) noexcept;
@@ -421,102 +426,6 @@ struct Sprite
 
 
 using HistoryItemVector = QVector<HistoryItem*>;
-/*========================================================
- * bands on screen
- *  all items are categorized into bands of height of 
- *  _screenHeight, each band contains indices of each 
- *  element which intersects that band, so one element may
- *  appear on more than one band (currently 2)
- *  a band may contain images and scribbles both
- * 
- * Band for any y coord is y / _bandHeight
- *-------------------------------------------------------*/
-struct Bands 
-{
-    Bands() {}
-    void SetParam(History* pHist, int bandHeight );
-    void Add(int ix);    // existing and visible drawnable in pHist->_items[ix]
-    void Remove(int ix);
-    int  ItemsStartingInBand(int bandIndex, ItemIndexVector &iv);
-    void ItemsVisibleForArea(QRect &rect, ItemIndexVector & hv, bool onlyInsider=false);
-    void SelectItemsForArea(QRect &rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect &unionRect);
-    void Clear() { _bands.clear(); }
-    int constexpr BandHeight() const { return _bandHeight; }
-    bool IsEmpty() const { return _bands.isEmpty(); }
-    int Size() const { return _bands.size(); }
-    int ItemCount() const
-    {
-        //int cnt = 0;
-        //for (int ib = 0; ib < _bands.size(); ++ib)
-        //    cnt += _bands[ib].indices.size();
-        //return cnt;
-        return _itemCount;
-    }
-    int IndexForItemNumber(int num) // returns -1 if no such index
-    {
-        if (num < 0)
-            return num;
-
-        static int
-            _ib = 0,
-            _iprev = -2,        // so that _prev+1 != 0
-            _ibase = 0;
-                    
-        if (num != _iprev + 1)         // then must go through _bands
-        {
-            for (_ib = 0; _ib < _bands.size(); ++_ib)
-            {
-                int isize = _bands[_ib].indices.size();
-                if (num < isize)    // found the band
-                {
-                    _iprev = num;
-                    return _bands[_ib].indices[num].index;
-                }
-                num -= isize;
-                _ibase += isize;
-            }
-            return -1;  // no such item
-        }
-        else                   // next item
-        {
-            if (++_iprev == _bands[_ib].indices.size())  // end of this band
-            {
-                _ibase += _bands[_ib].indices.size();
-                if (++_ib == _bands.size())
-                    return -1;
-            }
-            return _bands[_ib].indices[num - _ibase].index;
-        }
-        return -1;
-    }
-private:
-    struct Band
-    {
-
-        int band_index;           // needed because _bands is not contiguous  
-        int topItemY = std::numeric_limits<int>::max();   // y coordinate of topmost item in band, max if not set
-        ItemIndexVector indices;  // z-ordered indices in _items for visible items
-        bool operator<(const Band &other) const { return band_index < other.band_index;  }
-        bool operator<(int n) const { return band_index < n;  };
-
-        void Remove(int index);
-    };
-
-    History* _pHist=nullptr;
-    int _bandHeight=-1;
-    QPoint _visibleBands;   // x() top, y() bottom, any of them -1: not used
-    QList<Band> _bands;     // Band-s ordered by ascending band index
-    int _itemCount = 0;    // count of all individual items in all bands
-
-    int _ItemStartsInBand(int band_index, HistoryItem *phi);
-    int _AddBandFor(int y);  // if present returns existing, else inserts new band, or appends when above all bands
-    int _GetBand(int y);     // if present returns existing, else return -1
-    int _FindBandFor(int y) const;  // binary search: returns index of  the band which have y inside
-    void _ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector& hv, bool insidersOnly);
-    void _SelectItemsFromBand(int bandIndex, QRect &rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect& unionRect);
-    void _Insert(Band &band, int index); // insert into indices at correct position
-};
-
 /*========================================================
  * Class for storing history of editing
  *  contains data for items drawn on screen, 
@@ -686,7 +595,7 @@ public:
     HistoryItem* AddScribbleItem(ScribbleItem& dri);
     HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _nSelectedItemsList a
     HistoryItem* AddPastedItems(QPoint topLeft, Sprite *pSprite=nullptr);    // using 'this' and either '_copiedList'  or  pSprite->... lists
-    HistoryItem* AddRecolor(MyPenKind pk);
+    HistoryItem* AddRecolor(FalconPenKind pk);
     HistoryItem* AddInsertVertSpace(int y, int heightInPixels);              // height < 0: delete space
     HistoryItem* AddScreenShot(ScreenShotImage &bimg);                       // to _belowImages
     HistoryItem* AddRotationItem(MyRotation rot);

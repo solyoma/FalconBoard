@@ -116,7 +116,7 @@ public:
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
 //    void SetBackgroundImage(QImage& image);
     void InsertVertSpace();         // from top left of rubber band with height of rubber rectangle
-    MyPenKind PenKindFromKey(int key);  // keyboard press/menu click
+    FalconPenKind PenKindFromKey(int key);  // keyboard press/menu click
     bool RecolorSelected(int key); // true: recolored
     void SetLimitedPage(bool limited) { _limited = limited; }
 
@@ -133,7 +133,7 @@ public:
 
     void SetMode(bool darkMode, QString color, QString gridColor, QString pageGuideColor);
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
-    void SetPenKind(MyPenKind newKind, int newWidth);
+    void SetPenKind(FalconPenKind newKind, int newWidth);
 
     void SetOrigin() { _topLeft = QPoint(); }
 
@@ -143,7 +143,7 @@ public:
 
     int IsModified(int fromIndex=-1, bool any = false) const;
 
-    MyPenKind PenKind() const { return _myPenKind;  }
+    FalconPenKind PenKind() const { return _FalconPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
 
     void SetCursor(CursorShape cs, QIcon* icon = nullptr);
@@ -170,7 +170,7 @@ signals:
     void IncreaseBrushSize(int quantity);
     void DecreaseBrushSize(int quantity);
     void RubberBandSelection(bool on);  // used when a selection is active
-    void PenKindChange(MyPenKind pk);
+    void PenKindChange(FalconPenKind pk);
     void CloseTab(int tab);
     void TabSwitched(int direction);
 
@@ -251,7 +251,7 @@ private:
     int     _penWidth = 1;
     QCursor _eraserCursor;
     int     _actPenWidth = 1;
-    MyPenKind _myPenKind = penBlack;
+    FalconPenKind _FalconPenKind = penBlack;
     bool    _bPageSetupValid;
     bool    _bPageSetupUsed = false;
 

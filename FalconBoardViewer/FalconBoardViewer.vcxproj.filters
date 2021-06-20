@@ -63,6 +63,9 @@
     <ClCompile Include="..\FalconBoard\pdfsetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\FalconBoard\bands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="..\FalconBoard\DrawArea.h">
@@ -95,6 +98,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\FalconBoard\myevent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\FalconBoard\bands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

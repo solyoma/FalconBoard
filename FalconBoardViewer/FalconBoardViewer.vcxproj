@@ -67,6 +67,7 @@
       <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;..\FalconBoard;$(Qt_INCLUDEPATH_);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -98,6 +99,7 @@
     <QtUic Include="..\FalconBoard\printprogress.ui" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\FalconBoard\bands.cpp" />
     <ClCompile Include="..\FalconBoard\DrawArea.cpp" />
     <ClCompile Include="..\FalconBoard\history.cpp" />
     <ClCompile Include="..\FalconBoard\main.cpp" />
@@ -111,6 +113,7 @@
     <QtMoc Include="..\FalconBoard\DrawArea.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\FalconBoard\bands.h" />
     <ClInclude Include="..\FalconBoard\common.h" />
     <ClInclude Include="..\FalconBoard\history.h" />
     <ClInclude Include="..\FalconBoard\myevent.h" />

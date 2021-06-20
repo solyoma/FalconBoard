@@ -1,7 +1,3 @@
-#include "DrawArea.h"
-#include "DrawArea.h"
-#include "DrawArea.h"
-
 #include <QApplication>
 #include <QMouseEvent>
 
@@ -21,9 +17,13 @@
 
 #include <math.h>
 
-#include "common.h"
+#include "DrawArea.h"
+#include "DrawArea.h"
+#include "DrawArea.h"
 
-#include "myprinter.h"
+//#include "common.h"
+
+//#include "myprinter.h"
 
 #define DEBUG_LOG(qs) \
 {							 \
@@ -301,9 +301,9 @@ void DrawArea::SetMode(bool darkMode, QString color, QString sGridColor, QString
     _Redraw();                  // because pen color changed!
 }
 
-void DrawArea::SetPenKind(MyPenKind newKind, int width)
+void DrawArea::SetPenKind(FalconPenKind newKind, int width)
 {
-    _myPenKind = newKind;
+    _FalconPenKind = newKind;
     if(width > 0)
         _penWidth = width;
 }
@@ -356,7 +356,7 @@ void DrawArea::InsertVertSpace()
     _history->AddInsertVertSpace(_rubberRect.y() + _topLeft.y(), _rubberRect.height());
     _Redraw();
 }
-MyPenKind DrawArea::PenKindFromKey(int key)
+FalconPenKind DrawArea::PenKindFromKey(int key)
 {
 	switch (key)
 	{
@@ -375,7 +375,7 @@ bool DrawArea::RecolorSelected(int key)
     if(!_history->SelectedSize())
         _history->CollectItemsInside(_rubberRect.translated(_topLeft));
 
-    MyPenKind pk = PenKindFromKey(key);
+    FalconPenKind pk = PenKindFromKey(key);
     HistoryItem* phi = _history->AddRecolor(pk);
 //    _RemoveRubberBand();
     if (phi)
@@ -424,7 +424,7 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
 #ifndef _VIEWER
 void DrawArea::ChangePenColorByKeyboard(int key)
 {
-    MyPenKind pk = PenKindFromKey(key);
+    FalconPenKind pk = PenKindFromKey(key);
     emit PenKindChange(pk);
 }
 
@@ -562,7 +562,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _DrawLineTo(QPoint(x1, y1));
                 _lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
 
-                _lastScribbleItem.penKind = _myPenKind;
+                _lastScribbleItem.penKind = _FalconPenKind;
                 _lastScribbleItem.penWidth = _actPenWidth;
 
                 _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
@@ -590,10 +590,22 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                         for (auto ptf : p)
                         {
                             pt = QPoint( (int)ptf.x(),(int)ptf.y() );
-                            _DrawLineTo(pt);
+// DEBUG                            _DrawLineTo(pt);
                             _lastPointC = pt;
                             _lastScribbleItem.add(_lastPointC + _topLeft);
                         }
+                    }
+// 1 block DBEUG
+                    {
+                        QPainter painter(&_canvas);
+                        QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+                        painter.setPen(pen);
+                        if (_erasemode && !_debugmode)
+                            painter.setCompositionMode(QPainter::CompositionMode_Clear);
+                        else
+                            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+                        painter.setRenderHints(QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform, true);
+                        painter.drawPath(myPath);
                     }
                     _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
                     _rubberBand->setGeometry( _rubberRect );
@@ -633,13 +645,13 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 //				_shiftKeyDown = true;
 
             else if (key == Qt::Key_Up)
-                _Up(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Up(_mods.testFlag(Qt::ControlModifier) ? 100 : 2);
             else if (key == Qt::Key_Down)
-                _Down(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Down(_mods.testFlag(Qt::ControlModifier) ? 100 : 2);
             else if (key == Qt::Key_Left)
-                _Left(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Left(_mods.testFlag(Qt::ControlModifier) ? 100 : 2);
             else if (key == Qt::Key_Right)
-                _Right(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Right(_mods.testFlag(Qt::ControlModifier) ? 100 : 2);
             else if(key == Qt::Key_BracketRight )
                 emit IncreaseBrushSize(1);
             else if(key == Qt::Key_BracketLeft )
@@ -1189,7 +1201,7 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
         _lastScribbleItem.type = heScribble;
     _actPenWidth = _penWidth;
 
-    _lastScribbleItem.penKind = _myPenKind;
+    _lastScribbleItem.penKind = _FalconPenKind;
     _lastScribbleItem.penWidth = _actPenWidth;
     _lastScribbleItem.add(_lastPointC + _topLeft);
 }
@@ -1427,10 +1439,13 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
     QPointF ep = endPointC,
             lp = _lastPointC;
 
-    painter.drawLine(lp, ep);    //? better?
+    if (ep == lp)
+        painter.drawPoint(lp);
+    else 
+        painter.drawLine(lp, ep);    //? better?
     //painter.drawLine(_lastPointC, endPointC);
     int rad = (_actPenWidth / 2) + 2;
-    update(QRect(_lastPointC, endPointC).normalized()
+    update(QRect(_lastPointC, endPointC +(endPointC == _lastPointC ? QPoint(1,1) : QPoint(0,0))).normalized()
         .adjusted(-rad, -rad, +rad, +rad));
 
     _lastPointC = endPointC;
@@ -1441,14 +1456,14 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
  * TASK:    draws the polyline stored in drawnable on
  *          '_canvas'
  * PARAMS:  pscrbl - valid pointer to a ScribbleAble item
- * GLOBALS: _canvas,_myPenKind, _actPenWidth, _erasemode
+ * GLOBALS: _canvas,_FalconPenKind, _actPenWidth, _erasemode
  *          _clippingRect, _lastPointC, _topLeft
  * RETURNS:
  * REMARKS: - no errro checking on pscrbl
  *-------------------------------------------------------*/
 void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 {
-    _myPenKind = pscrbl->penKind;
+    _FalconPenKind = pscrbl->penKind;
     _actPenWidth = pscrbl->penWidth;
     _erasemode = pscrbl->type == heEraser ? true : false;
 
@@ -1468,10 +1483,34 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 
     _lastPointC = pscrbl->points[0] - _topLeft;
     QPoint pt;
+// use painter paths
+#if 1
+    int cnt = pscrbl->points.size();
+    if (cnt > 1 )
+    {
+        QPainterPath path = pscrbl->pPath;
+
+        if (path.isEmpty())
+        {
+            path.moveTo(_lastPointC);
+            for (int i = 1; i < pscrbl->points.size(); ++i)
+            {
+                pt = pscrbl->points[i] - _topLeft;
+                path.lineTo(pt);
+            }
+        }
+        else
+            path.translate(-_topLeft);
+        painter.drawPath(path);
+        _lastPointC = pscrbl->points[pscrbl->points.size() - 1] - _topLeft;
+    }
+    else
+        painter.drawPoint(_lastPointC);
+#else
     if(pscrbl->points.size() > 1)
         pt = pscrbl->points[1] - _topLeft;
     else
-        pt = pscrbl->points[0] - _topLeft + QPoint(1,1);
+        pt = pscrbl->points[0] - _topLeft + QPoint(1,1); // NO NEED USE painter.drawPoint!
 
     for (int i = 1; i < pscrbl->points.size()-1; ++i)
     {
@@ -1480,7 +1519,7 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
         pt = pscrbl->points[i+1] - _topLeft;
     }
     painter.drawLine(_lastPointC, pt);
-
+#endif
     int rad = (_actPenWidth / 2) + 2;
     rect = rect.intersected(pscrbl->bndRect.translated(-_topLeft)).normalized();
    
@@ -1702,7 +1741,7 @@ void DrawArea::_Redraw(bool clear)
 
     _redrawPending = false;
     int savewidth = _penWidth;
-    MyPenKind savekind = _myPenKind;
+    FalconPenKind savekind = _FalconPenKind;
     bool saveEraseMode = _erasemode;
 
     HistoryItemVector forPage;
@@ -1712,7 +1751,7 @@ void DrawArea::_Redraw(bool clear)
     for (auto phi : forPage)
         _ReplotScribbleItem(phi);
     
-    _myPenKind = savekind;
+    _FalconPenKind = savekind;
     _penWidth = savewidth;
     _erasemode = saveEraseMode;
 }
@@ -1720,22 +1759,22 @@ void DrawArea::_Redraw(bool clear)
 QColor DrawArea::_PenColor()
 
 {
-    static MyPenKind _prevKind = penNone;
+    static FalconPenKind _prevKind = penNone;
     static QColor color;
-    if (_myPenKind == _prevKind)
+    if (_FalconPenKind == _prevKind)
     {
-        if (_myPenKind != penBlack)
+        if (_FalconPenKind != penBlack)
             return color;
         return _darkMode ? QColor(Qt::white) : QColor(Qt::black);
     }
 
-    _prevKind = _myPenKind;
+    _prevKind = _FalconPenKind;
 
-    switch (_myPenKind)
+    switch (_FalconPenKind)
     {
         case penBlack: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
         default:
-            return color = drawColors[_myPenKind];
+            return color = drawColors[_FalconPenKind];
     }
 }
 
@@ -2137,13 +2176,13 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect & rect
         painter.drawPixmap(tr, si.image, sr);
     }
         // save color and line width
-    MyPenKind pk = _myPenKind;
+    FalconPenKind pk = _FalconPenKind;
     int pw = _actPenWidth;
     bool em = _erasemode;
 
     for (auto& di : pSprite->items)
     {
-        _myPenKind = di.penKind;
+        _FalconPenKind = di.penKind;
         _actPenWidth = di.penWidth;
         _erasemode = di.type == heEraser ? true : false;
 
@@ -2172,7 +2211,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect & rect
     painter.drawLine(0, pSprite->rect.height(), 0, 0);
 
     // restore data
-    _myPenKind = pk;
+    _FalconPenKind = pk;
     _actPenWidth = pw;
     _erasemode = em;
 

@@ -5,13 +5,12 @@
 
 ScreenShotTransparencyDialog::ScreenShotTransparencyDialog(QWidget* parent, QColor trcolor, bool usetr) : _trcolor(trcolor)
 {
-	if (!_trcolor.isValid())
-		_trcolor = "white";
-
-// DEBUG
-//	QString s = _trcolor.name();
 	ui.setupUi(this);
 	ui.chkUse->setChecked(usetr);
+		if (!_trcolor.isValid())
+		_trcolor = "white";
+// DEBUG
+//	QString s = _trcolor.name();
 	ui.btnColor->setStyleSheet(QString("background-color:%1;border-color:%2").arg(_trcolor.name()).arg("black"));
 }
 
