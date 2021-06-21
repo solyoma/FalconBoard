@@ -28,6 +28,23 @@ enum PrinterFlags :char {
 enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess};
 enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
 
+/*========================================================
+ * Structure to hold item indices for one band or selection
+ *  An ItemIndex may hold scribbles or screenshot images
+ *  Screenshot items have zorder-s below DRAWABLE_ZORDER_BASE
+ *-------------------------------------------------------*/
+struct ItemIndex
+{
+    int zorder;                 // indices are ordered in ascending zorder
+                                // if < DRAWABLE_ZORDER_BASE then image
+    int index;                  // in pHist->_items
+    bool operator<(const ItemIndex& other) { return zorder < other.zorder; }
+};
+using ItemIndexVector = QVector<ItemIndex>;  // ordered by 'zorder'
+
+using IntVector = QVector<int>;
+
+
 // ******************************************************
 //  KELL EZ???
 // 
