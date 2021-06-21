@@ -790,7 +790,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
 
         ;
 
-    setStyleSheet(ss);
+    ((QApplication*)(QApplication::instance()))->setStyleSheet(ss); // so it cascades down to all sub windows/dialogs, etc
 
     _drawArea->SetMode(mode != smSystem, _sBackgroundColor, _sGridColor, _sPageGuideColor);
 }
