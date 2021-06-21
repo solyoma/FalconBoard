@@ -584,6 +584,8 @@ void FalconBoard::_SetPenWidth(FalconPenKind pk)
 
 void FalconBoard::_SelectTransparentPixelColor()
 {
+//    _drawArea->_SelectTransparentPixelColor();
+    
     ScreenShotTransparencyDialog *dlg = new ScreenShotTransparencyDialog(this, _screenshotTransparencyColor, _useScreenshotTransparency);
     if (dlg->exec())
         dlg->GetResult(_screenshotTransparencyColor, _useScreenshotTransparency);

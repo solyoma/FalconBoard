@@ -5,8 +5,8 @@
 //#include <>
 #include <QColor>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
-const long nVersion = 0x00010105;       // program version
-const QString sVersion = "1.1.5";
+const long nVersion = 0x00010106;       // program version
+const QString sVersion = "1.1.6";
 const QString sWindowTitle =
 #ifdef _VIEWER
         "FalconBoard Viewer";

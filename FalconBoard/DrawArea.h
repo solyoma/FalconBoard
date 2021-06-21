@@ -20,6 +20,10 @@
 #include "myprinter.h"
 #include "myevent.h"
 
+// DEBUG
+//#include "screenshotTransparency.h"
+
+
 using namespace std::chrono_literals;
 
 #ifdef _VIEWER
@@ -160,7 +164,13 @@ public:
             return;
         Print(HistoryName(index));
     }
-
+// DEBUG
+    //void _SelectTransparentPixelColor()
+    //{
+    //    QColor c; bool b;
+    //    ScreenShotTransparencyDialog* dlg = new ScreenShotTransparencyDialog(this, c, b);
+    //    dlg->exec();
+    //}
 signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo
