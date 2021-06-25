@@ -41,7 +41,6 @@ QStringList GetTranslations()
 
 // ************************ FalconBoard **********************
 
-
 FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 {
 	ui.setupUi(this);
@@ -436,6 +435,7 @@ void FalconBoard::_CreateAndAddActions()
     _pTabs->setMovable(true);
     _pTabs->setAutoHide(true);
     _pTabs->setTabsClosable(true);
+    _AddNewTab();
 #ifndef _VIEWER
    // status bar
     _plblMsg = new QLabel();
