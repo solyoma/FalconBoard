@@ -28,6 +28,12 @@ constexpr int NUM_COLORS = 6; // black/white, red, green, blue, eraser and yello
 
 enum ScreenMode { smSystem, smDark, smBlack };
 
+// ************************ helper **********************
+QStringList GetTranslations();	// list of translation files
+// ************************ /helper **********************
+
+
+// ************************ FalconBoard **********************
 class FalconBoard : public QMainWindow
 {
 	Q_OBJECT
@@ -35,6 +41,12 @@ class FalconBoard : public QMainWindow
 public:
 	FalconBoard(QWidget *parent = Q_NULLPTR);
 
+	void SetLanguages(QStringList &names, int act)
+	{
+		_actLanguage = act;
+		_translations = names;
+		_PopulateLanguageMenu();
+	}
 protected:
 	void closeEvent(QCloseEvent* event) override;
 	void showEvent(QShowEvent* event) override;
@@ -53,6 +65,7 @@ private slots:
 	void on_actionLoad_triggered();
 	void on_actionCleaRecentList_triggered();
 	void _sa_actionRecentFile_triggered(int which);
+	void _sa_actionLanguage_triggered(int which);
 
 #ifndef _VIEWER
 	void on_actionNew_triggered();
@@ -120,7 +133,6 @@ private slots:
 	void on_actionPrint_triggered() { _drawArea->Print();  }
 	void on_actionExportToPdf_triggered();
 
-
 	void on_actionAbout_triggered();
 	void on_actionHelp_triggered();
 
@@ -152,6 +164,11 @@ private:
 	} _busy;
 
 	bool _firstShown = false;	// main window was shown first
+
+	QString _homePath;
+	QStringList _translations;	// list of *.qm files in resources
+	int _actLanguage = -1;			// index in list of languages ordered by abbreviations 
+	QSignalMapper _languageMapper;
 
 	bool	_eraserOn = false;
 	int		_penWidth[NUM_COLORS] = { 3,3,3,3,30,3 };	// historical: penEraser = 5
@@ -187,6 +204,7 @@ private:
 	// recent files 
 	QSignalMapper _signalMapper;
 	QStringList _recentList;
+
 
 	QActionGroup* _penGroup, *_modeGroup;
 
@@ -280,7 +298,8 @@ private:
 	void _SetTabText(int index, QString& fname);
 	void _SetupMode(ScreenMode mode);
 	void _ClearRecentMenu();
-	void _PopulateRecentMenu();	// from recentList
+	void _PopulateRecentMenu();		// from recentList
+	void _PopulateLanguageMenu();	// from _translations (no clear)
 	void _SetWindowTitle(QString qs);
 };
 #endif

@@ -23,20 +23,44 @@ void FalconBoard::_RemoveMenus()
 
     ui.actionAutoSaveData->setVisible(false);
     ui.actionAutoSaveBackgroundImage->setVisible(false);
+    ui.menuGrid->removeAction(ui.menuGrid->actions()[2]);
+    pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]);
 
     removeToolBar(ui.mainToolBar);
 }
 #endif
 
+// ************************ helper **********************
+QStringList GetTranslations()
+{
+    QDir dir(":/FalconBoard/translations");
+    QStringList qsl = dir.entryList(QStringList("*.qm"), QDir::Files, QDir::Name);
+    qsl.sort();
+    return qsl;
+}
+
+// ************************ FalconBoard **********************
+
+
 FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 {
 	ui.setupUi(this);
+
+    _homePath = QDir::homePath() +
+#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin)
+        "/.falconBoard";
+#elif defined(Q_OS_WIN)
+    "/Appdata/Local/FalconBoard";
+#endif
+    if (!QDir(_homePath).exists())
+        QDir(_homePath).mkdir(_homePath);
 
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
     _drawArea->SetPenKind(_actPen, _penWidth[_actPen-1]); 
 
     _CreateAndAddActions();
     connect(&_signalMapper, SIGNAL(mapped(int)), SLOT(_sa_actionRecentFile_triggered(int)));
+    connect(&_languageMapper, SIGNAL(mapped(int)), SLOT(_sa_actionLanguage_triggered(int)));
 
 #ifdef _VIEWER
     _RemoveMenus();        // viewer has none of these
@@ -73,7 +97,13 @@ void FalconBoard::RestoreState()
 {
     _drawArea->EnableRedraw(false);
 
-    QSettings s("FalconBoard.ini", QSettings::IniFormat);
+    QSettings s(_homePath +
+#ifdef _VIEWER
+        "/FalconBoardViewer.ini",
+#else
+        "/FalconBoard.ini",
+#endif
+        QSettings::IniFormat);
 
     restoreGeometry(s.value("geometry").toByteArray());
     restoreState(s.value("windowState").toByteArray());
@@ -135,12 +165,12 @@ void FalconBoard::RestoreState()
         ui.actionScreenshotTransparency->setChecked(_useScreenshotTransparency);
     }
     
-#endif
     _nGridSpacing = s.value("gridspacing", 64).toInt();
     if (_nGridSpacing < 5)
         _nGridSpacing = 64;
     _psbGridSpacing->setValue(_nGridSpacing);
     emit GridSpacingChanged(_nGridSpacing);
+#endif
 
     _lastDir  = s.value("lastDir",  "").toString();
     if (!_lastDir.isEmpty() && _lastDir[_lastDir.size() - 1] != '/')
@@ -201,13 +231,25 @@ void FalconBoard::RestoreState()
 
 void FalconBoard::SaveState()
 {
-	QSettings s("FalconBoard.ini", QSettings::IniFormat);
+
+	QSettings s(_homePath + 
+#ifdef _VIEWER
+        "/FalconBoardViewer.ini",
+#else
+        "/FalconBoard.ini",
+#endif
+        QSettings::IniFormat);
 
 	s.setValue("geometry", saveGeometry());
 	s.setValue("windowState", saveState());
     QString qsVersion("0x%1");
     qsVersion = qsVersion.arg(nVersion, 8, 16, QLatin1Char('0') );
 	s.setValue("version", qsVersion);
+    if (_actLanguage < 0)
+        s.remove("lang");
+    else
+        s.setValue("lang", _actLanguage);
+
 	s.setValue("mode", _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
 	s.setValue("grid", (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
 	s.setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
@@ -387,13 +429,14 @@ void FalconBoard::_CreateAndAddActions()
 
     ui.mainToolBar->addSeparator();
     ui.mainToolBar->addAction(ui.action_Screenshot);
-
     ui.mainToolBar->addSeparator();
+#endif
     _pTabs = new QTabBar();
     ui.mainToolBar->addWidget(_pTabs);
     _pTabs->setMovable(true);
     _pTabs->setAutoHide(true);
     _pTabs->setTabsClosable(true);
+#ifndef _VIEWER
    // status bar
     _plblMsg = new QLabel();
     statusBar()->addWidget(_plblMsg);
@@ -411,16 +454,15 @@ void FalconBoard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::TextToToolbar, this, &FalconBoard::SlotForLabel);
     connect(_drawArea, &DrawArea::IncreaseBrushSize, this, &FalconBoard::SlotIncreaseBrushSize);
     connect(_drawArea, &DrawArea::DecreaseBrushSize, this, &FalconBoard::SlotDecreaseBrushSize);
-    connect(_drawArea, &DrawArea::CloseTab, this, &FalconBoard::SlotForTabCloseRequested);
-    connect(_drawArea, &DrawArea::TabSwitched, this, &FalconBoard::SlotForTabSwitched);
 
     connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
+#endif
+    connect(_drawArea, &DrawArea::CloseTab, this, &FalconBoard::SlotForTabCloseRequested);
+    connect(_drawArea, &DrawArea::TabSwitched, this, &FalconBoard::SlotForTabSwitched);
 
     connect(_pTabs, &QTabBar::currentChanged, this, &FalconBoard::SlotForTabChanged);
     connect(_pTabs, &QTabBar::tabCloseRequested, this, &FalconBoard::SlotForTabCloseRequested);
     connect(_pTabs, &QTabBar::tabMoved, this, &FalconBoard::SlotForTabMoved);
-    
-#endif
 }
 
 int FalconBoard::_AddNewTab(QString fname, bool loadIt) // and new history record
@@ -787,6 +829,8 @@ void FalconBoard::_SetupMode(ScreenMode mode)
              "}\n"
              "QTabBar::tab:selected {\n background-color:" + _sSelectedBackgroundColor + ";\n"
              "}\n"
+             "QToolTip {\n background-color:"+_sTextColor+";\n color:"+_sBackgroundColor+";\n"
+             "}\n"
 
         ;
 
@@ -837,6 +881,35 @@ void FalconBoard::_PopulateRecentMenu()
     }
 }
 
+void FalconBoard::_PopulateLanguageMenu()
+{
+    if (_busy || _translations.isEmpty())
+        return;
+
+    QMenu* pMenu;
+    QAction* pAction;
+    QString s;
+                // after new translation added add Language names here
+                // use as many elements as you have languages
+                // in the ABC order of their 5 character names
+                //                  en_US       hu_HU
+    static QStringList s_names = { "English", "Magyar" };   
+
+    ui.actionLanguages->setEnabled(_translations.size() > 1);
+
+    for (int i = 0; i < s_names.size(); ++i)
+    {
+        s = s_names[i];
+        pAction = ui.actionLanguages->addAction(s);
+        pAction->setCheckable(true);
+        if (i == _actLanguage)
+            pAction->setChecked(true);
+
+        connect(pAction, SIGNAL(triggered()), &_languageMapper, SLOT(map()));
+        _languageMapper.setMapping(pAction, i);
+    }
+}
+
 void FalconBoard::_SetWindowTitle(QString qs)
 {
     if (qs.isEmpty())
@@ -863,8 +936,8 @@ void FalconBoard::closeEvent(QCloseEvent* event)
     if( (_saveResult == srSaveSuccess) && res)
 		event->accept();
     else
-#endif
 		event->ignore();
+#endif
     SaveState();        // viewer: always
 }
 
@@ -1039,6 +1112,16 @@ void FalconBoard::_sa_actionRecentFile_triggered(int which)
     if(res)
         _SetWindowTitle(fileName);
 //    _busy = false;
+}
+
+void FalconBoard::_sa_actionLanguage_triggered(int which)
+{
+    // TODO: language change w.o. restart
+    if (which != _actLanguage)
+    {
+        QMessageBox::warning(this, tr("FalconBoard - Warning"), QString(tr("Please restart the program to change the language!")).arg(which));
+        _actLanguage = which;
+    }
 }
 
 void FalconBoard::_SaveLastDirectory(QString fileName)

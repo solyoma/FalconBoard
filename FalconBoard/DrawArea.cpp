@@ -645,13 +645,13 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 //				_shiftKeyDown = true;
 
             else if (key == Qt::Key_Up)
-                _Up(_mods.testFlag(Qt::ControlModifier) ? 100 : 2);
+                _Up(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
             else if (key == Qt::Key_Down)
-                _Down(_mods.testFlag(Qt::ControlModifier) ? 100 : 2);
+                _Down(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
             else if (key == Qt::Key_Left)
-                _Left(_mods.testFlag(Qt::ControlModifier) ? 100 : 2);
+                _Left(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
             else if (key == Qt::Key_Right)
-                _Right(_mods.testFlag(Qt::ControlModifier) ? 100 : 2);
+                _Right(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
             else if(key == Qt::Key_BracketRight )
                 emit IncreaseBrushSize(1);
             else if(key == Qt::Key_BracketLeft )
@@ -2086,7 +2086,6 @@ void DrawArea::_End()
     _SetOrigin(_topLeft);
     _Redraw();
 }
-
 void DrawArea::_Up(int amount)
 {
     QPoint pt(0, amount);

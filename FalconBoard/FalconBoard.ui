@@ -59,8 +59,8 @@
     <addaction name="separator"/>
     <addaction name="actionRecentDocuments"/>
     <addaction name="separator"/>
-    <addaction name="separator"/>
     <addaction name="actionSaveVisible"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menu_Edit">
@@ -142,9 +142,17 @@
      <addaction name="actionInfinitePage"/>
      <addaction name="actionLimitedPage"/>
     </widget>
+    <widget class="QMenu" name="actionLanguages">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Language</string>
+     </property>
+    </widget>
+    <addaction name="menu_Mode"/>
     <addaction name="menu_Paper"/>
     <addaction name="separator"/>
-    <addaction name="menu_Mode"/>
     <addaction name="menuGrid"/>
     <addaction name="actionShowPageGuides"/>
     <addaction name="separator"/>
@@ -154,6 +162,8 @@
     <addaction name="separator"/>
     <addaction name="actionAutoSaveData"/>
     <addaction name="actionAutoSaveBackgroundImage"/>
+    <addaction name="separator"/>
+    <addaction name="actionLanguages"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
@@ -438,6 +448,9 @@
    </property>
    <property name="text">
     <string>&amp;Screenshot</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a snapshot of some part of the screen</string>
    </property>
    <property name="shortcut">
     <string>F4</string>

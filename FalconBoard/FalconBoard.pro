@@ -12,32 +12,38 @@ OBJECTS_DIR += ./Debug
 UI_DIR += ./Debug/Ui
 RCC_DIR += ./Debug/rcc
 win32:RC_FILE = FalconBoard.rc
-HEADERS += ./common.h \
-    ./DrawArea.h \
-    ./FalconBoard.h \
+HEADERS += ./bands.h \
+    ./common.h \
     ./history.h \
     ./myevent.h \
     ./myprinter.h \
-    ./pagesetup.h \
-    ./pdfesetup.h \
+    ./FalconBoard.h \
+    ./DrawArea.h \
+    ./screenshotTransparency.h \
+    ./pdfsetup.h \
     ./printprogress.h \
+    ./pagesetup.h \
     ./snipper.h
-SOURCES += ./DrawArea.cpp \
-    ./FalconBoard.cpp \
+SOURCES += ./bands.cpp \
+    ./DrawArea.cpp \
     ./history.cpp \
-    ./main.cpp \
-    ./myprinter.cpp \
     ./pagesetup.cpp \
-    ./dfesetup.cpp \
-    ./snipper.cpp
+    ./pdfsetup.cpp \
+    ./screenshotTransparency.cpp \
+    ./snipper.cpp \
+    ./main.cpp \
+    ./FalconBoard.cpp \
+    ./myprinter.cpp
 FORMS += ./FalconBoard.ui \
     ./pagesetup.ui \
     ./pdfsetup.ui \
-    ./printprogress.ui
-RESOURCES += ./FalconBoard.qrc
+    ./printprogress.ui \
+    ./screenshotTransparency.ui
+RESOURCES += FalconBoard.qrc
 INCLUDES += .
 QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
 QT += gui widgets printsupport
 requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
-
+TRANSLATIONS = FalconBoard_en.ts \
+               FalconBoard_hu.ts
