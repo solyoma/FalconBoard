@@ -1,6 +1,6 @@
 ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png)
 # FalconBoard
-Last modified: June 14. 2021
+Last modified: June 25. 2021
 
 
 FalconBoard (previous name MyWhiteboard) is a cross platform open source 
@@ -18,16 +18,18 @@ saved drawings, but cannot modify them.
 ## Features (Version 1.1) : 
 
    -  Works under Windows and Linux, and (I hope) on Macs too.
+   -  interface languages are US English and Hungarian, selectable from the 
+      program
    -  Usable with the mouse and with a Wacom graphics tablet. 
         (No Android or iOS versions (yet?))
    -  System, dark and black interface modes.
-   -  A maximum of 30 documents can be open at the same time
+   -  Maximum 30 documents can be open at the same time
    -  Freehand drawing with five different colored pens. Colors depend on
       interface modes (light/dark): black/white, red, green, blue/lighter blue, 
       yellow/magenta.
    -  Draw straight lines which may be exactly horizontal or vertical.
    -  Draw rectangles, ellipses or circles
-   -  Each Pen widths and the Eraser pen width are adjustable separately.
+   -  Widths of each pens and the Eraser are adjustable separately.
    -  Unlimited Undo/Redo during a single session.
    -  "Unlimited" scrolling from top of "paper" by the keyboard 
       (Left, Right, Up, Down, PgUp,PgDown, Home, End, 
@@ -79,7 +81,7 @@ saved drawings, but cannot modify them.
         I used some icons [from PikaJian's Whitepad project](https://github.com/PikaJian)
         but no code was used from that project.
   Written in C++ with Qt (multi platform).
-  Both Visual studio project files and QtDesigner project files are included.
+  Both Visual Studio project files and a QtDesigner project files are included.
   
 *Compilation*:
 
@@ -91,6 +93,14 @@ saved drawings, but cannot modify them.
     A project file *FalconBoard.sln* file is included for VS 2019.
   - On Linux use the .pro files provided. 
 
+*Installation*:
+  No installation necessary. Copy the executable (and if you don't yet have them the Qt and Microsoft redistributables)
+    into any folder. State of the programs are saved into *.ini files. On windows these are inside the
+    users AppData\Local\FalconBoard folder, on linux under the hidden .falconboard folder inside the user's home directory.
+
+*Uninstalling*:    
+    Delete the folder containing the program and optionally delete the configuration directories described above.
+
 *Releases*
   For each release there are two compiled Windows-version ZIP files 
   in 'Releases'. One with all the Microsoft and Qt redistributables required
@@ -101,5 +111,5 @@ saved drawings, but cannot modify them.
   and you are ready to go.
   
   If you have downloaded the ZIP and there were only sub-version changes 
-  (like from 1.1.x to 1.1.y) you only need the executables. 
-  Unpack it in the same folder where the previous release are.
+  (like from 1.1.x to 1.1.y) you only need the new executables. 
+  Unpack them into the same folder where the previous release are.
