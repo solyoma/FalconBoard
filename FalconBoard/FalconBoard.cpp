@@ -96,22 +96,30 @@ void FalconBoard::RestoreState()
 {
     _drawArea->EnableRedraw(false);
 
-    QSettings s(_homePath +
+    QString qsSettingsName = _homePath +
 #ifdef _VIEWER
-        "/FalconBoardViewer.ini",
+        "/FalconBoardViewer.ini";
 #else
-        "/FalconBoard.ini",
+        "/FalconBoard.ini";
 #endif
-        QSettings::IniFormat);
+    bool bIniExisted = QFile::exists(qsSettingsName);
+    QString qs;
+    QSettings s(qsSettingsName, QSettings::IniFormat);
+    if (bIniExisted)
+    {
 
-    restoreGeometry(s.value("geometry").toByteArray());
-    restoreState(s.value("windowState").toByteArray());
-    QString qs = s.value("version", "0").toString();       // (immediate toInt() looses digits)
-    long ver = qs.toInt(0,0);                                   // format Major.mInor.Sub
+        restoreGeometry(s.value("geometry").toByteArray());
+        restoreState(s.value("windowState").toByteArray());
+        qs = s.value("version", "0").toString();       // (immediate toInt() looses digits)
+        long ver = qs.toInt(0, 0);                                   // format Major.mInor.Sub
 
-    if ((ver & 0xFFFFFF00) != (nVersion & 0xFFFFFF00) )        // sub version number not used
-        return;
-
+        if ((ver & 0xFFFFFF00) != (nVersion & 0xFFFFFF00))        // sub version number not used
+        {
+            QFile::remove(qsSettingsName);
+            _AddNewTab();
+            return;
+        }
+    }
     qs = s.value("mode", "s").toString();
 
     switch (qs[0].unicode())
@@ -435,7 +443,6 @@ void FalconBoard::_CreateAndAddActions()
     _pTabs->setMovable(true);
     _pTabs->setAutoHide(true);
     _pTabs->setTabsClosable(true);
-    _AddNewTab();
 #ifndef _VIEWER
    // status bar
     _plblMsg = new QLabel();
@@ -535,7 +542,7 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
         ret = QMessageBox::warning(this, tr(WindowTitle),
             QString(tr("<i>%1</i> have been modified.\n"
                 "Do you want to save your changes?")).arg(saveName.isEmpty() ? UNTITLED : saveName),
-            QMessageBox::Save | QMessageBox::Discard
+            QMessageBox::Save | QMessageBox::No
             | QMessageBox::Cancel);
     }
 
