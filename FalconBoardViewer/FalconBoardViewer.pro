@@ -1,43 +1,49 @@
+# ----------------------------------------------------
+# FalconBoard GUI application
+# ------------------------------------------------------
 
-# ----------------------------------------------------
-# FalconBoardViewer GUI Application
-# ----------------------------------------------------
-TARGET = FalconBoardViewer
+TARGET = FalconBoard
 DESTDIR = ../Debug
 CONFIG += debug
 LIBS += -L"."
 DEPENDPATH += .
 MOC_DIR += ./Debug/moc
-OBJECTS_DIR += Debug
+OBJECTS_DIR += ./Debug
 UI_DIR += ./Debug/Ui
 RCC_DIR += ./Debug/rcc
-win32:RC_FILE = FalconBoardViewer.rc
-HEADERS += ../FalconBoard/common.h \
-    ../FalconBoard/DrawArea.h \
-    ../FalconBoard/FalconBoard.h \
+win32:RC_FILE = FalcoBoard.rc
+HEADERS += ../FalconBoard/bands.h \
+    ../FalconBoard/common.h \
     ../FalconBoard/history.h \
     ../FalconBoard/myevent.h \
     ../FalconBoard/myprinter.h \
-    ../FalconBoard/pagesetup.h \
-    ../FalconBoard/pdfesetup.h \
+    ../FalconBoard/FalconBoard.h \
+    ../FalconBoard/DrawArea.h \
+    ../FalconBoard/screenshotTransparency.h \
+    ../FalconBoard/pdfsetup.h \
     ../FalconBoard/printprogress.h \
+    ../FalconBoard/pagesetup.h \
     ../FalconBoard/snipper.h
-SOURCES += ../FalconBoard/DrawArea.cpp \
+SOURCES += ../FalconBoard/bands.cpp \
+    ../FalconBoard/DrawArea.cpp \
     ../FalconBoard/history.cpp \
+    ../FalconBoard/pagesetup.cpp \
+    ../FalconBoard/pdfsetup.cpp \
+    ../FalconBoard/screenshotTransparency.cpp \
     ../FalconBoard/snipper.cpp \
     ../FalconBoard/main.cpp \
     ../FalconBoard/FalconBoard.cpp \
-    ../FalconBoard/pagesetup.cpp \
     ../FalconBoard/myprinter.cpp
-    ../FalconBoard/printprogress.cpp \
-    ../FalconBoard/snipper.cpp
 FORMS += ../FalconBoard/FalconBoard.ui \
     ../FalconBoard/pagesetup.ui \
-    ../FalconBoard/pdfesetup.ui \
-    ../FalconBoard/printprogress.ui
+    ../FalconBoard/pdfsetup.ui \
+    ../FalconBoard/printprogress.ui \
+    ../FalconBoard/screenshotTransparency.ui
 RESOURCES += ../FalconBoard/FalconBoard.qrc
-INCLUDES += ../MyWhiteBoard
+INCLUDEPATH += . ../FalconBoard
 QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
 QT += gui widgets printsupport
 requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
+TRANSLATIONS = ../FalconBoard/FalconBoard_en.ts \
+               ../FalconBoard/FalconBoard_hu.ts

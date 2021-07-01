@@ -46,7 +46,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 	ui.setupUi(this);
 
     _homePath = QDir::homePath() +
-#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin)
+#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin) || defined(__linux__)
         "/.falconBoard";
 #elif defined(Q_OS_WIN)
     "/Appdata/Local/FalconBoard";
@@ -257,15 +257,15 @@ void FalconBoard::SaveState()
     else
         s.setValue("lang", _actLanguage);
 
-	s.setValue("mode", _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
-	s.setValue("grid", (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
-	s.setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
+    s.setValue("mode", _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
+    s.setValue("grid", (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
+    s.setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
     s.setValue("limited", ui.actionLimitedPage->isChecked());
 #ifndef _VIEWER
-	s.setValue("size", QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]));
-	s.setValue("saved", ui.actionAutoSaveData->isChecked());
-	s.setValue("saveb", ui.actionAutoSaveBackgroundImage->isChecked());
-	if (ui.actionAutoSaveBackgroundImage->isChecked())
+    s.setValue("size", QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]));
+    s.setValue("saved", ui.actionAutoSaveData->isChecked());
+    s.setValue("saveb", ui.actionAutoSaveBackgroundImage->isChecked());
+    if (ui.actionAutoSaveBackgroundImage->isChecked())
 		s.setValue("img", _sImageName);
     if (_useScreenshotTransparency)
     {
@@ -483,7 +483,7 @@ int FalconBoard::_AddNewTab(QString fname, bool loadIt) // and new history recor
 
     _drawArea->AddHistory(fname, loadIt);
     // DEBUG
-    int m = _pTabs->count();
+//*    int m = _pTabs->count();
 //    _pTabs->setAutoHide(_pTabs->count() > 1);
     return n;
 }
@@ -529,9 +529,9 @@ void FalconBoard::_AddSaveVisibleAsMenu()
  *-------------------------------------------------------*/
 SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
 {
-//    int ci = _nLastTab; // actual tab
+//*    int ci = _nLastTab; // actual tab
     _saveResult = srSaveSuccess;    // result: ok
-    int n;
+//*    int n;
 
     _drawArea->SwitchToHistory(index, false);    // do not redraw
 
@@ -690,7 +690,7 @@ void FalconBoard::_ConnectDisconnectScreenshotLabel(bool join )
     }
 }
 #endif
-QString FalconBoard::_FileNameToTabText(QString& fname)
+QString FalconBoard::_FileNameToTabText(QString fname)
 {
     int i = fname.lastIndexOf('/'),  // get file name, -1 is Ok
         j = fname.lastIndexOf(".mwb");
@@ -698,7 +698,7 @@ QString FalconBoard::_FileNameToTabText(QString& fname)
         j = fname.length();
     return fname.mid(i + 1, j - i - 1);
 }
-void FalconBoard::_SetTabText(int index, QString& fname)
+void FalconBoard::_SetTabText(int index, QString fname)
 {
     if (index >= _pTabs->count())
         return;
@@ -868,7 +868,7 @@ void FalconBoard::_PopulateRecentMenu()
     if (_recentList.isEmpty())
         return;
 
-    QMenu* pMenu;
+//*    QMenu* pMenu;
     QAction* pAction;
 
     // add items
@@ -893,7 +893,7 @@ void FalconBoard::_PopulateLanguageMenu()
     if (_busy || _translations.isEmpty())
         return;
 
-    QMenu* pMenu;
+//*    QMenu* pMenu;
     QAction* pAction;
     QString s;
                 // after new translation added add Language names here

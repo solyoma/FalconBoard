@@ -1,3 +1,5 @@
+#include <QString>
+#include <QStringList>
 #include <QtWidgets/QApplication>
 #include "FalconBoard.h"
 
@@ -6,7 +8,7 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	a.setWindowIcon(QIcon(":/FalconBoard/Resources/falconboard.png"));
 	QString homePath = QDir::homePath() +
-#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin)
+#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin) || defined (__linux__)
 		"/.falconBoard";
 #elif defined(Q_OS_WIN)
 		"/Appdata/Local/FalconBoard";

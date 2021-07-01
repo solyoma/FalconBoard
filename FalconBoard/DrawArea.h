@@ -77,15 +77,15 @@ public:
     int RemoveHistory(int index);
     void MoveHistory(int from, int to);   // from _currentHistoryIndex
 
-    QString HistoryName(QString default) const
+    QString HistoryName(QString qsDefault) const
     {
-        return HistoryName(-1, default);
+        return HistoryName(-1, qsDefault);
     }
 
-    QString HistoryName(int index = -1, QString default=QString()) const       // may be empty!
+    QString HistoryName(int index = -1, QString qsDefault=QString()) const       // may be empty!
     {
         if (index < 0)
-            return _history ? _history->Name() : default;
+            return _history ? _history->Name() : qsDefault;
             
         if (index >= HistoryListSize())
             return QString();
@@ -94,7 +94,7 @@ public:
 
     int SameFileAlreadyUsed(QString& name)
     {
-        for (int i=0; i < _historyList.size(); ++i)
+        for (int i=0; i < (int)_historyList.size(); ++i)	// no list so big to require unsigned long
             if (_historyList[i]->Name() == name)
                 return i;
         return -1;
@@ -369,7 +369,7 @@ private:
 #ifndef _VIEWER
     void _ShowCoordinates(const QPoint& qp);
     Sprite * _CreateSprite(QPoint cursorPos, QRect& rect, bool itemsDeleted, bool setVisible=true);
-    Sprite * _PrepareSprite(Sprite *pSprite, QPoint cursorPos, QRect& rect, bool itemsDeleted, bool setVisible=true);
+    Sprite * _PrepareSprite(Sprite *pSprite, QPoint cursorPos, QRect rect, bool itemsDeleted, bool setVisible=true);
     Sprite * _SpriteFromLists(); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible
     void _MoveSprite(QPoint pt);
     void _PasteSprite();

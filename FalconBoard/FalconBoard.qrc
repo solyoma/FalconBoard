@@ -2,7 +2,7 @@
   <qresource prefix="FalconBoard">
     <file>../translations/FalconBoard_en.qm</file>
     <file>../translations/FalconBoard_hu.qm</file>
-    <file>Resources/falconboard.ico</file>
+    <file>Resources/falconboard_ico.png</file>
     <file>Resources/falconboard.png</file>
     <file>Resources/close.png</file>
     <file>Resources/eraser.png</file>

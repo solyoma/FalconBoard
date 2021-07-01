@@ -170,7 +170,7 @@ void Bands::_ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector& hv, bool 
  *-------------------------------------------------------*/
 void Bands::_SelectItemsFromBand(int bandIndex, QRect& rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect& unionRect)
 {
-	int topBand, bottomBand;    // indices of bands where this item starts and ends
+//	int topBand, bottomBand;    // indices of bands where this item starts and ends
 	Band& band = _bands[bandIndex];
 	auto inlineWithRect = [&](QRect& bndRect)	// returns bit #0: top id in line, bit#1: bottom is in line
 	{
@@ -181,7 +181,7 @@ void Bands::_SelectItemsFromBand(int bandIndex, QRect& rect, ItemIndexVector& hv
 	for (auto ind : band.indices)
 	{
 		HistoryItem* phi = (*_pHist)[ind.index];
-		QRect& bndRect = phi->Area();
+		QRect bndRect = phi->Area();
 		int ilkind;
 
 		if (rect.contains(bndRect))

@@ -108,7 +108,7 @@ void DrawArea::ClearBackground()
  *-------------------------------------------------------*/
 int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
 {
-    if(_historyList.capacity() == HistoryListSize())
+    if(_historyList.capacity() == (unsigned long)HistoryListSize())
         return -1;
 
     if (_history)
@@ -119,7 +119,7 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
     if (!name.isEmpty())
         ph->SetName(name);
 
-    if (indexAt > _historyList.capacity())
+    if ((unsigned long)indexAt > _historyList.capacity())
     {
         _historyList.push_back(ph);
         indexAt = HistoryListSize() - 1;
@@ -567,7 +567,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
                 _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
                 _rubberBand->setGeometry( _rubberRect );
-                HistoryItem *pscrbl =_history->AddScribbleItem(_lastScribbleItem);
+                /*HistoryItem *pscrbl =*/ (void)_history->AddScribbleItem(_lastScribbleItem);
                 _history->AddToSelection();
             }
             else if (key == Qt::Key_C && !bCopy)   // draw ellipse
@@ -604,7 +604,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                             painter.setCompositionMode(QPainter::CompositionMode_Clear);
                         else
                             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-                        painter.setRenderHints(QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform, true);
+                        painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
                         painter.drawPath(myPath);
                     }
                     _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
@@ -676,7 +676,7 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 {
     _mods = event->modifiers();
 
-    if ( (!_spaceBarDown && !_mods.testFlag(Qt::ShiftModifier) || !event->spontaneous() || event->isAutoRepeat()))
+    if ( (!_spaceBarDown && (!_mods.testFlag(Qt::ShiftModifier) || !event->spontaneous() || event->isAutoRepeat())) ) //?
     {
         QWidget::keyReleaseEvent(event);
         return;
@@ -777,7 +777,7 @@ void DrawArea::tabletEvent(QTabletEvent* event)
 //// /DEBUG
     MyPointerEvent* pe = new MyPointerEvent(true, event);
 
-    QTabletEvent::PointerType pointerT = event->pointerType();
+/*    QTabletEvent::PointerType pointerT = event->pointerType(); */
 
     switch (event->type())
     {
@@ -902,8 +902,8 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
         return;
 #ifndef _VIEWER
 
-    if ((event->buttons & Qt::RightButton) ||
-        (event->buttons & Qt::LeftButton && event->mods.testFlag(Qt::ControlModifier)) && _rubberBand)
+    if (((event->buttons & Qt::RightButton) ||
+        ((event->buttons & Qt::LeftButton) && event->mods.testFlag(Qt::ControlModifier))) && _rubberBand)
     {
         QPoint epos = event->pos;
         if (event->mods.testFlag(Qt::ShiftModifier))        // constrain rubberband to a square
@@ -1147,7 +1147,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
     QWidget::resizeEvent(event);
 
 // DEBUG
-    QSize s = geometry().size();
+//    QSize s = geometry().size();
 // /DEBUG
     int h = height();
     int w = width();
@@ -1434,7 +1434,7 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
     else
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    painter.setRenderHints(QPainter::HighQualityAntialiasing | QPainter::SmoothPixmapTransform, true);
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
     QPointF ep = endPointC,
             lp = _lastPointC;
@@ -1476,7 +1476,7 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
     else
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    painter.setRenderHint(QPainter::HighQualityAntialiasing);
+    painter.setRenderHint(QPainter::Antialiasing);
 
     QRect rect = _clippingRect.translated(-_topLeft); // _canvas relative
     painter.setClipRect(rect );
@@ -1700,22 +1700,22 @@ void DrawArea::Print(QString name, QString* pdir)
     if (!_prdata.bExportPdf && !_bPageSetupUsed)
         PageSetup();
 
-	if (_bPageSetupValid)
-	{
-		_prdata.topLeftActPage = _topLeft;
-		_prdata.backgroundColor = _backgroundColor;
-		_prdata.gridColor = (_prdata.flags & pfWhiteBackground) ? "#d0d0d0" : _gridColor;
-		_prdata.pBackgroundImage = &_background;
-		_prdata.nGridSpacingX = _nGridSpacingX;
-		_prdata.nGridSpacingY = _nGridSpacingY;
-		_prdata.gridIsFixed = _gridIsFixed;
-        _printer = new MyPrinter(this, _history, _prdata);     // _prdata may be modified!
-        if (_NoPrintProblems())   // only when not Ok
-        {
-            _printer->Print();
-            _NoPrintProblems();
-        }
-	}
+    if (_bPageSetupValid)
+    {
+            _prdata.topLeftActPage = _topLeft;
+            _prdata.backgroundColor = _backgroundColor;
+            _prdata.gridColor = (_prdata.flags & pfWhiteBackground) ? "#d0d0d0" : _gridColor;
+            _prdata.pBackgroundImage = &_background;
+            _prdata.nGridSpacingX = _nGridSpacingX;
+            _prdata.nGridSpacingY = _nGridSpacingY;
+            _prdata.gridIsFixed = _gridIsFixed;
+    _printer = new MyPrinter(this, _history, _prdata);     // _prdata may be modified!
+    if (_NoPrintProblems())   // only when not Ok
+    {
+        _printer->Print();
+        _NoPrintProblems();
+    }
+    }
     _prdata.bExportPdf = false;
 }
 
@@ -2147,7 +2147,7 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect& rect, bool deleted, bool setV
     return _PrepareSprite(_pSprite, pos, rect, deleted, setVisible);
 }
 
-Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect & rect, bool deleted, bool setVisible)
+Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, bool deleted, bool setVisible)
 {
     pSprite->visible = setVisible;
     pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving

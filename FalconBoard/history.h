@@ -542,7 +542,7 @@ public:
 
     void ClearImageList() { _images.clear(); }
     int Countimages() { return _images.size(); }
-    int AddImage(int index) { _images.push_back(index); }
+    void AddImage(int index) { _images.push_back(index); }
     ScreenShotImage& Image(int index) { return _belowImages[index]; }
     ScreenShotImageList &ScreenShotList() { return _belowImages; }
 
@@ -608,7 +608,7 @@ public:
     QRect       Undo();        // returns top left after undo 
     HistoryItem* Redo();
 
-    int History::GetScribblesInside(QRect rect, HistoryItemVector& hv);
+    int GetScribblesInside(QRect rect, HistoryItemVector& hv);
     int ImageIndexFor(QPoint& p) const { return _belowImages.ImageIndexFor(p); } // -1: no such image else index in 'pImages'
 
     void AddToSelection(int index=-1);

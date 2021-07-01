@@ -40,7 +40,7 @@ FORMS += ./FalconBoard.ui \
     ./printprogress.ui \
     ./screenshotTransparency.ui
 RESOURCES += FalconBoard.qrc
-INCLUDES += .
+INCLUDEPATH += .
 QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
 QT += gui widgets printsupport
 requires(qtConfig(filedialog))

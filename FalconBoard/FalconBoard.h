@@ -291,11 +291,11 @@ private:
 	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
 #endif
 
-	QString _FileNameToTabText(QString& fname);
+	QString _FileNameToTabText(QString fname);
 
 	int _AddNewTab(QString fname = QString(), bool loadIt = true);
 	void _CloseTab(int index);
-	void _SetTabText(int index, QString& fname);
+	void _SetTabText(int index, QString fname);
 	void _SetupMode(ScreenMode mode);
 	void _ClearRecentMenu();
 	void _PopulateRecentMenu();		// from recentList

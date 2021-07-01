@@ -1374,7 +1374,7 @@ int History::Load(bool force)
 
 		++i;
 
-		HistoryItem* phi = AddScribbleItem(di);
+		/*HistoryItem* phi = */ (void) AddScribbleItem(di);
 
 	}
 	_modified = false;
