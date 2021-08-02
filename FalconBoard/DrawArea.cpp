@@ -918,7 +918,7 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
     }
     else
 #endif
-                // mouse                                             pen
+                // mouse  or pen                                           pen
         if ( ((event->buttons & Qt::LeftButton) && _scribbling) || _pendown)
         {
             static QPoint lastpos;
@@ -1370,7 +1370,7 @@ void DrawArea::_MoveToActualPosition(QRect rect)
  *          using _DrawLineTo
  * PARAMS:  endpointC : canvas relative coordinate
  * GLOBALS:
- * RETURNS: if the line was drawn and you must save _lastPointC
+ * RETURNS: true if the line was drawn and you must save _lastPointC
  *          false otherwise
  * REMARKS: - save _lastPointC after calling this function
  *              during user drawing

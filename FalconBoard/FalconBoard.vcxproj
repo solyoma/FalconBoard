@@ -203,6 +203,7 @@
     <ClInclude Include="history.h" />
     <ClInclude Include="myevent.h" />
     <ClInclude Include="myprinter.h" />
+    <ClInclude Include="pdraw.h" />
     <QtMoc Include="screenshotTransparency.h" />
     <QtMoc Include="pdfsetup.h" />
     <QtMoc Include="printprogress.h" />

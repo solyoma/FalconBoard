@@ -32,10 +32,6 @@ using namespace std::chrono_literals;
     #define WindowTitle  "FalconBoard "
 #endif
 
-inline void SleepFor(std::chrono::milliseconds mseconds)
-{
-    std::this_thread::sleep_for(mseconds); // Delay a bit
-}
 // ******************************************************
 
 class DHistory : public History
