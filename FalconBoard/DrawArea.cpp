@@ -445,7 +445,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
     }
 #endif
 
-    if (!_scribbling && !_pendown && key == Qt::Key_Space)
+    if (!_scribbling && !_pendown && key == Qt::Key_Space && !event->isAutoRepeat())
     {
         _spaceBarDown = true;
         QWidget::keyPressEvent(event);
@@ -676,7 +676,7 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 {
     _mods = event->modifiers();
 
-    if ( (!_spaceBarDown && (!_mods.testFlag(Qt::ShiftModifier) || !event->spontaneous() || event->isAutoRepeat())) ) //?
+    if ( (!_spaceBarDown && (!_mods.testFlag(Qt::ShiftModifier) || !event->spontaneous() || event->isAutoRepeat()))) //?
     {
         QWidget::keyReleaseEvent(event);
         return;
@@ -684,12 +684,15 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 
     if (event->key() == Qt::Key_Space)
     {
-        _spaceBarDown = false;
-        if (_scribbling || _pendown)
+        if (!event->isAutoRepeat())
         {
-            _RestoreCursor();
-            QWidget::keyReleaseEvent(event);
-            return;
+            _spaceBarDown = false;
+            if (_scribbling || _pendown)
+            {
+                _RestoreCursor();
+                QWidget::keyReleaseEvent(event);
+                return;
+            }
         }
     }
     //if(event->key() == Qt::Key_Shift)
@@ -1486,14 +1489,14 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 // use painter paths
 #if 1
     int cnt = pscrbl->points.size();
-    if (cnt > 1 )
+    if (cnt > 2 || (cnt == 2 && _lastPointC != pscrbl->points[1] - _topLeft) )
     {
         QPainterPath path = pscrbl->pPath;
 
         if (path.isEmpty())
         {
             path.moveTo(_lastPointC);
-            for (int i = 1; i < pscrbl->points.size(); ++i)
+            for (int i = 1; i < cnt; ++i)
             {
                 pt = pscrbl->points[i] - _topLeft;
                 path.lineTo(pt);
