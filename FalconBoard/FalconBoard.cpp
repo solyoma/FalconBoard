@@ -8,6 +8,9 @@
 #include "screenshotTransparency.h"
 #include "FalconBoard.h"
 #include "myprinter.h"   // for MyPrinterData
+#include "helpdialog.h"
+
+QSize FalconBoard::screenSize;
 
 #ifdef _VIEWER
 void FalconBoard::_RemoveMenus()
@@ -56,6 +59,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
     _drawArea->SetPenKind(_actPen, _penWidth[_actPen-1]); 
+    _drawArea->SetScreenSize(screenSize);
 
     _CreateAndAddActions();
     connect(&_signalMapper, SIGNAL(mapped(int)), SLOT(_sa_actionRecentFile_triggered(int)));
@@ -1221,6 +1225,10 @@ void FalconBoard::on_actionAbout_triggered()
 
 void FalconBoard::on_actionHelp_triggered()
 {
+    HelpDialog hd;
+    hd.exec();
+
+#if 0
     QMessageBox::about(this, tr(WindowTitle "help"),
         tr("<p><b>Move paper</b><br>")+
         tr("  with the mouse or pen while holding down the spacebar,<br>"
@@ -1232,7 +1240,7 @@ void FalconBoard::on_actionHelp_triggered()
         tr("<p><i>To End of Document</i><br>&nbsp;&nbsp;Ctrl+End</p>")+
         tr("<p><i>To lowest position used so far</i><br>&nbsp;&nbsp;End</p>") +
         tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl</p>")
-#ifndef _VIEWER
+ #ifndef _VIEWER
         +
         tr("<p>F4<br>&nbsp;&nbsp;Take a screenshot of an area using the right mouse button. "
               " An image can be selected by clicking/tapping on it while holding down the Ctrl key.</p>")+
@@ -1261,8 +1269,9 @@ void FalconBoard::on_actionHelp_triggered()
         tr("<p>Copy selection with Ctrl+C, Paste by selecting an area at destination then use Ctrl+V.</p>")+
         tr("<p>F5<br>&nbsp;&nbsp;<i>Insert vertical space</i> from top of selected area<br>"
            "(Moves all drawings down below the top of this selection)</p>")
-#endif
+ #endif
     );
+#endif
 }
 
 void FalconBoard::on_actionLightMode_triggered()

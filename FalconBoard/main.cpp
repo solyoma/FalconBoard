@@ -7,6 +7,9 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 	a.setWindowIcon(QIcon(":/FalconBoard/Resources/falconboard.png"));
+
+	FalconBoard::screenSize = a.screens()[0]->size();
+
 	QString homePath = QDir::homePath() +
 #if defined (Q_OS_Linux)   || defined (Q_OS_Darwin) || defined (__linux__)
 		"/.falconBoard";
@@ -32,7 +35,7 @@ int main(int argc, char *argv[])
 	QString qs, qsn;
 	qs = QLocale::system().name();
 	if (ixLang < 0)
-		ixLang = fileNames.indexOf("FalconBard_" + qs.left(2)+".qm");
+		ixLang = fileNames.indexOf("FalconBard_" + qs.left(2)+".qm"); // TODO: en_US or en_GB both are "en"
 
 	if (ixLang >= 0)
 	{

@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HelpDialogClass</class>
+ <widget class="QDialog" name="HelpDialogClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>857</width>
+    <height>698</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>FalconBoard - Help</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>2</number>
+     </property>
+     <widget class="QWidget" name="tabDrawing">
+      <attribute name="title">
+       <string>Drawing</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QWidget" name="widget_3" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_20">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Drawing commands only work in the full program. In a Viewer these are not working!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <property name="leftMargin">
+           <number>2</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Drawing</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLabel" name="label_5">
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Press and hold the left mouse button while moving the mouse or use a graphics pen&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Color</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLabel" name="label">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click/tap on the colored icons or press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; or &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; on the keyboard&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0">
+           <widget class="QLabel" name="label_3">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Eraser</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="1">
+           <widget class="QLabel" name="label_6">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click / tap on the Eraser icon or press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;E&lt;/span&gt; on the keyboard. to select the eraser, then use yopur mouse or pen like drawing.&lt;/p&gt;&lt;p&gt;If your pen has an eraser on it use that. In that case there is no need to select the eraser tool previously.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0" colspan="2">
+           <widget class="QLabel" name="label_7">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Pen size</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="1">
+           <widget class="QLabel" name="label_9">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Each pen has an associated size. This can be set using the &lt;span style=&quot; font-style:italic;&quot;&gt;Pen width&lt;/span&gt; field or by pressing the keys &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;]&lt;/span&gt; and &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;[&lt;/span&gt; on the keyboard.&lt;br/&gt;This program uses rounded pens only, so the end of strokes will always be rounded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_10">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Lines</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLabel" name="label_11">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can draw horizontal and vertical straight lines by &lt;span style=&quot; font-style:italic;&quot;&gt;first &lt;/span&gt;pressing the &lt;span style=&quot; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; or touching with the pen &lt;span style=&quot; font-style:italic;&quot;&gt;then&lt;/span&gt; pressing and holding a &lt;span style=&quot; font-style:italic;&quot;&gt;Shift &lt;/span&gt;key on the keyboard and start drawing in the required direction: up, down, left or right.&lt;/p&gt;&lt;p&gt;You can also draw straight lines in any direction from the last drawn point by &lt;span style=&quot; font-style:italic;&quot;&gt;first &lt;/span&gt;pressing and holding a &lt;span style=&quot; font-style:italic;&quot;&gt;Shift &lt;/span&gt;key on the keyboard then clicking with the left mouse button or with the pen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_12">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Rectangles</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="label_13">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To Draw a rectangle or a square select a rectangular region and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;R&lt;/span&gt;. The rectangle will be drawn with the actual pen.&lt;/p&gt;&lt;p&gt;If the selection would be too close around existing strokes (see &lt;span style=&quot; font-style:italic;&quot;&gt;Selections&lt;/span&gt; in this help) then a small margin is left around them&lt;br/&gt;before drawing the rectangle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="font">
+             <font>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Ellipses</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="label_15">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To draw an ellipse or a circle select a rectangular area and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;C&lt;/span&gt; on the keyboard.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_8">
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;The Eraser tool is just a fancy name for a pen whose color just hides every existing strokes behind it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;This means that when moving drawings around you must be careful to select not only the visible, but the invisible lines, that are hidden by the eraser, too,&lt;br/&gt;otherwise &amp;quot;erased&amp;quot; part of the penstrokes may become visible. This is s problem when printing too as empty pages will be printed if only an eraser stroke extend &lt;br/&gt;to it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;To help you deal with this problem press Ctrl/Command D to display eraser lines so you can check. Press Ctrl/Command+D again to hide them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If you &lt;span style=&quot; font-style:italic;&quot;&gt;Delete&lt;/span&gt; strokes, after selecting them, however, no such problem may occur.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>72</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabKeyboard">
+      <attribute name="title">
+       <string>Keyboard</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
+       <property name="leftMargin">
+        <number>2</number>
+       </property>
+       <property name="topMargin">
+        <number>2</number>
+       </property>
+       <property name="rightMargin">
+        <number>2</number>
+       </property>
+       <property name="bottomMargin">
+        <number>2</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>Movement keys</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_4">
+          <item>
+           <widget class="QLabel" name="label_16">
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Move &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;paper&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; (document) &lt;/span&gt;with the mouse or pen while holding down the spacebar, or&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Move paper &lt;/span&gt;with arrow keys &lt;span style=&quot; font-weight:600;&quot;&gt;Up/Down/Left/Right&lt;/span&gt; in small steps, or in larger steps if you holding down &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt; /&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;br/&gt;&lt;/span&gt;and half of screen height with &lt;span style=&quot; font-weight:600;&quot;&gt;Page Up/Page Down&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To left side of paper&lt;/span&gt; Home&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To right side of paper&lt;/span&gt; End&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To start of paper&lt;/span&gt; Ctrl+Home&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To End of paper&lt;/span&gt; Ctrl+End&lt;br/&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_3">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>Keybord shortcuts</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="label_18">
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Show this help&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5&lt;/span&gt;Select Pen color, &lt;span style=&quot; font-weight:600;&quot;&gt;E &lt;/span&gt;Select Eraser&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Brace keys &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;][&lt;/span&gt;) increase / decrease pen size&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; Clear whole document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N &lt;/span&gt;Create new document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O &lt;/span&gt;Open document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; Print document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4&lt;/span&gt; Take a snapshot of the screen behind FalconBoard&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="title">
+          <string>Keyboard shortcuts with an active selection</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_17">
+            <property name="font">
+             <font>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Recolor &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;0, 8, 9, H, V&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Rotate or flip &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins, Ctrl+C&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Copy selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X, Shift+Del&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Cut selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Delete selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Draw a rectangle around the selected area. &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Draw an ellipse (or circle) inside the selected area.&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;0 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection right by 90 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;8 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection by 180 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;9 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection left by 90 degrees&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;H &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip horizontal&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip vertical&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Move&lt;/span&gt; selected drawings with Left button, move a copy by holding down &lt;span style=&quot; font-weight:600;&quot;&gt;Alt/Option&lt;/span&gt; and pressing the Left button or using the pen. &lt;br/&gt;Copy selection with &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt;), Cut selection with &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt; (&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt;) Paste by selecting an area at destination then use &lt;span style=&quot; font-weight:600;&quot;&gt;Ctr&lt;/span&gt;l+&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;V&lt;/span&gt;).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert vertical space from top of selected area (Moves all drawings down below the top of this selection)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Removes selected sstrokes or, when no strokes in the selection, removes that space&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; Remove selection&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tabSelection">
+      <attribute name="title">
+       <string>Selection</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QWidget" name="widget_2" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QLabel" name="label_19">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection&lt;br/&gt;&lt;/span&gt;&lt;br/&gt;Press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;right mouse (pen) button&lt;/span&gt; or press and hold &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; /Command+ &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; and move the mouse (pen) around. Release the mouse or pen button when finished. &lt;br/&gt;When you release the button the selection shrinks to enclose completely selected strokes (including or excluding eraser lines, depending on the initial manual selection!). If you don't want the selection to shrink press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Alt/Option&lt;/span&gt;  on the keyboard before releasing the mouse or pen button.&lt;/p&gt;&lt;p&gt;To get not just a rectangular, but a square selection (for drawing squares or circles instead of rectangles or ellipses) press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift&lt;/span&gt; key.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To select a screenshot&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Press and hold &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;/&lt;span style=&quot; font-weight:600;&quot;&gt;Command &lt;/span&gt;and click on the screenshot image.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection during a screenshot (F4) key&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;Press and holdthe left mouse button while dragging the mouse. When the button is released the selected area will be copied into the dokument below the pen strokes and becomes selected, redy to move around with the mouse.&lt;/p&gt;&lt;p&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; to remove the selection.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>366</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <spacer>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>131</width>
+         <height>31</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="cancelButton">
+       <property name="text">
+        <string>Cancel</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
+   <receiver>HelpDialogClass</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>369</x>
+     <y>253</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>179</x>
+     <y>282</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

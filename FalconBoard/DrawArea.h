@@ -64,6 +64,8 @@ public:
         _historyList.clear();
     }
 
+    void SetScreenSize(QSize screenSize);
+
     void SetPrinterData(const MyPrinterData& prdata);
 
     void ClearBackground();
@@ -279,8 +281,9 @@ private:
     QRect _copiedRect;                     // bounding rectangle for copied items used for paste operation
 
     QImage  _background,
-            _canvas;        // transparent layer, draw on this then show background and this on the widget
+            _canvas1, _canvas2;      // transparent layer, draw on this then show background and this on the widget
                             // origin: (0,0) point on canvas first shown
+    QImage *_pActCanvas, *_pOtherCanvas;        // point to actual canvas to be painted and next cancas to draw on
     // to move selected area around
     Sprite * _pSprite = nullptr;         // copy of elements in _rubberRect to move around
 
@@ -302,6 +305,10 @@ private:
     QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
             _lastMove;  // value of last canvas move 
 
+    const int SmallStep = 1,           // used ehen the shift is pressed with the arrow keys
+              NormalStep = 10,         // shift screen this many pixels on one press on arrow key 
+              LargeStep = 100;         // or with this many pixels if holding down the Ctrl key 
+
     QPoint  _firstPointC, // canvas relative first point drawn
             _lastPointC;  // canvas relative last point drawn relative to visible image
     ScribbleItem _lastScribbleItem;
@@ -311,13 +318,14 @@ private:
     QPoint _lastCursorPos;  // set in MyMoveEvent()
 
 
-    QRect   _canvasRect;    // 0,0 relative rectangle
-    QRect   _clippingRect;  // only need to draw here
+    QRect   _canvasRect;    // document (0,0) relative rectangle
+    QRect   _clippingRect;  // this too, only draw strokes inside this
 
 #ifndef _VIEWER
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
     QPoint   _rubber_origin;
     QRect   _rubberRect;        // used to select histoy items
+
     void  _RemoveRubberBand();
     void _InitiateDrawingIngFromLastPos();   // from _lastPoint
     void _InitiateDrawing(MyPointerEvent* event);
@@ -339,7 +347,7 @@ private:
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
     bool _ReplotScribbleItem(HistoryItem* pscrbl); 
-    void _SetCanvasRect();
+    void _SetCanvasAndClippingRect();
     void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);
     void _DrawPageGuides(QPainter& painter);
@@ -351,6 +359,7 @@ private:
 #endif
     void _SetOrigin(QPoint qp);  // sets new topleft and displays it on label
     void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down
+    void _ShiftRectangle(QPoint delta, QRect &clip1, QRect &clip2);
     void _ShiftAndDisplayBy(QPoint delta, bool smooth = false);
     void _PageUp();
     void _PageDown();

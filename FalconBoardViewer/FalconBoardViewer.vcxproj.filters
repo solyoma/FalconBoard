@@ -42,6 +42,9 @@
     <QtUic Include="..\FalconBoard\pdfsetup.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="..\FalconBoard\helpdialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\FalconBoard\DrawArea.cpp">
@@ -91,6 +94,9 @@
     <QtMoc Include="..\FalconBoard\pdfsetup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="..\FalconBoard\helpdialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\FalconBoard\history.h">
@@ -126,5 +132,13 @@
     <QtTranslation Include="..\translations\FalconBoard_hu.ts">
       <Filter>Translation Files</Filter>
     </QtTranslation>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\translations\FalconBoard_en.qm">
+      <Filter>Translation Files</Filter>
+    </None>
+    <None Include="..\translations\FalconBoard_hu.qm">
+      <Filter>Translation Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

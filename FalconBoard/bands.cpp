@@ -17,17 +17,19 @@
  *-------------------------------------------------------*/
 int Bands::_AddBandFor(int y)
 {
+	int iband = _FindBandFor(y);		// check if this band exists if not iband = _bands.size()
 	int nband = y / _bandHeight;
-	Band newBand;
-	int iband = _FindBandFor(y);		// check if this band exists
+
 	if (iband == _bands.size() || _bands[iband].band_index != nband)	// all bands are either below this one
 	{																	// or we found the first band above
+		Band newBand;													// add new band
 		newBand.band_index = nband;
-		if (newBand.topItemY > y)
-			newBand.topItemY = y;
+		newBand.topItemY = y;
 		_bands.insert(iband, newBand);
 	}
-	// else 	// found 
+	else if (_bands[iband].topItemY > y)	// existing band: just set top item (smallest y)
+		_bands[iband].topItemY = y;
+	
 	return iband;
 }
 
@@ -83,16 +85,17 @@ void Bands::SetParam(History* pHist, int bandHeight)
 void Bands::Add(int index)
 {
 	HistoryItem* phi = (*_pHist)[index];
-	int y = phi->Area().y(),
-		h = y + phi->Area().height();
-	int ib = -1;			// no item added yet
-	while (y <= h)
+	int y = phi->Area().y(),			// top of new scribble
+		h = y + phi->Area().height();	// bottom of new scrible +1
+	int ib = -1;			// band index. -1: no item added yet
+	while (y <= h || (h > ib *_bandHeight && h < y) )
 	{
 		if (ib < 0)			// only added once to count
 			++_itemCount;
 		ib = _AddBandFor(y);
 		_Insert(_bands[ib], index);	// to items in band, z-ordered 
-		y += _bandHeight;
+		++ib;
+		y += _bandHeight;	// skip next band
 	}
 }
 

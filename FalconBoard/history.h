@@ -138,7 +138,7 @@ inline QDataStream& operator>>(QDataStream& ifs, ScreenShotImage& bimg);
 class  ScreenShotImageList : public  QList<ScreenShotImage>
 {
     int _index = -1;
-    QRect _canvasRect;
+    QRect _canvasRect;  // documentum (not screen) relative rectangle
 public:
     void Add(QPixmap& image, QPoint pt, int zorder);
     void Drop(int index) { /* TODO */ }   // removes from list without changing the index of the other images

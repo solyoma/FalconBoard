@@ -47,6 +47,8 @@ public:
 		_translations = names;
 		_PopulateLanguageMenu();
 	}
+
+	static QSize screenSize;
 protected:
 	void closeEvent(QCloseEvent* event) override;
 	void showEvent(QShowEvent* event) override;

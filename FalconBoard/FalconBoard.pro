@@ -15,6 +15,7 @@ win32:RC_FILE = FalconBoard.rc
 HEADERS += ./bands.h \
     ./common.h \
     ./history.h \
+	./helpdialog.h \
     ./myevent.h \
     ./myprinter.h \
     ./FalconBoard.h \
@@ -35,6 +36,7 @@ SOURCES += ./bands.cpp \
     ./FalconBoard.cpp \
     ./myprinter.cpp
 FORMS += ./FalconBoard.ui \
+	./helpdialog.ui \
     ./pagesetup.ui \
     ./pdfsetup.ui \
     ./printprogress.ui \
@@ -45,5 +47,5 @@ QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
 QT += gui widgets printsupport
 requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
-TRANSLATIONS = FalconBoard_en.ts \
-               FalconBoard_hu.ts
+TRANSLATIONS = ../translations/FalconBoard_en.ts \
+               ../translations/FalconBoard_hu.ts

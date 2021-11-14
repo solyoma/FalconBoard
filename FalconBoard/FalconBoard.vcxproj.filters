@@ -83,6 +83,9 @@
     <QtMoc Include="screenshotTransparency.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="helpdialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="pagesetup.ui">
@@ -98,6 +101,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="screenshotTransparency.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="helpdialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
@@ -138,5 +144,13 @@
     <QtTranslation Include="..\translations\FalconBoard_hu.ts">
       <Filter>Translation Files</Filter>
     </QtTranslation>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\translations\FalconBoard_en.qm">
+      <Filter>Translation Files</Filter>
+    </None>
+    <None Include="..\translations\FalconBoard_hu.qm">
+      <Filter>Translation Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

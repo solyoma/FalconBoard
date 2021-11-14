@@ -39,13 +39,20 @@ DrawColors drawColors;      // global used here and for print, declared in commo
 //----------------------------- DrawArea ---------------------
 DrawArea::DrawArea(QWidget* parent)    : QWidget(parent)
 {
+    _pActCanvas = &_canvas1;            // actual draw canvas
+    _pOtherCanvas = &_canvas2;           // used for smooth scrolling
+
     setAttribute(Qt::WA_StaticContents);
     setAttribute(Qt::WA_TabletTracking);
     setCursor(Qt::CrossCursor);
     setMouseTracking(true);
     _historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
-    //_historyList.push_back(new History());     // this way no reallocations, so _history remains valid
-    //_history = _historyList[0];
+}
+
+void DrawArea::SetScreenSize(QSize screenSize)
+{
+    _screenWidth = screenSize.width();
+    _screenHeight = screenSize.height();
 }
 
 void DrawArea::SetPrinterData(const MyPrinterData& prdata)
@@ -134,7 +141,7 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
         if (!_history->Load())
             return -2;
 
-    _topLeft = _history->topLeft;
+    _topLeft = QPoint(0,0);
 
     if (!b)
         _Redraw(true);
@@ -184,7 +191,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
     if (redraw)
     {
         res = _history->Load();   // only when it wasn't loaded before
-        _SetCanvasRect();
+        _SetCanvasAndClippingRect();
         _Redraw(true);
 #ifndef _VIEWER
         _ShowCoordinates(QPoint());
@@ -401,12 +408,12 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
 {
     if (_clippingRect == _canvasRect || !_clippingRect.isValid() || _clippingRect.isNull())
     {
-        _canvas.fill(qRgba(255, 255, 255, 0));     // transparent
+        _pActCanvas->fill(Qt::transparent);     // transparent
         _clippingRect = _canvasRect;
     }
     else
     {
-        QPainter painter(&_canvas);
+        QPainter painter(_pActCanvas);
         painter.setCompositionMode(QPainter::CompositionMode_Clear);
     // DEBUG
 //qDebug("topLeft: (%d, %d), clipping: (%d, %d, %d, %d)", _topLeft.x(), _topLeft.y(), 
@@ -597,7 +604,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                     }
 // 1 block DBEUG
                     {
-                        QPainter painter(&_canvas);
+                        QPainter painter(_pActCanvas);
                         QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
                         painter.setPen(pen);
                         if (_erasemode && !_debugmode)
@@ -621,6 +628,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
         else    // no rubberBand
 #endif
         {
+        int stepSize = _mods.testFlag(Qt::ControlModifier) ? LargeStep : (_mods.testFlag(Qt::ShiftModifier) ? SmallStep : NormalStep);
 #ifndef _VIEWER
             if (bPaste)         // paste as sprite
             {
@@ -645,13 +653,13 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 //				_shiftKeyDown = true;
 
             else if (key == Qt::Key_Up)
-                _Up(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Up(stepSize);
             else if (key == Qt::Key_Down)
-                _Down(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Down(stepSize);
             else if (key == Qt::Key_Left)
-                _Left(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Left(stepSize);
             else if (key == Qt::Key_Right)
-                _Right(_mods.testFlag(Qt::ControlModifier) ? 100 : 10);
+                _Right(stepSize);
             else if(key == Qt::Key_BracketRight )
                 emit IncreaseBrushSize(1);
             else if(key == Qt::Key_BracketLeft )
@@ -744,8 +752,8 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
     const constexpr int tolerance = 3;
     if ( dy > tolerance || dy < -tolerance || dx > tolerance || dx < -tolerance)
     {
-        _ShiftAndDisplayBy(QPoint(dx, dy));
 
+        _ShiftAndDisplayBy(QPoint(dx, -dy)); // dy < 0 => move viewport down
         degv = degh = 0;
         dx = dy = 0;
 
@@ -825,17 +833,13 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
         _allowMouse = false;
     else
         _allowPen = false;
-#ifndef _VIEWER
-    
+#ifdef _VIEWER
+    _lastPointC = event->pos;     // used for moving the canvas around
+#else
     if ( event->button == Qt::RightButton ||        // Even for tablets when no pen pressure
         (event->button == Qt::LeftButton && event->mods.testFlag(Qt::ControlModifier)))
     {
         _InitRubberBand(event);
-#else
-    _lastPointC = event->pos;     // used for moving the canvas around
-#endif
-
-#ifndef _VIEWER
     }
     else
 #endif
@@ -958,7 +962,7 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
                             _Redraw();
                         }
                     }
-                    _ShiftOrigin(dr);
+                    _ShiftOrigin(-dr);
                     if(!event->fromPen)
                         _Redraw();
 
@@ -1026,7 +1030,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
         {
             _rubberRect = _rubberBand->geometry();
             _history->CollectItemsInside(_rubberRect.translated(_topLeft));
-            if (_history->SelectedSize())
+            if (_history->SelectedSize() && !event->mods.testFlag(Qt::AltModifier))
             {
                 _rubberBand->setGeometry(_history->BoundingRect().translated(-_topLeft));
                 _rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
@@ -1100,7 +1104,7 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
  * RETURNS:
  * REMARKS: - layers:
  *                  top     sprite layer     ARGB
- *                          _canvas          ARGB
+ *                          _pActCanvas          ARGB
  *                          page guides if shown
  *                          screenshots
  *                          grid        if shown
@@ -1114,7 +1118,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
 {
     QPainter painter(this);             // show image on widget
     QRect dirtyRect = event->rect();
-    painter.fillRect(dirtyRect, _backgroundColor);             // draw on here
+//    painter.fillRect(dirtyRect, _backgroundColor);             // already set
 
 // bottom layer: background with possible background image
     if(!_background.isNull()) 
@@ -1134,12 +1138,13 @@ void DrawArea::paintEvent(QPaintEvent* event)
             pimg = _history->ScreenShotList().NextVisible();
         }
     }
-// _canvas layer: the scribbles
-    painter.drawImage(dirtyRect, _canvas, dirtyRect);          // canvas layer
-
 // page guides layer:
     if (_bPageGuidesOn)
         _DrawPageGuides(painter);
+
+// _pActCanvas layer: the scribbles
+    painter.drawImage(dirtyRect, *_pActCanvas, dirtyRect);          // canvas layer
+
 // sprite layer
     if(_pSprite && _pSprite->visible)
         painter.drawImage(dirtyRect.translated(_pSprite->topLeft), _pSprite->image, dirtyRect);  // sprite layer: dirtyRect: actual area below sprite 
@@ -1157,20 +1162,19 @@ void DrawArea::resizeEvent(QResizeEvent* event)
     if (_limited && _topLeft.x() + w > _screenWidth)
         _ShiftOrigin(QPoint( (_topLeft.x() + w - _screenWidth),0));
 
-    _SetCanvasRect();
-    _clippingRect = _canvasRect;
+    _SetCanvasAndClippingRect();
 
-    if (width() > _canvas.width() || height() > _canvas.height()) 
+    if (width() > _pActCanvas->width() || height() > _pActCanvas->height()) 
     {
-        int newWidth =  qMax(w + 128,  _canvas.width());
-        int newHeight = qMax(h + 128, _canvas.height());
-        _ResizeImage(&_canvas, QSize(newWidth, newHeight), true);
+        int newWidth =  qMax(w + 128,  _pActCanvas->width());
+        int newHeight = qMax(h + 128, _pActCanvas->height());
+        _ResizeImage(_pActCanvas, QSize(newWidth, newHeight), true);
+        _ResizeImage(_pOtherCanvas, QSize(newWidth, newHeight), true);
         if(_history)
             _history->SetClippingRect(QRect(_topLeft, QSize(newWidth, newHeight)));
 
-        _Redraw();
     }
-
+        _Redraw();
 }
 #ifndef _VIEWER
 void DrawArea::_RemoveRubberBand()
@@ -1416,7 +1420,7 @@ bool DrawArea::_DrawFreehandLineTo(QPoint endPointC)
  *-------------------------------------------------------*/
 void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative 
 {
-    QPainter painter(&_canvas);
+    QPainter painter(_pActCanvas);
     QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
 /* 
                             THIS DOES NOT WORK, nothing gets painted:
@@ -1457,9 +1461,9 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
 
 /*========================================================
  * TASK:    draws the polyline stored in drawnable on
- *          '_canvas'
+ *          '_pActCanvas'
  * PARAMS:  pscrbl - valid pointer to a ScribbleAble item
- * GLOBALS: _canvas,_FalconPenKind, _actPenWidth, _erasemode
+ * GLOBALS: _pActCanvas,_FalconPenKind, _actPenWidth, _erasemode
  *          _clippingRect, _lastPointC, _topLeft
  * RETURNS:
  * REMARKS: - no errro checking on pscrbl
@@ -1471,7 +1475,7 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
     _erasemode = pscrbl->type == heEraser ? true : false;
 
     
-    QPainter painter(&_canvas);
+    QPainter painter(_pActCanvas);
     QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 
     painter.setPen(pen);
@@ -1481,7 +1485,7 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    QRect rect = _clippingRect.translated(-_topLeft); // _canvas relative
+    QRect rect = _clippingRect.translated(-_topLeft); // _pActCanvas relative
     painter.setClipRect(rect );
 
     _lastPointC = pscrbl->points[0] - _topLeft;
@@ -1523,14 +1527,14 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
     }
     painter.drawLine(_lastPointC, pt);
 #endif
-    int rad = (_actPenWidth / 2) + 2;
-    rect = rect.intersected(pscrbl->bndRect.translated(-_topLeft)).normalized();
+    //int rad = (_actPenWidth / 2) + 2;
+    //rect = rect.intersected(pscrbl->bndRect.translated(-_topLeft)).normalized();
    
-    if (!rect.isNull())
-    {
-        rect.adjust(-rad, -rad, +rad, +rad);
-        update(rect);
-    }
+    //if (!rect.isNull())
+    //{
+    //    rect.adjust(-rad, -rad, +rad, +rad);
+//        update(rect);
+    //}
     _lastPointC = pt; 
 }
 
@@ -1543,9 +1547,12 @@ void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTranspar
 
     QColor color = isTransparent ? Qt::transparent : _backgroundColor;
     newImage.fill(color);
-    QPainter painter(&newImage);
-    painter.setCompositionMode(QPainter::CompositionMode_Source); //??
-    painter.drawImage(QPoint(0, 0), *image);
+    if (!image->isNull())
+    {
+        QPainter painter(&newImage);
+        painter.setCompositionMode(QPainter::CompositionMode_Source);
+        painter.drawImage(QPoint(0, 0), *image);
+    }
     *image = newImage;
 }
 
@@ -1748,7 +1755,7 @@ void DrawArea::_Redraw(bool clear)
     bool saveEraseMode = _erasemode;
 
     HistoryItemVector forPage;
-    _CollectScribbles(forPage);  // using _yxOrder and _items sorted in ascending Z-number
+    _CollectScribbles(forPage);  // in clipping area
     if(clear)
         _ClearCanvas();
     for (auto phi : forPage)
@@ -1802,7 +1809,7 @@ void DrawArea::_RestoreCursor()
 
 
 /*========================================================
- * TASK:    plots visible 'Scribbleable's onto _canvas
+ * TASK:    plots visible 'Scribbleable's onto _pActCanvas
  *              if it intersects _clippingRect
  * PARAMS:  phi - possibly nullpointer to a HistoryItem
  * GLOBALS: _clippingRect
@@ -1825,7 +1832,7 @@ bool DrawArea::_ReplotScribbleItem(HistoryItem* phi)
         // DEBUG
         // draw rectange around item to see if item intersects the rectangle
         //{
-        //    QPainter painter(&_canvas);
+        //    QPainter painter(&_pActCanvas);
         //    QRect rect = pscrbl->rect.adjusted(-1,-1,0,0);   // 1px pen left and top:inside rectangle, put pen outside rectangle
         //    painter.setPen(QPen(QColor(qRgb(132,123,45)), 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
         //    painter.drawRect(rect);
@@ -1858,7 +1865,7 @@ bool DrawArea::_ReplotScribbleItem(HistoryItem* phi)
     return true;
 }
 
-void DrawArea::_SetCanvasRect()
+void DrawArea::_SetCanvasAndClippingRect()
 {
     _clippingRect = _canvasRect = QRect(0, 0, width(), height()).translated(_topLeft);     // 0,0 relative rectangle
 }
@@ -1965,23 +1972,23 @@ void DrawArea::_SetOrigin(QPoint o)
 
 /*========================================================
  * TASK:    set new top left coordinate of current viewport
- *          by shiftting it with -delta
+ *          by shifting it with 'delta' pixels
  * PARAMS:  delta: pixels to change _topLeft
  * GLOBALS: _topLeft
  * RETURNS:
- * REMARKS: - delta.x() < 0 - move viewport right
- *          - delta.y() < 0 - move viewport down
+ * REMARKS: - delta.x() > 0 - move viewport right
+ *          - delta.y() > 0 - move viewport down
  *-------------------------------------------------------*/
 void DrawArea::_ShiftOrigin(QPoint delta)    
 {
     QPoint o = _topLeft;       // origin of screen top left relative to "paper"
 
-    o -= delta;                // calculate new screen origin
+    o += delta;                // calculate new screen origin
 
     if (o.x() < 0)
         o.setX(0);
 
-    if (delta.x() < 0 && _limited && o.x() + width() >= _screenWidth)
+    if (delta.x() > 0 && _limited && o.x() + width() >= _screenWidth)
         o.setX(_topLeft.x());
 
     if (o.y() < 0)
@@ -1991,48 +1998,159 @@ void DrawArea::_ShiftOrigin(QPoint delta)
 }
 // 
 
+/*=============================================================
+ * TASK:    shifts rectangular part of _pActCanvas to 
+ *          canvas _pOtherCanvas then exchanges these
+ * PARAMS:  delta value in pixels
+ * GLOBALS: _pActCanvas, _pOtherCanvas
+ * RETURNS: nothing and the two clipping area to be filled
+ * REMARKS: - both canvases have same size and other attributes
+ *          - usiong memcpy, so the horizontal pixel position
+ *            uses units of bytes/pixel (pixelSizeInBytes)
+ *------------------------------------------------------------*/
+void DrawArea::_ShiftRectangle(QPoint delta, QRect& clip1, QRect& clip2)
+{
+    _pOtherCanvas->fill(Qt::transparent);
+
+    // column and row values on canvases in QImage's 'data' buffer
+    // column values are multiplied with the correct bitsPerPixel units
+    int srcSRow,     // source start on _pActCanvas at this row
+        srcSCol,     // and in this column
+        dstRow,      // destination start on _pOtherCanvas
+        dstCol;
+
+    uchar* bitsSrc  = _pActCanvas->bits(),
+         * bitsDest = _pOtherCanvas->bits();
+    int pixelSizeInBytes = _canvas1.bytesPerLine() / _canvas1.width();
+
+    int dx =qAbs(delta.x()), dy = qAbs(delta.y());
+
+    int w = width(),
+        h = height();
+    int blockWidth = (w - dx) * pixelSizeInBytes,
+        blockHeight = (h - dy);
+
+    clip2 = clip1 = QRect();
+
+    if (dx || dy)
+    {
+        if ( (delta.y() > 0 && delta.x() >= 0) || (delta.x() > 0 && delta.y() >= 0) )
+        {
+            srcSRow = dy;
+            srcSCol = dx;
+            dstRow = 0;
+            dstCol = 0;
+            clip1 = QRect(0, h - dy, w-dx, dy);
+            clip2 = QRect(w - dx, 0, dx, h - dy);
+        }
+        else if( delta.y() < 0 && (delta.x() <= 0) || (delta.x() < 0 && delta.y() <= 0))
+        {
+            srcSRow = 0;
+            srcSCol = 0;
+            dstRow = dy;
+            dstCol = dx;
+            clip1 = QRect(0, 0, w, dy);
+            clip2 = QRect(0, dy, dx, h - dy);
+        }
+        else if (delta.x() > 0 && delta.y() < 0)
+        {
+            srcSRow = 0;
+            srcSCol = dx;
+            dstRow = dy;
+            dstCol = 0;
+            clip1 = QRect(0, 0, w, dy);
+            clip2 = QRect(w - dx, dy, dx, h - dy);
+        }
+        else // if (delta.x() < 0 && delta.y() > 0)
+        {
+            srcSRow = dy;
+            srcSCol = 0;
+            dstRow = 0;
+            dstCol = dx;
+            clip1 = QRect(dx, h - dy, w, dy);
+            clip2 = QRect(0, 0, dx, h - dy);
+        }
+        srcSCol *= pixelSizeInBytes;
+        dstCol  *= pixelSizeInBytes;
+
+        for (int i = 0; i < blockHeight; ++srcSRow, ++dstRow, ++i)
+            memcpy(_pOtherCanvas->scanLine(dstRow) + dstCol, _pActCanvas->scanLine(srcSRow) + srcSCol, blockWidth);
+    }
+    std::swap(_pActCanvas, _pOtherCanvas);
+    clip1.translate(_topLeft);
+    clip2.translate(_topLeft);
+}
+
 /*========================================================
  * TASK:    scrolls visible area in a given direction
  * PARAMS:  delta: vector to move the area 
- *              if delta.x() > 0 moves left, 
- *              if delta.y() > 0 moves up, 
  *          smooth: smoth scrolling by only drawing the 
-                changed bits
- * GLOBALS: _limited, _topLeft, _canvas
+ *               changed bits
+ * GLOBALS: _limited, _topLeft, _pActCanvas
  * RETURNS:
- * REMARKS: - smooth == true mus only used when one of 
+ * REMARKS: - smooth == true must only used when one of 
  *              delta.x() or delta.y() is zero
- *          - delta.x() < 0 - moves viewport right
- *            delta.y() < 0 - moves viewport down
+ *          - delta.x() > 0 - moves viewport right (diplayed left)
+ *            delta.y() > 0 - moves viewport down (displayed up)
  *-------------------------------------------------------*/
 void DrawArea::_ShiftAndDisplayBy(QPoint delta, bool smooth)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
 {
-    if (_topLeft.y() - delta.y() < 0.0)
-        delta.setY(_topLeft.y());
-    if (_topLeft.x() - delta.x() < 0.0)
-        delta.setX(_topLeft.x());
-    if (delta.x() < 0 && _limited && _topLeft.x() - delta.x() + width() >= _screenWidth)
-        delta.setX(_topLeft.x() + width() - _screenWidth);
+    if (_topLeft.y() + delta.y() < 0)
+        delta.setY(-_topLeft.y());
+    if (_topLeft.x() + delta.x() < 0)
+        delta.setX(-_topLeft.x());
+    if (delta.x() > 0 && _limited && delta.x() + width() >= _screenWidth)
+        delta.setX(_screenWidth - width() );
 
     if(delta.isNull() )
        return;      // nothing to do
 
+ #if 1
+    int dx =qAbs(delta.x()), dy = qAbs(delta.y());
+    if (/*smooth && */ (dx <= _screenWidth/10) && (dy <= _screenHeight/10) )     
+    {                      // use smooth transform only for up/down/left/right never for pgUp, etc
 
-    if (smooth)     // use only for up/down/left/right never for diagonal
+        QRect clip1, clip2;
+
+        _ShiftOrigin(delta);
+        _ShiftRectangle(delta, clip1, clip2);           // shift original content
+                                                        // then draw to actual canvas
+        if (clip1.isValid())
+        {
+            _clippingRect = clip1;
+            _Redraw(false);
+        }
+        if (clip2.isValid())
+        {
+            _clippingRect = clip2;
+            _Redraw(false);
+        }
+        _clippingRect = _canvasRect;
+        update();
+
+    }
+#else 
+        QPoint pt0 = _topLeft;
+        _ShiftOrigin(delta);
+        delta = _topLeft - pt0;
+    if (smooth)     
     {
-        QImage origImg = _canvas;
-        _canvas.fill(qRgba(255, 255, 255, 0));     // transparent
-        QPainter painter(&_canvas);
+        std::swap(_pActCanvas, _pOtherCanvas);
+        _pActCanvas->fill(Qt::transparent);     // transparent
+        QPainter painter(_pActCanvas);
         QRect rectSrc, rectDst,                    // canvas relatice coordinates
-              rectRe;                              // _topLeft relative  
+            rectRe;                              // _topLeft relative  
         int w = width(),
             h = height();
-        rectSrc = _canvasRect.translated(-_topLeft-delta);  // relative to viewport
+        rectSrc = _canvasRect.translated(-_topLeft - delta);  // relative to viewport
         rectSrc.adjust(0, 0, -qAbs(delta.x()), -qAbs(delta.y()));
         rectDst = rectSrc;
         rectDst.moveTo(0, 0);
 
-        painter.drawImage(rectDst, origImg, rectSrc);   // move area
+        painter.drawImage(rectDst, *_pOtherCanvas, rectSrc);   // move area
+        // then plot newly visible areas
+
+
         // then plot newly visible areas
         if (delta.x() == 0.0)
         {
@@ -2049,7 +2167,7 @@ void DrawArea::_ShiftAndDisplayBy(QPoint delta, bool smooth)    // delta changes
                 rectRe = QRect(0, 0, -delta.x(), h);
         }
 
-        _ShiftOrigin(delta);
+//        _ShiftOrigin(delta);
 
         rectRe.translate(_topLeft);
         _clippingRect = rectRe;
@@ -2059,6 +2177,7 @@ void DrawArea::_ShiftAndDisplayBy(QPoint delta, bool smooth)    // delta changes
         _clippingRect = _canvasRect;
         _history->SetClippingRect(_canvasRect);
     }
+#endif
     else
     {
         _ShiftOrigin(delta);
@@ -2067,17 +2186,17 @@ void DrawArea::_ShiftAndDisplayBy(QPoint delta, bool smooth)    // delta changes
 }
 void DrawArea::_PageUp()
 {
-    QPoint pt(0, geometry().height()/3*2);
+    QPoint pt(0, -geometry().height()/2);
     _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_PageDown()
 {
-    QPoint pt(0, -geometry().height() / 3 * 2);
+    QPoint pt(0, geometry().height()/2);
     _ShiftAndDisplayBy(pt);
 }
 void DrawArea::_Home(bool toTop)
 {
-    QPoint pt = _topLeft;
+    QPoint pt = -_topLeft;
 
     if(!toTop)
         pt.setY(0);   // do not move in y direction
@@ -2091,22 +2210,22 @@ void DrawArea::_End()
 }
 void DrawArea::_Up(int amount)
 {
-    QPoint pt(0, amount);
+    QPoint pt(0, -amount);
     _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Down(int amount)
 {
-    QPoint pt(0, -amount);
+    QPoint pt(0, amount);
     _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Left(int amount)
 {
-    QPoint pt(amount,0);
+    QPoint pt(-amount,0);
     _ShiftAndDisplayBy(pt, false);
 }
 void DrawArea::_Right(int amount)
 {
-    QPoint pt(-amount,0);
+    QPoint pt(amount,0);
     _ShiftAndDisplayBy(pt, false);
 }
 
@@ -2124,7 +2243,12 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
 
     qpt += _topLeft;
 
-    emit TextToToolbar(QString(tr("   Left:%1, Top:%2 | Cursor: x:%3, y:%4 ")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()));
+    QString qs;
+    if (_rubberBand)
+        qs = QString(tr("   Left:%1, Top:%2 | Pen: x:%3, y:%4 | width: %5, height: %6")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).arg(_rubberBand->geometry().width()).arg(_rubberBand->geometry().height());
+    else
+        qs = QString(tr("   Left:%1, Top:%2 | Pen: x:%3, y:%4 ")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
+    emit TextToToolbar(qs);
 }
 
 // ****************************** Sprite ******************************
@@ -2157,7 +2281,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
     pSprite->topLeft = rect.topLeft();     // sprite top left
     pSprite->dp = cursorPos - pSprite->topLeft; // cursor position rel. to sprite
     pSprite->image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32);
-    pSprite->image.fill(qRgba(255, 255, 255, 0));     // transparent
+    pSprite->image.fill(Qt::transparent);     // transparent
 
     QPainter painter(&pSprite->image);
     QRect sr, tr;   // source & target

@@ -176,7 +176,7 @@ static struct SortedPageNumbers
     void Insert(PageNum2 pgn)
     {
         int pos = pgpos(pgn);       // index of first element that is equal or larger than pgn
-        if (pos == pgns.size())     // all elements waeer smaller
+        if (pos == pgns.size())     // all elements were smaller
             pgns.push_back(pgn);
         else if (pgns[pos] != pgn)  // pos-th element is larger
             pgns.insert(pos, pgn);  // before it

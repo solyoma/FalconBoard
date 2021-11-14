@@ -96,6 +96,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtUic Include="..\FalconBoard\FalconBoard.ui" />
+    <QtUic Include="..\FalconBoard\helpdialog.ui" />
     <QtUic Include="..\FalconBoard\pagesetup.ui" />
     <QtUic Include="..\FalconBoard\pdfsetup.ui" />
     <QtUic Include="..\FalconBoard\printprogress.ui" />
@@ -117,6 +118,7 @@
   <ItemGroup>
     <ClInclude Include="..\FalconBoard\bands.h" />
     <ClInclude Include="..\FalconBoard\common.h" />
+    <QtMoc Include="..\FalconBoard\helpdialog.h" />
     <ClInclude Include="..\FalconBoard\history.h" />
     <ClInclude Include="..\FalconBoard\myevent.h" />
     <ClInclude Include="..\FalconBoard\myprinter.h" />
@@ -135,6 +137,10 @@
   <ItemGroup>
     <QtTranslation Include="..\translations\FalconBoard_en.ts" />
     <QtTranslation Include="..\translations\FalconBoard_hu.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\translations\FalconBoard_en.qm" />
+    <None Include="..\translations\FalconBoard_hu.qm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
