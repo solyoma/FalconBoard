@@ -1741,6 +1741,41 @@ int History::SelectTopmostImageFor(QPoint& p)
 	return i;
 }
 
+/*=============================================================
+ * TASK:	select scribbles under the cursor
+ * PARAMS:	p - document relative coordinates of point
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+QRect History::SelectScribblesFor(QPoint& p)
+{
+	QRect rect, r;
+	ScribbleItem* pscr;
+	for (int i = 0; i < _items.size(); ++i)
+	{
+		if (_items[i]->type == heScribble)
+		{
+			pscr = _items[i]->GetVisibleScribble();
+			if (pscr && pscr->bndRect.contains(p))
+			{
+				int w = pscr->penWidth / 2;
+				for (int j = 0; j < pscr->points.size(); ++j)
+				{
+					r = QRect(pscr->points[j], QSize(1, 1)).adjusted(-w, -w, w, w);
+					if (r.intersects(pscr->bndRect))
+					{
+						rect = rect.united(pscr->bndRect);
+						break;	// no need to check more points
+					}
+				}
+			}
+		}
+	}
+
+	return rect;
+}
+
 
 /*========================================================
  * TASK:   copies selected scribbles into '_copiedItems'

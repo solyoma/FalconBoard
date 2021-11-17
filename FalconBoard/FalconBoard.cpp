@@ -684,13 +684,13 @@ void FalconBoard::_ConnectDisconnectScreenshotLabel(bool join )
 
     if (join)
     {
-        connect(plblScreen, &Snipper::SnipperCancelled, this, &FalconBoard::SlotForScreenShotCancelled);
-        connect(plblScreen, &Snipper::SnipperReady, this, &FalconBoard::SlotForScreenshotReady);
+        connect(_plblScreen, &Snipper::SnipperCancelled, this, &FalconBoard::SlotForScreenShotCancelled);
+        connect(_plblScreen, &Snipper::SnipperReady, this, &FalconBoard::SlotForScreenshotReady);
     }
     else
     {
-        disconnect(plblScreen, &Snipper::SnipperCancelled, this, &FalconBoard::SlotForScreenShotCancelled);
-        disconnect(plblScreen, &Snipper::SnipperReady, this, &FalconBoard::SlotForScreenshotReady);
+        disconnect(_plblScreen, &Snipper::SnipperCancelled, this, &FalconBoard::SlotForScreenShotCancelled);
+        disconnect(_plblScreen, &Snipper::SnipperReady, this, &FalconBoard::SlotForScreenshotReady);
     }
 }
 #endif
@@ -1218,7 +1218,7 @@ void FalconBoard::on_actionAbout_triggered()
     QMessageBox::about(this, tr("About FalconBoard"),
         QString(tr("Open source White/blackboard application")+
             tr("<p>Version ")+ sVersion+ "</p>")+
-            tr("<p>© A. Sólyom (2020)</p><br>"
+            tr("<p>© A. Sólyom (2020-21)</p><br>"
             "<p>https://github.com/solyoma/FalconBoard</p>"
             "<p>Based on Qt's <b>Scribble</b> example.</p>"));
 }
@@ -1227,51 +1227,6 @@ void FalconBoard::on_actionHelp_triggered()
 {
     HelpDialog hd;
     hd.exec();
-
-#if 0
-    QMessageBox::about(this, tr(WindowTitle "help"),
-        tr("<p><b>Move paper</b><br>")+
-        tr("  with the mouse or pen while holding down the spacebar,<br>"
-           "  using the arrow keys alone or with Ctrl.</p>")+
-        tr("<p><b>Keyboard Shortcuts not shown on menus/buttons:</b></p>")+
-        tr("<p><i>To start of line</i><br>&nbsp;&nbsp;Home</p>")+
-        tr("<p><i>To end of line</i><br>&nbsp;&nbsp;End</p>")+
-        tr("<p><i>To start of document</i><br>&nbsp;&nbsp;Ctrl+Home</p>") +
-        tr("<p><i>To End of Document</i><br>&nbsp;&nbsp;Ctrl+End</p>")+
-        tr("<p><i>To lowest position used so far</i><br>&nbsp;&nbsp;End</p>") +
-        tr("<p><i>Up/Down/Left/Right</i> 10 pixels with the arrow keys,<br>100 pixels if you hold down Ctrl</p>")
- #ifndef _VIEWER
-        +
-        tr("<p>F4<br>&nbsp;&nbsp;Take a screenshot of an area using the right mouse button. "
-              " An image can be selected by clicking/tapping on it while holding down the Ctrl key.</p>")+
-        tr("<p><i>Select brush colors</i><br>&nbsp;&nbsp;1, 2, 3, 4, 5. Eraser: E</p>")+
-        tr("<p>Left and right bracket keys '[',']' change brush size</p>")+
-        tr("<p>Draw a straight line from last position by holding down a Shift key while pressing Left, ")+
-        tr("draw horizontal or vertical line by <i>first</i> pressing Left, then holding Shift key while drawing. ")+
-        tr("Line orientation depends on which direction you start to draw.</p>")+
-
-        tr("<p><b>Area selection</b><br>")+
-        tr(   "Press and hold the <i>right mouse (pen) button</i> or "
-              "press and hold <i>Ctrl</i> plus the <i>left mouse button</i> "
-              "and move the mouse (pen) around. Release the buttons when finished. "
-              "Hold the Shift key to get a square selection.")+
-        tr("If the selection contains one or more complete lines or even eraser strokes (!) "
-           "then the selection will shrink around those.</p>")+
-        tr("<p><b>Keyboard shortcuts when there is an active selection</b></p>")+
-        tr("<p>1, 2, 3, 4, 5 <br>&nbsp;&nbsp;<i>Recolor <b>completely</b> selected drawings</i></p>")+
-        tr("<p>0, 8, 9, H, V<br>&nbsp;&nbsp;<i>Rotate or flip <b>completely</b> selected drawings</i></p>")+
-        tr("<p>Ctrl+Ins, Ctrl+C<br>&nbsp;&nbsp;<i>Copy selected</i></p>") +
-        tr("<p>Ctrl+X, Shift+Del<br>&nbsp;&nbsp;<i>Cut selected</i></p>") +
-        tr("<p>Del, BackSpace<br>&nbsp;&nbsp;<i>Delete selected</i></p>") +
-        tr("<p>R key<br>&nbsp;&nbsp;<i>Draw a rectangle</i> around the selected area.")+
-        tr("<p>C key<br>&nbsp;&nbsp;<i>Draw an ellipse (or circle)</i> inside the selected area.")+
-        tr("<p><i>Move</i> selected drawings with Left button, move copy by Alt+Left button.</p>")+
-        tr("<p>Copy selection with Ctrl+C, Paste by selecting an area at destination then use Ctrl+V.</p>")+
-        tr("<p>F5<br>&nbsp;&nbsp;<i>Insert vertical space</i> from top of selected area<br>"
-           "(Moves all drawings down below the top of this selection)</p>")
- #endif
-    );
-#endif
 }
 
 void FalconBoard::on_actionLightMode_triggered()
@@ -1491,18 +1446,18 @@ void FalconBoard::on_action_Screenshot_triggered()
     if (!screen)
         return;
 
-    plblScreen = new Snipper(nullptr);
-    plblScreen->setGeometry(screen->geometry());
+    _plblScreen = new Snipper(nullptr);
+    _plblScreen->setGeometry(screen->geometry());
     _ConnectDisconnectScreenshotLabel(true);
 
     hide();
 
     QThread::msleep(300);
 
-    plblScreen->setPixmap(screen->grabWindow(0));
+    _plblScreen->setPixmap(screen->grabWindow(0));
 
     show();
-    plblScreen->show();
+    _plblScreen->show();
 }
 
 void FalconBoard::on_actionScreenshotTransparency_triggered()
@@ -1643,13 +1598,13 @@ void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sen
 
 void FalconBoard::SlotForScreenshotReady(QRect gmetry)
 {
-    plblScreen->hide();
+    _plblScreen->hide();
 
     QPixmap pixmap;  // need a pixmap for transparency (used Qpixmap previously)
     pixmap = QPixmap(gmetry.size()); //  , Qpixmap::Format_ARGB32);
 
     QPainter *painter = new QPainter(&pixmap);   // need to delete it before the label is deleted
-    painter->drawPixmap(QPoint(0,0), *plblScreen->pixmap(), gmetry);
+    painter->drawPixmap(QPoint(0,0), *_plblScreen->pixmap(), gmetry);
     delete painter;
 
     if (_useScreenshotTransparency)
@@ -1661,17 +1616,17 @@ void FalconBoard::SlotForScreenshotReady(QRect gmetry)
     _drawArea->AddScreenShotImage(pixmap);
 
     _ConnectDisconnectScreenshotLabel(false);
-    delete plblScreen;
-    plblScreen = nullptr;
+    delete _plblScreen;
+    _plblScreen = nullptr;
 
 }
 
 void FalconBoard::SlotForScreenShotCancelled()
 {
-    plblScreen->hide();
+    _plblScreen->hide();
     _ConnectDisconnectScreenshotLabel(false);
-    delete plblScreen;
-    plblScreen = nullptr;
+    delete _plblScreen;
+    _plblScreen = nullptr;
 }
 
 void FalconBoard::SlotIncreaseBrushSize(int ds)

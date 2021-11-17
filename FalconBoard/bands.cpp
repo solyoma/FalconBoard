@@ -111,21 +111,26 @@ void Bands::Add(int index)
 void Bands::Remove(int index)
 {
 	HistoryItem* phi = (*_pHist)[index];
-	int y = phi->Area().y(),
-		h = y + phi->Area().height();
-	int ib = -1;		// no item removed yet
-	while (y <= h)
+	int y = phi->Area().y();
+	if (_itemCount)			// only remove once from count
+		--_itemCount;
+	int ib = _GetBand(y);					// no item removed yet
+
+	auto hasIndex = [&](int ib, int index) -> bool 
 	{
-		if (ib < 0 && _itemCount)		// only remove once from count
-			--_itemCount;
-		ib = _GetBand(y);
-		if (ib < 0)	// shouldn't !
-			return;
+		for (auto ix : _bands[ib].indices)
+			if (ix.index == index)
+				return true;
+		return false;
+	};
+
+	while (hasIndex(ib,index))
+	{
 		_bands[ib].Remove(index);	// to items in band, z-ordered 
 		if (_bands[ib].indices.isEmpty())	// no items left in band
 			_bands.removeAt(ib);
-		y += _bandHeight;
-	}
+		++ib;
+	};
 }
 
 int Bands::ItemsStartingInBand(int bandIndex, ItemIndexVector& iv)

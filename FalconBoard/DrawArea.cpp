@@ -1039,10 +1039,19 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
         else if (event->mods.testFlag(Qt::ControlModifier))     // Ctrl + click: select image if any
         {
             QPoint p = event->pos + _topLeft;
-            int i = _history->SelectTopmostImageFor(p);
-            if (i >= 0)
+            QRect r = _history->SelectScribblesFor(p);
+            if (r.isNull())
             {
-                _rubberBand->setGeometry(_history->Image(i).Area().translated(-_topLeft));
+                int i = _history->SelectTopmostImageFor(p);
+                if (i >= 0)
+                {
+                    _rubberBand->setGeometry(_history->Image(i).Area().translated(-_topLeft));
+                    _rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
+                }
+            }
+            else
+            {
+                _rubberBand->setGeometry(r.translated(-_topLeft));
                 _rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
             }
         }

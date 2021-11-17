@@ -11,7 +11,10 @@ class HelpDialog : public QDialog
 	Q_OBJECT
 
 public:
-	HelpDialog(QWidget* parent = nullptr) : QDialog(parent) { ui.setupUi(this); }
+	HelpDialog(QWidget* parent = nullptr) : QDialog(parent) 
+	{ 
+		ui.setupUi(this); 
+	}
 private:
 	Ui::HelpDialogClass ui;
 };

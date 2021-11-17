@@ -210,7 +210,7 @@ private:
 
 	QActionGroup* _penGroup, *_modeGroup;
 
-	Snipper* plblScreen = nullptr;		// screen grab label
+	Snipper* _plblScreen = nullptr;		// screen grab label
 
 	QString _sBackgroundColor = "#FFFFFF",
 			_sBackgroundHighLigtColor="#D8EAF9",
