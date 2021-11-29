@@ -37,6 +37,11 @@ enum HistEvent {
                         // Undo: set _indexLastScribbleItem to that given in previous history item
                         // Redo: set _indexLastScribbleItem to 'lastScribbleIndex'
                 };
+ // determined from the number of points
+enum ScribbleSubType { sstScribble,     // any number
+                       sstLine,         // only two points
+                       sstQuadrangle     // 4 points, where the last and first are equal
+                     };    
 enum MyRotation { rotNone, 
             rotR90, rotL90, rot180, rotFlipH, rotFlipV,     // these leave the top left corner in place
             rotAlpha                                        // alpha: around the center of the bounding box, increasescounterclockwise
@@ -70,6 +75,16 @@ struct ScribbleItem        // drawn on layer mltScribbleItem
     ScribbleItem& operator=(const ScribbleItem& di);
 
     ScribbleItem& operator=(const ScribbleItem&& di)  noexcept;
+
+    ScribbleSubType SubType()
+    {
+        switch (points.size())
+        {
+            case 2: return sstLine;
+            case 4: return points[0] == points[3] ? sstQuadrangle : sstScribble;
+            default: return sstScribble;
+        }
+    }
 
     void clear();       // clears points and sets type to heNone
 
@@ -490,6 +505,15 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     bool _modified = false;
 
+    ScribbleSubType _GetSubType(ScribbleItem* psi)  // needed for finding nearest scribble
+    {
+        switch (psi->points.size())
+        {
+            case 2: return sstLine;
+            case 4: return psi->points[0] == psi->points[3] ? sstQuadrangle : sstScribble;
+            default: return sstScribble;
+        }
+    }
 
     HistoryItem* _AddItem(HistoryItem* p);
 
@@ -513,6 +537,12 @@ class History  // stores all drawing sections and keeps track of undo and redo
     }
     void _SaveClippingRect();
     void _RestoreClippingRect();
+    void _ClearSelectLists() 
+    { 
+        _nSelectedItemsList.clear();
+        _nItemsRightOfList.clear();
+        _nItemsLeftOfList.clear();
+    }
 
 public:
     History() noexcept { _bands.SetParam(this, -1);  }
@@ -612,9 +642,9 @@ public:
     int ImageIndexFor(QPoint& p) const { return _belowImages.ImageIndexFor(p); } // -1: no such image else index in 'pImages'
 
     void AddToSelection(int index=-1);
+    QRect SelectScribblesFor(QPoint& p, bool addToPrevious);      // selects clicked (if any) into _nSelectedItemsList, and clears right and left items list
     int CollectItemsInside(QRect rect);
     int SelectTopmostImageFor(QPoint& p);
-    QRect SelectScribblesFor(QPoint& p);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
     void SetSelectionRect(QRect& rect)

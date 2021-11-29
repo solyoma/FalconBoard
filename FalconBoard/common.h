@@ -38,7 +38,8 @@ struct ItemIndex
     int zorder;                 // indices are ordered in ascending zorder
                                 // if < DRAWABLE_ZORDER_BASE then image
     int index;                  // in pHist->_items
-    bool operator<(const ItemIndex& other) { return zorder < other.zorder; }
+    bool operator<(const ItemIndex& other) const noexcept { return zorder < other.zorder; }
+    bool operator==(const ItemIndex& other) const noexcept { return index == other.index; }
 };
 using ItemIndexVector = QVector<ItemIndex>;  // ordered by 'zorder'
 

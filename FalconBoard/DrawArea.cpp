@@ -1036,23 +1036,23 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
                 _rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
             }
         }
-        else if (event->mods.testFlag(Qt::ControlModifier))     // Ctrl + click: select image if any
+        else if (event->mods.testFlag(Qt::ControlModifier))     // Ctrl + click: select image or near scribbles if any
         {
             QPoint p = event->pos + _topLeft;
-            QRect r = _history->SelectScribblesFor(p);
+            QRect r = _history->SelectScribblesFor(p, event->mods.testFlag(Qt::ShiftModifier));
             if (r.isNull())
             {
                 int i = _history->SelectTopmostImageFor(p);
                 if (i >= 0)
                 {
                     _rubberBand->setGeometry(_history->Image(i).Area().translated(-_topLeft));
-                    _rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
+                    _rubberRect = _rubberBand->geometry();  // _history->BoundingRect().translated(-_topLeft);
                 }
             }
-            else
+            else    // scribbles were selected
             {
                 _rubberBand->setGeometry(r.translated(-_topLeft));
-                _rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
+                _rubberRect = _rubberBand->geometry();      // _history->BoundingRect().translated(-_topLeft);
             }
         }
         else

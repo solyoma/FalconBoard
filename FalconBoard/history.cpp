@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "history.h"
+//#include <cmath>
 
 static void SwapWH(QRect& r)
 {
@@ -1014,7 +1015,7 @@ History::~History()
  * GLOBALS:
  * RETURNS: index of first element (>0) in ordered list _yxOrder
  *			which is at the same height or below xy
- * REMARKS: - y inreses downwards
+ * REMARKS: - y increases downwards
  *-------------------------------------------------------*/
 int History::_YIndexForXY(QPoint xy)
 {				// get first element, which is above or at xy.y
@@ -1130,7 +1131,7 @@ void History::_push_back(HistoryItem* pi)
 		int yi = _YIndexForXY(pi->TopLeft());    // yi either to element with same x,y values or the one which is higher or at the right
 		if (yi == _yxOrder.size() )  // all elements at xy were less than for this one
 			_yxOrder.push_back(s);
-		else          // the yi-th element has the larger y , or same and larger x coordinate
+		else          // the yi-th element has either the larger y, or the same y and larger x coordinate
 			_yxOrder.insert(yi, s);
 	}
 }
@@ -1708,9 +1709,7 @@ void History::AddToSelection(int index)
  *-------------------------------------------------------*/
 int History::CollectItemsInside(QRect rect) // only 
 {
-	_nSelectedItemsList.clear();
-	_nItemsRightOfList.clear();
-	_nItemsLeftOfList.clear();
+	_ClearSelectLists();
 	_nIndexOfFirstScreenShot = 0x70000000;
 
 	_selectionRect = QRect();     // minimum size of selection (0,0) relative!
@@ -1744,36 +1743,129 @@ int History::SelectTopmostImageFor(QPoint& p)
 /*=============================================================
  * TASK:	select scribbles under the cursor
  * PARAMS:	p - document relative coordinates of point
- * GLOBALS:
- * RETURNS:
- * REMARKS:
+ *			addToPrevious: do not clear previous selection
+			*				merge these together
+ * GLOBALS: 	_nSelectedItemsList
+ *				_nItemsRightOfList
+ *				_nItemsLeftOfList
+ *
+ * RETURNS:	area containing selected items. if invalid, then no items
+ * REMARKS: - if no scribble items found then the selection lists 
+ *			  are not cleared
+ *			- even when the area returned has other scribbles
+ *			  they are not aincluded into the selection!
+ *			- a scribble is found if for any of its points
+ *			  its pen width sized area intersects the
+ *			  area around 'p' set as w below
  *------------------------------------------------------------*/
-QRect History::SelectScribblesFor(QPoint& p)
+QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 {
-	QRect rect, r;
+	int cnt = 0;
+	ItemIndex ii;
+	ItemIndexVector iv;
+
+	int w = 3;	// +-
+	int pw;			// pen width
+
+	QRect rp = QRect(p, QSize(1, 1)).adjusted(-w,-w,w,w),
+		  r;
+	QRect result;
+
 	ScribbleItem* pscr;
+	ScribbleSubType typ;
+
+#define SQUARE(a)	(a)*(a)
+
+	auto isNearToLine = [&](ScribbleItem* pscr, int i) -> bool
+	{
+		int x1 = pscr->points[i].x(), x2 = pscr->points[i + 1].x(),
+			y1 = pscr->points[i].y(), y2 = pscr->points[i + 1].y(),
+			x0 = p.x(), y0 = p.y();
+		float d;
+		if (x1 == x2)	// vertical line
+			d = qAbs(x0 - x1);
+		else if (y1 == y2)
+			d = qAbs(y0 - y1);
+		else
+			d = qAbs((float)(x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt(SQUARE(x2 - x1) + SQUARE(y2 - y1));
+		return (int) d < pscr->penWidth + w;
+	};
+
+	auto addToIv=[&](ScribbleItem * pscr, int i)
+	{
+		++cnt;
+		ii.index = i;
+		ii.zorder = pscr->zOrder;
+		iv.push_back(ii);
+		result = result.united(pscr->bndRect);
+	};
+
 	for (int i = 0; i < _items.size(); ++i)
 	{
 		if (_items[i]->type == heScribble)
 		{
 			pscr = _items[i]->GetVisibleScribble();
-			if (pscr && pscr->bndRect.contains(p))
+			if (pscr)
 			{
-				int w = pscr->penWidth / 2;
-				for (int j = 0; j < pscr->points.size(); ++j)
+				typ = pscr->SubType();
+				if (pscr && pscr->bndRect.contains(p))
 				{
-					r = QRect(pscr->points[j], QSize(1, 1)).adjusted(-w, -w, w, w);
-					if (r.intersects(pscr->bndRect))
+					pw = (pscr->penWidth + 1) / 2;
+					if (typ != sstScribble)	//line or quadrangle
 					{
-						rect = rect.united(pscr->bndRect);
-						break;	// no need to check more points
+						for (int j = 0; j < pscr->points.size() - 1; ++j)
+							if (isNearToLine(pscr, j))
+								addToIv(pscr, i);
+					}
+					else		// ordinary scribble
+					{
+						for (int j = 0; j < pscr->points.size(); ++j)
+						{
+							r = QRect(pscr->points[j], QSize(1, 1)).adjusted(-pw, -pw, pw, pw);
+							if (r.intersects(rp))
+							{
+								addToIv(pscr, i);
+								break;	// no need to check more points
+							}
+							else if (j < pscr->points.size() - 1)	// possibly consecutive points in a scribble were too far away from each other
+							{										// if so then consider it a line and see if we are near to it
+								if (SQUARE(pscr->points[j].x() - pscr->points[j + 1].x()) + SQUARE(pscr->points[j].y() - pscr->points[j + 1].y()) > SQUARE(pscr->penWidth) )
+								{
+									if (isNearToLine(pscr, j))
+									{
+										addToIv(pscr, i);
+										break;
+									}
+								}
+							}
+						}
 					}
 				}
 			}
 		}
 	}
-
-	return rect;
+	if (cnt)
+	{
+		if (!addToPrevious)
+		{
+			_ClearSelectLists();
+			_selectionRect = result;
+			_nSelectedItemsList = iv;
+		}
+		else
+		{
+			_selectionRect = result.united(_selectionRect);
+			// merge lists
+			for (auto ii : iv)
+			{
+				if (!_nSelectedItemsList.contains(ii))
+					_nSelectedItemsList.push_back(ii);
+			}
+		}
+		return _selectionRect;
+	}
+	
+	return result;
 }
 
 

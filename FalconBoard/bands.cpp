@@ -124,9 +124,9 @@ void Bands::Remove(int index)
 		return false;
 	};
 
-	while (hasIndex(ib,index))
+	while (ib < _bands.size() && hasIndex(ib,index))
 	{
-		_bands[ib].Remove(index);	// to items in band, z-ordered 
+		_bands[ib].Remove(index);			// to items in band, z-ordered 
 		if (_bands[ib].indices.isEmpty())	// no items left in band
 			_bands.removeAt(ib);
 		++ib;
@@ -279,7 +279,8 @@ void Bands::SelectItemsForArea(QRect& rect, ItemIndexVector& hvLeft, ItemIndexVe
  *			the band after it or the band size
  * PARAMS:
  * GLOBALS:
- * RETURNS:
+ * RETURNS:	index of band which contains y or
+ *			size of _band (invalid index!)
  * REMARKS: - caller must check if this is the correct band
  *			 for y
  *-------------------------------------------------------*/
