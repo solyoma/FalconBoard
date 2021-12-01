@@ -65,11 +65,11 @@ bool ScribbleItem::IsExtension(const QPoint& p, const QPoint& p1, const QPoint& 
 void ScribbleItem::add(QPoint p)
 {
 	int n = points.size() - 1;
-	                    // we need at least one point already in the array
-	// if a point just extends the line in the same direction (IsExtension())
-	// as the previous point was from the one before it
-	// then do not add a new point, just modify the coordinates of the middle point
-	// (n 0: 1 point, >0: at least 2 points are already in the array
+	// we need at least one point already in the array
+// if a point just extends the line in the same direction (IsExtension())
+// as the previous point was from the one before it
+// then do not add a new point, just modify the coordinates of the middle point
+// (n 0: 1 point, >0: at least 2 points are already in the array
 	if (n > 0 && IsExtension(p, points[n], points[n - 1]))  // then the two vector points in the same direction
 		points[n] = p;                            // so continuation
 	else
@@ -93,7 +93,7 @@ void ScribbleItem::SetBoundingRectangle()
 	bndRect = QRect();
 	if (points.isEmpty())
 		return;
-								 // add first point
+	// add first point
 	QPoint& p = points[0];
 	int w = penWidth / 2;
 	QRect pointRect = QRect(p.x() - w, p.y() - w, penWidth, penWidth);      // single point
@@ -137,16 +137,16 @@ void ScribbleItem::Rotate(MyRotation rotation, QRect encRect, float alpha)	// ro
 	int erx = encRect.x(), ery = encRect.y(),
 		erw = encRect.width(),
 		erh = encRect.height();
-					// item bndRectangle
-	int rx = bndRect.x(), ry = bndRect.y(), rw = bndRect.width(), rh = bndRect.height();	
-				   // modify encompassing rectangle and create a big and a little square
-				   // for rotation with sides erb and erl respectively
-		 
-		// if h >= w d+ = erh else d+ = erw
-		// if h >= w d- = erw else d- = erh
-		// if rotR90  -> x' = erx + ery + (d+) - y,	y' = ery - erx + x
-		// if rotL90  -> x' = erx - ery + y,		y' = erx + ery + (d-) - x
-		// rot180     -> x' = 2*erx + erw - x,		y' = 2*ery + erh - y
+	// item bndRectangle
+	int rx = bndRect.x(), ry = bndRect.y(), rw = bndRect.width(), rh = bndRect.height();
+	// modify encompassing rectangle and create a big and a little square
+	// for rotation with sides erb and erl respectively
+
+// if h >= w d+ = erh else d+ = erw
+// if h >= w d- = erw else d- = erh
+// if rotR90  -> x' = erx + ery + (d+) - y,	y' = ery - erx + x
+// if rotL90  -> x' = erx - ery + y,		y' = erx + ery + (d-) - x
+// rot180     -> x' = 2*erx + erw - x,		y' = 2*ery + erh - y
 
 	int x, y, d;
 	int A = erx + ery,
@@ -186,36 +186,36 @@ void ScribbleItem::Rotate(MyRotation rotation, QRect encRect, float alpha)	// ro
 
 	switch (rotation)
 	{
-		case rotR90:
-			for (QPoint& p : points)
-				RotR90(p);
-			RotRectR90(bndRect);
-			break;
-		case rotL90:
-			for (QPoint& p : points)
-				RotL90(p);
-			RotRectL90(bndRect);
-			break;
-		case rot180:
-			for (QPoint& p : points)
-			{
-				x = 2*erx + erw - p.x();
-				y = 2*ery + erh - p.y();
-				p.setX(x), p.setY(y);
-			}
-			break;
-		case rotFlipH:
-			for (QPoint& p : points)
-				p.setX(erw + 2 * erx - p.x());
-			bndRect = QRect(erw + 2 * erx - rx - rw, ry, rw, rh);		  // new item x: original top righ (rx + rw)
-			break;
-		case rotFlipV:
-			for (QPoint& p : points)
-				p.setY(erh - p.y() + 2 * ery);
-			bndRect = QRect(rx, erh + 2 * ery - ry - rh, rw, rh);		  // new item x: original bottom left (ry + rh)
-			break;
-		default:
-			break;
+	case rotR90:
+		for (QPoint& p : points)
+			RotR90(p);
+		RotRectR90(bndRect);
+		break;
+	case rotL90:
+		for (QPoint& p : points)
+			RotL90(p);
+		RotRectL90(bndRect);
+		break;
+	case rot180:
+		for (QPoint& p : points)
+		{
+			x = 2 * erx + erw - p.x();
+			y = 2 * ery + erh - p.y();
+			p.setX(x), p.setY(y);
+		}
+		break;
+	case rotFlipH:
+		for (QPoint& p : points)
+			p.setX(erw + 2 * erx - p.x());
+		bndRect = QRect(erw + 2 * erx - rx - rw, ry, rw, rh);		  // new item x: original top righ (rx + rw)
+		break;
+	case rotFlipV:
+		for (QPoint& p : points)
+			p.setY(erh - p.y() + 2 * ery);
+		bndRect = QRect(rx, erh + 2 * ery - ry - rh, rw, rh);		  // new item x: original bottom left (ry + rh)
+		break;
+	default:
+		break;
 	}
 
 	if (rot == rotNone)		// save rotation for undo
@@ -233,7 +233,7 @@ inline QDataStream& operator<<(QDataStream& ofs, const ScribbleItem& di)
 		ofs << (qint32)pt.x() << (qint32)pt.y();
 	return ofs;
 }
-		   // reads ONLY after the type is read in!
+// reads ONLY after the type is read in!
 inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di)
 {
 	qint32 n;
@@ -295,18 +295,18 @@ void ScreenShotImage::Rotate(MyRotation rot, QRect encRect, float alpha)
 	bool fliph = false, flipv = true;	// defaullt flip orientations
 	switch (rot)
 	{
-		case rotR90: transform.rotate(270); image = image.transformed(transform, Qt::SmoothTransformation); break;
-		case rotL90: transform.rotate(90);  image = image.transformed(transform, Qt::SmoothTransformation); break;
-		case rot180: transform.rotate(180); image = image.transformed(transform, Qt::SmoothTransformation); break;
-		case rotFlipH: 
-			fliph = true; 
-			flipv = false;		// NO break here!										// CHECK IF WORKING!
-		case rotFlipV: 
-			img = image.toImage(); 
-			img = img.mirrored(fliph, flipv); 
-			image = image.fromImage(img);  
-			break;
-		default: break;
+	case rotR90: transform.rotate(270); image = image.transformed(transform, Qt::SmoothTransformation); break;
+	case rotL90: transform.rotate(90);  image = image.transformed(transform, Qt::SmoothTransformation); break;
+	case rot180: transform.rotate(180); image = image.transformed(transform, Qt::SmoothTransformation); break;
+	case rotFlipH:
+		fliph = true;
+		flipv = false;		// NO break here!										// CHECK IF WORKING!
+	case rotFlipV:
+		img = image.toImage();
+		img = img.mirrored(fliph, flipv);
+		image = image.fromImage(img);
+		break;
+	default: break;
 	}
 }
 
@@ -327,7 +327,7 @@ QRect ScreenShotImageList::AreaOnCanvas(int index, const QRect& canvasRect) cons
 
 ScreenShotImage* ScreenShotImageList::ScreenShotAt(int index)
 {
-	if(index >= size())
+	if (index >= size())
 		return nullptr;
 	return &(*this)[index];
 }
@@ -414,7 +414,7 @@ bool HistoryItem::operator<(const HistoryItem& other)
 
 	if (TopLeft().y() < other.TopLeft().y())
 		return true;
-	else if (TopLeft().y() == other.TopLeft().y() )
+	else if (TopLeft().y() == other.TopLeft().y())
 	{
 		if (TopLeft().x() < other.TopLeft().x())
 			return true;
@@ -434,7 +434,7 @@ HistoryScribbleItem::HistoryScribbleItem(const HistoryScribbleItem& other) : His
 {
 	*this = other;
 }
-HistoryScribbleItem::HistoryScribbleItem(const HistoryScribbleItem&& other) noexcept: HistoryItem(other.pHist)
+HistoryScribbleItem::HistoryScribbleItem(const HistoryScribbleItem&& other) noexcept : HistoryItem(other.pHist)
 {
 	*this = other;
 }
@@ -566,7 +566,7 @@ int  HistoryRemoveSpaceItem::Undo()
 {
 	if (modifiedList.isEmpty())	 // vertical movement
 	{
-		pHist->TranslateAllItemsBelow(QPoint(0, delta), y-delta);	  //delte > 0 move down
+		pHist->TranslateAllItemsBelow(QPoint(0, delta), y - delta);	  //delte > 0 move down
 	}
 	else	// horizontal movement
 	{
@@ -635,7 +635,7 @@ HistoryPasteItemTop::HistoryPasteItemTop(History* pHist, int index, int count, Q
 {
 }
 
-HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop& other) : 
+HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop& other) :
 	HistoryItem(other.pHist)
 {
 	*this = other;
@@ -648,7 +648,7 @@ HistoryPasteItemTop& HistoryPasteItemTop::operator=(const HistoryPasteItemTop& o
 	boundingRect = other.boundingRect;
 	return *this;
 }
-HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop&& other)  noexcept: HistoryItem(other.pHist)
+HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop&& other)  noexcept : HistoryItem(other.pHist)
 {
 	*this = other;
 }
@@ -753,7 +753,7 @@ HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem& othe
 	return *this;
 }
 
-HistoryReColorItem::HistoryReColorItem(HistoryReColorItem&& other)  noexcept: HistoryReColorItem(other.pHist, other.selectedList, other.pk)
+HistoryReColorItem::HistoryReColorItem(HistoryReColorItem&& other)  noexcept : HistoryReColorItem(other.pHist, other.selectedList, other.pk)
 {
 	*this = other;
 }
@@ -816,7 +816,7 @@ HistoryInsertVertSpace& HistoryInsertVertSpace::operator=(const HistoryInsertVer
 
 int  HistoryInsertVertSpace::Undo()
 {
-	pHist->InserVertSpace(y+heightInPixels, -heightInPixels);
+	pHist->InserVertSpace(y + heightInPixels, -heightInPixels);
 	return 1;
 }
 
@@ -945,21 +945,21 @@ int HistoryRotationItem::Undo()
 	float alpha = rAlpha;
 	switch (rot)
 	{
-		case rotR90:
-			rotation = rotL90;
-			break;
-		case rotL90:
-			rotation = rotR90;
-			break;
-		case rot180:
-		case rotFlipH:
-		case rotFlipV:
-			break;
-		case rotAlpha:
-			alpha = - rAlpha;
-			break;
-		default:
-			break;
+	case rotR90:
+		rotation = rotL90;
+		break;
+	case rotL90:
+		rotation = rotR90;
+		break;
+	case rot180:
+	case rotFlipH:
+	case rotFlipV:
+		break;
+	case rotAlpha:
+		alpha = -rAlpha;
+		break;
+	default:
+		break;
 	}
 	for (auto n : nSelectedItemList)
 		(*pHist)[n.index]->Rotate(rotation, encRect, alpha);
@@ -972,7 +972,7 @@ int HistoryRotationItem::Redo()
 {
 	for (auto n : nSelectedItemList)
 		(*pHist)[n.index]->Rotate(rot, encRect, rAlpha);
-	if(rot != rotFlipH && rot != rotFlipV)
+	if (rot != rotFlipH && rot != rotFlipV)
 		SwapWH(encRect);
 	return 0;
 }
@@ -989,7 +989,7 @@ void History::_RestoreClippingRect()
 	_clpRect = _savedClps.pop();
 }
 
-History::History(const History& o)					
+History::History(const History& o)
 {
 	_items = o._items;
 	_bands = o._bands;
@@ -1011,7 +1011,7 @@ History::~History()
 /*========================================================
  * TASK:	Get index of top-left-most element at or below xy.y
  *			in _items, using '_yOrder' (binary search)
- * PARAMS:	xy  - limiting point 
+ * PARAMS:	xy  - limiting point
  * GLOBALS:
  * RETURNS: index of first element (>0) in ordered list _yxOrder
  *			which is at the same height or below xy
@@ -1020,16 +1020,16 @@ History::~History()
 int History::_YIndexForXY(QPoint xy)
 {				// get first element, which is above or at xy.y
 	IntVector::iterator it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), 0,     // 0: in place of 'right' - not used
-											  [&](const int left, const int right)	   // left: _yorder[xxx], returns true if above or left
-											  {
-												  QPoint pt = ((const HistoryItem*)_items[left])->TopLeft();
-												  if (pt.y() < xy.y())
-													  return true;					   // pt.y is below xy.y
-												  else if ((pt.y() == xy.y()))		   // or when they are the same 
-													  return pt.x() < xy.x();		   // pt is either left (true) or right (false) of xy
-												  else
-													  return false;					   // pt.y is above xy.y
-											  });
+		[&](const int left, const int right)	   // left: _yorder[xxx], returns true if above or left
+		{
+			QPoint pt = ((const HistoryItem*)_items[left])->TopLeft();
+			if (pt.y() < xy.y())
+				return true;					   // pt.y is below xy.y
+			else if ((pt.y() == xy.y()))		   // or when they are the same 
+				return pt.x() < xy.x();		   // pt is either left (true) or right (false) of xy
+			else
+				return false;					   // pt.y is above xy.y
+		});
 	return (it - _yxOrder.begin());
 }
 
@@ -1039,42 +1039,42 @@ int History::_YIndexForXY(QPoint xy)
  * PARAMS:	none
  * GLOBALS:	_yxOrde, _items
  * RETURNS: index of element or -1
- * REMARKS: 
+ * REMARKS:
  *-------------------------------------------------------*/
-//int History::_YIndexWhichInside()
-//{
-//	int i0 = _YIndexForXY(_clpRect.topLeft() );		// any number of items above this may be OK
-//	int ib = -1,	// before i0
-//		ia = -1;	// after i0			- if not -1 then element found 
-//
-//	if (i0 >= _yxOrder.size())
-//		return -1;
-//
-//	HistoryItem	*pb = _yitems(i0), 	// pointers before and after selected
-//				*pa = pb;			// starting from the same actual selected
-//
-//	if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect))
-//		ia = i0;			// set found element index for 'after' elements
-//
-//	int inc = 1;									// should test all elements above the i-th one but only do it for max 100
-//	while (inc < 100 && (i0-inc >= 0 || ia < 0))
-//	{
-//		pb = i0 - inc >= 0 ? _yitems(i0 - inc) : nullptr;
-//		pa = ia < 0 && (i0 + inc  < _yxOrder.size()) ? _yitems(i0 + inc) : nullptr;
-//		if ( pb && !pb->Hidden() && pb->Area().intersects(_clpRect)) 
-//			ib = i0 - inc;
-//		else if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect)) // only check those that come after if not found already in before 
-//			ia = i0 + inc;
-//		++inc;
-//	}
-//
-//	if (ib >= 0)
-//		return ib;
-//	else if (ia >= 0)
-//		return ia;
-//	else
-//		return ib; // -1
-//}
+ //int History::_YIndexWhichInside()
+ //{
+ //	int i0 = _YIndexForXY(_clpRect.topLeft() );		// any number of items above this may be OK
+ //	int ib = -1,	// before i0
+ //		ia = -1;	// after i0			- if not -1 then element found 
+ //
+ //	if (i0 >= _yxOrder.size())
+ //		return -1;
+ //
+ //	HistoryItem	*pb = _yitems(i0), 	// pointers before and after selected
+ //				*pa = pb;			// starting from the same actual selected
+ //
+ //	if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect))
+ //		ia = i0;			// set found element index for 'after' elements
+ //
+ //	int inc = 1;									// should test all elements above the i-th one but only do it for max 100
+ //	while (inc < 100 && (i0-inc >= 0 || ia < 0))
+ //	{
+ //		pb = i0 - inc >= 0 ? _yitems(i0 - inc) : nullptr;
+ //		pa = ia < 0 && (i0 + inc  < _yxOrder.size()) ? _yitems(i0 + inc) : nullptr;
+ //		if ( pb && !pb->Hidden() && pb->Area().intersects(_clpRect)) 
+ //			ib = i0 - inc;
+ //		else if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect)) // only check those that come after if not found already in before 
+ //			ia = i0 + inc;
+ //		++inc;
+ //	}
+ //
+ //	if (ib >= 0)
+ //		return ib;
+ //	else if (ia >= 0)
+ //		return ia;
+ //	else
+ //		return ib; // -1
+ //}
 int History::_YIndexForIndex(int index)      // index: in unordered array, returns yindex in _yxOrder
 {
 	QPoint pt = _items[index]->TopLeft();
@@ -1129,7 +1129,7 @@ void History::_push_back(HistoryItem* pi)
 		_bands.Add(s);	// screenshots in _items has a zorder less than DRAWABLE_ZORDER_BASE
 
 		int yi = _YIndexForXY(pi->TopLeft());    // yi either to element with same x,y values or the one which is higher or at the right
-		if (yi == _yxOrder.size() )  // all elements at xy were less than for this one
+		if (yi == _yxOrder.size())  // all elements at xy were less than for this one
 			_yxOrder.push_back(s);
 		else          // the yi-th element has either the larger y, or the same y and larger x coordinate
 			_yxOrder.insert(yi, s);
@@ -1149,8 +1149,8 @@ QPoint History::BottomRightVisible(QSize screenSize) const
 		if (ix >= 0)
 		{
 			pt = phi->Area().topLeft();
-			pt.setY( pt.y() - screenSize.height()/2 );
-			pt.setX( pt.x() - screenSize.width());
+			pt.setY(pt.y() - screenSize.height() / 2);
+			pt.setX(pt.x() - screenSize.width());
 			if (pt.x() < 0)
 				pt.setX(0);
 			if (pt.y() < 0)
@@ -1188,7 +1188,7 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 
 	_modified = true;
 
-	return _items[ _items.size() -1 ];		// always the last element
+	return _items[_items.size() - 1];		// always the last element
 }
 
 bool History::_IsSaveable(int i)
@@ -1217,14 +1217,14 @@ void History::Clear()		// does not clear lists of copied items and screen snippe
 	_modified = false;
 }
 
-int History::Size() const 
-{ 
-	return _items.size(); 
+int History::Size() const
+{
+	return _items.size();
 }
 
 int History::CountOfVisible() const
 {
-	int cnt = 0; 
+	int cnt = 0;
 	for (auto a : _yxOrder)
 		if (!_items[a]->Hidden())
 			++cnt;
@@ -1250,14 +1250,14 @@ SaveResult History::Save(QString name)
 	// only save visible items
 
 	if (name != _loadedName)
-		_loadedName =_fileName = name;
+		_loadedName = _fileName = name;
 
 	if (_bands.ItemCount() == 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
 		return srSaveSuccess;
 	}
-	
+
 	QFile f(name + ".tmp");
 	f.open(QIODevice::WriteOnly);
 
@@ -1268,7 +1268,7 @@ SaveResult History::Save(QString name)
 	ofs << MAGIC_ID;
 	ofs << MAGIC_VERSION;	// file version
 	ItemIndexVector iv;
-	for (int i =0; i < _bands.Size(); ++i )
+	for (int i = 0; i < _bands.Size(); ++i)
 	{
 		if (_bands.ItemsStartingInBand(i, iv))
 		{
@@ -1316,7 +1316,7 @@ SaveResult History::Save(QString name)
  * PARAMS:	'force' load it even when already loaded
  * GLOBALS:
  * RETURNS: -1: file does not exist
- *			< -1: file read error number of records read so 
+ *			< -1: file read error number of records read so
  *				far  is -(ret. value+2)
  *			 0:	read error
  *			>0: count of items read
@@ -1324,7 +1324,7 @@ SaveResult History::Save(QString name)
  *			- when 'force' clears data first
  *			- both _fileName and _loadedName can be empty
  *-------------------------------------------------------*/
-int History::Load(bool force)  
+int History::Load(bool force)
 {
 	if (!force && _fileName == _loadedName)
 		return _readCount;
@@ -1375,7 +1375,7 @@ int History::Load(bool force)
 
 		++i;
 
-		/*HistoryItem* phi = */ (void) AddScribbleItem(di);
+		/*HistoryItem* phi = */ (void)AddScribbleItem(di);
 
 	}
 	_modified = false;
@@ -1410,7 +1410,7 @@ HistoryItem* History::AddClearDown()
 {
 	_SaveClippingRect();
 	_clpRect.setHeight(0x70000000);
-	HistoryItem *pi = AddClearVisibleScreen();
+	HistoryItem* pi = AddClearVisibleScreen();
 	_RestoreClippingRect();
 	return pi;
 }
@@ -1424,7 +1424,7 @@ HistoryItem* History::AddScribbleItem(ScribbleItem& itm)			// may be after an un
 	}
 	else
 		itm.zOrder = _lastZorder++;		// each scribbles are above any image (until 10 million images)
-	HistoryScribbleItem * p = new HistoryScribbleItem(this, itm);
+	HistoryScribbleItem* p = new HistoryScribbleItem(this, itm);
 	return _AddItem(p);
 }
 
@@ -1434,7 +1434,7 @@ HistoryItem* History::AddScribbleItem(ScribbleItem& itm)			// may be after an un
  * PARAMS:	pSprite: NULL   - use _nSelectedItemList
  *					 exists - use its selection list
  * RETURNS: pointer to delete item on _items
- * REMARKS: 
+ * REMARKS:
  *-------------------------------------------------------*/
 HistoryItem* History::AddDeleteItems(Sprite* pSprite)
 {
@@ -1454,8 +1454,8 @@ HistoryItem* History::AddDeleteItems(Sprite* pSprite)
  * GLOBALS:
  * RETURNS:
  * REMARKS: - pasted items are sandwiched between a bootom
- *				and a top marker. 
- *			- When the original items were deleted after 
+ *				and a top marker.
+ *			- When the original items were deleted after
  *				added to a sprite a HistoryDeleteItem is at
  *				the top of the item stack. As we want the
  *				Undo for paste a single operation, we must
@@ -1465,9 +1465,9 @@ HistoryItem* History::AddDeleteItems(Sprite* pSprite)
  *-------------------------------------------------------*/
 HistoryItem* History::AddPastedItems(QPoint topLeft, Sprite* pSprite)			   // tricky
 {
-	ScribbleItemVector    *pCopiedItems = pSprite ? &pSprite->items		: _pCopiedItems;      
-	ScreenShotImageList	  *pCopiedImages = pSprite ? &pSprite->images	: _pCopiedImages;
-	QRect				  *pCopiedRect = pSprite ? &pSprite->rect		: _pCopiedRect;
+	ScribbleItemVector* pCopiedItems = pSprite ? &pSprite->items : _pCopiedItems;
+	ScreenShotImageList* pCopiedImages = pSprite ? &pSprite->images : _pCopiedImages;
+	QRect* pCopiedRect = pSprite ? &pSprite->rect : _pCopiedRect;
 
 	if (!pCopiedItems->size() && !pCopiedImages->size())
 		return nullptr;          // do not add an empty list
@@ -1476,7 +1476,7 @@ HistoryItem* History::AddPastedItems(QPoint topLeft, Sprite* pSprite)			   // tr
 	HistoryDeleteItems* phd = nullptr;
 	if (pSprite && pSprite->itemsDeleted)	// then on top of _items there is a HistoryDeleteItems
 	{
-		phd = (HistoryDeleteItems * ) _items[_items.size() - 1];	// pointer to HistoryDeleteItems
+		phd = (HistoryDeleteItems*)_items[_items.size() - 1];	// pointer to HistoryDeleteItems
 		_items.pop_back();
 	}
 	// -------------- add the bottom item --------
@@ -1499,7 +1499,7 @@ HistoryItem* History::AddPastedItems(QPoint topLeft, Sprite* pSprite)			   // tr
 		HistoryScreenShotItem* p = new HistoryScreenShotItem(this, n);
 		_AddItem(p);
 	}
-  // ------------ add scribble items
+	// ------------ add scribble items
 	HistoryScribbleItem* pdri;
 	for (ScribbleItem di : *pCopiedItems)	// do not modify copied item list
 	{
@@ -1507,7 +1507,7 @@ HistoryItem* History::AddPastedItems(QPoint topLeft, Sprite* pSprite)			   // tr
 		pdri = new HistoryScribbleItem(this, di);
 		_AddItem(pdri);
 	}
-  // ------------Add top item
+	// ------------Add top item
 	QRect rect = pCopiedRect->translated(topLeft);
 	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->size() + pCopiedImages->size(), rect);
 	if (pSprite)
@@ -1531,7 +1531,7 @@ HistoryItem* History::AddInsertVertSpace(int y, int heightInPixels)
 	return _AddItem(phi);
 }
 
-HistoryItem* History::AddScreenShot(ScreenShotImage &bimg)
+HistoryItem* History::AddScreenShot(ScreenShotImage& bimg)
 {
 	int index = _belowImages.size();
 	_belowImages.push_back(bimg);
@@ -1558,7 +1558,7 @@ HistoryItem* History::AddRotationItem(MyRotation rot)
 HistoryItem* History::AddRemoveSpaceItem(QRect& rect)
 {
 	int  nCntRight = _nItemsRightOfList.size(),	// both scribbles and screenshots
-		 nCntLeft   = _nItemsLeftOfList.size();
+		nCntLeft = _nItemsLeftOfList.size();
 
 	if ((!nCntRight && nCntLeft))
 		return nullptr;
@@ -1599,13 +1599,13 @@ QRect History::Undo()      // returns top left after undo
 
 	// ------------- first Undo top item
 	HistoryItem* phi = _items[--actItem];
-	int count	= phi->Undo();		// it will affect this many elements (copy / paste )
-	QRect rect	=  phi->Area();     // area of undo
+	int count = phi->Undo();		// it will affect this many elements (copy / paste )
+	QRect rect = phi->Area();     // area of undo
 
 	// -------------then move item(s) to _redo list
 	while (count--)
 	{
-		phi = _items[ actItem ];	// here so index is never negative 
+		phi = _items[actItem];	// here so index is never negative 
 		_redo.push_back(phi);
 
 		// only scribble elements are in _yxOrder!
@@ -1624,7 +1624,7 @@ QRect History::Undo()      // returns top left after undo
 	return rect;
 }
 
-int History::GetScribblesInside(QRect rect, HistoryItemVector &hv)
+int History::GetScribblesInside(QRect rect, HistoryItemVector& hv)
 {
 	ItemIndexVector iv;
 	_bands.ItemsVisibleForArea(rect, iv);
@@ -1639,7 +1639,7 @@ int History::GetScribblesInside(QRect rect, HistoryItemVector &hv)
  * PARAMS:	none
  * GLOBALS:	_items, _redo
  * RETURNS:	pointer to top element after redo
- * REMARKS: first element moved back from _redo list to 
+ * REMARKS: first element moved back from _redo list to
  *			_items, then the element Redo() function is called
  *-------------------------------------------------------*/
 HistoryItem* History::Redo()   // returns item to redone
@@ -1654,13 +1654,13 @@ HistoryItem* History::Redo()   // returns item to redone
 
 	while (count--)
 	{
-		phi = _redo[ actItem-- ];
+		phi = _redo[actItem--];
 
 		_push_back(phi);
 		_redo.pop_back();
 	}
 	phi->Redo();
-	
+
 	_modified = true;
 
 	return phi;
@@ -1676,18 +1676,18 @@ HistoryItem* History::Redo()   // returns item to redone
  *-------------------------------------------------------*/
 void History::AddToSelection(int index)
 {
-	if(index < 0)
-		index = _items.size()-1;
+	if (index < 0)
+		index = _items.size() - 1;
 	const HistoryItem* pitem = _items.at(index);
-	_nSelectedItemsList.push_back( pitem->ItxFrom(index) );
+	_nSelectedItemsList.push_back(pitem->ItxFrom(index));
 	_selectionRect = _selectionRect.united(pitem->Area());
 
 }
 
 /*========================================================
- * TASK:   collects indices from _yxOrder for scribble 
+ * TASK:   collects indices from _yxOrder for scribble
  *			items that are inside a rectangular area
- *			into '_nSelectedItemsList', 
+ *			into '_nSelectedItemsList',
  *
  *			item indices for all items at left and
  *			right of the selected rectangle into
@@ -1713,10 +1713,10 @@ int History::CollectItemsInside(QRect rect) // only
 	_nIndexOfFirstScreenShot = 0x70000000;
 
 	_selectionRect = QRect();     // minimum size of selection (0,0) relative!
-	
+
 	// first add images to list
-	_bands.SelectItemsForArea(rect, _nItemsLeftOfList, _nSelectedItemsList, _nItemsRightOfList, _selectionRect);	
-							// collect indices for visible, scribble elements completely inside 'rect'
+	_bands.SelectItemsForArea(rect, _nItemsLeftOfList, _nSelectedItemsList, _nItemsRightOfList, _selectionRect);
+	// collect indices for visible, scribble elements completely inside 'rect'
 	if (_nSelectedItemsList.isEmpty())		// save for removing empty space
 		_selectionRect = rect;
 
@@ -1726,10 +1726,15 @@ int History::CollectItemsInside(QRect rect) // only
 int History::SelectTopmostImageFor(QPoint& p)
 {
 	_nSelectedItemsList.clear();
+	_nSelectedItemsList.clear();
 	_nItemsRightOfList.clear();
 	_nItemsLeftOfList.clear();
 
-	int i = ImageIndexFor(p);		// index in _ScreenShotImages
+	int i;
+	if (p == QPoint(-1, -1))
+		i = _belowImages.size() - 1;
+	else
+		i = ImageIndexFor(p);		// index in _ScreenShotImages
 	if (i < 0)
 		return i;
 
@@ -1750,7 +1755,7 @@ int History::SelectTopmostImageFor(QPoint& p)
  *				_nItemsLeftOfList
  *
  * RETURNS:	area containing selected items. if invalid, then no items
- * REMARKS: - if no scribble items found then the selection lists 
+ * REMARKS: - if no scribble items found then the selection lists
  *			  are not cleared
  *			- even when the area returned has other scribbles
  *			  they are not aincluded into the selection!
@@ -1767,8 +1772,8 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 	int w = 3;	// +-
 	int pw;			// pen width
 
-	QRect rp = QRect(p, QSize(1, 1)).adjusted(-w,-w,w,w),
-		  r;
+	QRect rp = QRect(p, QSize(1, 1)).adjusted(-w, -w, w, w),
+		r;
 	QRect result;
 
 	ScribbleItem* pscr;
@@ -1783,15 +1788,27 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 			x0 = p.x(), y0 = p.y();
 		float d;
 		if (x1 == x2)	// vertical line
+		{
+			if (y1 > y0 || y0 > y2)
+				return false;
 			d = qAbs(x0 - x1);
+		}
 		else if (y1 == y2)
+		{
+			if (x1 > x0 || x0 > x2)
+				return false;
 			d = qAbs(y0 - y1);
+		}
 		else
+		{
+			if (y1 > y0 || y0 > y2 || x1 > x0 || x0 > x2)
+				return false;
 			d = qAbs((float)(x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt(SQUARE(x2 - x1) + SQUARE(y2 - y1));
-		return (int) d < pscr->penWidth + w;
+		}
+		return (int)d < pscr->penWidth + w;
 	};
 
-	auto addToIv=[&](ScribbleItem * pscr, int i)
+	auto addToIv = [&](ScribbleItem* pscr, int i)
 	{
 		++cnt;
 		ii.index = i;
@@ -1829,7 +1846,7 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 							}
 							else if (j < pscr->points.size() - 1)	// possibly consecutive points in a scribble were too far away from each other
 							{										// if so then consider it a line and see if we are near to it
-								if (SQUARE(pscr->points[j].x() - pscr->points[j + 1].x()) + SQUARE(pscr->points[j].y() - pscr->points[j + 1].y()) > SQUARE(pscr->penWidth) )
+								if (SQUARE(pscr->points[j].x() - pscr->points[j + 1].x()) + SQUARE(pscr->points[j].y() - pscr->points[j + 1].y()) > SQUARE(pscr->penWidth))
 								{
 									if (isNearToLine(pscr, j))
 									{
@@ -1864,7 +1881,7 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 		}
 		return _selectionRect;
 	}
-	
+
 	return result;
 }
 
@@ -1875,22 +1892,22 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
  * PARAMS:	sprite: possible null pointer to sprite
  * GLOBALS:
  * RETURNS:
- * REMARKS: - if sprite is null copies items into 
+ * REMARKS: - if sprite is null copies items into
  *				'_copiedItems' else into the sprite
  *			- origin of scribbles in '_copiedItems'
  *				will be (0,0)
  *			- '_selectionRect''s top left will also be (0,0)
  *-------------------------------------------------------*/
-void History::CopySelected(Sprite *sprite)
+void History::CopySelected(Sprite* sprite)
 {
 	ScribbleItemVector* pCopiedItems = sprite ? &sprite->items : _pCopiedItems;
-	ScreenShotImageList *pCopiedImages = sprite ? &sprite->images : _pCopiedImages;
+	ScreenShotImageList* pCopiedImages = sprite ? &sprite->images : _pCopiedImages;
 	if (sprite)
 		sprite->nSelectedItemsList = _nSelectedItemsList;
 
 	if (!_nSelectedItemsList.isEmpty())
 	{
-		pCopiedItems ->clear();
+		pCopiedItems->clear();
 		pCopiedImages->clear();
 
 		for (auto ix : _nSelectedItemsList)  // absolute indices of visible items selected
@@ -1900,7 +1917,7 @@ void History::CopySelected(Sprite *sprite)
 			{
 				ScreenShotImage* pbmi = &_belowImages[dynamic_cast<const HistoryScreenShotItem*>(item)->which];
 				pCopiedImages->push_back(*pbmi);
-				(*pCopiedImages)[pCopiedImages->size() - 1].Translate( -_selectionRect.topLeft(), -1);
+				(*pCopiedImages)[pCopiedImages->size() - 1].Translate(-_selectionRect.topLeft(), -1);
 			}
 			else
 			{
@@ -1909,15 +1926,15 @@ void History::CopySelected(Sprite *sprite)
 				while (pscrbl)
 				{
 					pCopiedItems->push_back(*pscrbl);
-					(*pCopiedItems)[pCopiedItems->size() - 1].Translate( -_selectionRect.topLeft(), -1);
+					(*pCopiedItems)[pCopiedItems->size() - 1].Translate(-_selectionRect.topLeft(), -1);
 					pscrbl = item->GetVisibleScribble(++index);
 				}
 			}
 		}
-		*_pCopiedRect = _selectionRect.translated( - _selectionRect.topLeft());
+		*_pCopiedRect = _selectionRect.translated(-_selectionRect.topLeft());
 
-		std::sort(pCopiedItems->begin(), pCopiedItems->end(), [](ScribbleItem &pl, ScribbleItem &pr) {return pl.zOrder < pr.zOrder; });
-		std::sort(pCopiedImages->begin(), pCopiedImages->end(), [](ScreenShotImage &pl, ScreenShotImage &pr) {return pl.zOrder < pr.zOrder; });
+		std::sort(pCopiedItems->begin(), pCopiedItems->end(), [](ScribbleItem& pl, ScribbleItem& pr) {return pl.zOrder < pr.zOrder; });
+		std::sort(pCopiedImages->begin(), pCopiedImages->end(), [](ScreenShotImage& pl, ScreenShotImage& pr) {return pl.zOrder < pr.zOrder; });
 
 		if (sprite)
 			sprite->rect = *_pCopiedRect;	// (0,0, width, height)
@@ -1934,7 +1951,7 @@ void History::CopySelected(Sprite *sprite)
  * REMARKS: - after a paste the topmost item on stack is
  *				historyPasteItemsTop
  *-------------------------------------------------------*/
-void History::CollectPasted(const QRect &rect)
+void History::CollectPasted(const QRect& rect)
 {
 	int n = _items.size() - 1;
 	HistoryItem* phi = _items[n];
@@ -1943,9 +1960,9 @@ void History::CollectPasted(const QRect &rect)
 
 	_nItemsRightOfList.clear();
 	_nItemsLeftOfList.clear();
-				//      n=4
-				//B 1 2 3 T
-				//      m = 3       n - m,
+	//      n=4
+	//B 1 2 3 T
+	//      m = 3       n - m,
 	int m = ((HistoryPasteItemTop*)phi)->count;
 	_nSelectedItemsList.resize(m);		// because it is empty when pasted w. rubberBand
 	for (int j = 0; j < m; ++j)
@@ -1958,14 +1975,14 @@ void History::CollectPasted(const QRect &rect)
 }
 
 // ********************************** Sprite *************
-Sprite::Sprite(QRect &rect, ScreenShotImageList* pimg, ScribbleItemVector* pitems) : pHist(nullptr), rect(rect)
+Sprite::Sprite(QRect& rect, ScreenShotImageList* pimg, ScribbleItemVector* pitems) : pHist(nullptr), rect(rect)
 {
-		images = *pimg;
-		items = *pitems;
+	images = *pimg;
+	items = *pitems;
 }
 
 Sprite::Sprite(History* ph) : pHist(ph)
-{ 
-	ph->CopySelected(this); 
+{
+	ph->CopySelected(this);
 }
 

@@ -326,6 +326,17 @@ void DrawArea::AddScreenShotImage(QPixmap& image)
     if (y < 0) y = 0;
     bimg.topLeft = QPoint(x, y) + _topLeft;
     _history->AddScreenShot(bimg);
+    int i = _history->SelectTopmostImageFor(QPoint(-1,-1) );    // latest image
+    if (i >= 0)
+    {
+        delete _rubberBand;
+        _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+        _rubberBand->setGeometry(_history->Image(i).Area().translated(-_topLeft));
+        _rubberRect = _rubberBand->geometry();  // _history->BoundingRect().translated(-_topLeft);
+        _rubberBand->show();
+    }
+
+
     emit CanUndo(_history->CanUndo());
     emit CanRedo(_history->CanRedo());
 }
