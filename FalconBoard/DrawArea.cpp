@@ -47,6 +47,7 @@ DrawArea::DrawArea(QWidget* parent)    : QWidget(parent)
     setCursor(Qt::CrossCursor);
     setMouseTracking(true);
     _historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
+    drawColors.Setup();
 }
 
 void DrawArea::SetScreenSize(QSize screenSize)
@@ -326,6 +327,7 @@ void DrawArea::AddScreenShotImage(QPixmap& image)
     if (y < 0) y = 0;
     bimg.topLeft = QPoint(x, y) + _topLeft;
     _history->AddScreenShot(bimg);
+#if !defined _VIEWER
     int i = _history->SelectTopmostImageFor(QPoint(-1,-1) );    // latest image
     if (i >= 0)
     {
@@ -335,7 +337,7 @@ void DrawArea::AddScreenShotImage(QPixmap& image)
         _rubberRect = _rubberBand->geometry();  // _history->BoundingRect().translated(-_topLeft);
         _rubberBand->show();
     }
-
+#endif
 
     emit CanUndo(_history->CanUndo());
     emit CanRedo(_history->CanRedo());

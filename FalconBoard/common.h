@@ -93,9 +93,9 @@ class DrawColors
     bool _dark = false;
     struct _clr
     {
-        FalconPenKind kind;
-        QColor lightColor,    // _dark = false - for light mode
-               darkColor;     // _dark = true  - for dark mode
+        FalconPenKind kind = penBlack;
+        QColor lightColor = Qt::black,    // _dark = false - for light mode
+               darkColor = Qt::white;     // _dark = true  - for dark mode
         QString lightName, darkName; // Menu names for dark and light modes
         _clr() : kind(penNone), lightColor(QColor()), darkColor(QColor()) { }
     } _colors[5];
@@ -109,7 +109,7 @@ class DrawColors
         return -1;
     }
 public:
-    DrawColors(bool darkMode = false)
+    void Setup()
     {
         _colors[0].kind = penBlack;
         _colors[0].lightColor = Qt::black;
@@ -141,6 +141,7 @@ public:
         _colors[4].lightName = QObject::tr("&Purple");
         _colors[4].darkName  = QObject::tr("&Yellow");
     }
+
     bool SetDarkMode(bool dark) // returns previous mode
     {
         bool b = _dark;

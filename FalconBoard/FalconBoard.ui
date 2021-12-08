@@ -14,7 +14,7 @@
    <string>FalconBoard</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="FalconBoard.qrc">
+   <iconset>
     <normaloff>:/FalconBoard/Resources/falconboard.ico</normaloff>:/FalconBoard/Resources/falconboard.ico</iconset>
   </property>
   <property name="styleSheet">
@@ -137,7 +137,7 @@
     </widget>
     <widget class="QMenu" name="menu_Paper">
      <property name="title">
-      <string>&amp;Paper</string>
+      <string>&amp;Paper Width</string>
      </property>
      <addaction name="actionInfinitePage"/>
      <addaction name="actionLimitedPage"/>
