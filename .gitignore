@@ -50,3 +50,6 @@ Release/
 #no release
 _releases/
 _Deploy
+
+#no json in source
+FalconBoard/*.json

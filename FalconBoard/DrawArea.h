@@ -333,9 +333,10 @@ private:
 #endif
     void _ClearCanvas();
 
-    void _MoveToActualPosition(QRect rect);
+    void _SetTopLeftFromItem(HistoryItem *phi);   // possibly sets _topLeft. Must _redraw after it
     int _CollectScribbles(HistoryItemVector &hv); // for actual clipping rect
 #ifndef _VIEWER
+    void _SetLastPointPosition();           // for actual _history
     bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
     QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
 #endif

@@ -200,7 +200,7 @@ struct HistoryItem      // base class
     virtual void SetVisibility(bool visible) { }
 
     // function prototypes for easier access
-    virtual int RedoCount() const { return 1; } // how many elements from _redo must be moved back to _items
+    virtual int RedoCount() const { return 1; } // how many elements from _redoList must be moved back to _items
     virtual int Undo() { return 1; }        // returns amount _actItem in History need to be changed (go below 1 item)
     virtual int Redo() { return 0; }        // returns amount _actItem in History need to be changed (after ++_actItem still add this to it)
     virtual QRect Area() const { return QRect(); }  // encompassing rectangle for all points
@@ -471,7 +471,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     bool _inLoad = false;               // in function Load() / needed for correct z- order settings
     HistoryItemVector _items,           // items in the order added. Items need not be scribble.
                                         // scribble elements on this list may be either visible or hidden
-                      _redo;            // from _items for redo. Items need not be scribble.
+                      _redoList;            // from _items for redo. Items need not be scribble.
                                         // scribble elements on this list may be either visible or hidden
     IntVector   _yxOrder;               // indices of all scribbles in '_items' ordered by y then x    
     Bands _bands;                       // used to cathegorize visible _items
@@ -603,9 +603,10 @@ public:
     int Load(bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
     bool IsModified() const { return _modified & CanUndo(); }
     bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
-    bool CanRedo() const { return _redo.size(); }
+    bool CanRedo() const { return _redoList.size(); }
     void ClearUndo() { _readCount = _items.size(); }
 
+    HistoryItem* LastScribble() const;
     HistoryItem* operator[](int index);   // index: absolute index
     HistoryItem* operator[](int index) const { return _items[index]; }  // index: physical index in _items
     HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder - only scribbles
@@ -635,7 +636,7 @@ public:
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void InserVertSpace(int y, int heightInPixels);
 
-    QRect       Undo();        // returns top left after undo 
+    HistoryItem* Undo();        // returns top item after undo or nullptr
     HistoryItem* Redo();
 
     int GetScribblesInside(QRect rect, HistoryItemVector& hv);

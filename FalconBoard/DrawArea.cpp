@@ -562,7 +562,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _actPenWidth = _penWidth;
                 _lastScribbleItem.clear();
                 _lastScribbleItem.type = heScribble;
-                            // when any draweables is selected draw the rectangle with 1 pixel margins on all sides
+                            // when any draweables is selected draw the rectangle around them 
+                            // leaving _actPenWidth/2+1 pixel margins on each sides
                 int margin = /* !_mods.testFlag(Qt::ShiftModifier)*/ _history->SelectedSize() ? _actPenWidth/2+1 : 0;
 
                 int x1, y1, x2, y2, x3, y3, x4, y4;
@@ -890,22 +891,13 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
             _RemoveRubberBand();
         }
 
-//        _altKeyDown = event->modifiers().testFlag(Qt::AltModifier);
-//DEBUG_LOG(QString("mousePress #1: first:(%1,%2) last=(%3,%4)").arg(_firstPointC.x()).arg(_firstPointC.y()).arg(_lastPointC.x()).arg(_lastPointC.y()))
-        if (event->mods.testFlag(Qt::ShiftModifier))
+        if (event->mods.testFlag(Qt::ShiftModifier))    // will draw straight line from last position to actual position
         {
-//            _mods.setFlag(Qt::ShiftModifier, false);
             _firstPointC = _lastPointC;
-            _InitiateDrawingIngFromLastPos();
-//            _DrawLineTo(event->pos );
-//DEBUG_LOG(QString("mousePress #2:  drawn: => last=(%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
-
-//            if (_DrawFreehandLineTo(event->pos))
-//                _lastScribbleItem.add(_lastPointC + _topLeft);
-//            event->mods.setFlag(Qt::ShiftModifier, true);
+            _InitiateDrawingIngFromLastPos();       // instead of the event's position
         }
         else
-            _InitiateDrawing(event);        // resets _lastPointC to event_>pos()
+            _InitiateDrawing(event);                // resets _firstPointC and _lastPointC to event_>pos()
 #endif
     }
 #ifndef _VIEWER
@@ -1211,10 +1203,10 @@ void DrawArea::_RemoveRubberBand()
 }
 
 /*========================================================
- * TASK:    starts drawing at position _lastPosition
+ * TASK:    starts drawing at last position
  * PARAMS:  NONE
  * GLOBALS: _spaceBarDown, _eraseMode, _lastScribbleItem,
- *          _actPenWidth, _actpenColor, _lastPoint, _topLeft
+ *          _actPenWidth, _actpenColor, _lastPointC, _topLeft
  * RETURNS:
  * REMARKS: -
  *-------------------------------------------------------*/
@@ -1293,6 +1285,19 @@ void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
     }
 }
 
+void DrawArea::_SetLastPointPosition()
+{
+    HistoryItem *phi = _history->LastScribble();
+    if (phi)
+    {
+        ScribbleItem* pscri = phi->GetVisibleScribble();
+        if(pscri)
+            _lastPointC = pscri->points[pscri->points.size() - 1];
+    }
+    else
+        _lastPointC = _topLeft;
+}
+
 /*========================================================
  * TASK:    Determines whether movement should be 
  *          constrained to be horizontal or vertical 
@@ -1358,24 +1363,28 @@ QPoint DrawArea::_CorrectForDirection(QPoint &newpC)     // newpC canvas relativ
     return newpC;
 }
 #endif
-void DrawArea::_MoveToActualPosition(QRect rect)
+void DrawArea::_SetTopLeftFromItem(HistoryItem *phi)
 {
     int l = _topLeft.x(),
         t = _topLeft.y();
-
-    if (!rect.isNull() && rect.isValid() && !_canvasRect.intersects(rect)) // try to put at the middle of the screen
+    if (phi)
     {
-        if (rect.x() < l || rect.x() > l + _canvasRect.width())
-            l = rect.x() - (_canvasRect.width() - rect.width()) / 2;
-        if (rect.y() < t || rect.y() > t + _canvasRect.height())
-            t = rect.y() - (_canvasRect.height() - rect.height()) / 2;
-
-        if (l != _topLeft.x() || t != _topLeft.y())
+        QRect rect = phi->Area();
+        if (!rect.isNull() && rect.isValid() && !_canvasRect.intersects(rect)) // try to put at the middle of the screen
         {
-            _SetOrigin(QPoint(l, t));
-            _Redraw();
+            if (rect.x() < l || rect.x() > l + _canvasRect.width())
+                l = rect.x() - (_canvasRect.width() - rect.width()) / 2;
+            if (rect.y() < t || rect.y() > t + _canvasRect.height())
+                t = rect.y() - (_canvasRect.height() - rect.height()) / 2;
+
+            if (l != _topLeft.x() || t != _topLeft.y())
+            {
+                _SetOrigin(QPoint(l, t));
+            }
         }
     }
+    else 
+        _SetOrigin(QPoint(0, 0));
 
 }
 
@@ -1893,19 +1902,22 @@ void DrawArea::_SetCanvasAndClippingRect()
 }
 
 #ifndef _VIEWER
+
 void DrawArea::Undo()               // must draw again all underlying scribbles
 {
     if (_history->CanUndo())
     {
         _RemoveRubberBand();
 
-        QRect rect = _history->Undo();
-        _MoveToActualPosition(rect); 
-//        _clippingRect = rect;
+        HistoryItem* phi = _history->Undo();
+        _SetTopLeftFromItem(phi);
+
         _ClearCanvas();
 
         _Redraw();
         _clippingRect = _canvasRect;
+        _SetLastPointPosition();
+
         emit CanRedo(_history->CanRedo());
     }
     emit CanUndo(_history->CanUndo());
@@ -1919,12 +1931,14 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 
     _RemoveRubberBand();
 
-    _MoveToActualPosition(phi->Area());
+    _SetTopLeftFromItem(phi);
 // ??    _clippingRect = phi->Area();
 
     _Redraw();
 
     _clippingRect = _canvasRect;
+
+    _SetLastPointPosition();
 
     emit CanUndo(_history->CanUndo() );
     emit CanRedo(_history->CanRedo());

@@ -1117,7 +1117,7 @@ void History::RemoveItemsStartingAt(int index)  // index: into _items
  * PARAMS:		pointer to existing item
  * GLOBALS:
  * RETURNS:
- * REMARKS: - does not modify the _redo vector like _AddItem does
+ * REMARKS: - does not modify the _redoList vector like _AddItem does
  *-------------------------------------------------------*/
 void History::_push_back(HistoryItem* pi)
 {
@@ -1179,7 +1179,7 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 
 	_push_back(p);
 
-	_redo.clear();	// no undo after new item added
+	_redoList.clear();	// no undo after new item added
 	if (p->type == heScreenShot)
 	{
 		HistoryScreenShotItem* phi = reinterpret_cast<HistoryScreenShotItem*>(p);
@@ -1200,11 +1200,11 @@ void History::Clear()		// does not clear lists of copied items and screen snippe
 {
 	for (auto i : _items)
 		delete i;
-	for (auto i : _redo)
+	for (auto i : _redoList)
 		delete i;
 
 	_items.clear();
-	_redo.clear();
+	_redoList.clear();
 	_yxOrder.clear();
 	_belowImages.Clear();
 	_bands.Clear();
@@ -1229,6 +1229,19 @@ int History::CountOfVisible() const
 		if (!_items[a]->Hidden())
 			++cnt;
 	return cnt;
+}
+
+HistoryItem* History::LastScribble() const
+{
+	if (_items.size())
+	{
+		int ix = _items.size() - 1;
+		while (ix >= 0 && !_items[ix]->IsScribble())
+				--ix;
+		return ix >= 0 ? _items[ix] : nullptr;
+	}
+	else
+		return nullptr;
 }
 
 HistoryItem* History::operator[](int index)	// absolute index
@@ -1591,22 +1604,23 @@ void History::InserVertSpace(int y, int heightInPixels)
 	TranslateAllItemsBelow(dy, y);
 }
 
-QRect History::Undo()      // returns top left after undo
+HistoryItem* History::Undo()      // returns top left after undo
 {
 	int actItem = _items.size();
 	if (!actItem || actItem == _readCount)		// no more undo
-		return QRect();
+		return nullptr;
 
 	// ------------- first Undo top item
 	HistoryItem* phi = _items[--actItem];
 	int count = phi->Undo();		// it will affect this many elements (copy / paste )
-	QRect rect = phi->Area();     // area of undo
+	QRect rect = phi->Area();		// area of undo
 
-	// -------------then move item(s) to _redo list
+	// -------------then move item(s) from _items to _redoList
+	//				and remove them from _yxOrder and _bands
 	while (count--)
 	{
 		phi = _items[actItem];	// here so index is never negative 
-		_redo.push_back(phi);
+		_redoList.push_back(phi);
 
 		// only scribble elements are in _yxOrder!
 		if (phi->IsScribble())
@@ -1621,7 +1635,7 @@ QRect History::Undo()      // returns top left after undo
 	}
 	_modified = true;
 
-	return rect;
+	return actItem >= 0 ? _items[actItem] : nullptr;
 }
 
 int History::GetScribblesInside(QRect rect, HistoryItemVector& hv)
@@ -1637,27 +1651,27 @@ int History::GetScribblesInside(QRect rect, HistoryItemVector& hv)
 /*========================================================
  * TASK:	Redo changes to history
  * PARAMS:	none
- * GLOBALS:	_items, _redo
+ * GLOBALS:	_items, _redoList
  * RETURNS:	pointer to top element after redo
- * REMARKS: first element moved back from _redo list to
+ * REMARKS: first element moved back from _redoList list to
  *			_items, then the element Redo() function is called
  *-------------------------------------------------------*/
 HistoryItem* History::Redo()   // returns item to redone
 {
-	int actItem = _redo.size();
+	int actItem = _redoList.size();
 	if (!actItem)
 		return nullptr;
 
-	HistoryItem* phi = _redo[--actItem];
+	HistoryItem* phi = _redoList[--actItem];
 
 	int count = phi->RedoCount();
 
 	while (count--)
 	{
-		phi = _redo[actItem--];
+		phi = _redoList[actItem--];
 
 		_push_back(phi);
-		_redo.pop_back();
+		_redoList.pop_back();
 	}
 	phi->Redo();
 
