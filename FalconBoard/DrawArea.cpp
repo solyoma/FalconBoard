@@ -35,6 +35,7 @@
 
 // !!!
 DrawColors drawColors;      // global used here and for print, declared in common.h
+PenCursors penCursors;
 
 //----------------------------- DrawArea ---------------------
 DrawArea::DrawArea(QWidget* parent)    : QWidget(parent)
@@ -48,6 +49,7 @@ DrawArea::DrawArea(QWidget* parent)    : QWidget(parent)
     setMouseTracking(true);
     _historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
     drawColors.Setup();
+    penCursors.Setup();
 }
 
 void DrawArea::SetScreenSize(QSize screenSize)
@@ -306,12 +308,14 @@ void DrawArea::SetMode(bool darkMode, QString color, QString sGridColor, QString
     _gridColor = sGridColor;
     _pageGuideColor = sPageGuideColor;
      drawColors.SetDarkMode( _darkMode = darkMode);
+     penCursors.Setup();
     _Redraw();                  // because pen color changed!
+    SetCursor(_erasemode ? csEraser : csPen);
 }
 
 void DrawArea::SetPenKind(FalconPenKind newKind, int width)
 {
-    _FalconPenKind = newKind;
+    _actPenKind = newKind;
     if(width > 0)
         _penWidth = width;
 }
@@ -583,7 +587,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 _DrawLineTo(QPoint(x1, y1));
                 _lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
 
-                _lastScribbleItem.penKind = _FalconPenKind;
+                _lastScribbleItem.penKind = _actPenKind;
                 _lastScribbleItem.penWidth = _actPenWidth;
 
                 _rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
@@ -1222,7 +1226,7 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
         _lastScribbleItem.type = heScribble;
     _actPenWidth = _penWidth;
 
-    _lastScribbleItem.penKind = _FalconPenKind;
+    _lastScribbleItem.penKind = _actPenKind;
     _lastScribbleItem.penWidth = _actPenWidth;
     _lastScribbleItem.add(_lastPointC + _topLeft);
 }
@@ -1494,14 +1498,14 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
  * TASK:    draws the polyline stored in drawnable on
  *          '_pActCanvas'
  * PARAMS:  pscrbl - valid pointer to a ScribbleAble item
- * GLOBALS: _pActCanvas,_FalconPenKind, _actPenWidth, _erasemode
+ * GLOBALS: _pActCanvas,_actPenKind, _actPenWidth, _erasemode
  *          _clippingRect, _lastPointC, _topLeft
  * RETURNS:
  * REMARKS: - no errro checking on pscrbl
  *-------------------------------------------------------*/
 void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 {
-    _FalconPenKind = pscrbl->penKind;
+    _actPenKind = pscrbl->penKind;
     _actPenWidth = pscrbl->penWidth;
     _erasemode = pscrbl->type == heEraser ? true : false;
 
@@ -1782,7 +1786,7 @@ void DrawArea::_Redraw(bool clear)
 
     _redrawPending = false;
     int savewidth = _penWidth;
-    FalconPenKind savekind = _FalconPenKind;
+    FalconPenKind savekind = _actPenKind;
     bool saveEraseMode = _erasemode;
 
     HistoryItemVector forPage;
@@ -1792,7 +1796,7 @@ void DrawArea::_Redraw(bool clear)
     for (auto phi : forPage)
         _ReplotScribbleItem(phi);
     
-    _FalconPenKind = savekind;
+    _actPenKind = savekind;
     _penWidth = savewidth;
     _erasemode = saveEraseMode;
 }
@@ -1802,20 +1806,20 @@ QColor DrawArea::_PenColor()
 {
     static FalconPenKind _prevKind = penNone;
     static QColor color;
-    if (_FalconPenKind == _prevKind)
+    if (_actPenKind == _prevKind)
     {
-        if (_FalconPenKind != penBlack)
+        if (_actPenKind != penBlack)
             return color;
         return _darkMode ? QColor(Qt::white) : QColor(Qt::black);
     }
 
-    _prevKind = _FalconPenKind;
+    _prevKind = _actPenKind;
 
-    switch (_FalconPenKind)
+    switch (_actPenKind)
     {
         case penBlack: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
         default:
-            return color = drawColors[_FalconPenKind];
+            return color = drawColors[_actPenKind];
     }
 }
 
@@ -1945,11 +1949,11 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 }
 void DrawArea::ChangePenColorSlot(int key)
 {
-
     ChangePenColorByKeyboard(key);
 }
+
 #endif
-void DrawArea::SetCursor(CursorShape cs, QIcon* icon)
+void DrawArea::SetCursor(DrawCursorShape cs)
 {
     _erasemode = false;
     if (_spaceBarDown && (_scribbling || _pendown)) // do not set the cursor when space bar is pressed
@@ -1960,22 +1964,12 @@ void DrawArea::SetCursor(CursorShape cs, QIcon* icon)
         case csArrow: setCursor(Qt::ArrowCursor); break;
         case csOHand: setCursor(Qt::OpenHandCursor); break;
         case csCHand: setCursor(Qt::ClosedHandCursor); break;
-        case csPen:   setCursor(Qt::CrossCursor); break;
-        case csEraser: SetEraserCursor(icon);  break;
+        case csPen:   setCursor(penCursors[_actPenKind]); break;
+        case csEraser: setCursor(penCursors[penEraser]); _erasemode = true; break;
         default:break;
     }
 }
 
-void DrawArea::SetEraserCursor(QIcon *icon)
-{
-    if (icon)
-    {
-        QPixmap pxm = icon->pixmap(64, 64);
-        _eraserCursor = QCursor(pxm);
-    }
-    setCursor(_eraserCursor);
-    _erasemode = true;
-}
 
 void DrawArea::SetGridOn(bool on, bool fixed)
 {
@@ -2338,13 +2332,13 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
         painter.drawPixmap(tr, si.image, sr);
     }
         // save color and line width
-    FalconPenKind pk = _FalconPenKind;
+    FalconPenKind pk = _actPenKind;
     int pw = _actPenWidth;
     bool em = _erasemode;
 
     for (auto& di : pSprite->items)
     {
-        _FalconPenKind = di.penKind;
+        _actPenKind = di.penKind;
         _actPenWidth = di.penWidth;
         _erasemode = di.type == heEraser ? true : false;
 
@@ -2373,7 +2367,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
     painter.drawLine(0, pSprite->rect.height(), 0, 0);
 
     // restore data
-    _FalconPenKind = pk;
+    _actPenKind = pk;
     _actPenWidth = pw;
     _erasemode = em;
 

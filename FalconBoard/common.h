@@ -2,11 +2,13 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-//#include <>
+#include <QBitmap>
+#include <QIcon>
 #include <QColor>
+#include <QPainter>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
-const long nVersion = 0x00010106;       // program version
-const QString sVersion = "1.1.7";
+const long nVersion = 0x00010108;       // program version
+const QString sVersion = "1.1.8";
 const QString sWindowTitle =
 #ifdef _VIEWER
         "FalconBoard Viewer";
@@ -15,8 +17,11 @@ const QString sWindowTitle =
 #endif
 
 
+constexpr int PEN_COUNT = 6;    // no 'penNone' pen modify if pen count changes
+enum FalconPenKind { penNone=0, penBlack=1, penRed=2, penGreen=3, penBlue=4, penYellow=5, penEraser=PEN_COUNT};
+// cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
+enum DrawCursorShape { csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
-enum FalconPenKind { penNone=0, penBlack=1, penRed=2, penGreen=3, penBlue=4, penYellow=6, penEraser=5};
 enum PrinterFlags :char {
     pfPrintBackgroundImage  = 1,
     pfWhiteBackground       = 2,		// or use display mode which may be dark
@@ -85,6 +90,17 @@ public:
 #endif
 
 // ******************************************************
+/*========================================================
+ * TASK: from a single QIcon create icons for all used colors
+ * PARAMS:  icon - base icon (png with white and black color)
+ *          colorW - replacement color for white must be valid
+ *          colorB - replacement colors for black,
+                     may be invalid
+ * GLOBALS:
+ * RETURNS: new icon with new colors set
+ * REMARKS: -
+ *-------------------------------------------------------*/
+// ******************************************************
 //----------------------------- DrawColors -------------------
 // object created in DrawArea.cpp
 class DrawColors
@@ -98,48 +114,38 @@ class DrawColors
                darkColor = Qt::white;     // _dark = true  - for dark mode
         QString lightName, darkName; // Menu names for dark and light modes
         _clr() : kind(penNone), lightColor(QColor()), darkColor(QColor()) { }
-    } _colors[5];
-    const int _COLOR_COUNT = 5;
+    } _colors[PEN_COUNT];     // no color for 'penNone'
+    QCursor _cursors[PEN_COUNT];    // no cursor for penNone
 
     int _penColorIndex(FalconPenKind pk)
     {
-        for (int i = 0; i < _COLOR_COUNT; ++i)
+        for (int i = 0; i < PEN_COUNT; ++i)
             if (_colors[i].kind == pk)
                 return i;
         return -1;
     }
+    void _Setup(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName)
+    {
+        int ix = (int)pk - 1;
+        if (pk != penEraser)        // else special handling
+		{
+			_colors[ix].kind = pk;
+			_colors[ix].lightColor = lc;
+			_colors[ix].darkColor = dc;
+			_colors[ix].lightName = sLName;
+			_colors[ix].darkName = sDName;
+		}
+    }
 public:
     void Setup()
     {
-        _colors[0].kind = penBlack;
-        _colors[0].lightColor = Qt::black;
-        _colors[0].darkColor = Qt::white;
-        _colors[0].lightName = QObject::tr("Blac&k");
-        _colors[0].darkName  = QObject::tr("&White");
+        _Setup(penBlack, Qt::black, Qt::white,  QObject::tr("Blac&k" ),  QObject::tr("Blac&k") );
+        _Setup(penRed,   Qt::red,   Qt::red,    QObject::tr("&Red"   ),  QObject::tr("&Red") );
+        _Setup(penGreen, "#007d1a", Qt::green,  QObject::tr("&Green" ),  QObject::tr("&Green") );
+        _Setup(penBlue , Qt::blue, "#82dbfc",   QObject::tr("&Blue"  ),  QObject::tr("&Blue") );
+        _Setup(penYellow,"#b704be", Qt::yellow, QObject::tr("&Purple"), QObject::tr("&Yellow") );
 
-        _colors[1].kind = penRed;
-        _colors[1].lightColor = Qt::red;
-        _colors[1].darkColor = Qt::red;
-        _colors[1].lightName = QObject::tr("&Red");
-        _colors[1].darkName  = QObject::tr("&Red");
-
-        _colors[2].kind = penGreen;
-        _colors[2].lightColor = "#007d1a";
-        _colors[2].darkColor = Qt::green;
-        _colors[2].lightName = QObject::tr("&Green");
-        _colors[2].darkName  = QObject::tr("&Green");
-
-        _colors[3].kind = penBlue;
-        _colors[3].lightColor = Qt::blue;
-        _colors[3].darkColor = "#82dbfc";
-        _colors[3].lightName = QObject::tr("&Blue");
-        _colors[3].darkName  = QObject::tr("&Blue");
-
-        _colors[4].kind = penYellow;
-        _colors[4].lightColor = "#b704be";
-        _colors[4].darkColor = Qt::yellow;
-        _colors[4].lightName = QObject::tr("&Purple");
-        _colors[4].darkName  = QObject::tr("&Yellow");
+        _Setup(penEraser, Qt::white, Qt::white, QObject::tr("&Eraser"), QObject::tr("&Eraser") );
     }
 
     bool SetDarkMode(bool dark) // returns previous mode
@@ -163,5 +169,75 @@ public:
 };
 
 extern DrawColors drawColors;       // in drawarea.cpp
+
+class PenCursors 
+{
+    QCursor _cursors[PEN_COUNT];
+    bool    _wasSetup[PEN_COUNT] = { false };
+
+	QIcon ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB)
+	{
+		QPixmap pm, pmW, pmB;
+		pmW = pmB = pm = sourceIcon.pixmap(64, 64);
+		QBitmap mask = pm.createMaskFromColor(Qt::white, Qt::MaskOutColor);
+
+		pmW.fill(colorW);
+		pmW.setMask(mask);
+		if (colorB.isValid())
+		{
+			mask = pm.createMaskFromColor(Qt::black, Qt::MaskOutColor);
+			pmB.fill(colorB);
+			pmB.setMask(mask);
+			QPainter painter(&pmW);
+			painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+			painter.drawPixmap(0, 0, pm.width(), pm.height(), pmB);
+		}
+		return QIcon(pmW);
+	}
+    void _SetupEraser()
+    {
+        QIcon icon = ColoredIcon(QIcon(":/FalconBoard/Resources/eraser.png"), drawColors.IsDarkMode() ? Qt::black : Qt::white, drawColors.IsDarkMode() ? Qt::white : Qt::black);
+        QPixmap pm = icon.pixmap(64,64);
+        _cursors[(int)penEraser-1] = QCursor(pm);
+        _wasSetup[(int)penEraser-1] = true;
+    }
+
+    void _Setup(FalconPenKind pk)
+    {
+        constexpr int SIZE = 32;    //px
+        int n = (int)pk - 1;
+        QPixmap pm(SIZE, SIZE);
+        pm.fill(Qt::transparent);
+        QPainter painter(&pm);
+
+        QColor color = drawColors[pk];
+        painter.setPen(QPen(color, 2, Qt::SolidLine));
+        painter.drawLine(QPoint(0, SIZE/2), QPoint(SIZE-1, SIZE/2));
+        painter.drawLine(QPoint(SIZE/2, 0), QPoint(SIZE/2, SIZE-1));
+        _cursors[n] = QCursor(pm);
+        _wasSetup[n] = true;
+    }
+public:
+    void Setup()
+    {
+        _Setup(penBlack);
+        _Setup(penRed);
+        _Setup(penGreen);
+        _Setup(penBlue);
+        _Setup(penYellow);
+        _SetupEraser();
+    }
+    QCursor operator[](FalconPenKind pk)
+    {
+        if (pk == penNone)
+            return QCursor();
+        int ix = (int)pk - 1;
+        if (!_wasSetup[ix])
+            _Setup(pk);
+        return _cursors[ix];
+    }
+};
+extern PenCursors penCursors;       // in drawarea.cpp
+
 
 #endif // _COMMON_H

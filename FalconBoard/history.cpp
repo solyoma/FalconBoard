@@ -1380,6 +1380,15 @@ int History::Load(bool force)
 		di.type = (HistEvent)n;
 
 		ifs >> di;
+		// patch for older versions:
+		if (version < 0x56010108)
+		{
+			if (di.penKind == penEraser)
+				di.penKind = penYellow;
+			else if (di.penKind == penYellow)
+				di.penKind = penEraser;
+		}
+		// end patch
 		if (ifs.status() != QDataStream::Ok)
 		{
 			_inLoad = false;

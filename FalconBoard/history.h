@@ -589,7 +589,7 @@ public:
 
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
-    const qint32 MAGIC_VERSION = 0x56010000; // V 01.00.00
+    const qint32 MAGIC_VERSION = 0x56010108; // V 01.00.00      Cf.w. common.h
 
     QString Name() const { return _fileName; }
     SaveResult Save(QString name);

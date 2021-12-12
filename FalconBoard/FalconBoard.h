@@ -24,7 +24,6 @@
 const int HISTORY_DEPTH = 20;
 const int MAX_NUMBER_OF_TABS = 30;
 const QString UNTITLED = QString("Untitled.mwb");
-constexpr int NUM_COLORS = 6; // black/white, red, green, blue, eraser and yellow/purple
 
 enum ScreenMode { smSystem, smDark, smBlack };
 
@@ -52,6 +51,9 @@ public:
 protected:
 	void closeEvent(QCloseEvent* event) override;
 	void showEvent(QShowEvent* event) override;
+
+	void dragEnterEvent(QDragEnterEvent* event);
+	void dropEvent(QDropEvent* event);
 
 public slots:
 	void slotGridSpacingChanged(int val);
@@ -173,7 +175,7 @@ private:
 	QSignalMapper _languageMapper;
 
 	bool	_eraserOn = false;
-	int		_penWidth[NUM_COLORS] = { 3,3,3,3,30,3 };	// historical: penEraser = 5
+	int		_penWidth[PEN_COUNT] = { 3,3,3,3,3,30 };	// last is always the eraser
 	FalconPenKind _actPen = penBlack;
 
 		// default icons
@@ -240,6 +242,7 @@ private:
 	void _LoadIcons();
 	void _SetupIconsForPenColors(ScreenMode sm);		// depend on mode
 
+	void _LoadFiles(QStringList fileNames);
 	void _SaveLastDirectory(QString fileName);
 	bool IsOverwritable() const
 	{
@@ -278,7 +281,7 @@ private:
 
 	void _SetPenKind(FalconPenKind color);
 
-	void _SetCursor(DrawArea::CursorShape cs);
+	void _SetCursor(DrawCursorShape cs);
 
 	void _SetBlackPen();
 	void _SetRedPen()  ;

@@ -53,8 +53,6 @@ class DrawArea : public QWidget
     Q_OBJECT
 
 public:
-        // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
-    enum CursorShape {csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
     DrawArea(QWidget* parent = nullptr);
     virtual ~DrawArea()
@@ -145,11 +143,10 @@ public:
 
     int IsModified(int fromIndex=-1, bool any = false) const;
 
-    FalconPenKind PenKind() const { return _FalconPenKind;  }
+    FalconPenKind PenKind() const { return _actPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
 
-    void SetCursor(CursorShape cs, QIcon* icon = nullptr);
-    void SetEraserCursor(QIcon *icon = nullptr);
+    void SetCursor(DrawCursorShape cs);
 
     void SetGridOn(bool on, bool fixed);
     void SetPageGuidesOn(bool on);
@@ -257,9 +254,9 @@ private:
     bool    _itemsCopied = false;   // copy/copy & delete : list of scribbles into 'history::_nSelectedItems';
 
     int     _penWidth = 1;
-    QCursor _eraserCursor;
     int     _actPenWidth = 1;
-    FalconPenKind _FalconPenKind = penBlack;
+    FalconPenKind _actPenKind = penBlack;
+
     bool    _bPageSetupValid;
     bool    _bPageSetupUsed = false;
 
@@ -339,6 +336,7 @@ private:
     void _SetLastPointPosition();           // for actual _history
     bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
     QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
+    void _CreatePens();
 #endif
 
     bool _DrawFreehandLineTo(QPoint endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
