@@ -53,6 +53,9 @@ protected:
 	void closeEvent(QCloseEvent* event) override;
 	void showEvent(QShowEvent* event) override;
 
+	void dragEnterEvent(QDragEnterEvent* event);
+	void dropEvent(QDropEvent* event);
+
 public slots:
 	void slotGridSpacingChanged(int val);
 	void slotGridSpacingEditingFinished();
@@ -240,6 +243,7 @@ private:
 	void _LoadIcons();
 	void _SetupIconsForPenColors(ScreenMode sm);		// depend on mode
 
+	void _LoadFiles(QStringList fileNames);
 	void _SaveLastDirectory(QString fileName);
 	bool IsOverwritable() const
 	{

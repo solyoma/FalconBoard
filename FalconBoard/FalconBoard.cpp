@@ -1,4 +1,5 @@
 ﻿#include <QSpinBox>
+#include <QSpinBox>
 #include <QLabel>
 #include <QScreen>
 #include <QPainter>
@@ -84,6 +85,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     RestoreState();     // sets up all history item names, and loads the last used one
 
     _SetupIconsForPenColors(_screenMode);
+    setAcceptDrops(true);
 
     ui.centralWidget->setFocus();
 }
@@ -481,7 +483,15 @@ int FalconBoard::_AddNewTab(QString fname, bool loadIt) // and new history recor
     if (_pTabs->count() == MAX_NUMBER_OF_TABS)
         return -1;
 
-    int n = _pTabs->addTab(_FileNameToTabText( QString(fname.isEmpty() ? UNTITLED : fname)) );
+    // check if it is already loaded
+    int n;
+    if ((n = _drawArea->SameFileAlreadyUsed(fname))>=0)
+    {
+        _pTabs->setCurrentIndex(n);
+        return n;
+    }
+
+    n = _pTabs->addTab(_FileNameToTabText( QString(fname.isEmpty() ? UNTITLED : fname)) );
     if (n > 0)  // else tab switch is called 
         _pTabs->setCurrentIndex(n);
 
@@ -984,6 +994,64 @@ void FalconBoard::showEvent(QShowEvent* event)
     }
 }
 
+/*============================================================================
+ * TASK: The dragEnterEvent() is called whenever the user drags an object onto
+ *		  a widget.
+ * EXPECTS: pointer to the event
+ * RETURNS: nothing
+ * REMARKS: - If we call acceptProposedAction() on the event, we indicate
+ *        that the user can drop the drag object on this widget. By default,
+ *        the widget wouldn't accept the drag. Qt automatically changes the
+ *        cursor to indicate to the user whether the widget is a legitimate drop site.
+ *          - Here we want the user to be allowed to drag files, but nothing
+ *		  else. To do so, we check the MIME type of the drag. The MIME type
+ *        text/uri-list is used to store a list of uniform resource identifiers
+ *        (URIs), which can be file names, URLs (such as HTTP or FTP paths), or
+ *        other global resource identifiers. Standard MIME types are defined by the
+ *        Internet Assigned Numbers Authority (IANA). They consist of a type and a
+ *        subtype separated by a slash. The clipboard and the drag and drop system
+ *        use MIME types to identify different types of data. The official list of
+ *        MIME types is available at http://www.iana.org/assignments/media-types/.
+ *---------------------------------------------------------------------------*/
+void FalconBoard::dragEnterEvent(QDragEnterEvent* event)
+{
+    if (event->mimeData()->hasFormat("text/uri-list"))
+    {
+        event->acceptProposedAction();
+    }
+}
+
+/*============================================================================
+* TASK: The dropEvent() is called when the user drops an object onto the widget.
+* EXPECTS: pointer to the event
+* RETURNS: nothing
+* REMARKS: - We call QMimeData::urls() to obtain a list of QUrls. Typically, users
+*        drag only one file at a time, but it is possible for them to drag multiple
+*        files by dragging a selection.
+*          - If the URL is not a local file name, we return immediately.
+*		   - If Alt is kept pressed curves in memory are discarded
+*---------------------------------------------------------------------------*/
+void FalconBoard::dropEvent(QDropEvent* event)
+{
+    QList<QUrl> urls = event->mimeData()->urls();
+    if (urls.isEmpty())
+        return;
+    QString fname;
+    QStringList flist;
+    for (auto it = 0; it != urls.size(); ++it)
+    {
+        fname = urls[it].toLocalFile();
+        if (!fname.isEmpty())
+        {
+            QString ext = fname.right(4);
+            if (ext == ".mwb")
+                flist << fname;
+        }
+    }
+    _LoadFiles(flist);
+    event->acceptProposedAction();
+}
+
 #ifndef _VIEWER
 void FalconBoard::on_actionNew_triggered()
 {
@@ -1043,6 +1111,69 @@ void FalconBoard::_AddToRecentList(QString path)
     _PopulateRecentMenu();
 }
 
+/*=============================================================
+ * TASK:    loads files into the program
+ * PARAMS:  names - list of '.mwb' file names
+ * GLOBALS: _pTabs, _eraserOn
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+void FalconBoard::_LoadFiles(QStringList names)
+{
+    if (!names.isEmpty())
+    {
+        QString lastName;
+        int nLimit = MAX_NUMBER_OF_TABS - (_pTabs->count() - (IsOverwritable() ? 1 : 0));
+        if (_pTabs->count() == MAX_NUMBER_OF_TABS)
+        {
+            QMessageBox::warning(this, tr("FalconBoard - Warning"),
+                                       tr("Maximum number of files reached, no new files can be loaded."));
+            return;
+        }
+        else if (_pTabs->count() + names.size() > MAX_NUMBER_OF_TABS)
+        {
+            QMessageBox::warning(this, tr("FalconBoard - Warning"),
+                QString(tr("Possibly too many files! \nOnly the first %1 valid, and not already loaded files will be loaded.").arg(nLimit)));
+            return;
+        }
+
+        bool bLast = false; // last name loaded?
+        for (int i =0; i < names.size() && nLimit; ++i)
+        {
+            QString fileName = names[i];
+            int n;
+            bLast = i == names.size() - 1 || nLimit==1;
+            if ((n = _drawArea->SameFileAlreadyUsed(fileName)) >= 0)
+            {
+                if (bLast)
+                {
+                    _pTabs->setCurrentIndex(n);
+                    lastName.clear();
+                }
+            }
+            else
+            {
+                n = _pTabs->currentIndex();
+                if (!IsOverwritable())
+                    n = _AddNewTab(fileName, bLast);   // sets current tab and adds history item and set it to current too
+                else
+                    _drawArea->SetHistoryName(fileName);
+
+                if (n >= 0 && _LoadData(-1)) // no load error
+                    --nLimit, lastName = fileName, _SetTabText(n, fileName);    // comma !
+            }
+        }
+        if (!lastName.isEmpty())
+        {
+            _SaveLastDirectory(lastName);
+            _SetWindowTitle(lastName);
+        }
+    }
+#ifndef _VIEWER
+    if (_eraserOn)
+        on_action_Eraser_triggered();
+#endif
+}
 
 /*========================================================
  * TASK:    Loads file into actual TAB, if it is empty or 
@@ -1071,10 +1202,6 @@ void FalconBoard::on_actionLoad_triggered()
     else
         _drawArea->SetHistoryName(fileName);
                             
-    if (n>= 0 && !_LoadData(-1))
-        fileName.clear();   // load error
-    if (n >= 0)
-        _SetTabText(n, fileName);
     _SetWindowTitle(fileName);
 
 #ifndef _VIEWER
