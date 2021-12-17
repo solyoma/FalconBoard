@@ -427,6 +427,7 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
     {
         _pActCanvas->fill(Qt::transparent);     // transparent
         _clippingRect = _canvasRect;
+        _lastPointC.setX(-1);   // invalid point
     }
     else
     {
@@ -666,7 +667,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			else  if (key == Qt::Key_Home)
 				_Home(_mods.testFlag(Qt::ControlModifier) );
             else  if (key == Qt::Key_End)
-                _End();
+                _End(_mods.testFlag(Qt::ControlModifier));
 //            else if (key == Qt::Key_Shift)
 //				_shiftKeyDown = true;
 
@@ -1228,7 +1229,8 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
 
     _lastScribbleItem.penKind = _actPenKind;
     _lastScribbleItem.penWidth = _actPenWidth;
-    _lastScribbleItem.add(_lastPointC + _topLeft);
+    if(_lastPointC.x() >= 0)    // else no last point yet
+        _lastScribbleItem.add(_lastPointC + _topLeft);
 }
 
 /*========================================================
@@ -1483,7 +1485,7 @@ void DrawArea::_DrawLineTo(QPoint endPointC)     // 'endPointC' canvas relative
 
     if (ep == lp)
         painter.drawPoint(lp);
-    else 
+    else if(_lastPointC.x() >= 0)
         painter.drawLine(lp, ep);    //? better?
     //painter.drawLine(_lastPointC, endPointC);
     int rad = (_actPenWidth / 2) + 2;
@@ -2232,9 +2234,19 @@ void DrawArea::_Home(bool toTop)
         pt.setY(0);   // do not move in y direction
     _ShiftAndDisplayBy(pt);
 }
-void DrawArea::_End()
+void DrawArea::_End(bool toBottom)
 {
-    _topLeft = _history->BottomRightVisible(geometry().size() );
+    if(toBottom)
+        _topLeft = _history->BottomRightVisible(geometry().size() );
+    else  // just go end of rightmost scribble in actual viewport
+    {
+        int x = _history->RightMostInRect(_canvasRect) - width();
+        if (x < 0)
+            x = 0;
+        _topLeft.setX(x);
+        _Redraw();
+    }
+
     _SetOrigin(_topLeft);
     _Redraw();
 }

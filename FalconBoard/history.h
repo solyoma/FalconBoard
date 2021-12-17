@@ -551,6 +551,8 @@ public:
     virtual ~History();
 
     void SetBandHeight(int h) { _bands.SetParam(this, h); }
+    int RightMostInRect(QRect rect);
+
     void SetClippingRect(const QRect& rect) { _clpRect = rect;  }
     void SetVisibility(int index, bool visible)
     {

@@ -21,9 +21,8 @@
 
 //class DrawArea;
 
-const int HISTORY_DEPTH = 20;
 const int MAX_NUMBER_OF_TABS = 30;
-const QString UNTITLED = QString("Untitled.mwb");
+const QString UNTITLED = QString(QMainWindow::tr("Untitled"));
 
 enum ScreenMode { smSystem, smDark, smBlack };
 
@@ -246,7 +245,7 @@ private:
 	void _SaveLastDirectory(QString fileName);
 	bool IsOverwritable() const
 	{
-		bool bOverwritable = _drawArea->HistoryName(UNTITLED).isEmpty() &&
+		bool bOverwritable = _drawArea->HistoryName().isEmpty() &&
 			!_drawArea->IsModified();
 #ifndef _VIEWER
 // do not ask for save if the current data is not modified
@@ -265,6 +264,8 @@ private:
 	void _CreateAndAddActions();
 
 #ifndef _VIEWER
+	QString _NextUntitledName();
+
 	void _AddSaveVisibleAsMenu();
 
 	SaveResult _saveResult = srSaveSuccess;	// because save as slot can't return a value
@@ -298,7 +299,7 @@ private:
 
 	QString _FileNameToTabText(QString fname);
 
-	int _AddNewTab(QString fname = QString(), bool loadIt = true);
+	int _AddNewTab(QString fname = QString(), bool loadIt = true, bool force=false);
 	void _CloseTab(int index);
 	void _SetTabText(int index, QString fname);
 	void _SetupMode(ScreenMode mode);

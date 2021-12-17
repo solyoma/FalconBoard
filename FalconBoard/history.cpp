@@ -1008,6 +1008,31 @@ History::~History()
 	Clear();
 }
 
+/*=============================================================
+ * TASK:	get items that are inside this band
+ * PARAMS : 'rect' - points of items must vertically be inside this
+ * GLOBALS : _bands
+ * RETURNS :
+ * REMARKS : First it goes through elements inside such bands
+ *				as intersected by 'rect' vertically, then finds
+ *				the rightmost coordinate of the element
+ * ------------------------------------------------------------*/
+int History::RightMostInRect(QRect rect)
+{
+	ItemIndexVector iv;
+	_bands.ItemsVisibleForYRange(rect.y(), rect.bottom(), iv);
+	if (iv.isEmpty())
+		return 0;
+	int x = -1;
+	for (auto ix : iv)
+	{
+		HistoryItem* phi = _items[ix.index];
+		if (x < phi->Area().right())
+			x = phi->Area().right();
+	}
+	return x;
+}
+
 /*========================================================
  * TASK:	Get index of top-left-most element at or below xy.y
  *			in _items, using '_yOrder' (binary search)
@@ -1802,14 +1827,16 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 	ScribbleItem* pscr;
 	ScribbleSubType typ;
 
-#define SQUARE(a)	(a)*(a)
+	auto SQUARE = [](int a)->float { return a * a; };
 
 	auto isNearToLine = [&](ScribbleItem* pscr, int i) -> bool
 	{
-		int x1 = pscr->points[i].x(), x2 = pscr->points[i + 1].x(),
-			y1 = pscr->points[i].y(), y2 = pscr->points[i + 1].y(),
-			x0 = p.x(), y0 = p.y();
-		float d;
+		float x1 = pscr->points[i].x(), x2 = pscr->points[i + 1].x(),
+			  y1 = pscr->points[i].y(), y2 = pscr->points[i + 1].y(),
+			  x0 = p.x(), y0 = p.y();
+		if (y1 > y2) std::swap(y1, y2);
+
+		float d = 0;
 		if (x1 == x2)	// vertical line
 		{
 			if (y1 > y0 || y0 > y2)
@@ -1824,9 +1851,10 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 		}
 		else
 		{
-			if (y1 > y0 || y0 > y2 || x1 > x0 || x0 > x2)
+			if (y1 > y0 || y0 > y2 || x0 < x1 || x0 > x2)
 				return false;
-			d = qAbs((float)(x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt(SQUARE(x2 - x1) + SQUARE(y2 - y1));
+													// (x1-x0)*(y2-y1)-(x1-x2)*(y0-y1)
+			d = qAbs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt(SQUARE(x2 - x1) + SQUARE(y2 - y1));
 		}
 		return (int)d < pscr->penWidth + w;
 	};

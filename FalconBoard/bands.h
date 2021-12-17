@@ -30,6 +30,7 @@ struct Bands
     void Add(int ix);    // existing and visible drawnable in pHist->_items[ix]
     void Remove(int ix);
     int  ItemsStartingInBand(int bandIndex, ItemIndexVector& iv);
+    void ItemsVisibleForYRange(int miny, int maxy, ItemIndexVector& hv);
     void ItemsVisibleForArea(QRect& rect, ItemIndexVector& hv, bool onlyInsider = false);
     void SelectItemsForArea(QRect& rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect& unionRect);
     void Clear() { _bands.clear(); }
@@ -104,7 +105,8 @@ private:
     int _AddBandFor(int y);  // if present returns existing, else inserts new band, or appends when above all bands
     int _GetBand(int y);     // if present returns existing, else return -1
     int _FindBandFor(int y) const;  // binary search: returns index of  the band which have y inside
-    void _ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector& hv, bool insidersOnly);
+    void _ItemsInRangeForBand(int bandIndex, int ymin, int ymax, ItemIndexVector& iv);
+    void _ItemsInRectForBand(int bandIndex, QRect& rect, ItemIndexVector& iv, bool insidersOnly);
     void _SelectItemsFromBand(int bandIndex, QRect& rect, ItemIndexVector& hvLeft, ItemIndexVector& hvInside, ItemIndexVector& hvRight, QRect& unionRect);
     void _Insert(Band& band, int index); // insert into indices at correct position
 };

@@ -362,8 +362,8 @@ private:
     void _ShiftAndDisplayBy(QPoint delta, bool smooth = false);
     void _PageUp();
     void _PageDown();
-    void _Home(bool toTop);
-    void _End();
+    void _Home(bool toTop);     // else just position x=0 
+    void _End(bool toBottom);   // else just position: rightmost pixel ofscribble
     void _Up(int distance = 10);
     void _Down(int distance = 10);
     void _Left(int distance = 10);

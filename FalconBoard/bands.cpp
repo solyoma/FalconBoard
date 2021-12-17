@@ -143,15 +143,54 @@ int Bands::ItemsStartingInBand(int bandIndex, ItemIndexVector& iv)
 	return iv.size();
 }
 
+void Bands::ItemsVisibleForYRange(int ymin, int ymax, ItemIndexVector& iv)
+{
+	if (_bands.isEmpty() || !ItemCount())
+		return;
+
+	int ib = _FindBandFor(ymin);	// it may found the next band below y
+	if (ib == _bands.size())
+		return;
+	do
+	{
+		_ItemsInRangeForBand(ib, ymin, ymax, iv);
+		if (ymax < (_bands[ib].band_index + 1) * _bandHeight)	// max y is in this band
+			break;
+		++ib;
+	} while (ib != _bands.size());
+
+}
+
+
 /*========================================================
- * TASK:	gets all items that has any part
- *				inside that band into vector hv
+ * TASK:	gets all items from band that has any part
+ *				inside y range into vector iv
+ * PARAMS: ymin, ymax: y range for elements
+ *			iv - result vector
+ * GLOBALS: _bands
+ * RETURNS:
+ * REMARKS: -	does not clear iv !
+ *-------------------------------------------------------*/
+void Bands::_ItemsInRangeForBand(int bandIndex, int ymin, int ymax, ItemIndexVector& iv)
+{
+	Band& band = _bands[bandIndex];
+	for (auto ind : band.indices)
+	{
+		HistoryItem* phi = (*_pHist)[ind.index];
+		if (ymin <= phi->Area().y() && phi->Area().y() <= ymax)
+			iv.push_back(ind);
+	}
+}
+
+/*========================================================
+ * TASK:	gets all items from band that has any part
+ *				inside  a rectangle into vector hv
  * PARAMS:
  * GLOBALS:
  * RETURNS:
  * REMARKS: -	does not clear hv !
  *-------------------------------------------------------*/
-void Bands::_ItemsForBand(int bandIndex, QRect& rect, ItemIndexVector& hv, bool insidersOnly)
+void Bands::_ItemsInRectForBand(int bandIndex, QRect& rect, ItemIndexVector& hv, bool insidersOnly)
 {
 	Band& band = _bands[bandIndex];
 	for (auto ind : band.indices)
@@ -248,7 +287,7 @@ void Bands::ItemsVisibleForArea(QRect& rect, ItemIndexVector& hv, bool insidersO
 	y += rect.height();
 	do
 	{
-		_ItemsForBand(ib, rect, hv, insidersOnly);
+		_ItemsInRectForBand(ib, rect, hv, insidersOnly);
 		if (y < (_bands[ib].band_index + 1) * _bandHeight)	// bottom of rect is in this band
 			break;
 		++ib;
