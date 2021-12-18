@@ -1834,7 +1834,7 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 		float x1 = pscr->points[i].x(), x2 = pscr->points[i + 1].x(),
 			  y1 = pscr->points[i].y(), y2 = pscr->points[i + 1].y(),
 			  x0 = p.x(), y0 = p.y();
-		if (y1 > y2) std::swap(y1, y2);
+//		if (y1 > y2) std::swap(y1, y2);
 
 		float d = 0;
 		if (x1 == x2)	// vertical line
@@ -1851,9 +1851,12 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 		}
 		else
 		{
-			if (y1 > y0 || y0 > y2 || x0 < x1 || x0 > x2)
-				return false;
-													// (x1-x0)*(y2-y1)-(x1-x2)*(y0-y1)
+			if ( (y1 < y2 && (y1 > y0 || y0 > y2)) || 
+				 (y2 < y1 && (y2 > y0 || y0 > y1)) || 
+				 (x1 < x2 && (x1 > x0 || x0 > x2)) || 
+				 (x2 < x1 && (x2 > x0 || x0 > x1)) )
+						return false;
+
 			d = qAbs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt(SQUARE(x2 - x1) + SQUARE(y2 - y1));
 		}
 		return (int)d < pscr->penWidth + w;
