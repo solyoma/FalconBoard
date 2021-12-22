@@ -105,7 +105,9 @@ void DrawArea::ClearBackground()
  *          if a name is given loads the history as well
  * PARAMS:  name: name for new history. String may be empty
  *                  in which case a new unsaved page is added
- *          indexAt - insert at this position. 
+ *                  or if it is 'Untitled.mwb' (depending on language)
+ *                  then does not load it even if it exists
+ *          insertAt - insert at this position. 
  *                  if > capacity then at the end
  *          loadIt - if name is not empty also load data
  * GLOBALS: _history
@@ -116,30 +118,30 @@ void DrawArea::ClearBackground()
  * REMARKS: - adding history is unsucessfull if it is full
  *          - capacity is always smaller than 100000!
  *-------------------------------------------------------*/
-int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
+int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt )
 {
     if(_historyList.capacity() == (unsigned long)HistoryListSize())
         return -1;
 
     if (_history)
-        _history->topLeft = _topLeft;
+        _history->SetTopLeft(_topLeft);
 
-    DHistory* ph = new DHistory();
+    History* ph = new History();
     ph->SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
     if (!name.isEmpty())
         ph->SetName(name);
 
-    if ((unsigned long)indexAt > _historyList.capacity())
+    if ((unsigned long)insertAt > _historyList.capacity())
     {
         _historyList.push_back(ph);
-        indexAt = HistoryListSize() - 1;
+        insertAt = HistoryListSize() - 1;
     }
     else
-        _historyList.insert(_historyList.begin() + indexAt, ph);
+        _historyList.insert(_historyList.begin() + insertAt, ph);
 
-    bool b = _currentHistoryIndex == indexAt;
-    _currentHistoryIndex = indexAt;
-    _history = _historyList[indexAt];
+    bool b = _currentHistoryIndex == insertAt;
+    _currentHistoryIndex = insertAt;
+    _history = _historyList[insertAt];
     if (!name.isEmpty() && loadIt)
         if (!_history->Load())
             return -2;
@@ -148,7 +150,7 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int indexAt )
 
     if (!b)
         _Redraw(true);
-    return indexAt;
+    return insertAt;
 }
 
 
@@ -182,10 +184,10 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
         if (index >= 0)     // store last viewport into previously shown history
         {
             if(_history)    // there is a history
-                _history->topLeft = _topLeft;
+                _history->SetTopLeft(_topLeft);
             _currentHistoryIndex = index;
             _history = _historyList[index];
-            _topLeft = _history->topLeft;
+            _topLeft = _history->TopLeft();
         }
         else
             index = _currentHistoryIndex;
@@ -216,11 +218,13 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
  *-------------------------------------------------------*/
 int DrawArea::RemoveHistory(int index)
 {
-    if(index < 0 || index > HistoryListSize())
+    int cnt = HistoryListSize();
+    if(index < 0 || index > cnt)
         return -1;
 
     delete _historyList[index];
     _historyList.erase(_historyList.begin() + index);
+    --cnt;
     if (index == _currentHistoryIndex)
     {
         _currentHistoryIndex = -1;
@@ -228,7 +232,9 @@ int DrawArea::RemoveHistory(int index)
     }
     else if (index < _currentHistoryIndex)
         --_currentHistoryIndex;
-    return HistoryListSize();;
+    if (!cnt)
+        _ClearCanvas();
+    return cnt;
 }
 
 
@@ -243,7 +249,7 @@ int DrawArea::RemoveHistory(int index)
  *-------------------------------------------------------*/
 void DrawArea::MoveHistory(int from, int to)
 {
-    DHistory* pdh = _historyList[to];
+    History* pdh = _historyList[to];
     _historyList[to] = _historyList[from];
     _historyList[from] = pdh;
     _currentHistoryIndex = from;

@@ -7,6 +7,7 @@
 #include <QSettings>
 #include "DrawArea.h"
 #include "screenshotTransparency.h"
+#include "common.h"
 #include "FalconBoard.h"
 #include "myprinter.h"   // for MyPrinterData
 #include "helpdialog.h"
@@ -97,7 +98,7 @@ QString FalconBoard::_NextUntitledName()
 	int n = -1, m;
 	QString qsUntitled = UNTITLED;
 	for (int i = 0; i < _pTabs->count(); ++i)
-        if (_pTabs->tabText(i).left(UNTITLED.length()) == UNTITLED)
+        if (IsUntitled(_pTabs->tabText(i)) )
         {
             m = _pTabs->tabText(i).mid(UNTITLED.length()).toInt();
             if (m < 0)
@@ -535,8 +536,8 @@ void FalconBoard::_CloseTab(int index)
     int cnt = _drawArea->RemoveHistory(index);
     _pTabs->removeTab(index);
     if (!cnt)
-        _AddNewTab();
-    _drawArea->SwitchToHistory(_nLastTab, false);
+        _AddNewTab(QString(), false);
+    _drawArea->SwitchToHistory(_nLastTab, !cnt);
 }
 
 #ifndef _VIEWER
@@ -568,15 +569,17 @@ void FalconBoard::_AddSaveVisibleAsMenu()
  *-------------------------------------------------------*/
 SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
 {
-//*    int ci = _nLastTab; // actual tab
     _saveResult = srSaveSuccess;    // result: ok
-//*    int n;
 
     _drawArea->SwitchToHistory(index, false);    // do not redraw
 
     const QString & saveName = _drawArea->HistoryName();
     QMessageBox::StandardButton ret = QMessageBox::Save;
-    if (!ui.actionAutoSaveData->isChecked() || mustAsk || saveName.isEmpty())
+
+    bool isAutoSaveSet = ui.actionAutoSaveData->isChecked();
+    bool isUntitled = saveName.isEmpty() || saveName.left(UNTITLED.length()) == UNTITLED;
+
+    if (!isAutoSaveSet || mustAsk || isUntitled)
     {
         ret = QMessageBox::warning(this, tr(WindowTitle),
             QString(tr("<i>%1</i> have been modified.\n"
@@ -587,8 +590,12 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
 
     if (ret == QMessageBox::Save)
     {
-        if (saveName.isEmpty())
+        if (isUntitled)
+        {
             on_actionSaveAs_triggered();     // sets _saveResult
+            if (_saveResult == srSaveSuccess)
+                _drawArea->SetHistoryName(_lastSaveName);
+        }
         else 
             _SaveFile(saveName);             // sets _saveResult
     }
@@ -603,7 +610,10 @@ SaveResult FalconBoard::_SaveFile(const QString name)   // returns: 0: cancelled
 {
     _saveResult = _drawArea->Save(name);
     if (_saveResult == srSaveSuccess)
+    {
         _AddToRecentList(name);
+        _lastSaveName = name;
+    }
     return _saveResult;
 }
 

@@ -462,9 +462,10 @@ using HistoryItemVector = QVector<HistoryItem*>;
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    friend class DHistory;  // in DrawArea.h
     friend class Bands;
     friend class HistoryScreenShotItem;
+
+    QPoint _topLeft;                    // this history will be displayed at this position
 
     QString _fileName,                  // file for history
             _loadedName;                // set only after the file is loaded, used to check reloads
@@ -549,6 +550,9 @@ public:
     History(const History& o);
     History(const History&& o) noexcept;
     virtual ~History();
+
+    constexpr QPoint TopLeft() const { return _topLeft; }
+    void SetTopLeft(QPoint& topLeft) { _topLeft = topLeft; }
 
     void SetBandHeight(int h) { _bands.SetParam(this, h); }
     int RightMostInRect(QRect rect);
@@ -662,5 +666,7 @@ public:
     const QRect BoundingRect() const { return _selectionRect; }
     const ItemIndexVector& Selected() const { return _nSelectedItemsList;  }
 };
+
+using HistoryList = std::vector<History*>;
 
 #endif

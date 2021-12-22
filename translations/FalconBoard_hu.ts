@@ -4,64 +4,64 @@
 <context>
     <name>DrawArea</name>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="257"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="265"/>
         <source>&apos;%1&apos;
 Invalid file</source>
         <translation>&apos;%1&apos;
 Nem FalconBoard fájl</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="259"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="267"/>
         <source>File
 &apos;%1&apos;
  not found</source>
         <translation>A &apos;%1&apos;\nNevű fájl nem található</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="261"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="269"/>
         <source>File read problem. %1 records read. Please save the file to correct this error</source>
         <translation>File olvasási hiba. Eddig %1 rekordot olvastam be. Mentsd el a fájlt a hiba kijavításához!</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1687"/>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1690"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1708"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1711"/>
         <source>FalconBoard - Error</source>
         <translation>FalconBoard - Hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1687"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1708"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation>Erőforrás lefoglalási hiba. Nincs elég memória?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1690"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1711"/>
         <source>Can&apos;t find printer</source>
         <translation>Nem találom a nyomtatót</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1693"/>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1696"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1714"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1717"/>
         <source>FalconBoard - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1693"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1714"/>
         <source>Print error</source>
         <translation>Nyomtatási hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1696"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1717"/>
         <source>Print cancelled</source>
         <translation>Megszakítottad a nyomtatást</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2270"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2296"/>
         <source>   Left:%1, Top:%2 | Pen: x:%3, y:%4 | width: %5, height: %6</source>
         <translation>   X:%1, Y:%2 | Toll poz.:x:%3, y:%4 | szél.:%5, mag.:%6</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2272"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2298"/>
         <source>   Left:%1, Top:%2 | Pen: x:%3, y:%4 </source>
         <translation>   X:%1, Y:%2 | Toll poz.:x:%3, y:%4 </translation>
     </message>
@@ -69,97 +69,110 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="372"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="396"/>
         <source>%1...</source>
         <translation>%1...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="417"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="441"/>
         <source>Pen Width:</source>
         <translation>Toll vastagság:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="430"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="454"/>
         <source>Grid size:</source>
         <translation>Rács mérete:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="547"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="585"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation>&lt;i&gt;%1&lt;/i&gt; megváltozott. Elmentsem a változásokat?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="891"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="934"/>
         <source>C&amp;lear list</source>
         <translation>Lista &amp;Törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="992"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1093"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="999"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1100"/>
         <source>Do you want to limit the editable area horizontally to the screen width?
  You may change this any time in Options/Page</source>
         <translation>Lekorlátozzam a lap vízszintes méretét a képernyő szélességére?
  Ezt bármikor megváltoztathatod a Lehetőségek/Oldal menüben.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1061"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1173"/>
+        <source>Maximum number of files reached, no new files can be loaded.</source>
+        <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1179"/>
+        <source>Possibly too many files! 
+Only the first %1 valid, and not already loaded files will be loaded.</source>
+        <translation>Valószínűleg túl sok fájlt próbáltál megnyitni! Csak az első %1 darab még nem betöltött fájlt lehet betölteni.</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1235"/>
         <source>Load Data</source>
         <translation>Adatok betöltése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1063"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1237"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation>FalconBoard fájl (*.mwb);;Minden fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1133"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1172"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1178"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1303"/>
         <source>FalconBoard - Warning</source>
         <oldsource>FalconG - Warning</oldsource>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1133"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1303"/>
         <source>Please restart the program to change the language!</source>
         <translation>Indítsd újra programot anyelvváltáshoz!</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1166"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1204"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1336"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1374"/>
         <source>Save As</source>
         <translation>Mentés másként</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1167"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1337"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation>FalconBoard fájlok (*.mwb);; Mindenl Fájl (*))</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1182"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1352"/>
         <source>Open Background Image</source>
         <translation>Háttérkép megnyitása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1206"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1376"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation>%1 Fájlok (*.%2);;Mindenl Fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1218"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1388"/>
         <source>About FalconBoard</source>
         <translation>FalconBoard - Névjegy</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1219"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1389"/>
         <source>Open source White/blackboard application</source>
         <translation>Nyilt forráskódú tantermi tábla alkalmazás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1220"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1390"/>
         <source>&lt;p&gt;Version </source>
         <translation>&lt;p&gt;Verzió </translation>
     </message>
@@ -168,17 +181,17 @@ Do you want to save your changes?</source>
         <translation type="obsolete">&lt;p&gt;© A. Sólyom (2020-21)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt; {2020)?}</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1221"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1391"/>
         <source>&lt;p&gt;© A. Sólyom (2020-21)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;</source>
         <translation>&lt;p&gt;© A. Sólyom (2020-21)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1315"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1485"/>
         <source>falconBoard - Grid spacing</source>
         <translation>FalconBoard - rácsméret</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1316"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1486"/>
         <source>Spacing in pixels:</source>
         <translation>A távolság pixelben:</translation>
     </message>
@@ -751,62 +764,62 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="70"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Press and hold the left mouse button while moving the mouse or use a graphics pen&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;Tartsa nyomva a bal egérgombot és mozgassa az egeret, vagy használja a tollat&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="105"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click/tap on the colored icons or press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; or &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; on the keyboard&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;Kattintson a színes ikonokra, vagy nyomja meg az &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; vagy &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; billentyűt&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="140"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click / tap on the Eraser icon or press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;E&lt;/span&gt; on the keyboard. to select the eraser, then use yopur mouse or pen like drawing.&lt;/p&gt;&lt;p&gt;If your pen has an eraser on it use that. In that case there is no need to select the eraser tool previously.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;Kattints a radír ikonra,vagy nyomd meg az &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;E&lt;/span&gt; gombot, azután a radírt úgy használhatod, mint bármely más tollat .&lt;/p&gt;&lt;p&gt;Ha olyan grafikus tollat használsz, amin van radír akkor azt is használhatod.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="169"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Each pen has an associated size. This can be set using the &lt;span style=&quot; font-style:italic;&quot;&gt;Pen width&lt;/span&gt; field or by pressing the keys &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;]&lt;/span&gt; and &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;[&lt;/span&gt; on the keyboard.&lt;br/&gt;This program uses rounded pens only, so the end of strokes will always be rounded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;A tollvastagság színenként különbözhet. Azt vagy a &lt;span style=&quot; font-style:italic;&quot;&gt;Tollvastagság mezőben&lt;/span&gt; választhatod ki vagy a &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;]&lt;/span&gt; és &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;[&lt;/span&gt; billentyűlkkel változtathatod.&lt;br/&gt;Ez a program csak kerek tollhegyekkel dolgozik, így a vonalvégek minding lekerekítettek.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="198"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can draw horizontal and vertical straight lines by &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;first&lt;/span&gt;pressing the &lt;span style=&quot; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; or touching with the pen &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;then&lt;/span&gt; pressing and holding a &lt;span style=&quot; font-style:italic;&quot;&gt;Shift &lt;/span&gt;key on the keyboard and start drawing in the required direction: up, down, left or right.&lt;/p&gt;&lt;p&gt;You can also draw straight lines in any direction from the last drawn point by &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;first &lt;/span&gt;pressing and holding a &lt;span style=&quot; font-style:italic;&quot;&gt;Shift  &lt;/span&gt;key on the keyboard &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;then&lt;/span&gt; clicking with the left mouse button or with the pen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;Vízszintes és függőleges egyeneseket húzhatsz ha &lt;span style=&quot; font-style:italic;&quot;&gt;először &lt;/span&gt;lenyomod a &lt;span style=&quot; font-style:italic;&quot;&gt;bal egérgombot&lt;/span&gt; vagy lerakod a toll hegyét &lt;span style=&quot; font-style:italic;&quot;&gt;azután&lt;/span&gt; lenyomod és nyomva tartod a&lt;span style=&quot; font-style:italic;&quot;&gt;Shift &lt;/span&gt;gombot a billentyűzeten és elkezded a vonalat húzni a kívánt irányba: fel, le, jobbra, vagy balra.&lt;/p&gt;&lt;p&gt;Az utolsó pontból kiinduló tetszőleges irányú egyenes vonal húzásához &lt;span style=&quot; font-style:italic;&quot;&gt;először &lt;/span&gt;a &lt;span style=&quot; font-style:italic;&quot;&gt;Shift &lt;/span&gt;billentyűt kell lenyomni és tartani majd &lt;span style=&quot; font-style:italic;&quot;&gt;azután kell a bal egérgombot, illetve a tollat használni.&lt;/span&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="227"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To Draw a rectangle or a square select a rectangular region and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;R&lt;/span&gt;. The rectangle will be drawn with the actual pen.&lt;/p&gt;&lt;p&gt;If the selection would be too close around existing strokes (see &lt;span style=&quot; font-style:italic;&quot;&gt;Selections&lt;/span&gt; in this help) then a small margin is left around them&lt;br/&gt;before drawing the rectangle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;Téglalap rajzolásához válaszd ki egy területet, majd nyomd meg az &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;R&lt;/span&gt; billentyűt. A téglalapot az aktuális színnel rajzolja a program.&lt;/p&gt;&lt;p&gt;Ha a kiválasztott terület túl közel van elemekhez, (&lt;span style=&quot; font-style:italic;&quot;&gt;Kiválasztás&lt;/span&gt; fül) akkor egy kis szegély lesz a téglalap és az elemek között&lt;br/&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="250"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To draw an ellipse or a circle select a rectangular area and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;C&lt;/span&gt; on the keyboard.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;Ellipszis vagy kör rajzolásához válassz ki egy területet, majd nyomd meg a &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;C&lt;/span&gt; billentyűt.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="266"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;The Eraser tool is just a fancy name for a pen whose color just hides every existing strokes behind it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;This means that when moving drawings around you must be careful to select not only the visible, but the invisible lines, that are hidden by the eraser, too,&lt;br/&gt;otherwise &amp;quot;erased&amp;quot; part of the penstrokes may become visible. This is s problem when printing too as empty pages will be printed when only eraser stroke sextend &lt;br/&gt;to them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;To help you deal with this problem press Ctrl/Command D to display eraser lines so you can check. Press Ctrl/Command+D again to hide them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If you &lt;span style=&quot; font-style:italic;&quot;&gt;Delete&lt;/span&gt; strokes, instead of using the eraser tool, however, no such problem may occur. (See tab &apos;Selection&apos;)&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;A Radír csak egy álneve annak a tollnak aminek a színe minden mögötte levő színt felülír.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Tehát ha vonalakat mozgatsz arrébb, vagy vágsz ki, akkor ügyelni kell rá, hogy a radírral húzott vonalakat is kijelöld ,&lt;br/&gt;különben &amp;quot;kiradírozott&amp;quot; részek vállhatnak újra láthatóvá. Nyomtatás során is előjöhet egy probléma. Ha a radír vonalak átcsúsznak egy egyébként üres oldalra&lt;br/&gt;akkor az üres oldal is nyomtatásra kerül.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Hogy elkerülhesd a gondot, a  Ctrl/Command D billentyűkombináció láthatóvá teszi, illetve elrejti a radír vonalakat.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Ha azonban a &lt;span style=&quot; font-style:italic;&quot;&gt;Delete&lt;/span&gt; gombbal töröltél ki kijelölt vonalakat, akkor ilyen gond nem lehet..&lt;br/&gt;&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="326"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Move &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;paper&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; (document) &lt;/span&gt;with the mouse or pen while holding down the spacebar, or&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Move paper &lt;/span&gt;with arrow keys &lt;span style=&quot; font-weight:600;&quot;&gt;Up/Down/Left/Right&lt;/span&gt; in small steps, or in larger steps if you holding down &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt; /&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;br/&gt;&lt;/span&gt;and half of screen height with &lt;span style=&quot; font-weight:600;&quot;&gt;Page Up/Page Down&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To left side of paper&lt;/span&gt; Home&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To right side of paper&lt;/span&gt; End&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To start of paper&lt;/span&gt; Ctrl+Home&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To End of paper&lt;/span&gt; Ctrl+End&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation> &lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;A &lt;span style=&quot;font-style:italic&quot;&gt;papír (dokumentum)&lt;/span&gt; mozgatása:&lt;/span&gt; mozgatható az egérrel, vagy a tollal, ha közben a betűköz billentyűt lenyomva tartjuk, vagy&lt;br/&gt;a &lt;span style=&quot; font-weight:600;&quot;&gt;Fel/Le/Balra/Jobbra&lt;/span&gt; nyíl  billentyűkkel  kis lépésekben; nagyobb lépésekben, ha közben a &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; gombot nyomva tartjuk&lt;br/&gt;valamint fél képernyőnyi lépésekben a &lt;span style=&quot; font-weight:600;&quot;&gt;PageUp/PageDown&lt;/span&gt; billenytyűkkel.&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Bal szélre:&lt;/span&gt;  Home&lt;br /&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Jobb szélre:&lt;/span&gt;  End&lt;br /&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;A  dokumentum elejére:&lt;/span&gt;  Ctrl+Home&lt;br /&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;A dokumentum  végére:&lt;/span&gt;  Ctrl+End&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="385"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Recolor &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;0, 8, 9, H, V&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Rotate or flip &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;0 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection right by 90 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;8 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection by 180 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;9 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection left by 90 degrees&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;H &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip horizontal&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip vertical&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins, Ctrl+C&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Copy selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X, Shift+Del&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Cut selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Delete selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Draw a rectangle around the selected area leaving a small margin around the selected strokes. Press &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift+R &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;if you don&apos;t want the margin&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Draw an ellipse (or circle) inside the selected area.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Move&lt;/span&gt; selected drawings with holding down the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Left &lt;/span&gt; button, or move a copy by holding down &lt;span style=&quot; font-weight:600;&quot;&gt;Alt/Option&lt;/span&gt; and pressing and holding the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Left&lt;/span&gt; button or using the pen. &lt;br/&gt;Copy selection with &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt;), Cut selection with &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt; (&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt;) Paste by selecting an area at destination then use &lt;span style=&quot; font-weight:600;&quot;&gt;Ctr&lt;/span&gt;l+&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;V&lt;/span&gt;).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert vertical space from top of selected area (Moves all drawings down below the top of this selection)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Removes selected sstrokes or, when there are no strokes or images  inside the selection area, removes that space&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC &lt;/span&gt;Hide&lt;span style=&quot; font-style:italic;&quot;&gt; the selection&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 &lt;/span&gt;&lt;span style=&quot; font-style:italic; style=&quot; font-weight:600;&quot;&gt;Kijelölt vonalak&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;átszínezése&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;0, 8, 9, H, V&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Kijelölt vonalak elforgatása&lt;/span&gt;&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;0 &lt;/span&gt;Kijelölt vonalak jobbra forgatása 90&lt;sup&gt;o&lt;/sup&gt;-al&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;8 &lt;/span&gt;Kijelölt vonalak forgatása 180&lt;sup&gt;o&lt;/sup&gt;-al&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;9 &lt;/span&gt;Kijelöltek balra forgatása 90&lt;sup&gt;o&lt;/sup&gt;-al&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;H &lt;/span&gt;Tükrözés vízszintesen&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;Tükrözés függőlegesen&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins vagy  Ctrl+C&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Kijelölt vonalak vágólapra másolása &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X, Shift+Del&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Kijeölt vonalak kivágása &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Kijelölt vonalak törlése &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R billentyű&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Téglalap (négyzet) rajzolása a kijelölés határára. &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Ellipszis, vagy kör rajzolás a kijeölésbe.&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&lt;/p&gt;&lt;p&gt;Kijelölt vonalak és képek &lt;span style=&quot; font-style:italic;&quot;&gt;mozgatása&lt;/span&gt; a bal egérgombbal. Ha közben az &lt;span style=&quot; font-weight:600;&quot;&gt;Alt&lt;/span&gt; is be van nyomva akkor a kijelöltek egy másolatát mozgatja. &lt;br/&gt;Beillesztéshez jelölj ki egy kis területet, majd használd a &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;-t.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Függőleges terület beszúrása a kiválasztott teürlet tetejétől annak méretével&lt;/span&gt; (Minden ez alatt levő vonalat lejjebb mozgat)&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; A teljesen a kijelölt területen található vonalak, vagy egy üres terület törlése&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; Kijelölés megszüntetése.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="418"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection&lt;br/&gt;&lt;/span&gt;&lt;br/&gt;Press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;right mouse (pen) button&lt;/span&gt; or press and hold &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; /Command+ &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; and move the mouse (pen) around. Release the mouse or pen button when finished. &lt;/p&gt;&lt;p&gt;When you release the button the selection shrinks to enclose completely selected strokes (including or excluding eraser lines, depending on the initial manual selection!). If you don&apos;t want the selection to shrink (for instance making a rectangle around a region) press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Alt/Option&lt;/span&gt; on the keyboard before releasing the mouse or pen button.&lt;/p&gt;&lt;p&gt;To get not just a rectangular, but a square selection (for drawing squares or circles instead of rectangles or ellipses) press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift &lt;/span&gt; key during selection.&lt;/p&gt;&lt;p&gt;Area selection will select each and every strokes completely inside the selection area. If you want to select just some strokes, use the method described below.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To select a screenshot or pen strokes&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Press and hold &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;/&lt;span style=&quot; font-weight:600;&quot;&gt;Command &lt;/span&gt;and click on the screenshot image or on a pen stroke. The topmost screenshot or all strokes below the pen will be selected.&lt;br/&gt;More than one stroke can be selected if you hold down the both the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl/Command&lt;/span&gt; and a &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift&lt;/span&gt; key together and clicking an all strokes you want to select.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection during a screenshot (F4) key&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;Press and holdthe left mouse button while dragging the mouse. When the button is released the selected area will be copied into the dokument below the pen strokes and becomes selected, redy to move around with the mouse.&lt;/p&gt;&lt;p&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; to remove the selection or to return without a screen shot taken..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Terület kijelölése&lt;br/&gt;&lt;/span&gt;&lt;br/&gt;Nyomd be és tartsd nyomva a &lt;span style=&quot;font-weight:600; font-style:italic;&quot;&gt;a jobb egérgombot (vagy a toll gombját)&lt;/span&gt; illetve a &lt;span style=&quot; font-weight:600;font-style:italic;&quot;&gt;Ctrl/Command&lt;/span&gt;  gombot és &lt;span style=&quot; font-weight:600;font-style:italic;&quot;&gt; a bal egérgombot&lt;/span&gt; majd mozgasd az egeret (vagy a tollat). Engedd fel a gombot, vagy emeld fel a tollat a befejezéshez.&lt;/p&gt;&lt;p&gt;A gombot felengedésekor a kijelölt terület összezsugorodik a teljes egészében benne található tollvonásokra (amelyek tartalmazhatják, de a kezdeti kijelöléstől függően ki is zárhatják, a radírral húzott vonalakat!). Ez elkerülhető a &lt;span style=&quot;font-weight:600; font-style:italic;&quot;&gt;Alt/Option&lt;/span&gt; billentyű benyomásával a gomb felengedése előtt.&lt;p/&gt;&lt;p&gt;Négyzet alakú terület kijelöléséhez (négyzet, vagy kör rajzoládához) benyomva kell tartani a &lt;span style=&quot; font-weight:600;&quot;&gt;Shift&lt;/span&gt; gombot.&lt;/p&gt;&lt;p&gt;A terület kijelölése minden az adott területen belüli vonalat kijelöl. Ha csak bizonyos vonalakat akarunk kijelölni, azt a következő szakaszban leírtak szerint tehetünk meg.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Képernyőkép, vagy vonalak kijelölése&lt;/span&gt;&lt;/p&gt;&lt;p&gt;A Ctrl/Command gomb benyomása után kattintsunk a kijelölni kívánt képernyőképre, vagy tollvonásra. Ekkor a kattintás helye alatt található legfelső képernyőkép, vagy tollvonás lesz kijelölve. Több tollvonást is kijelölhetünk, ha a rákattintások során nyomva tartjuk valamelyik &lt;span style=&quot; font-weight:600;&quot;&gt;Shift&lt;/span&gt; billentyűt.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Képernyőfotó  kijelölése a dokumentumban&lt;/span&gt;&lt;br/&gt; A berakott képernyőfotók kijelöléséhez nyomd be a &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;/&lt;span style=&quot; font-weight:600;&quot;&gt;Command &lt;/span&gt;gombot és kattints a képre.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; Képernyő fotó  (F4) közben&lt;span style=&quot; font-weight:600;&quot;&gt; Tartsa lenyomva a bal egérgombot és mozgassa az egeret. Amikor a bal egérgombot felengedjük (vagy a tollat felemeljük) a kijelölt terület képként lesz a dokumentumba az ottani vonalak alá beilleszteve és ott kijelölve marad.&lt;/p&gt;&lt;p&gt;Nyomja meg az &lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; gombot a kijelölés megszüntetéséhez.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="468"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Drawing commands only work in the full program. In a Viewer these are not working!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;A rajz parancsok csak a program teljes változatában működnek, a Megjelenítő programban nem!&lt;/span&gt;&lt;/p&gt;</translation>
     </message>
     <message>
         <source>&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;The Eraser tool is just a fancy name for a pen whose color just hides every existing strokes behind it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;This means that when moving drawings around you must be careful to select not only the visible, but the invisible lines, that are hidden by the eraser, too,&lt;br/&gt;otherwise &amp;quot;erased&amp;quot; part of the penstrokes may become visible. This is s problem when printing too as empty pages will be printed when only eraser stroke sextend &lt;br/&gt;to them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;To help you deal with this problem press Ctrl/Command D to display eraser lines so you can check. Press Ctrl/Command+D again to hide them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If you &lt;span style=&quot; font-style:italic;&quot;&gt;Delete&lt;/span&gt; strokes, instead of using the eraser tool, however, no such problem may occur. (See tab &apos;Selection&apos;)&lt;br/&gt;&lt;/p&gt;</source>
@@ -920,7 +933,7 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="357"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Show this help&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 &lt;/span&gt;Select Pen color, &lt;span style=&quot; font-weight:600;&quot;&gt;E &lt;/span&gt;Select Eraser&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Brace keys &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;][&lt;/span&gt;) increase / decrease pen size&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; Clear whole document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N &lt;/span&gt;Create new document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O &lt;/span&gt;Open document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; Print document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4&lt;/span&gt; Take a snapshot of the screen behind FalconBoard&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Súgó&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 &lt;/span&gt;toll szín kiválasztása, &lt;span style=&quot; font-weight:600;&quot;&gt;E &lt;/span&gt;Radír kiválasztása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Szögletes zárójelek&lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;][&lt;/span&gt;) Toll méret növelése csökkentése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; Egész dokumentum kitörlése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N &lt;/span&gt;Új dokumentum létrehozása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O &lt;/span&gt;Dokumentum megnyitása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; Nyomtatás&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4&lt;/span&gt; Képernyő-tartomány fotó készítése&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="373"/>
@@ -1536,7 +1549,7 @@ Do you want to save your changes?</source>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="510"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="546"/>
         <source>Save Visi&amp;ble As...</source>
         <translation>&amp;Látható mentése más néven...</translation>
     </message>
@@ -1548,49 +1561,55 @@ Do you want to save your changes?</source>
         <source>FalconBoard - Save PDF As</source>
         <translation>FalconBoard - PDF elmentése más néven</translation>
     </message>
+    <message>
+        <location filename="../FalconBoard/common.h" line="54"/>
+        <source>Untitled</source>
+        <translation>Névtelen</translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../FalconBoard/common.h" line="117"/>
+        <location filename="../FalconBoard/common.h" line="149"/>
         <source>Blac&amp;k</source>
         <translation>&amp;Fekete</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="118"/>
         <source>&amp;White</source>
-        <translation>F&amp;ehér</translation>
+        <translation type="vanished">F&amp;ehér</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="123"/>
-        <location filename="../FalconBoard/common.h" line="124"/>
+        <location filename="../FalconBoard/common.h" line="150"/>
         <source>&amp;Red</source>
         <translation>&amp;Piros</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="129"/>
-        <location filename="../FalconBoard/common.h" line="130"/>
+        <location filename="../FalconBoard/common.h" line="151"/>
         <source>&amp;Green</source>
         <translation>&amp;Zöld</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="135"/>
-        <location filename="../FalconBoard/common.h" line="136"/>
+        <location filename="../FalconBoard/common.h" line="152"/>
         <source>&amp;Blue</source>
         <translation>&amp;Kék</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="141"/>
+        <location filename="../FalconBoard/common.h" line="153"/>
         <source>&amp;Purple</source>
         <translation>&amp;Bíbor</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="142"/>
+        <location filename="../FalconBoard/common.h" line="153"/>
         <source>&amp;Yellow</source>
         <translation>&amp;Sárga</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="1257"/>
+        <location filename="../FalconBoard/common.h" line="155"/>
+        <source>&amp;Eraser</source>
+        <translation>Ra&amp;dir</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/history.cpp" line="1295"/>
         <source>Nothing to save</source>
         <translation>Nincs mit elmenteni</translation>
     </message>

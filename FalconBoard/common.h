@@ -6,9 +6,10 @@
 #include <QIcon>
 #include <QColor>
 #include <QPainter>
+#include <QMainWindow>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
-const long nVersion = 0x00010108;       // program version
-const QString sVersion = "1.1.8";
+const long nVersion = 0x00010109;       // program version
+const QString sVersion = "1.1.9";
 const QString sWindowTitle =
 #ifdef _VIEWER
         "FalconBoard Viewer";
@@ -50,6 +51,7 @@ using ItemIndexVector = QVector<ItemIndex>;  // ordered by 'zorder'
 
 using IntVector = QVector<int>;
 
+const QString UNTITLED = QString(QMainWindow::tr("Untitled"));
 
 // ******************************************************
 //  KELL EZ???
@@ -88,6 +90,11 @@ public:
     void DrawLine(); // uses _brushColor
 };
 #endif
+
+inline bool IsUntitled(QString name)
+{
+    return name.isEmpty() || name.left(UNTITLED.length()) == UNTITLED;
+}
 
 // ******************************************************
 /*========================================================

@@ -22,7 +22,6 @@
 //class DrawArea;
 
 const int MAX_NUMBER_OF_TABS = 30;
-const QString UNTITLED = QString(QMainWindow::tr("Untitled"));
 
 enum ScreenMode { smSystem, smDark, smBlack };
 
@@ -228,7 +227,7 @@ private:
 
 	ScreenMode _screenMode = smSystem;
 
-	QString _lastDir, _lastPDFDir;
+	QString _lastDir, _lastPDFDir, _lastSaveName;
 	int _nGridSpacing = 64;
 
 	void RestoreState();
@@ -247,15 +246,6 @@ private:
 	{
 		bool bOverwritable = _drawArea->HistoryName().isEmpty() &&
 			!_drawArea->IsModified();
-#ifndef _VIEWER
-// do not ask for save if the current data is not modified
-		//if (!bOverwritable && !_SaveIfYouWant(true))
-		//	return;
-#else
-		//bool bOverwritable = (_drawArea->HistoryListSize() == 1) &&
-		//	_drawArea->HistoryName(UNTITLED).isEmpty() &&
-		//	!_drawArea->IsModified();
-#endif
 		return bOverwritable;
 	}
 	bool _LoadData(int index = -1);	// into the index-th history (-1: current)

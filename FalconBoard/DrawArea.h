@@ -34,20 +34,6 @@ using namespace std::chrono_literals;
 
 // ******************************************************
 
-class DHistory : public History
-{
-public:
-    QPoint topLeft;
-
-    DHistory() noexcept : History() {}
-    DHistory(const DHistory& o) : History(o), topLeft(o.topLeft) {}
-    DHistory(const DHistory&& o) noexcept : History(o), topLeft(o.topLeft) {};
-    ~DHistory() {}
-
-};
-
-using HistoryList = std::vector<DHistory*>;
-
 class DrawArea : public QWidget
 {       
     Q_OBJECT
@@ -220,7 +206,7 @@ private:
     void ChangePenColorByKeyboard(int key);
 #endif
 private:
-    DHistory *_history=nullptr;     // actual history (every scribble and image element with undo/redo)
+    History *_history=nullptr;     // actual history (every scribble and image element with undo/redo)
     HistoryList _historyList;       // many histories are possible
     int _currentHistoryIndex = -1,  // actual history index, -1: none
         _previousHistoryIndex = -1; // this was the current index before something happened
