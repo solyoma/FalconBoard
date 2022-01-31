@@ -182,7 +182,7 @@ class PenCursors
     QCursor _cursors[PEN_COUNT];
     bool    _wasSetup[PEN_COUNT] = { false };
 
-	QIcon ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB)
+	QIcon ColoredIcon(QIcon sourceIcon, QColor colorW, QColor colorB)
 	{
 		QPixmap pm, pmW, pmB;
 		pmW = pmB = pm = sourceIcon.pixmap(64, 64);

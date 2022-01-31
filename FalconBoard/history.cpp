@@ -1771,7 +1771,7 @@ int History::CollectItemsInside(QRect rect) // only
 	return _nSelectedItemsList.size();
 }
 
-int History::SelectTopmostImageFor(QPoint& p)
+int History::SelectTopmostImageFor(QPoint p)
 {
 	_nSelectedItemsList.clear();
 	_nSelectedItemsList.clear();

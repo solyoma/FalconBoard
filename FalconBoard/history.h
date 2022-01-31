@@ -651,7 +651,7 @@ public:
     void AddToSelection(int index=-1);
     QRect SelectScribblesFor(QPoint& p, bool addToPrevious);      // selects clicked (if any) into _nSelectedItemsList, and clears right and left items list
     int CollectItemsInside(QRect rect);
-    int SelectTopmostImageFor(QPoint& p);
+    int SelectTopmostImageFor(QPoint p);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
     void SetSelectionRect(QRect& rect)

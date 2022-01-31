@@ -766,19 +766,25 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
 
     degh += event->angleDelta().x();
     degv += event->angleDelta().y();
-    dy += event->pixelDelta().y();      // this did not do anything for me on Win10 64 bit
-    dy += event->pixelDelta().y();
+    dx += 2*event->pixelDelta().x();      // on Win10 64 bit with Wacom tablet from pen
+    dy += 2*event->pixelDelta().y();
 
-    if (!dy)
-        dy = degv / 8;      // 15 degree
-    if (!dx)
-        dx = degh / 8;      // 15 degree
+    int deg15h = degh / 8,
+        deg15v = degv / 8;
+    if (!deg15v && dy)
+        deg15v = dy;
+    if (!deg15h && dx)
+        deg15h = dx;
 
     const constexpr int tolerance = 3;
-    if ( dy > tolerance || dy < -tolerance || dx > tolerance || dx < -tolerance)
+    if( deg15h > tolerance || deg15h < -tolerance || deg15v > tolerance || deg15v < -tolerance)
+
     {
 
-        _ShiftAndDisplayBy(QPoint(dx, -dy)); // dy < 0 => move viewport down
+        // DEBUG
+        qDebug() << deg15h << ":" << deg15v;
+        // /DEBUG
+        _ShiftAndDisplayBy(QPoint(deg15h, -deg15v)); // dy < 0 => move viewport down
         degv = degh = 0;
         dx = dy = 0;
 
