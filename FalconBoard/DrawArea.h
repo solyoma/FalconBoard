@@ -46,6 +46,7 @@ public:
         for (auto ph : _historyList)
             delete ph;
         _historyList.clear();
+        delete _rubberBand;
     }
 
     void SetScreenSize(QSize screenSize);
@@ -285,7 +286,7 @@ private:
     QColor _gridColor = "#d0d0d0";          // for white system color scheme
     QColor _pageGuideColor = "#fcd475";     // - " - r 
 
-    QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either 0 or positive values
+    QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either (0,0) or positive x and/or y values
             _lastMove;  // value of last canvas move 
 
     const int SmallStep = 1,           // used ehen the shift is pressed with the arrow keys
@@ -305,14 +306,30 @@ private:
     QRect   _clippingRect;  // this too, only draw strokes inside this
 
 #ifndef _VIEWER
+    enum class _ScrollDirection {scrollNone, scrollUp, scrollDown, scrollLeft,scrollRight };
+    _ScrollDirection _scrollDir = _ScrollDirection::scrollNone;
+    QTimer* _pScrollTimer = nullptr;     // page scroll timer Set when there's a sprite and the 
+                                         // mouse position is near any edge and it is allowed
+                                         // to scroll in that direction
+    void _AddScrollTimer();
+    void _RemoveScrollTimer();
+    _ScrollDirection _AutoScrollDirection(QPoint pt);    // sets and returns _scrollDir
+
+
+private:
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
-    QPoint   _rubber_origin;
+    QPoint   _rubber_origin,            // no need for this, possibly
+             _topLeftWhenRubber;        // top left when the rubbar band was hidden
+                                        // used to re-show rubberband after a scroll
+                                        // or during move paper 
     QRect   _rubberRect;        // used to select histoy items
 
-    void  _RemoveRubberBand();
+    void _InitRubberBand( MyPointerEvent* event);
+    void  _HideRubberBand(bool del=false);
+    void _ReshowRubberBand();
+
     void _InitiateDrawingIngFromLastPos();   // from _lastPoint
     void _InitiateDrawing(MyPointerEvent* event);
-    void _InitRubberBand( MyPointerEvent* event);
 #endif
     void _ClearCanvas();
 
@@ -363,6 +380,8 @@ private:
     Sprite * _SpriteFromLists(); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible
     void _MoveSprite(QPoint pt);
     void _PasteSprite();
+private slots:
+    void _ScrollTimerSlot();
 #endif
 };
 

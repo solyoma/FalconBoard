@@ -68,7 +68,7 @@ void DrawArea::SetPrinterData(const MyPrinterData& prdata)
 void DrawArea::ClearRoll()
 {
 #ifndef _VIEWER
-    _RemoveRubberBand();
+    _HideRubberBand(true);
 #endif
     _history->AddClearRoll();
     _ClearCanvas();
@@ -77,7 +77,7 @@ void DrawArea::ClearRoll()
 void DrawArea::ClearVisibleScreen()
 {
 #ifndef _VIEWER
-    _RemoveRubberBand();
+    _HideRubberBand(true);
 #endif
     _history->AddClearVisibleScreen();
     _ClearCanvas();
@@ -86,7 +86,7 @@ void DrawArea::ClearVisibleScreen()
 void DrawArea::ClearDown()
 {
 #ifndef _VIEWER
-    _RemoveRubberBand();
+    _HideRubberBand(true);
 #endif
     _history->AddClearDown();
     _ClearCanvas();
@@ -179,7 +179,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
     if (index != _currentHistoryIndex)
     {
 #ifndef _VIEWER
-        _RemoveRubberBand();
+        _HideRubberBand(true);
 #endif
         if (index >= 0)     // store last viewport into previously shown history
         {
@@ -382,7 +382,7 @@ int DrawArea::IsModified(int fromIndex, bool any) const
 #ifndef _VIEWER
 void DrawArea::InsertVertSpace()
 {
-    _RemoveRubberBand();
+    _HideRubberBand(true);
     _history->AddInsertVertSpace(_rubberRect.y() + _topLeft.y(), _rubberRect.height());
     _Redraw();
 }
@@ -407,7 +407,7 @@ bool DrawArea::RecolorSelected(int key)
 
     FalconPenKind pk = PenKindFromKey(key);
     HistoryItem* phi = _history->AddRecolor(pk);
-//    _RemoveRubberBand();
+
     if (phi)
         _Redraw();
     return true;
@@ -489,7 +489,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 (key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
                 );
 
-        if (_rubberBand)    // delete rubberband for any keypress except pure modifiers
+        if (_rubberBand)    // delete rubberband for any keypress except pure modifiers  or space bar
         {
             bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
                  bCut    = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
@@ -497,7 +497,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                  bCopy   = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
                                         _mods.testFlag(Qt::ControlModifier),
                  bRemove = (bDelete | bCopy | bCut | bPaste) ||
-                           (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C),
+                           (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C 
+                               && key != Qt::Key_Space && key != Qt::Key_Up && key != Qt::Key_Down && key != Qt::Key_Left && key != Qt::Key_Right && key != Qt::Key_PageUp && key != Qt::Key_PageDown),
                  bCollected = false,
                  bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5),
 
@@ -520,14 +521,14 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
             if ((bCut || bDelete) && bCollected)
             {
                 _history->AddDeleteItems();
-                _RemoveRubberBand();
+                _HideRubberBand(true);
                 _Redraw();
             }
             else if (bDelete && !bCollected)     // delete empty area
             {
                 if (_history->AddRemoveSpaceItem(_rubberRect))     // there was something (not delete below the last item)
                 {
-                    _RemoveRubberBand();
+                    _HideRubberBand(true);
                     _Redraw();
                 }
             }
@@ -647,7 +648,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
                 }
             }
             else if (bRemove)
-                _RemoveRubberBand();
+                _HideRubberBand(true);
 
         }
         else    // no rubberBand
@@ -782,19 +783,17 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
     {
 
         // DEBUG
-        qDebug() << deg15h << ":" << deg15v;
+//        qDebug() << deg15h << ":" << deg15v;
         // /DEBUG
         _ShiftAndDisplayBy(QPoint(deg15h, -deg15v)); // dy < 0 => move viewport down
         degv = degh = 0;
         dx = dy = 0;
 
-#ifndef _VIEWER
-        if (_rubberBand)
-            _RemoveRubberBand();
-#endif
     }
     else
         event->ignore();
+
+    _ReshowRubberBand();
 }
 
 void DrawArea::mouseReleaseEvent(QMouseEvent* event)
@@ -871,6 +870,8 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
         (event->button == Qt::LeftButton && event->mods.testFlag(Qt::ControlModifier)))
     {
         _InitRubberBand(event);
+        _lastPointC = event->pos;
+
     }
     else
 #endif
@@ -900,12 +901,12 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
                         _history->AddDeleteItems(_pSprite);
                         _Redraw();
                     }
-//                    QApplication::processEvents();
+                    //                    QApplication::processEvents();
                 }
 
             }
 
-            _RemoveRubberBand();
+            _HideRubberBand(!_spaceBarDown);   // else move canavs with mouse, and move rubberband with it as well
         }
 
         if (event->mods.testFlag(Qt::ShiftModifier))    // will draw straight line from last position to actual position
@@ -922,6 +923,13 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 #endif
 }
 
+/*=============================================================
+ * TASK:    move event for mouse and tablet
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
 void DrawArea::MyMoveEvent(MyPointerEvent* event)
 {
 #ifndef _VIEWER
@@ -929,11 +937,40 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 #endif
     if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen))
         return;
-#ifndef _VIEWER
 
-    if (((event->buttons & Qt::RightButton) ||
-        ((event->buttons & Qt::LeftButton) && event->mods.testFlag(Qt::ControlModifier))) && _rubberBand)
+    constexpr const int REFRESH_LIMIT = 10;
+    static int counter=0; // only refresh screen when this is REFRESH_LIMIT
+                        // because tablet events frequency is large
+
+#ifndef _VIEWER
+    if (_rubberBand && _spaceBarDown && (event->buttons & Qt::LeftButton) )
     {
+        if (event->fromPen)
+        {
+            ++counter;
+            if (counter >= REFRESH_LIMIT)
+            {
+                counter = 0;
+                _Redraw();
+                _lastPointC = event->pos;
+            }
+        }
+        QPoint  dr = (event->pos - _lastPointC);   // displacement vector
+        if (!dr.manhattanLength())
+            return;
+        _ShiftOrigin(-dr);
+
+        if (!event->fromPen)    // else already redrawn
+        {
+            _Redraw();
+            _lastPointC = event->pos;
+        }
+
+        _ReshowRubberBand();
+    }
+    else if (_rubberBand && ((event->buttons & Qt::RightButton) ||
+        ((event->buttons & Qt::LeftButton) && event->mods.testFlag(Qt::ControlModifier))))
+    {         // modify existing rubber band using either the right button or Ctrl+left button
         QPoint epos = event->pos;
         if (event->mods.testFlag(Qt::ShiftModifier))        // constrain rubberband to a square
             epos.setX(_rubberBand->geometry().x() + (epos.y() - _rubberBand->geometry().y()));
@@ -946,14 +983,12 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 // /DEBUG
     }
     else
+        // no rubber band
 #endif
                 // mouse  or pen                                           pen
         if ( ((event->buttons & Qt::LeftButton) && _scribbling) || _pendown)
         {
             static QPoint lastpos;
-            static int counter; // only refresh screen when this is REFRESH_LIMIT
-                                // because tablet events frequency is large
-            const int REFRESH_LIMIT = 10;
             QPoint pos = event->pos;
             if (lastpos == pos)
                 return;
@@ -961,13 +996,23 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
                 lastpos = pos;
 
             QPoint  dr = (event->pos - _lastPointC);   // displacement vector
-            if (!dr.manhattanLength() )
+            if (!dr.manhattanLength()
+#ifndef _VIEWER
+                && (_AutoScrollDirection(event->pos) != _ScrollDirection::scrollNone)
+#endif
+                )
                 return;
 
 #ifndef _VIEWER
             if (_pSprite)     // move sprite
             {
-                _MoveSprite(dr);
+                if (_AutoScrollDirection(event->pos) == _ScrollDirection::scrollNone)
+                {
+                    _RemoveScrollTimer();
+                    _MoveSprite(dr);
+                }
+                else
+                    _AddScrollTimer();
                 _lastPointC = event->pos;
             }
             else
@@ -1003,6 +1048,8 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 
 void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 {
+    _RemoveScrollTimer();
+
     if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen) || (_allowMouse && _allowPen))
         return;
 
@@ -1078,7 +1125,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
             }
         }
         else
-            _RemoveRubberBand();
+            _HideRubberBand(true);
         event->accept();
     }
 #endif
@@ -1208,14 +1255,53 @@ void DrawArea::resizeEvent(QResizeEvent* event)
         _Redraw();
 }
 #ifndef _VIEWER
-void DrawArea::_RemoveRubberBand()
+/*=============================================================
+ * TASK:    removes rubber band by hiding it and optionally delete
+ *          it
+ * PARAMS:  del: (default: false) if set the rubber band is deleted
+ *           and set to null
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - when the rubberBand is hidden and not deleted, 
+ *              it can be reshown using _ReshowRubberBand()
+ *------------------------------------------------------------*/
+void DrawArea::_HideRubberBand(bool del)
 {
-    if (_rubberBand)
+    if (_rubberBand && _rubberBand->isVisible())
     {
+        _topLeftWhenRubber = _topLeft;
         _rubberBand->hide();
-        delete _rubberBand;
-        _rubberBand = nullptr;
+        if (del)
+        {
+            delete _rubberBand;
+            _rubberBand = nullptr;
+        }
         emit RubberBandSelection(false);
+    }
+}
+
+/*=============================================================
+ * TASK:    re show hidden rubberBand
+ * PARAMS:
+ * GLOBALS: _rubber_origin, _topLeftWhenRubber, _topLeft
+ * RETURNS:
+ * REMARKS: - only called if rubber Band was hidden
+ *          - top left of rubberBand is relative to area top left
+ *------------------------------------------------------------*/
+void DrawArea::_ReshowRubberBand()
+{
+    if (_rubberBand && !_rubberBand->isVisible())
+    {
+        QPoint pt = _topLeftWhenRubber - _topLeft;  //  <0: viewport moved down/righ canvas muved up/left
+        pt += _rubberBand->pos();                   // move rubber band
+        _rubberBand->move(pt);
+        _topLeftWhenRubber = _topLeft;
+        if ((_rubberBand->x() >= 0 || _rubberBand->x() + _rubberBand->width() < width()) &&
+            (_rubberBand->y() >= 0 || _rubberBand->y() + _rubberBand->height() < height()))
+        {
+            _rubberBand->show();
+        }
+
     }
 }
 
@@ -1262,6 +1348,126 @@ void DrawArea::_InitiateDrawing(MyPointerEvent* event)
     _InitiateDrawingIngFromLastPos();
 }
 
+
+/*=============================================================
+ * TASK:    Adds scroll timer and start timing
+ * PARAMS:
+ * GLOBALS: _pScrollTimer
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+void DrawArea::_AddScrollTimer()
+{
+    if (_pScrollTimer)  // already added
+        return;
+
+    _pScrollTimer = new QTimer(this);
+    connect(_pScrollTimer, &QTimer::timeout, this, &DrawArea::_ScrollTimerSlot);
+    _pScrollTimer->start(100ms);
+}
+
+/*=============================================================
+ * TASK:    remove scroll timer
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+void DrawArea::_RemoveScrollTimer()
+{
+    delete _pScrollTimer; 
+    _pScrollTimer = nullptr;
+}
+
+/*=============================================================
+ * TASK:    auto scrolls page in direction given by _scrollDir
+ * PARAMS: 
+ * GLOBALS: _scrollDir
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+void DrawArea::_ScrollTimerSlot()
+{
+    QPoint dr;
+    for (int i = 0; i < 4; ++i)
+    {
+        switch (_scrollDir)
+        {
+        case _ScrollDirection::scrollNone: return;
+
+        case _ScrollDirection::scrollUp:
+            dr = { 0, 5 };
+            break;
+        case _ScrollDirection::scrollDown:
+            dr = { 0, -5 };
+            break;
+        case _ScrollDirection::scrollLeft:
+            dr = { 5, 0 };
+            break;
+        case _ScrollDirection::scrollRight:
+            dr = { -5, 0 };
+            break;
+        }
+        _ShiftOrigin(dr);
+        _Redraw();
+        _lastPointC -= dr;
+    }
+//    qDebug("dr=%d:%d, _lastPointC=%d:%d", dr.x(),dr.y(), _lastPointC.x(), _lastPointC.y());
+}
+
+/*=============================================================
+ * TASK:    sets up scroll direction and timer if the position
+ *          is near to a widget edge when there is a sprite
+ * PARAMS:  pos: position
+ * GLOBALS: _pSprite, _limited, _screenWidth, _screenHeight
+ *          _pTimer, _topLeft,_limited
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+DrawArea::_ScrollDirection DrawArea::_AutoScrollDirection(QPoint pos)
+{
+    if (!_pSprite)
+    {
+        _RemoveScrollTimer();
+        return _scrollDir = _ScrollDirection::scrollNone;
+    }
+
+    constexpr const int limit = 10;  // pixel
+
+    _scrollDir = _ScrollDirection::scrollNone;
+
+    if (pos.y() < limit)
+        _scrollDir = _ScrollDirection::scrollDown;
+    else if(pos.y() > height() - limit)
+        _scrollDir = _ScrollDirection::scrollUp;
+    else if(pos.x() < limit && _topLeft.x() > 0)
+        _scrollDir = _ScrollDirection::scrollRight;
+    else if(pos.x() > width() - limit && (!_limited || (_limited && _topLeft.x() + width() < _screenWidth)) )
+        _scrollDir = _ScrollDirection::scrollLeft;
+    // DEBUG
+    //const char *s;
+    //switch (_scrollDir)
+    //{
+    //    case _ScrollDirection::scrollNone:
+    //        s = "--";
+    //        break;
+    //    case _ScrollDirection::scrollUp:
+    //        s = "Up";
+    //        break;
+    //    case _ScrollDirection::scrollDown:
+    //        s = "Down";
+    //        break;
+    //    case _ScrollDirection::scrollLeft:
+    //        s = "Left";
+    //        break;
+    //    case _ScrollDirection::scrollRight:
+    //        s = "Right";
+    //        break;
+    //}
+    //qDebug("dir:%s",s);
+    // /DEBUG
+    return _scrollDir;
+}
 
 /*========================================================
  * TASK:    Cretae rubber band and store uts parameter
@@ -1925,10 +2131,11 @@ void DrawArea::Undo()               // must draw again all underlying scribbles
 {
     if (_history->CanUndo())
     {
-        _RemoveRubberBand();
+        _HideRubberBand(true);
 
         HistoryItem* phi = _history->Undo();
-        _SetTopLeftFromItem(phi);
+        if(_history->CanUndo())
+            _SetTopLeftFromItem(phi);
 
         _ClearCanvas();
 
@@ -1947,7 +2154,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
     if (!phi)
         return;
 
-    _RemoveRubberBand();
+    _HideRubberBand(true);
 
     _SetTopLeftFromItem(phi);
 // ??    _clippingRect = phi->Area();
@@ -2000,10 +2207,10 @@ void DrawArea::SetPageGuidesOn(bool on)
 
 void DrawArea::_SetOrigin(QPoint o)
 {
-    _topLeft = o;
 #ifndef _VIEWER
-    _RemoveRubberBand();
+    _HideRubberBand();  // and store _topLeft into _topLeftWhenRubber
 #endif
+    _topLeft = o;
     _canvasRect.moveTo(_topLeft);
     _clippingRect = _canvasRect;
     _history->SetClippingRect(_canvasRect);
