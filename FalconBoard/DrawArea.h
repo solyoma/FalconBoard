@@ -46,7 +46,9 @@ public:
         for (auto ph : _historyList)
             delete ph;
         _historyList.clear();
+#ifndef _VIEWER
         delete _rubberBand;
+#endif
     }
 
     void SetScreenSize(QSize screenSize);

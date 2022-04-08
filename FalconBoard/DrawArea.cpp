@@ -792,8 +792,9 @@ void DrawArea::wheelEvent(QWheelEvent* event)   // scroll the screen
     }
     else
         event->ignore();
-
+#ifndef _VIEWER
     _ReshowRubberBand();
+#endif
 }
 
 void DrawArea::mouseReleaseEvent(QMouseEvent* event)
@@ -1048,7 +1049,9 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 
 void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 {
+#ifndef _VIEWER
     _RemoveScrollTimer();
+#endif
 
     if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen) || (_allowMouse && _allowPen))
         return;
