@@ -1854,7 +1854,10 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 //		if (y1 > y2) std::swap(y1, y2);
 
 		float d = 0;
-		if (x1 == x2)	// vertical line
+
+		if (x1 == x2 && y1 == y2)	// point
+			d = sqrt(qAbs(x0 - x1) * qAbs(x0 - x1) + qAbs(y0 - y1) * qAbs(y0 - y1));
+		else if (x1 == x2)	// vertical line
 		{
 			if (y1 > y0 || y0 > y2)
 				return false;
