@@ -2584,12 +2584,21 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
         painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
                             Qt::RoundJoin));
 
-        QPoint p0 = di.points[0];        // sprite relative coordinates
-        for (auto &p : di.points)
-        {
-            painter.drawLine(p0, p);
-            p0 = p;
-        }
+        QPoint p0 = di.points[0],        // sprite relative coordinates
+               p;
+
+        if(di.points.size()==1)
+           painter.drawPoint(p);
+        else
+            for (int i = 1; i < di.points.size(); ++i)
+            {
+                p = di.points[i];
+                if (p == p0)
+                    painter.drawPoint(p);
+                else
+                    painter.drawLine(p0, p);
+                p0 = p;
+            }
     }
     // create border to see the rectangle
     if (_erasemode && !_debugmode)
