@@ -19,7 +19,7 @@ using ItemIndexVector = QVector<ItemIndex>;  // ordered by 'zorder'
 * _screenHeight, each band contains indices of each
 * element which intersects that band, so one element may
 * appear on more than one band(currently 2)
-* a band may contain imagesand scribbles both
+* a band may contain both images and scribbles
 *
 * Band for any y coord is y / _bandHeight
 * ------------------------------------------------------ - */

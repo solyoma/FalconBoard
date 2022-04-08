@@ -2,7 +2,7 @@
 #include <QtGui>
 
 #include "common.h"
-#include "history.h"
+#include "history.h"  // includes bands.h !
 
 // ********************************** BANDS *************
 
@@ -80,11 +80,14 @@ void Bands::SetParam(History* pHist, int bandHeight)
  *				to see which bands it intersects
  * GLOBALS:
  * RETURNS:
- * REMARKS: -
+ * REMARKS: - if the item is not a drawable, does not add it
  *-------------------------------------------------------*/
 void Bands::Add(int index)
 {
 	HistoryItem* phi = (*_pHist)[index];
+	if (!phi->IsScribble() && !phi->IsImage() && phi->type != heEraser)
+		return;
+
 	int y = phi->Area().y(),			// top of new scribble
 		h = y + phi->Area().height();	// bottom of new scrible +1
 	int ib = -1;			// band index. -1: no item added yet

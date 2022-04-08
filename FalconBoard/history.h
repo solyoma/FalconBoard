@@ -105,7 +105,7 @@ inline QDataStream& operator<<(QDataStream& ofs, const ScribbleItem& di);
 inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di);
 
 struct TextItem {
-    QString _text;                  // so that a text(0 fucntion can be created
+    QString _text;                  // so that a text() fucntion can be created
     QPoint topLeft;                 // just left-to-right drawing
     QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle
                                     // not saved on disk, recreated on read
@@ -555,6 +555,7 @@ public:
     void SetTopLeft(QPoint& topLeft) { _topLeft = topLeft; }
 
     void SetBandHeight(int h) { _bands.SetParam(this, h); }
+    void RecreateBands();   // use when positions of many items change
     int RightMostInRect(QRect rect);
 
     void SetClippingRect(const QRect& rect) { _clpRect = rect;  }
@@ -638,7 +639,7 @@ public:
     HistoryItem* AddRotationItem(MyRotation rot);
     HistoryItem* AddRemoveSpaceItem(QRect &rect);
     // --------------------- drawing -----------------------------------
-    void TranslateAllItemsBelow(QPoint delta, int belowY);
+    void VertShiftItemsBelow(int belowY, int deltaY);
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void InserVertSpace(int y, int heightInPixels);
 

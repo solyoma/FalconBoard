@@ -544,7 +544,7 @@ int  HistoryRemoveSpaceItem::Redo()
 {
 	if (modifiedList.isEmpty())	 // vertical movement
 	{
-		pHist->TranslateAllItemsBelow(QPoint(0, -delta), y);	 // -delta < 0 move up
+		pHist->VertShiftItemsBelow(y, -delta);	 // -delta < 0 move up
 	}
 	else	// horizontal movement
 	{
@@ -566,7 +566,7 @@ int  HistoryRemoveSpaceItem::Undo()
 {
 	if (modifiedList.isEmpty())	 // vertical movement
 	{
-		pHist->TranslateAllItemsBelow(QPoint(0, delta), y - delta);	  //delte > 0 move down
+		pHist->VertShiftItemsBelow(y - delta, delta);	  //delta > 0 move down
 	}
 	else	// horizontal movement
 	{
@@ -1006,6 +1006,22 @@ History::History(const History&& o) noexcept
 History::~History()
 {
 	Clear();
+}
+
+/*=============================================================
+ * TASK:	recreate all bands when y coordinates of many points
+ *			change
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+void History::RecreateBands()
+{
+	_bands.Clear();
+	int i;
+	for (i = 0; i < _items.size()-1; ++i)
+		_bands.Add(i);
 }
 
 /*=============================================================
@@ -1617,13 +1633,15 @@ HistoryItem* History::AddRemoveSpaceItem(QRect& rect)
 
 //********************************************************************* History ***********************************
 
-void History::TranslateAllItemsBelow(QPoint dy, int thisY) // from 'first' item to _actItem if they are visible and  top is >= minY
+void History::VertShiftItemsBelow(int thisY, int dy) // using the y and z-index ordered index '_yOrder'
 {
 	auto it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), thisY, [&](int left, int right) { return _items[left]->Area().top() < thisY; });
 	int from = it - _yxOrder.begin();
 	for (; from < _yxOrder.size(); ++from)
-		_yitems(from)->Translate(dy, thisY);
+		_yitems(from)->Translate({ 0,dy }, thisY);
 	_modified = true;
+
+	RecreateBands();
 }
 
 void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
@@ -1634,8 +1652,7 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 
 void History::InserVertSpace(int y, int heightInPixels)
 {
-	QPoint dy = QPoint(0, heightInPixels);
-	TranslateAllItemsBelow(dy, y);
+	VertShiftItemsBelow(y, heightInPixels);
 }
 
 HistoryItem* History::Undo()      // returns top left after undo
