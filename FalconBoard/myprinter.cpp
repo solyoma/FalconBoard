@@ -412,7 +412,7 @@ bool MyPrinter::_PrintItem(Yindex yi)
         int pw = pscrbl->penWidth * _data.magn;
         bool erasemode = pscrbl->type == heEraser ? true : false;
 
-        QPoint  actP = pscrbl->points[0] - _actPage.screenArea.topLeft(),
+        QPoint actP = pscrbl->points[0] - _actPage.screenArea.topLeft(),
                 nextP = actP + QPoint(1.0, 1.0);
 
         _painter->setPen(QPen(drawColors[pk], pw, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
@@ -423,15 +423,12 @@ bool MyPrinter::_PrintItem(Yindex yi)
         _painter->setRenderHint(QPainter::Antialiasing);
 
         if(pscrbl->points.size() == 1)
-            _painter->drawPoint(actP * _data.magn);
+            _painter->drawLine(actP * _data.magn, actP * _data.magn);
         else
             for (int i = 1; i < pscrbl->points.size(); ++i)
+            {
                 nextP = pscrbl->points[i] - _actPage.screenArea.topLeft();
-            {   
-                if(actP == nextP)
-                    _painter->drawPoint(actP * _data.magn);
-                else
-                    _painter->drawLine(actP * _data.magn, nextP * _data.magn);
+                _painter->drawLine(actP * _data.magn, nextP * _data.magn);
                 actP = nextP;
             }
     }
