@@ -341,8 +341,8 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
 
     _pDlg = new QPrintDialog(_printer);
 
-    _pDlg->setPrintRange(QAbstractPrintDialog::Selection);
-    _pDlg->setPrintRange(QAbstractPrintDialog::CurrentPage);
+//    _pDlg->setPrintRange(QAbstractPrintDialog::Selection);
+//    _pDlg->setPrintRange(QAbstractPrintDialog::CurrentPage);
 
     if (_pDlg->exec())
     {
@@ -423,12 +423,15 @@ bool MyPrinter::_PrintItem(Yindex yi)
         _painter->setRenderHint(QPainter::Antialiasing);
 
         if(pscrbl->points.size() == 1)
-            _painter->drawLine(actP * _data.magn, actP * _data.magn);
+            _painter->drawPoint(actP * _data.magn);
         else
             for (int i = 1; i < pscrbl->points.size(); ++i)
             {
                 nextP = pscrbl->points[i] - _actPage.screenArea.topLeft();
-                _painter->drawLine(actP * _data.magn, nextP * _data.magn);
+                if(nextP == actP)
+                    _painter->drawPoint(nextP * _data.magn);
+                else
+                    _painter->drawLine(actP * _data.magn, nextP * _data.magn);
                 actP = nextP;
             }
     }

@@ -42,7 +42,8 @@ struct MyPrinterData
 
         // for PDF printing only
     QString fileName;
-    int pdfMarginLR, pdfMarginTB; // left-right and top bottom in pixels
+    int pdfMarginLR, 
+        pdfMarginTB; // left-right and top bottom in pixels
 };
 
 

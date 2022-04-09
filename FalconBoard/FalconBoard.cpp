@@ -21,6 +21,7 @@ void FalconBoard::_RemoveMenus()
     QList<QAction*> pMenuActions = ui.menuBar->actions();
     ui.menuBar->removeAction(pMenuActions[1] ); // edit
     ui.menuBar->removeAction(pMenuActions[2]);  // clear
+    ui.actionNew->setVisible(false);
     ui.actionSave->setVisible(false);
     ui.actionSaveAs->setVisible(false);
     ui.actionSaveVisible->setVisible(false);
