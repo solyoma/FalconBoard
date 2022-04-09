@@ -167,7 +167,6 @@ private:
 
 	bool _firstShown = false;	// main window was shown first
 
-	QString _homePath;
 	QStringList _translations;	// list of *.qm files in resources
 	int _actLanguage = -1;			// index in list of languages ordered by abbreviations 
 	QSignalMapper _languageMapper;

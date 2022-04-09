@@ -23,12 +23,15 @@ struct MyPrinterData
     QString* pdir = nullptr;         // points to either 'directory' or for PDF to caller
 
     int screenPageWidth = 1920;         // used to calculate pixel limits for pages
-    int screenPageHeight = 1920 * 3500 / 2480;
+    int screenPageHeight = 1920 * 3508 / 2480;  // for A4 (210mm x 297mm, 8.27 in x 11.7 in) with 300 dpi
     int dpi = 300;                  // printer resolution: dots / inch approx 118 dots/cm
+    int pdfMarginLR = 300,          // left-right and top bottom in pixels (1 in at 300 dpi
+        pdfMarginTB = 300; 
+
     float magn = 1.29166663;        // magnification factor for print: 1 print pixel = _magn screen pixel (for A4 and HD)
     QString printerName;            // last selected printer, usually the default one not saved between sessions
     QString docName;
-    QRect printArea = QRect(0, 0, 2480, 3500);    // get from printer:printable area in device pixels (dots): top left is usually not 0,0
+    QRect printArea = QRect(0, 0, 2480, 3508);    // get from printer:printable area in device pixels (dots): top left is usually not 0,0
     int flags;
     bool bExportPdf = false;
 
@@ -42,8 +45,6 @@ struct MyPrinterData
 
         // for PDF printing only
     QString fileName;
-    int pdfMarginLR, 
-        pdfMarginTB; // left-right and top bottom in pixels
 };
 
 
@@ -99,7 +100,7 @@ private:
     QPrinter* _printer = nullptr;
     MyPrinterData _data;
 
-    QVector<int> _selectedPages;            // to print e.g. 3,4,5,6
+    IntVector _selectedPages;            // to print e.g. 3,4,5,6
     QPrintDialog* _pDlg = nullptr;
 
 
@@ -113,7 +114,7 @@ private:
     void _PreparePage(int which);
     bool _PrintPage(int page, bool last);  // using _history last: no new page after this
     bool _Print(int from=1, int to=0x70000000);   // pages
-    bool _Print(QVector<int>& pages);             // list of pages
+    bool _Print(IntVector& pages);             // list of pages
     QPrintDialog* _DoPrintDialog();   // if 'Print' pressed recalculates page data () else returns nullptr
     int _PageForPoint(const QPoint p);
 

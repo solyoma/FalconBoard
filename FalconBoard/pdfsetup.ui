@@ -760,7 +760,7 @@
           <enum>QAbstractSpinBox::DefaultStepType</enum>
          </property>
          <property name="value">
-          <double>2.500000000000000</double>
+          <double>1.000000000000000</double>
          </property>
         </widget>
         <widget class="QLabel" name="label_9">
@@ -807,7 +807,7 @@
           <double>0.050000000000000</double>
          </property>
          <property name="value">
-          <double>2.500000000000000</double>
+          <double>1.000000000000000</double>
          </property>
         </widget>
         <widget class="QComboBox" name="cbPdfUnit">
@@ -824,6 +824,9 @@
            <width>0</width>
            <height>24</height>
           </size>
+         </property>
+         <property name="currentIndex">
+          <number>1</number>
          </property>
          <item>
           <property name="text">

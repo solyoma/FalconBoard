@@ -10,10 +10,10 @@ class PdfSetupDialog : public QDialog
 {
 	Q_OBJECT
 public:
-	int resolutionIndex;		// screen resolution in resolution combobox
+	int resolutionIndex;		// screen resolution in resolution combobox (pixels)
 	int horizPixels;			// horizontal pixel count
-	int screenDiagonal;			// from text in inch
-	int unitIndex;				// index of units (0: inch, 1: cm, 2: mm)
+	int screenDiagonal;			// from text in 'edtScreenDiag' in inches
+	int unitIndex;				// index of units for margins (0: inch, 1: cm, 2: mm)
 	int flags;					// ORed from PrinterFlags (common.h)
 				// for PDF
 	int pdfIndex;				// in page size combo box

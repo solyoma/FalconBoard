@@ -60,7 +60,7 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actP) : _actPrinterNam
 
 	ui.edtScreenDiag->setValidator(new QIntValidator(1, 200, this));
 
-	QSettings s("FalconBoard.ini", QSettings::IniFormat);
+	QSettings s = FBSettings::Open();
 	resolutionIndex = s.value("resi", 6).toInt();		// 1920 x 1080
 	horizPixels     = s.value("hpxs", 1920).toInt();
 	screenDiagonal	= s.value("sdiag", 24).toInt();		// inch
@@ -100,7 +100,7 @@ void PageSetupDialog::on_okButton_clicked()
 
 void PageSetupDialog::_SaveParams()
 {
-	QSettings s("FalconBoard.ini", QSettings::IniFormat);
+	QSettings s = FBSettings::Open();
 	s.setValue("resi", resolutionIndex);
 	s.setValue("hpxs", ui.sbHorizPixels->value());
 	s.setValue("sdiag", screenDiagonal);

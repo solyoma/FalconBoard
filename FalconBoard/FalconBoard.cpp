@@ -52,14 +52,9 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 {
 	ui.setupUi(this);
 
-    _homePath = QDir::homePath() +
-#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin) || defined(__linux__)
-        "/.falconBoard";
-#elif defined(Q_OS_WIN)
-    "/Appdata/Local/FalconBoard";
-#endif
-    if (!QDir(_homePath).exists())
-        QDir(_homePath).mkdir(_homePath);
+    FBSettings::Init();
+    if (!QDir(FBSettings::homePath).exists())
+        QDir(FBSettings::homePath).mkdir(FBSettings::homePath);
 
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
     _drawArea->SetPenKind(_actPen, _penWidth[_actPen-1]); 
@@ -125,15 +120,10 @@ void FalconBoard::RestoreState()
 {
     _drawArea->EnableRedraw(false);
 
-    QString qsSettingsName = _homePath +
-#ifdef _VIEWER
-        "/FalconBoardViewer.ini";
-#else
-        "/FalconBoard.ini";
-#endif
+    QString qsSettingsName = FBSettings::Name();
     bool bIniExisted = QFile::exists(qsSettingsName);
     QString qs;
-    QSettings s(qsSettingsName, QSettings::IniFormat);
+    QSettings s = FBSettings::Open();
     if (bIniExisted)
     {
 
@@ -268,13 +258,7 @@ void FalconBoard::RestoreState()
 void FalconBoard::SaveState()
 {
 
-	QSettings s(_homePath + 
-#ifdef _VIEWER
-        "/FalconBoardViewer.ini",
-#else
-        "/FalconBoard.ini",
-#endif
-        QSettings::IniFormat);
+    QSettings s = FBSettings::Open();
 
 	s.setValue("geometry", saveGeometry());
 	s.setValue("windowState", saveState());

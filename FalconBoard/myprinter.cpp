@@ -1,5 +1,6 @@
 #include <QApplication>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QFileDialog>
 #include <QPrinter>
 #include <QPrinterInfo>
@@ -129,7 +130,7 @@ MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
         _printer->setOutputFileName(_data.fileName);
         _printer->setOrientation((_data.flags & pfLandscape) ? QPrinter::Landscape : QPrinter::Portrait);
         _printer->setResolution(_data.dpi);
-        _printer->setPageMargins(QMarginsF(0,0,0,0));
+        _printer->setPageMargins(QMarginsF(_data.pdfMarginLR, _data.pdfMarginTB, _data.pdfMarginLR, _data.pdfMarginTB));
         _data.screenPageHeight = (int)((float)_data.printArea.height() / _data.magn);
 
         _CalcPages();
@@ -152,6 +153,18 @@ struct PageNum2
     bool operator!=(const PageNum2& o) { return (nx != o.nx || ny != o.ny); }
 };
 
+/*=============================================================
+ * Sorted Page Numbers - of 2D 'PageNum2' data
+ *  Because the width of a page is set from the screen width 
+ *  in pixels but the width of the area to print may be wider,
+ *  it is possible that the area requires more than one page 
+ *  to print this class returns pages in the correct order
+ *  example: screen width 1920 pixel, 'paper' width 3 screen width
+ *  then the first screen width of data is printed on page 1
+ *  until the page height is reached, then the second screenwidth
+ *  of data is on page 2, the 3rd on page 3 and the
+ *  next print height of data is started to print on page 4
+ *------------------------------------------------------------*/
 static struct SortedPageNumbers
 {
     QVector<PageNum2> pgns;
@@ -373,8 +386,8 @@ int MyPrinter::_PageForPoint(const QPoint p)
 }
 
 /*========================================================
- * TASK:
- * PARAMS:
+ * TASK:   Print either an image or a scribble
+ * PARAMS:  yi: y coord and z-order
  * GLOBALS:
  * RETURNS:
  * REMARKS: - item may start and/or end on an other page
@@ -515,12 +528,19 @@ bool MyPrinter::_PrintPage(int which, bool last)
     return true;
 }
 
-// this is the main print function. Frees resources afterwards
-bool MyPrinter::_Print(QVector<int>& pages)
+ 
+/*=============================================================
+ * TASK:    this is the main print function. Frees resources afterwards
+ * PARAMS:  pages: vector of pages to print
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+bool MyPrinter::_Print(IntVector& pages)
 {
     bool res = true;
-    for(int i=0; i < pages.size() && res; ++i)
-        res &= _PrintPage(i, i == pages.size()-1);
+	for (int i = 0; i < pages.size() && res; ++i)
+		res &= _PrintPage(i, i == pages.size() - 1);
     res &= _FreeResources();
 
     return res;
@@ -566,12 +586,10 @@ bool MyPrinter::Print()
         {
             int from = _printer->fromPage()-1;   
             int to =   _printer->toPage()-1;
-
-            return _Print(from, to);
         }
         else          // selection
         {
-            // ???
+            QMessageBox::warning(nullptr, QObject::tr("falconBoard - Warning"), QObject::tr("This option is not yet implemented"));
             _FreeResources();
             return true;
         }

@@ -114,16 +114,20 @@ PdfSetupDialog::PdfSetupDialog(QWidget* parent) : QDialog(parent)
 
 	ui.edtScreenDiag->setValidator(new QIntValidator(1, 200, this));
 
-	QSettings s("FalconBoard.ini", QSettings::IniFormat);
+	QSettings s = FBSettings::Open();
 	resolutionIndex = s.value("resi", 6).toInt();		// 1920 x 1080
+	ui.cbScreenResolution->setCurrentIndex(resolutionIndex);
+
 	horizPixels     = s.value("hpxs", 1920).toInt();
+
 	screenDiagonal	= s.value("sdiag", 24).toInt();		// inch
+	ui.edtScreenDiag->setText(QString().setNum(screenDiagonal)) ;
+
 	unitIndex		= s.value("uf", 0).toInt();			// index to determines the multipl. factor for number in edScreenDiag number to inch
+	ui.cbUnit->setCurrentIndex(unitIndex);
+
 	flags			= s.value("pflags", 0).toInt();		// ORed PrinterFlags
 
-	ui.cbScreenResolution->setCurrentIndex(resolutionIndex);
-	ui.edtScreenDiag->setText(QString().setNum(screenDiagonal)) ;
-	ui.cbUnit->setCurrentIndex(unitIndex);
 	ui.cbOrientation->setCurrentIndex(flags & pfLandscape ? 1 : 0);
 	ui.chkWhiteBackground->setChecked(flags & pfWhiteBackground);
 	ui.chkGrayscale->setChecked(flags & pfGrayscale);
@@ -131,8 +135,8 @@ PdfSetupDialog::PdfSetupDialog(QWidget* parent) : QDialog(parent)
 	ui.chkGrid->setChecked(flags & pfGrid);
 	ui.chkDontPrintImages->setChecked(flags & pfDontPrintImages);
 	// for PDF
-	pdfIndex = s.value("pdfpgs", 3).toInt();			// index in paper size combo box (default: A$)
-	pdfWidth  = pageSizes[pdfIndex].w;
+	pdfIndex = s.value("pdfpgs", 3).toInt();			// index in paper size combo box (default: A4)
+	pdfWidth  = pageSizes[pdfIndex].w;					// w.o. margins in inches
 	pdfHeight = pageSizes[pdfIndex].h;
 	pdfMarginLR = s.value("pdfmlr", 1.0).toFloat();		// left - right	in inches
 	pdfMarginTB = s.value("pdfmtb", 1.0).toFloat();		// top - bottom	in inches
@@ -140,7 +144,7 @@ PdfSetupDialog::PdfSetupDialog(QWidget* parent) : QDialog(parent)
 	pdfMaxLR = pageSizes[pdfIndex].w / 3.0;				// always stored in inches
 	pdfMaxTB = pageSizes[pdfIndex].h / 3.0;				// always stored in inches
 
-	pdfUnitIndex = s.value("pdfui", 0).toInt();			// 0: cm, 1: inch
+	pdfUnitIndex = s.value("pdfui", 0).toInt();			// 0: inch, 1: cm
 	pdfDpi = s.value("pdfdpi", 2).toInt();				// index: 0: 300, 1: 600, 2: 1200 dpi
 
 	float fact = pdfUnitIndex ? 1.0 : 2.54;
@@ -164,7 +168,7 @@ PdfSetupDialog::PdfSetupDialog(QWidget* parent) : QDialog(parent)
 
 void PdfSetupDialog::_SaveParams()
 {
-	QSettings s("FalconBoard.ini", QSettings::IniFormat);
+	QSettings s = FBSettings::Open();
 	s.setValue("resi", ui.cbScreenResolution->currentIndex());
 	s.setValue("hpxs", ui.sbHorizPixels->value());
 	s.setValue("sdiag", ui.edtScreenDiag->text());

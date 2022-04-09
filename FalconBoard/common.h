@@ -246,5 +246,33 @@ public:
 };
 extern PenCursors penCursors;       // in drawarea.cpp
 
+struct FBSettings
+{
+    static QString homePath;       // path for user's home directory
+    static void Init()             // set home path for falconBoard
+    {
+        homePath = QDir::homePath() +
+#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin) || defined(__linux__)
+            "/.falconBoard";
+#elif defined(Q_OS_WIN)
+            "/Appdata/Local/FalconBoard";
+#endif
+    }
+    static QString Name()
+    {
+        return homePath +
+#ifdef _VIEWER
+            "/FalconBoardViewer.ini";
+#else
+            "/FalconBoard.ini";
+#endif        
+    }
+
+    static QSettings Open()
+    {
+        return QSettings(Name(), QSettings::IniFormat);
+    }
+
+};
 
 #endif // _COMMON_H
