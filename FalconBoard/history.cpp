@@ -1059,7 +1059,7 @@ int History::RightMostInRect(QRect rect)
  * REMARKS: - y increases downwards
  *-------------------------------------------------------*/
 int History::_YIndexForXY(QPoint xy)
-{				// get first element, which is above or at xy.y
+{				// get first element, which is below (y increases downwards!) or at xy.y
 	IntVector::iterator it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), 0,     // 0: in place of 'right' - not used
 		[&](const int left, const int right)	   // left: _yorder[xxx], returns true if above or left
 		{
