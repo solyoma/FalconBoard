@@ -734,7 +734,6 @@ HistoryReColorItem::HistoryReColorItem(History* pHist, ItemIndexVector& selected
 		boundingRectangle = boundingRectangle.united((*pHist)[i.index]->Area());
 		n += (*pHist)[i.index]->Size();
 	}
-	penKindList.resize(n);
 	Redo();		// get original colors and set new color tp pk
 }
 
@@ -769,12 +768,14 @@ HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem&& oth
 }
 int  HistoryReColorItem::Undo()
 {
+	int iact = 0;
 	for (auto i : selectedList)
 	{
 		int index = 0;
 		ScribbleItem* pdri;
-		while ((pdri = (*pHist)[i.index]->GetVisibleScribble(index)))
-			pdri->penKind = penKindList[index++];
+		HistoryItem* phi = (*pHist)[i.index];
+		while ((pdri = phi->GetVisibleScribble(index++)))
+			pdri->penKind = penKindList[iact++];
 	}
 	return 1;
 }
@@ -784,9 +785,10 @@ int  HistoryReColorItem::Redo()
 	{
 		int index = 0;
 		ScribbleItem* pdri;
-		while ((pdri = (*pHist)[i.index]->GetVisibleScribble(index)))
+		HistoryItem* phi = (*pHist)[i.index];
+		while ((pdri = phi->GetVisibleScribble(index++)))
 		{
-			penKindList[index++] = pdri->penKind;
+			penKindList.push_back(pdri->penKind);
 			pdri->penKind = pk;
 		}
 	}
@@ -1091,7 +1093,7 @@ int History::_YIndexForXY(QPoint xy)
  //	if (i0 >= _yxOrder.size())
  //		return -1;
  //
- //	HistoryItem	*pb = _yitems(i0), 	// pointers before and after selected
+ //	HistoryItem	*pb = _YItems(i0), 	// pointers before and after selected
  //				*pa = pb;			// starting from the same actual selected
  //
  //	if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect))
@@ -1100,8 +1102,8 @@ int History::_YIndexForXY(QPoint xy)
  //	int inc = 1;									// should test all elements above the i-th one but only do it for max 100
  //	while (inc < 100 && (i0-inc >= 0 || ia < 0))
  //	{
- //		pb = i0 - inc >= 0 ? _yitems(i0 - inc) : nullptr;
- //		pa = ia < 0 && (i0 + inc  < _yxOrder.size()) ? _yitems(i0 + inc) : nullptr;
+ //		pb = i0 - inc >= 0 ? _YItems(i0 - inc) : nullptr;
+ //		pa = ia < 0 && (i0 + inc  < _yxOrder.size()) ? _YItems(i0 + inc) : nullptr;
  //		if ( pb && !pb->Hidden() && pb->Area().intersects(_clpRect)) 
  //			ib = i0 - inc;
  //		else if (pa && !pa->Hidden() && pa->Area().intersects(_clpRect)) // only check those that come after if not found already in before 
@@ -1185,7 +1187,7 @@ QPoint History::BottomRightVisible(QSize screenSize) const
 	{
 		int ix = _yxOrder.size() - 1;
 		HistoryItem* phi;
-		while (ix >= 0 && (phi = _yitems(ix))->Hidden())
+		while (ix >= 0 && (phi = _YItems(ix))->Hidden())
 			--ix;
 		if (ix >= 0)
 		{
@@ -1638,7 +1640,7 @@ void History::VertShiftItemsBelow(int thisY, int dy) // using the y and z-index 
 	auto it = std::lower_bound(_yxOrder.begin(), _yxOrder.end(), thisY, [&](int left, int right) { return _items[left]->Area().top() < thisY; });
 	int from = it - _yxOrder.begin();
 	for (; from < _yxOrder.size(); ++from)
-		_yitems(from)->Translate({ 0,dy }, thisY);
+		_YItems(from)->Translate({ 0,dy }, thisY);
 	_modified = true;
 
 	RecreateBands();

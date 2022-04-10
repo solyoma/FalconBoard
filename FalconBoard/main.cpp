@@ -1,6 +1,7 @@
 #include <QString>
 #include <QStringList>
 #include <QtWidgets/QApplication>
+#include "common.h"
 #include "FalconBoard.h"
 
 int main(int argc, char *argv[])
@@ -9,29 +10,18 @@ int main(int argc, char *argv[])
 	a.setWindowIcon(QIcon(":/FalconBoard/Resources/falconboard.png"));
 
 	FalconBoard::screenSize = a.screens()[0]->size();
-
-	QString homePath = QDir::homePath() +
-#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin) || defined (__linux__)
-		"/.falconBoard";
-#elif defined(Q_OS_WIN)
-		"/Appdata/Local/FalconBoard";
-#endif
-
+	FBSettings::Init();
 	// after a new translation is added add Language names into
 	//  FalconBoard::_PopulateLanguageMenu()
 
 	QStringList fileNames = GetTranslations();	// sorted list of language string like "hu_HU"
 	
 	QTranslator translator;
-	QSettings *s = new QSettings(homePath + 
-#ifdef _VIEWER
-		"/FalconBoardViewer.ini",
-#else
-		"/FalconBoard.ini", 
-#endif
-		QSettings::IniFormat);
+
+	QSettings *s = FBSettings::Open();
 	int ixLang = s->value("lang", -1).toInt();
-	delete s;  
+	FBSettings::Close();
+
 	QString qs, qsn;
 	qs = QLocale::system().name();
 	if (ixLang < 0)

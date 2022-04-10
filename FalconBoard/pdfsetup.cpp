@@ -107,26 +107,32 @@ int PdfSetupDialog::GetScreenSize(QSize& size)
 	return _GetScreenSize(resolutionIndex, size);
 }
 
+/*======== conversion ========*/
+auto getUnit(int ix) { PdfSetupDialog::UnitIndex ui[] = { PdfSetupDialog::uiInch,PdfSetupDialog::uiCm, PdfSetupDialog::uiMm }; return ui[ix]; };
+auto unitToIndex(PdfSetupDialog::UnitIndex ui) { return ui == PdfSetupDialog::uiInch ? 0 : ui == PdfSetupDialog::uiCm ? 1 : 2; };
+
+
 PdfSetupDialog::PdfSetupDialog(QWidget* parent) : QDialog(parent)
 {
+
 	ui.setupUi(this);
 	_busy = true;
 
 	ui.edtScreenDiag->setValidator(new QIntValidator(1, 200, this));
 
-	QSettings s = FBSettings::Open();
-	resolutionIndex = s.value("resi", 6).toInt();		// 1920 x 1080
+	QSettings *s = FBSettings::Open();
+	resolutionIndex = s->value("resi", 6).toInt();		// 1920 x 1080
 	ui.cbScreenResolution->setCurrentIndex(resolutionIndex);
 
-	horizPixels     = s.value("hpxs", 1920).toInt();
+	horizPixels     = s->value("hpxs", 1920).toInt();
 
-	screenDiagonal	= s.value("sdiag", 24).toInt();		// inch
+	screenDiagonal	= s->value("sdiag", 24).toInt();		// inch
 	ui.edtScreenDiag->setText(QString().setNum(screenDiagonal)) ;
 
-	unitIndex		= s.value("uf", 0).toInt();			// index to determines the multipl. factor for number in edScreenDiag number to inch
+	unitIndex		= getUnit(s->value("uf", 0).toInt());			// index to determines the multipl. factor for number in edScreenDiag number to inch
 	ui.cbUnit->setCurrentIndex(unitIndex);
 
-	flags			= s.value("pflags", 0).toInt();		// ORed PrinterFlags
+	flags			= s->value("pflags", 0).toInt();		// ORed PrinterFlags
 
 	ui.cbOrientation->setCurrentIndex(flags & pfLandscape ? 1 : 0);
 	ui.chkWhiteBackground->setChecked(flags & pfWhiteBackground);
@@ -135,25 +141,33 @@ PdfSetupDialog::PdfSetupDialog(QWidget* parent) : QDialog(parent)
 	ui.chkGrid->setChecked(flags & pfGrid);
 	ui.chkDontPrintImages->setChecked(flags & pfDontPrintImages);
 	// for PDF
-	pdfIndex = s.value("pdfpgs", 3).toInt();			// index in paper size combo box (default: A4)
+	pdfIndex = s->value("pdfpgs", 3).toInt();			// index in paper size combo box (default: A4)
+
 	pdfWidth  = pageSizes[pdfIndex].w;					// w.o. margins in inches
 	pdfHeight = pageSizes[pdfIndex].h;
-	pdfMarginLR = s.value("pdfmlr", 1.0).toFloat();		// left - right	in inches
-	pdfMarginTB = s.value("pdfmtb", 1.0).toFloat();		// top - bottom	in inches
 
 	pdfMaxLR = pageSizes[pdfIndex].w / 3.0;				// always stored in inches
 	pdfMaxTB = pageSizes[pdfIndex].h / 3.0;				// always stored in inches
 
-	pdfUnitIndex = s.value("pdfui", 0).toInt();			// 0: inch, 1: cm
-	pdfDpi = s.value("pdfdpi", 2).toInt();				// index: 0: 300, 1: 600, 2: 1200 dpi
+	pdfDpi = s->value("pdfdpi", 2).toInt();				// index: 0: 300, 1: 600, 2: 1200 dpi
+	pdfUnitIndex = getUnit(s->value("pdfui", 0).toInt() );
 
-	float fact = pdfUnitIndex ? 1.0 : 2.54;
-	ui.sbMarginLR->setMaximum(pdfMaxLR*fact);	
-	ui.sbMarginTB->setMaximum(pdfMaxTB*fact);
-	ui.sbMarginLR->setValue(pdfMarginLR*fact);	
-	ui.sbMarginTB->setValue(pdfMarginTB*fact);
+	float fact = pdfUnitIndex == uiInch ? 1.0 : 2.54;				// to convert cm-s to inches
+
+	printMarginLR = s->value("pdfmlr", 1.0).toFloat();	// left - right	in inches
+	ui.sbMarginLR->setMaximum(pdfMaxLR*fact);			// this may be in inches or cm
+	ui.sbMarginLR->setValue(printMarginLR*fact);	
+
+	printMarginTB = s->value("pdfmtb", 1.0).toFloat();	// top - bottom	in inches
+	ui.sbMarginTB->setMaximum(pdfMaxTB*fact);			// this may be in inches or cm
+	ui.sbMarginTB->setValue(printMarginTB*fact);
+
+	gutterMargin = s->value("pdfgut", 1.0).toFloat();	// gutter in inches
+	ui.sbGutterMargin->setMaximum(pdfMaxTB * fact);		// this may be in inches or cm
+	ui.sbGutterMargin->setValue(gutterMargin * fact);
+
 	ui.cbPdfPaperSize->setCurrentIndex(pdfIndex);
-	ui.cbPdfUnit->setCurrentIndex(pdfUnitIndex);
+	ui.cbPdfUnit->setCurrentIndex(unitToIndex(pdfUnitIndex) );
 
 	switch (pdfDpi)
 	{
@@ -168,17 +182,17 @@ PdfSetupDialog::PdfSetupDialog(QWidget* parent) : QDialog(parent)
 
 void PdfSetupDialog::_SaveParams()
 {
-	QSettings s = FBSettings::Open();
-	s.setValue("resi", ui.cbScreenResolution->currentIndex());
-	s.setValue("hpxs", ui.sbHorizPixels->value());
-	s.setValue("sdiag", ui.edtScreenDiag->text());
-	s.setValue("pflags", flags);
+	QSettings *s = FBSettings::Open();
+	s->setValue("resi", ui.cbScreenResolution->currentIndex());
+	s->setValue("hpxs", ui.sbHorizPixels->value());
+	s->setValue("sdiag", ui.edtScreenDiag->text());
+	s->setValue("pflags", flags);
 	// for PDF
-	s.setValue("pdfpgs", pdfIndex);
-	s.setValue("pdfmlr", pdfMarginLR);
-	s.setValue("pdfmtb", pdfMarginTB);
-	s.setValue("pdfui" , pdfUnitIndex);
-	s.setValue("pdfdpi", pdfDpi);
+	s->setValue("pdfpgs", pdfIndex);
+	s->setValue("pdfmlr", printMarginLR);
+	s->setValue("pdfmtb", printMarginTB);
+	s->setValue("pdfui" , unitToIndex(pdfUnitIndex));
+	s->setValue("pdfdpi", pdfDpi);
 }
 
 PdfSetupDialog::~PdfSetupDialog()
@@ -217,7 +231,7 @@ void PdfSetupDialog::on_sbHorizPixels_valueChanged(int val)
 
 
 void PdfSetupDialog::on_edtScreenDiag_textChanged(QString& txt) { screenDiagonal = txt.toInt(); }
-void PdfSetupDialog::on_cbUnit_currentIndexChanged(int i) { unitIndex = i; }
+void PdfSetupDialog::on_cbUnit_currentIndexChanged(int i) { unitIndex = getUnit(i); }
 void PdfSetupDialog::on_cbOrientation_currentIndexChanged(int landscape) 
 { 
 	flags &= ~pfLandscape; 
@@ -297,24 +311,24 @@ void PdfSetupDialog::_ChangePdfPaperSize()
 	if (_busy)
 		return;
 
-	double factM = pdfUnitIndex ? 1.0 : 2.54;	// if 0: numbers are in cm, if 1 in inches
+	double factM = pdfUnitIndex == uiInch ? 1.0 : 2.54;	// if 0: numbers are in cm, if 1 in inches
 	if (pdfIndex >= 0)
 	{
 		pdfWidth  = pageSizes[pdfIndex].w;
 		pdfHeight = pageSizes[pdfIndex].h;
 		pdfMaxLR  = pdfWidth  / 3.0;
 		pdfMaxTB  = pdfHeight / 3.0;
-		if (pdfMarginLR > pdfMaxLR)
+		if (printMarginLR > pdfMaxLR)
 		{
-			pdfMarginLR = pdfMaxLR;
+			printMarginLR = pdfMaxLR;
 			_busy = true;
 			ui.sbMarginLR->setValue(pdfMaxLR * factM);
 			_busy = false;
 
 		}
-		if (pdfMarginTB > pdfMaxTB)
+		if (printMarginTB > pdfMaxTB)
 		{
-			pdfMarginTB = pdfMaxTB;
+			printMarginTB = pdfMaxTB;
 			_busy = true;
 			ui.sbMarginTB->setValue(pdfMaxTB * factM);
 			_busy = false;
@@ -324,16 +338,16 @@ void PdfSetupDialog::_ChangePdfPaperSize()
 		ui.sbMarginTB->setMaximum( pdfMaxTB * factM );
 	}
 }
-void PdfSetupDialog::_ChangePdfMarginsUnit()
+void PdfSetupDialog::_ChangeprintMarginsUnit()
 {
 	if (_busy)
 		return;
 	// unit change does not change the stored values
-	double factM = pdfUnitIndex ? 1.0 : 2.54;
+	double factM = pdfUnitIndex == uiInch ? 2.54 : 1;
 	ui.sbMarginLR->setMaximum( pdfMaxLR * factM );
 	ui.sbMarginTB->setMaximum( pdfMaxTB * factM );
-	ui.sbMarginLR->setValue( pdfMarginLR * factM );
-	ui.sbMarginTB->setValue( pdfMarginTB * factM );
+	ui.sbMarginLR->setValue( printMarginLR * factM );
+	ui.sbMarginTB->setValue( printMarginTB * factM );
 }
 
 
@@ -341,20 +355,27 @@ void PdfSetupDialog::on_cbPdfUnit_currentIndexChanged(int i)
 {
 	if (_busy)
 		return;
-	pdfUnitIndex = i;
-	_ChangePdfMarginsUnit();
+	pdfUnitIndex = getUnit(i);
+	_ChangeprintMarginsUnit();
 }
 
 void PdfSetupDialog::on_sbMarginLR_valueChanged(double val)
 {
-	if (!pdfUnitIndex)	// cm
+	if (pdfUnitIndex == uiCm)
 		val /= 2.54;
-	pdfMarginLR = val;	// always in inches
+	printMarginLR = val;	// always in inches
 }
 
 void PdfSetupDialog::on_sbMarginTB_valueChanged(double val)
 {
-	if (!pdfUnitIndex)	// cm
+	if (pdfUnitIndex == uiCm)
 		val /= 2.54;
-	pdfMarginTB = val;	// always in inches
+	printMarginTB = val;	// always in inches
+}
+
+void PdfSetupDialog::on_sbGutterMargin_valueChanged(double val)
+{
+	if (pdfUnitIndex == uiCm)
+		val /= 2.54;
+	gutterMargin = val;		// always in inches
 }

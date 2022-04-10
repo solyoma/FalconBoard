@@ -7,6 +7,8 @@
 #include <QColor>
 #include <QPainter>
 #include <QMainWindow>
+#include <QDir>
+#include <QSettings>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
 const long nVersion = 0x00010109;       // program version
 const QString sVersion = "1.1.9";
@@ -246,6 +248,10 @@ public:
 };
 extern PenCursors penCursors;       // in drawarea.cpp
 
+/*=============================================================
+ * TASK:    centralized settings handler
+ *      static members are initialized in FalconBoard.cpp!
+ *------------------------------------------------------------*/
 struct FBSettings
 {
     static QString homePath;       // path for user's home directory
@@ -268,10 +274,14 @@ struct FBSettings
 #endif        
     }
 
-    static QSettings Open()
+    static QSettings *Open()
     {
-        return QSettings(Name(), QSettings::IniFormat);
+        return _ps = new QSettings(Name(), QSettings::IniFormat);
     }
+    static void Close() { delete _ps; }
+
+private:
+    static QSettings* _ps;
 
 };
 

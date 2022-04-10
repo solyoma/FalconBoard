@@ -340,7 +340,7 @@ struct HistoryPasteItemTop : HistoryItem
 //--------------------------------------------
 struct HistoryReColorItem : HistoryItem
 {
-    ItemIndexVector selectedList;                 // indexes  to elements in '*pHist'
+    ItemIndexVector selectedList;               // indexes  to elements in '*pHist'
     QVector<FalconPenKind> penKindList;         // colors for elements in selectedList
     FalconPenKind pk;                           
     QRect boundingRectangle;            // to scroll here when undo/redo
@@ -478,7 +478,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     Bands _bands;                       // used to cathegorize visible _items
     int _readCount = 0;                 // undo works until this index is reached
                                         // unscribble items have no indices in here
-    friend class _yitems;
+    friend class _YItems;
     QRect _clpRect;                     // clipping rectangle for selecting points to draw
                                         // before searching operations set this when it is changed
     QStack<QRect> _savedClps;           // clipRect saves
@@ -530,7 +530,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _YIndexForIndex(int index);
     void _push_back(HistoryItem* pi);
 
-    HistoryItem* _yitems(int yindex) const
+    HistoryItem* _YItems(int yindex) const
     { 
         if(yindex < 0 || yindex >= _yxOrder.size() )
             return nullptr;
@@ -618,7 +618,7 @@ public:
     HistoryItem* operator[](int index) const { return _items[index]; }  // index: physical index in _items
     HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder - only scribbles
     {
-        return _yitems(yindex);
+        return _YItems(yindex);
     }
     int IndexForYIndex(int yix);
     void ReplaceItem(int index, HistoryItem* pi);     // index: in '_items'

@@ -10,22 +10,26 @@ class PdfSetupDialog : public QDialog
 {
 	Q_OBJECT
 public:
+	enum UnitIndex { uiInch, uiCm, uiMm };
+public:
 	int resolutionIndex;		// screen resolution in resolution combobox (pixels)
 	int horizPixels;			// horizontal pixel count
 	int screenDiagonal;			// from text in 'edtScreenDiag' in inches
-	int unitIndex;				// index of units for margins (0: inch, 1: cm, 2: mm)
+	UnitIndex unitIndex;		// index of units for margins (in ini file 0: inch, 1: cm, 2: mm)
 	int flags;					// ORed from PrinterFlags (common.h)
 				// for PDF
 	int pdfIndex;				// in page size combo box
 	double pdfWidth, pdfHeight,	// page size in inches
-		pdfMarginLR,			// left and right in inches
-		pdfMarginTB,			// top and bottom -"-
+		printMarginLR,			// left and right in inches
+		printMarginTB,			// top and bottom -"-
+		gutterMargin,			// left on odd, right on even pages
 		pdfMaxLR,				// these 2 are not saved
 		pdfMaxTB;
 		
 
-	int	pdfUnitIndex,			// 0: cm, 1: inch
-		pdfDpi;					// 0,1,2: dots / inch = (pdfDpi * 300 + 300)
+	UnitIndex pdfUnitIndex;
+
+	int	pdfDpi;					// 0,1,2: dots / inch = (pdfDpi * 300 + 300)
 
 
 	PdfSetupDialog(QWidget* parent);
@@ -42,7 +46,7 @@ private:
 	int _GetIndexForHorizPixels(int hp);
 	int _GetScreenSize(int index, QSize& size);
 
-	void _ChangePdfMarginsUnit(); 
+	void _ChangeprintMarginsUnit(); 
 	void _ChangePdfPaperSize(); 
 	void _SaveParams();
 
@@ -67,6 +71,7 @@ private slots:
 
 	void on_sbMarginLR_valueChanged(double val);
 	void on_sbMarginTB_valueChanged(double val);
+	void on_sbGutterMargin_valueChanged(double val);
 };
 
 #endif

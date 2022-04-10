@@ -526,7 +526,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
             }
             else if (bDelete && !bCollected)     // delete empty area
             {
-                if (_history->AddRemoveSpaceItem(_rubberRect))     // there was something (not delete below the last item)
+                QRect rect = _rubberRect.translated(_topLeft);
+                if (_history->AddRemoveSpaceItem(rect))     // there was something (not delete below the last item)
                 {
                     _HideRubberBand(true);
                     _Redraw();
@@ -1888,23 +1889,23 @@ bool DrawArea::_PdfPageSetup()
         static int resos[] = { 300, 600, 1200 };
         int dpi = resos[pdfDlg->pdfDpi];
 
-        float   w = (pdfDlg->pdfWidth - 2 * pdfDlg->pdfMarginLR) * dpi,
-                h = (pdfDlg->pdfHeight - 2 * pdfDlg->pdfMarginTB) * dpi,
-                mlr = pdfDlg->pdfMarginLR * dpi,
-                mtb = pdfDlg->pdfMarginTB * dpi;
+        float   w = (pdfDlg->pdfWidth - 2 * pdfDlg->printMarginLR) * dpi,
+                h = (pdfDlg->pdfHeight - 2 * pdfDlg->printMarginTB) * dpi,
+                mlr = pdfDlg->printMarginLR * dpi,
+                mtb = pdfDlg->printMarginTB * dpi;
         if (_prdata.flags & pfLandscape)
         {
             _prdata.printArea = QRect(mtb, mlr, h, w);
             _prdata.magn = h / _prdata.screenPageWidth;
-            _prdata.pdfMarginLR = mtb;  
-            _prdata.pdfMarginTB = mlr;
+            _prdata.printMarginLR = mtb;  
+            _prdata.printMarginTB = mlr;
         }
         else
         {
             _prdata.printArea = QRect(mlr, mtb, w, h);
             _prdata.magn = w / _prdata.screenPageWidth;
-            _prdata.pdfMarginLR = mlr;
-            _prdata.pdfMarginTB = mtb;
+            _prdata.printMarginLR = mlr;
+            _prdata.printMarginTB = mtb;
         }
         _bPageSetupValid = true;
         res = true;
@@ -1939,8 +1940,9 @@ bool DrawArea::_NoPrintProblems()
 
 
 /*========================================================
- * TASK:
- * PARAMS:
+ * TASK:    Print data to printer or to PDF
+ * PARAMS:  name: file name for PDF
+ *          pdir: pointer to 
  * GLOBALS:
  * RETURNS:
  * REMARKS: - if pdir then name does not contain a directory

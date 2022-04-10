@@ -60,12 +60,12 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actP) : _actPrinterNam
 
 	ui.edtScreenDiag->setValidator(new QIntValidator(1, 200, this));
 
-	QSettings s = FBSettings::Open();
-	resolutionIndex = s.value("resi", 6).toInt();		// 1920 x 1080
-	horizPixels     = s.value("hpxs", 1920).toInt();
-	screenDiagonal	= s.value("sdiag", 24).toInt();		// inch
-	unitIndex		= s.value("uf", 0).toInt();			// index to determines the multipl. factor for number in edScreenDiag number to inch
-	flags			= s.value("pflags", 0).toInt();		// bit): print background image, bit 1: white background
+	QSettings *s = FBSettings::Open();
+	resolutionIndex = s->value("resi", 6).toInt();		// 1920 x 1080
+	horizPixels     = s->value("hpxs", 1920).toInt();
+	screenDiagonal	= s->value("sdiag", 24).toInt();		// inch
+	unitIndex		= s->value("uf", 0).toInt();			// index to determines the multipl. factor for number in edScreenDiag number to inch
+	flags			= s->value("pflags", 0).toInt();		// bit): print background image, bit 1: white background
 
 	ui.cbScreenResolution->setCurrentIndex(resolutionIndex);
 	ui.edtScreenDiag->setText(QString().setNum(screenDiagonal)) ;
@@ -89,6 +89,7 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actP) : _actPrinterNam
 		ui.cbPrinterSelect->setCurrentText(_actPrinterName);
 
 	_busy = false;
+	FBSettings::Close();
 }
 
 void PageSetupDialog::on_okButton_clicked()
@@ -100,12 +101,12 @@ void PageSetupDialog::on_okButton_clicked()
 
 void PageSetupDialog::_SaveParams()
 {
-	QSettings s = FBSettings::Open();
-	s.setValue("resi", resolutionIndex);
-	s.setValue("hpxs", ui.sbHorizPixels->value());
-	s.setValue("sdiag", screenDiagonal);
-	s.setValue("pflags", flags);
-	s.setValue("ui", unitIndex);
+	QSettings *s = FBSettings::Open();
+	s->setValue("resi", resolutionIndex);
+	s->setValue("hpxs", ui.sbHorizPixels->value());
+	s->setValue("sdiag", screenDiagonal);
+	s->setValue("pflags", flags);
+	s->setValue("ui", unitIndex);
 }
 
 PageSetupDialog::~PageSetupDialog()

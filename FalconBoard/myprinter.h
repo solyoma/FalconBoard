@@ -22,16 +22,17 @@ struct MyPrinterData
     QString directory;               // empty or ends with '/'
     QString* pdir = nullptr;         // points to either 'directory' or for PDF to caller
 
-    int screenPageWidth = 1920;         // used to calculate pixel limits for pages
-    int screenPageHeight = 1920 * 3508 / 2480;  // for A4 (210mm x 297mm, 8.27 in x 11.7 in) with 300 dpi
-    int dpi = 300;                  // printer resolution: dots / inch approx 118 dots/cm
-    int pdfMarginLR = 300,          // left-right and top bottom in pixels (1 in at 300 dpi
-        pdfMarginTB = 300; 
+    int screenPageWidth = 1920;         // pixels - used to calculate pixel limits for pages
+    int screenPageHeight = 1920 * 3508 / 2480;  // pixels - for A4 (210mm x 297mm, 8.27 in x 11.7 in) with 300 dpi
+    int dpi = 300;                  // printer resolution: dots / inch (approx 118 dots/cm)
+    int printMarginLR = 300,          // left-right and top-bottom margins in pixels (1 inch at 300 dpi)
+        printMarginTB = 300,
+        gutterMargin = 0;            // added to left margin on odd, right margin on even pages
 
     float magn = 1.29166663;        // magnification factor for print: 1 print pixel = _magn screen pixel (for A4 and HD)
     QString printerName;            // last selected printer, usually the default one not saved between sessions
     QString docName;
-    QRect printArea = QRect(0, 0, 2480, 3508);    // get from printer:printable area in device pixels (dots): top left is usually not 0,0
+    QRect printArea = QRect(0, 0, 2480, 3508);    // in pixels includes all margins
     int flags;
     bool bExportPdf = false;
 
@@ -59,7 +60,7 @@ public:
 
                                                                      // used in DrawArea.cpp
     bool Print();
-    bool isValid() const;
+    bool isValid();
     StatusCode Status() const { return _status; }
     QPrinter* Printer() const { return _printer; }
 public:

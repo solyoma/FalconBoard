@@ -30,8 +30,12 @@ MyPrinter::MyPrinter(QWidget* parent, History* pHist, MyPrinterData &prdata) :
     prdata = _data;        // send back to caller
 }
 
-bool MyPrinter::isValid() const 
+bool MyPrinter::isValid()  
 { 
+    if (!_printer || !_printer->isValid())
+        _status = rsInvalidPrinter;
+    else
+        _status = rsOk; 
     return _status == rsOk; 
 }
 
@@ -61,6 +65,8 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
         }
 		_printer->setPrinterName(_data.printerName);
 		_printer->setOrientation((_data.flags & pfLandscape) ? QPrinter::Landscape : QPrinter::Portrait);
+        //_data.printArea = ;
+        _printer->setPageMargins({ qreal(_data.printMarginLR), qreal(_data.printMarginTB), qreal(_data.printMarginLR), qreal(_data.printMarginTB) });
 
         _pDlg = _DoPrintDialog();  // includes a _CalcPages() call
 
@@ -75,11 +81,8 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
         // get actual _printer data (may be different from the one set in page setup)
 		_data.printerName = _printer->printerName();
         _data.flags &= pfLandscape;
-        if (_printer->orientation() == QPrinter::Landscape)
-            _data.flags |= pfLandscape;
         _data.dpi = _printer->resolution();
-        _data.printArea = _printer->pageRect();
-        _data.printArea.moveTopLeft(QPoint(0, 0));    // margins are set by the printer
+        // ??? _data.printArea.moveTopLeft(QPoint(0, 0));    // margins are set by the printer
 
         _data.magn = (float)_data.printArea.width() / (float)_data.screenPageWidth;
         _data.screenPageHeight = (int)((float)_data.printArea.height() / _data.magn);
@@ -130,7 +133,7 @@ MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
         _printer->setOutputFileName(_data.fileName);
         _printer->setOrientation((_data.flags & pfLandscape) ? QPrinter::Landscape : QPrinter::Portrait);
         _printer->setResolution(_data.dpi);
-        _printer->setPageMargins(QMarginsF(_data.pdfMarginLR, _data.pdfMarginTB, _data.pdfMarginLR, _data.pdfMarginTB));
+        _printer->setPageMargins(QMarginsF(_data.printMarginLR, _data.printMarginTB, _data.printMarginLR, _data.printMarginTB));
         _data.screenPageHeight = (int)((float)_data.printArea.height() / _data.magn);
 
         _CalcPages();
@@ -155,6 +158,8 @@ struct PageNum2
 
 /*=============================================================
  * Sorted Page Numbers - of 2D 'PageNum2' data
+ *   One screen width of data will be printed on one page
+ *      independent of the printer margins
  *  Because the width of a page is set from the screen width 
  *  in pixels but the width of the area to print may be wider,
  *  it is possible that the area requires more than one page 
@@ -277,6 +282,15 @@ bool MyPrinter::_FreeResources()
     return _printPainter->end();
 }
 
+/*=============================================================
+ * TASK:    organize pages into print order
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - one screenwidth of data is printed on one page
+ *              this routine calculates how many pages will be
+ *              to print
+ *------------------------------------------------------------*/
 int MyPrinter::_CalcPages()
 {
     sortedPageNumbers.Init( QRect(0, 0, _data.screenPageWidth, _data.screenPageHeight) );
@@ -388,7 +402,7 @@ int MyPrinter::_PageForPoint(const QPoint p)
 /*========================================================
  * TASK:   Print either an image or a scribble
  * PARAMS:  yi: y coord and z-order
- * GLOBALS:
+ * GLOBALS: _actPage
  * RETURNS:
  * REMARKS: - item may start and/or end on an other page
  *          - there may be pages where no point 
