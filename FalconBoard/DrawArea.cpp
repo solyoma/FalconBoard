@@ -50,6 +50,8 @@ DrawArea::DrawArea(QWidget* parent)    : QWidget(parent)
     _historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
     drawColors.Setup();
     penCursors.Setup();
+
+    _historyList.SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
 }
 
 void DrawArea::SetScreenSize(QSize screenSize)
@@ -126,8 +128,8 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt )
     if (_history)
         _history->SetTopLeft(_topLeft);
 
-    History* ph = new History();
-    ph->SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
+    History* ph = new History(&_historyList);
+//    _history.SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
     if (!name.isEmpty())
         ph->SetName(name);
 
@@ -1304,6 +1306,7 @@ void DrawArea::_ReshowRubberBand()
             (_rubberBand->y() >= 0 || _rubberBand->y() + _rubberBand->height() < height()))
         {
             _rubberBand->show();
+            _rubberRect = _rubberBand->geometry();
         }
 
     }
@@ -2511,7 +2514,12 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
 
     QString qs;
     if (_rubberBand)
-        qs = QString(tr("   Left:%1, Top:%2 | Pen: x:%3, y:%4 | width: %5, height: %6")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).arg(_rubberBand->geometry().width()).arg(_rubberBand->geometry().height());
+    {
+        QRect r = _rubberBand->geometry();
+        qs = QString(tr("   Left:%1, Top:%2 | Pen: x:%3, y:%4 | selection x:%5 y: %6, width: %7, height: %8")).
+            arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
+            arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());
+    }
     else
         qs = QString(tr("   Left:%1, Top:%2 | Pen: x:%3, y:%4 ")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
     emit TextToToolbar(qs);

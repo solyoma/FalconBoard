@@ -209,7 +209,7 @@ private:
     void ChangePenColorByKeyboard(int key);
 #endif
 private:
-    History *_history=nullptr;     // actual history (every scribble and image element with undo/redo)
+    History *_history=nullptr;      // actual history (every scribble and image element with undo/redo)
     HistoryList _historyList;       // many histories are possible
     int _currentHistoryIndex = -1,  // actual history index, -1: none
         _previousHistoryIndex = -1; // this was the current index before something happened

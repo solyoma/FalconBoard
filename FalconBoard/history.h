@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <limits>
 
+#include <QApplication>
 #include <QtGui>
 #include <QFile>
 #include <QDataStream>
@@ -441,6 +442,9 @@ struct Sprite
 
 
 using HistoryItemVector = QVector<HistoryItem*>;
+
+class HistoryList;
+
 /*========================================================
  * Class for storing history of editing
  *  contains data for items drawn on screen, 
@@ -464,7 +468,9 @@ class History  // stores all drawing sections and keeps track of undo and redo
 {
     friend class Bands;
     friend class HistoryScreenShotItem;
+    friend class HistoryList;
 
+    HistoryList* _parent=nullptr;       // need for copy and paste
     QPoint _topLeft;                    // this history will be displayed at this position
 
     QString _fileName,                  // file for history
@@ -487,10 +493,6 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     int _lastZorder = DRAWABLE_ZORDER_BASE;  // increased when scribble elements adedd to _items, does not get decreasd when they are taken off!
     int _nextImageZorder = 0;                 // z-order of images
-
-    ScreenShotImageList *_pCopiedImages = nullptr; // put copied images on this list 
-    ScribbleItemVector *_pCopiedItems = nullptr;   // points to list in Draw Area 
-    QRect *_pCopiedRect = nullptr;                 // bounding rectangle for copied items used for paste operation
 
                                              // copy items on _nSelectedItemsList into this list for pasting anywhere even in newly opened documents
     ScreenShotImageList  _belowImages;     // one or more images from screenshots
@@ -546,7 +548,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     }
 
 public:
-    History() noexcept { _bands.SetParam(this, -1);  }
+    History(HistoryList *parent) noexcept : _parent(parent) { _bands.SetParam(this, -1);  }
     History(const History& o);
     History(const History&& o) noexcept;
     virtual ~History();
@@ -570,12 +572,6 @@ public:
         else
             _bands.Remove(index); 
     }
-    void SetCopiedLists(ScreenShotImageList* pImgList, ScribbleItemVector* pItemList, QRect *pCopiedRect)
-    {
-        _pCopiedImages  = pImgList;
-        _pCopiedItems   = pItemList;
-        _pCopiedRect    = pCopiedRect;
-    }
 
     void ClearImageList() { _images.clear(); }
     int Countimages() { return _images.size(); }
@@ -588,7 +584,6 @@ public:
 
 
     int Size() const;   // _items's size
-    QRect const *CopiedRect() const { return _pCopiedRect; }
     int CountOfVisible() const; // visible from yxOrder
     int CountOfScribble() const { return _yxOrder.size(); }
     int SelectedSize() const { return _nSelectedItemsList.size(); }
@@ -662,12 +657,33 @@ public:
 
     void CollectPasted(const QRect &rect);   // if items pasted copies them into '_nSelectedItemsList'
 
-    const QVector<ScribbleItem>& CopiedItems() const { return *_pCopiedItems;  }
-    int CopiedCount() const { return _pCopiedItems->size();  }
     const QRect BoundingRect() const { return _selectionRect; }
     const ItemIndexVector& Selected() const { return _nSelectedItemsList;  }
 };
 
-using HistoryList = std::vector<History*>;
+class HistoryList : public std::vector<History*>
+{
+    friend class History;
+    QClipboard* _pClipBoard;
+    QUuid _copyGUID;
+    ScreenShotImageList* _pCopiedImages = nullptr; // put copied images on this list 
+    ScribbleItemVector* _pCopiedItems = nullptr;   // points to list in Draw Area 
+    QRect *_pCopiedRect;                           // bounding rectangle for copied items used for paste operation
+    void _CopyToClipboard();    // uses _pCopiedItems and _pCopiedImages so these must be setup first
+    void _PasteFromClipboard(); // only if the clipboard data is not the same as data in memory gets data from clipboard
+
+public:
+    HistoryList() { _pClipBoard = QApplication::clipboard(); }
+        // called to initialize pointers to  data in 'DrawArea'
+    void SetCopiedLists(ScreenShotImageList* pImgList, ScribbleItemVector* pItemList, QRect *pCopiedRect)
+    {
+        _pCopiedImages  = pImgList;
+        _pCopiedItems   = pItemList;
+        _pCopiedRect    = pCopiedRect;
+    }
+    const QVector<ScribbleItem>& CopiedItems() const { return *_pCopiedItems;  }
+    int CopiedCount() const { return _pCopiedItems->size();  }
+    QRect const *CopiedRect() const { return _pCopiedRect; }
+};
 
 #endif

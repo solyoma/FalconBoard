@@ -991,8 +991,10 @@ void History::_RestoreClippingRect()
 	_clpRect = _savedClps.pop();
 }
 
+
 History::History(const History& o)
 {
+	_parent = o._parent;
 	_items = o._items;
 	_bands = o._bands;
 	_yxOrder = o._yxOrder;
@@ -1000,6 +1002,7 @@ History::History(const History& o)
 
 History::History(const History&& o) noexcept
 {
+	_parent = o._parent;
 	_items = o._items;
 	_bands = o._bands;
 	_yxOrder = o._yxOrder;
@@ -1530,9 +1533,9 @@ HistoryItem* History::AddDeleteItems(Sprite* pSprite)
  *-------------------------------------------------------*/
 HistoryItem* History::AddPastedItems(QPoint topLeft, Sprite* pSprite)			   // tricky
 {
-	ScribbleItemVector* pCopiedItems = pSprite ? &pSprite->items : _pCopiedItems;
-	ScreenShotImageList* pCopiedImages = pSprite ? &pSprite->images : _pCopiedImages;
-	QRect* pCopiedRect = pSprite ? &pSprite->rect : _pCopiedRect;
+	ScribbleItemVector* pCopiedItems = pSprite ? &pSprite->items : _parent->_pCopiedItems;
+	ScreenShotImageList* pCopiedImages = pSprite ? &pSprite->images : _parent->_pCopiedImages;
+	QRect* pCopiedRect = pSprite ? &pSprite->rect : _parent->_pCopiedRect;
 
 	if (!pCopiedItems->size() && !pCopiedImages->size())
 		return nullptr;          // do not add an empty list
@@ -1963,7 +1966,8 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 
 
 /*========================================================
- * TASK:   copies selected scribbles into '_copiedItems'
+ * TASK:   copies selected scribbles and images 
+ *			into '_copiedItems' and to the clipboard
  *
  * PARAMS:	sprite: possible null pointer to sprite
  * GLOBALS:
@@ -1976,8 +1980,8 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
  *-------------------------------------------------------*/
 void History::CopySelected(Sprite* sprite)
 {
-	ScribbleItemVector* pCopiedItems = sprite ? &sprite->items : _pCopiedItems;
-	ScreenShotImageList* pCopiedImages = sprite ? &sprite->images : _pCopiedImages;
+	ScribbleItemVector* pCopiedItems = sprite ? &sprite->items	  : _parent->_pCopiedItems;
+	ScreenShotImageList* pCopiedImages = sprite ? &sprite->images : _parent->_pCopiedImages;
 	if (sprite)
 		sprite->nSelectedItemsList = _nSelectedItemsList;
 
@@ -2007,13 +2011,15 @@ void History::CopySelected(Sprite* sprite)
 				}
 			}
 		}
-		*_pCopiedRect = _selectionRect.translated(-_selectionRect.topLeft());
+		*_parent->_pCopiedRect = _selectionRect.translated(-_selectionRect.topLeft());
 
 		std::sort(pCopiedItems->begin(), pCopiedItems->end(), [](ScribbleItem& pl, ScribbleItem& pr) {return pl.zOrder < pr.zOrder; });
 		std::sort(pCopiedImages->begin(), pCopiedImages->end(), [](ScreenShotImage& pl, ScreenShotImage& pr) {return pl.zOrder < pr.zOrder; });
 
 		if (sprite)
-			sprite->rect = *_pCopiedRect;	// (0,0, width, height)
+			sprite->rect = *_parent->_pCopiedRect;	// (0,0, width, height)
+
+		_parent->_CopyToClipboard();
 	}
 }
 
@@ -2062,3 +2068,56 @@ Sprite::Sprite(History* ph) : pHist(ph)
 	ph->CopySelected(this);
 }
 
+// ********************************** HistoryList *************
+
+/*=============================================================
+ * TASK:	copies selected images and scribbles to clipboard
+ * PARAMS:
+ * GLOBALS: _pCopiedItem, _pCopiedImages, _copyGUID
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+void HistoryList::_CopyToClipboard()
+{
+	if ((!_pCopiedItems || !_pCopiedItems->size()) && (!_pCopiedImages || !_pCopiedImages->size()))
+		return;
+
+	// copy to system clipboard
+	QByteArray clipData;
+	QDataStream data(&clipData, QIODevice::WriteOnly);		  // uses internal QBuffer
+
+	_copyGUID = QUuid().createUuid();
+
+	data << "falconBoard" << sVersion;
+	if (_pCopiedImages)
+	{
+		data << "im" << _pCopiedImages->size();
+		for (auto im : *_pCopiedImages)
+			data << im;
+	}
+	if (_pCopiedItems)
+	{
+		data << "sr" << _pCopiedItems->size();
+		for (auto sr : *_pCopiedItems)
+			data << sr;
+	}
+
+	QMimeData* mimeData = new QMimeData;
+	QString s = "fBClipBoardData"+ _copyGUID.toString();
+	mimeData->setText(s);
+	mimeData->setData("image/*", clipData);
+	_pClipBoard->setMimeData(mimeData);
+}
+
+void HistoryList::_PasteFromClipboard()
+{
+	const QMimeData* pMime = _pClipBoard->mimeData();
+	QString s = _pClipBoard->text();
+	if (s.isEmpty() || s.left(15) != "fBClipBoardData")
+		return;
+
+	if (_copyGUID != s.mid(15))	// new clipboard data
+	{
+
+	}
+}
