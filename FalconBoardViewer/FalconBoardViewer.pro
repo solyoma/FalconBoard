@@ -1,8 +1,8 @@
 # ----------------------------------------------------
-# FalconBoard GUI application
+# FalconBoardViewer GUI application
 # ------------------------------------------------------
 
-TARGET = FalconBoard
+TARGET = FalconBoardViewer
 DESTDIR = ../Debug
 CONFIG += debug
 LIBS += -L"."
@@ -45,5 +45,5 @@ QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
 QT += gui widgets printsupport
 requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
-TRANSLATIONS = ../FalconBoard/FalconBoard_en.ts \
-               ../FalconBoard/FalconBoard_hu.ts
+TRANSLATIONS = ../translations/FalconBoard_en.ts \
+               ../translations/FalconBoard_hu.ts

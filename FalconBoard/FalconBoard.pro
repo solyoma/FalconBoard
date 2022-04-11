@@ -47,5 +47,5 @@ QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
 QT += gui widgets printsupport
 requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
-TRANSLATIONS = ../translations/FalconBoard_en.ts \
+TRANSLATIONS += ../translations/FalconBoard_en.ts \
                ../translations/FalconBoard_hu.ts

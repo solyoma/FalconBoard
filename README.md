@@ -1,6 +1,5 @@
 # ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png) FalconBoard
-Last modified: June 25. 2021
-
+Last modified: April 10. 2022
 
 FalconBoard (previous name MyWhiteboard) is a cross platform open source 
 whiteboard / blackboard application with unique features that makes it 
@@ -9,7 +8,7 @@ infinite canvas, unlimited drawings, unlimited undo and redo, colored
 pens of different width, screen capture, printout, PDF output and more (see below).
 
 The project also contains a separate viewer that only displays and prints
-saved drawings, but cannot modify them.
+saved drawings, but cannot modify them or create PDFs.
 
 ## Screenshots:
 ![falconBoard-dark-mode](https://user-images.githubusercontent.com/37068759/121942239-8d803700-cd50-11eb-8493-e239f46e7da7.jpg)
@@ -39,6 +38,8 @@ saved drawings, but cannot modify them.
         be a square.
         If the area contained any complete drawings or screenshots then 
         the selection will constrict around those.
+		If the Alt key is kept pressed during selection the selection will 
+		not constrict to any elements inside it.
    -  While a selection is active
         - insert vertical space by pressing F5. Height of the space is the 
             height of the selection
@@ -46,15 +47,16 @@ saved drawings, but cannot modify them.
           selection there is a small padding inside this rectangle
         - draw an ellipse or a circle inside it by pressing C
         - if there were displayed items inside the area:
-            - click inside the area to move the marked items around on the screen,
-              release the button to paste it to that position.
-            - delete drawings completely inside selection
-              area with the Del or BackSpace keys.
-            - lines completely under the marked area can be re-colored.
+            - click inside the area and hold to move the marked items around,
+              on the screen release the button to paste it to that position.
+            - delete drawings completely inside selection area with the Del 
+			  or BackSpace keys.
+            - lines completely under the marked area can be re-colored by
+			  clicking on the pen color buttons or pressing 1..5.
         - if the selected area is empty you can:
-              delete empty space from the right or from above with the Del key. 
+              delete empty space from the right or from below with the Del key. 
         - copy / cut marked area and paste it into any open drawings at at any 
-          position, even into new documents during the same session.
+          position, even into new documents
    -  Keyboard shortcuts to most functions (See key F1 - Help).
    -  Optional saving and loading sessions, option to automatic save of data
       and background image on exit.
@@ -93,9 +95,9 @@ saved drawings, but cannot modify them.
   - On Linux use the .pro files provided. 
 
 *Installation*:
-  No installation necessary. Copy the executable (and if you don't yet have them the Qt and Microsoft redistributables)
-    into any folder. State of the programs are saved into *.ini files. On windows these are inside the
-    users AppData\Local\FalconBoard folder, on linux under the hidden .falconboard folder inside the user's home directory.
+  No installation necessary. Copy the executable (and if you don't yet have them the Qt 
+	and Microsoft redistributables) into any folder. State of the programs are saved into *.ini files. On windows these are inside the
+    user's AppData\Local\FalconBoard folder, on linux under the hidden .falconboard folder inside the user's home directory.
 
 *Uninstalling*:    
     Delete the folder containing the program and optionally delete the configuration directories described above.
@@ -111,4 +113,4 @@ saved drawings, but cannot modify them.
   
   If you have downloaded the ZIP and there were only sub-version changes 
   (like from 1.1.x to 1.1.y) you only need the new executables. 
-  Unpack them into the same folder where the previous release are.
+  Unpack them into the same folder where the previous release is.

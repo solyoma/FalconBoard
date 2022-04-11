@@ -486,7 +486,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
     else // if (event->spontaneous())
     {
 #ifndef _VIEWER
-        bool bPaste = _itemsCopied &&
+        bool bPaste = // _itemsCopied &&
             ((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
                 (key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
                 );
@@ -661,6 +661,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 #ifndef _VIEWER
             if (bPaste)         // paste as sprite
             {
+                _historyList.PasteFromClipboard();
+
                 if (!_copiedItems.isEmpty() || !_copiedImages.isEmpty())    // anything to paste?
                 {
                     _pSprite = _SpriteFromLists();

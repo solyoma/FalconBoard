@@ -468,7 +468,6 @@ class History  // stores all drawing sections and keeps track of undo and redo
 {
     friend class Bands;
     friend class HistoryScreenShotItem;
-    friend class HistoryList;
 
     HistoryList* _parent=nullptr;       // need for copy and paste
     QPoint _topLeft;                    // this history will be displayed at this position
@@ -669,8 +668,6 @@ class HistoryList : public std::vector<History*>
     ScreenShotImageList* _pCopiedImages = nullptr; // put copied images on this list 
     ScribbleItemVector* _pCopiedItems = nullptr;   // points to list in Draw Area 
     QRect *_pCopiedRect;                           // bounding rectangle for copied items used for paste operation
-    void _CopyToClipboard();    // uses _pCopiedItems and _pCopiedImages so these must be setup first
-    void _PasteFromClipboard(); // only if the clipboard data is not the same as data in memory gets data from clipboard
 
 public:
     HistoryList() { _pClipBoard = QApplication::clipboard(); }
@@ -684,6 +681,9 @@ public:
     const QVector<ScribbleItem>& CopiedItems() const { return *_pCopiedItems;  }
     int CopiedCount() const { return _pCopiedItems->size();  }
     QRect const *CopiedRect() const { return _pCopiedRect; }
+
+    void CopyToClipboard();    // uses _pCopiedItems and _pCopiedImages so these must be setup first
+    void PasteFromClipboard(); // only if the clipboard data is not the same as data in memory gets data from clipboard
 };
 
 #endif

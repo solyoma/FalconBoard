@@ -2019,7 +2019,7 @@ void History::CopySelected(Sprite* sprite)
 		if (sprite)
 			sprite->rect = *_parent->_pCopiedRect;	// (0,0, width, height)
 
-		_parent->_CopyToClipboard();
+		_parent->CopyToClipboard();
 	}
 }
 
@@ -2070,6 +2070,8 @@ Sprite::Sprite(History* ph) : pHist(ph)
 
 // ********************************** HistoryList *************
 
+constexpr const char* fbmimetype = "falconBoard-data/mwb";
+
 /*=============================================================
  * TASK:	copies selected images and scribbles to clipboard
  * PARAMS:
@@ -2077,7 +2079,7 @@ Sprite::Sprite(History* ph) : pHist(ph)
  * RETURNS:
  * REMARKS:
  *------------------------------------------------------------*/
-void HistoryList::_CopyToClipboard()
+void HistoryList::CopyToClipboard()
 {
 	if ((!_pCopiedItems || !_pCopiedItems->size()) && (!_pCopiedImages || !_pCopiedImages->size()))
 		return;
@@ -2086,38 +2088,86 @@ void HistoryList::_CopyToClipboard()
 	QByteArray clipData;
 	QDataStream data(&clipData, QIODevice::WriteOnly);		  // uses internal QBuffer
 
-	_copyGUID = QUuid().createUuid();
-
-	data << "falconBoard" << sVersion;
-	if (_pCopiedImages)
+	data << *_pCopiedRect;
+	if (_pCopiedImages->size())
 	{
-		data << "im" << _pCopiedImages->size();
+		data << QString("im") << _pCopiedImages->size();
 		for (auto im : *_pCopiedImages)
 			data << im;
 	}
-	if (_pCopiedItems)
+	if (_pCopiedItems->size())
 	{
-		data << "sr" << _pCopiedItems->size();
+		data << QString("sr") << _pCopiedItems->size();
 		for (auto sr : *_pCopiedItems)
 			data << sr;
 	}
 
 	QMimeData* mimeData = new QMimeData;
-	QString s = "fBClipBoardData"+ _copyGUID.toString();
+	_copyGUID = QUuid().createUuid();
+
+	mimeData->setData(fbmimetype, clipData);
+
+	QString s = "fBClipBoardDataV1.1"+ _copyGUID.toString();
 	mimeData->setText(s);
-	mimeData->setData("image/*", clipData);
 	_pClipBoard->setMimeData(mimeData);
 }
 
-void HistoryList::_PasteFromClipboard()
+void HistoryList::PasteFromClipboard()
 {
 	const QMimeData* pMime = _pClipBoard->mimeData();
-	QString s = _pClipBoard->text();
-	if (s.isEmpty() || s.left(15) != "fBClipBoardData")
+	
+	QStringList formats = pMime->formats(); // get correct mime type 
+	int formatIndex=-1;	// this is the index in'formats' 
+						// for the real name for our format stored as it is not standard
+	for (int i = 0; i < formats.size(); ++i)
+		if (formats[i].indexOf(fbmimetype) >= 0)
+		{
+			formatIndex = i;
+			break;
+		}
+	if (formatIndex < 0)	// not our data
 		return;
 
-	if (_copyGUID != s.mid(15))	// new clipboard data
-	{
+	QString s = _pClipBoard->text();
+	if (s.isEmpty() || s.left(19) != "fBClipBoardDataV1.1")
+		return;
 
+	if (_copyGUID != s.mid(19))	// new clipboard data
+	{
+		_copyGUID = s.mid(19);
+
+		_pCopiedItems->clear();
+		_pCopiedImages->clear();
+		QByteArray pclipData = pMime->data(formats[formatIndex]);
+		QDataStream data(pclipData);		  // uses internal QBuffer
+
+		ScribbleItem si;
+		ScreenShotImage bimg;
+
+		QString qs;
+		int cnt;
+
+		data >> *_pCopiedRect;
+		data >> qs;
+		if (qs == "im")
+		{
+			data >> cnt;
+			while (cnt--)
+			{
+				data >> bimg;
+				_pCopiedImages->push_back(bimg);
+			}
+			data >> qs;	// for next part, if any
+		}
+		if (qs == "sr")
+		{
+			data >> cnt;
+			while (cnt--)
+			{
+				data >> si.type;	
+				data >> si;			// this must be called aftetr type was read
+				_pCopiedItems->push_back(si);
+			}
+		}
 	}
 }
