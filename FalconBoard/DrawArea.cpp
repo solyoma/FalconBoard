@@ -56,7 +56,7 @@ DrawArea::DrawArea(QWidget* parent) : QWidget(parent)
 
 void DrawArea::SetScreenSize(QSize screenSize)
 {
-	_screenWidth = screenSize.width();
+	_prdata.screenPageWidth = screenSize.width();
 	_screenHeight = screenSize.height();
 }
 
@@ -1173,15 +1173,15 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
 	if (!_bPageGuidesOn)
 		return;
 
-	int nxp = _topLeft.x() / _screenWidth,
+	int nxp = _topLeft.x() / _prdata.screenPageWidth,
 		nyp = _topLeft.y() / _prdata.screenPageHeight,
-		nx = (_topLeft.x() + width()) / _screenWidth,
+		nx = (_topLeft.x() + width()) / _prdata.screenPageWidth,
 		ny = (_topLeft.y() + height()) / _prdata.screenPageHeight,
 		x = height(), y;
 
 	painter.setPen(QPen(_pageGuideColor, 2, Qt::DotLine));
 	if (nx - nxp > 0)     // x - guide
-		for (x = nxp + 1 * _screenWidth - _topLeft.x(); x < width(); x += _screenWidth)
+		for (x = nxp + 1 * _prdata.screenPageWidth - _topLeft.x(); x < width(); x += _prdata.screenPageWidth)
 			painter.drawLine(x, 0, x, height());
 	if (ny - nyp > 0)    // y - guide
 		for (y = nyp + 1 * _prdata.screenPageHeight - _topLeft.y(); y < height(); y += _prdata.screenPageHeight)
@@ -1250,8 +1250,8 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 	// /DEBUG
 	int h = height();
 	int w = width();
-	if (_limited && _topLeft.x() + w > _screenWidth)
-		_ShiftOrigin(QPoint((_topLeft.x() + w - _screenWidth), 0));
+	if (_limited && _topLeft.x() + w > _prdata.screenPageWidth)
+		_ShiftOrigin(QPoint((_topLeft.x() + w - _prdata.screenPageWidth), 0));
 
 	_SetCanvasAndClippingRect();
 
@@ -1433,7 +1433,7 @@ void DrawArea::_ScrollTimerSlot()
  * TASK:    sets up scroll direction and timer if the position
  *          is near to a widget edge when there is a sprite
  * PARAMS:  pos: position
- * GLOBALS: _pSprite, _limited, _screenWidth, _screenHeight
+ * GLOBALS: _pSprite, _limited, _prdata.screenPageWidth, _screenHeight
  *          _pTimer, _topLeft,_limited
  * RETURNS:
  * REMARKS:
@@ -1456,7 +1456,7 @@ DrawArea::_ScrollDirection DrawArea::_AutoScrollDirection(QPoint pos)
 		_scrollDir = _ScrollDirection::scrollUp;
 	else if (pos.x() < limit && _topLeft.x() > 0)
 		_scrollDir = _ScrollDirection::scrollRight;
-	else if (pos.x() > width() - limit && (!_limited || (_limited && _topLeft.x() + width() < _screenWidth)))
+	else if (pos.x() > width() - limit && (!_limited || (_limited && _topLeft.x() + width() < _prdata.screenPageWidth)))
 		_scrollDir = _ScrollDirection::scrollLeft;
 	// DEBUG
 	//const char *s;
@@ -1858,6 +1858,7 @@ bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
 	PageSetupDialog* pageDlg = new PageSetupDialog(this, _prdata.printerName, what);
 	bool res = false;
 	bool forPdf = what == PageSetupDialog::wtdExportPdf;
+	int oldwidth = _prdata.screenPageWidth;
 	if (pageDlg->exec())
 	{
 		if (!forPdf)
@@ -1867,11 +1868,13 @@ bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
 		}
 #define SQUARE(a)  (a*a)
 
+		if (!pageDlg->useResInd)
+			_prdata.screenPageWidth = pageDlg->horizPixels;
 		if (_screenHeight > 0)           // -1 if no predefined resolution
 		{
 			static float fact[] = { 1.0, 1.0 / 2.54, 1.0 / 25.4 };   // inch, cm, mm
-			float cosine = (float)_screenWidth / (float)std::sqrt(SQUARE(_screenWidth) + SQUARE(_screenHeight));
-			_ppi = (float)_screenWidth / (pageDlg->screenDiagonal * fact[pageDlg->unitIndex] * cosine);
+			float cosine = (float)_prdata.screenPageWidth / (float)std::sqrt(SQUARE(_prdata.screenPageWidth) + SQUARE(_screenHeight));
+			_ppi = (float)_prdata.screenPageWidth / (pageDlg->screenDiagonal * fact[pageDlg->unitIndex] * cosine);
 		}
 		else
 			_ppi = 96;
@@ -1879,7 +1882,7 @@ bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
 #undef SQUARE
 
 		QSize ss;
-		_prdata.screenPageWidth = _screenWidth = pageDlg->GetScreenSize(ss);
+		_prdata.screenPageWidth = pageDlg->GetScreenSize(ss);
 
 		_prdata.bExportPdf = forPdf;
 		_prdata.flags = pageDlg->flags;
@@ -1909,6 +1912,9 @@ bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
 	}
 	_bPageSetupValid = res;
 	delete pageDlg;
+
+	if (oldwidth != _prdata.screenPageWidth)
+		_Redraw();
 	return res;
 }
 
@@ -2242,7 +2248,7 @@ void DrawArea::_ShiftOrigin(QPoint delta)
 	if (o.x() < 0)
 		o.setX(0);
 
-	if (delta.x() > 0 && _limited && o.x() + width() >= _screenWidth)
+	if (delta.x() > 0 && _limited && o.x() + width() >= _prdata.screenPageWidth)
 		o.setX(_topLeft.x());
 
 	if (o.y() < 0)
@@ -2353,15 +2359,15 @@ void DrawArea::_ShiftAndDisplayBy(QPoint delta, bool smooth)    // delta changes
 		delta.setY(-_topLeft.y());
 	if (_topLeft.x() + delta.x() < 0)
 		delta.setX(-_topLeft.x());
-	if (delta.x() > 0 && _limited && delta.x() + width() >= _screenWidth)
-		delta.setX(_screenWidth - width());
+	if (delta.x() > 0 && _limited && delta.x() + width() >= _prdata.screenPageWidth)
+		delta.setX(_prdata.screenPageWidth - width());
 
 	if (delta.isNull())
 		return;      // nothing to do
 
 #if 1
 	int dx = qAbs(delta.x()), dy = qAbs(delta.y());
-	if (/*smooth && */ (dx <= _screenWidth / 10) && (dy <= _screenHeight / 10))
+	if (/*smooth && */ (dx <= _prdata.screenPageWidth / 10) && (dy <= _screenHeight / 10))
 	{                      // use smooth transform only for up/down/left/right never for pgUp, etc
 
 		QRect clip1, clip2;
@@ -2511,12 +2517,12 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
 	if (_rubberBand)
 	{
 		QRect r = _rubberBand->geometry();
-		qs = QString(tr("   Left:%1, Top:%2 | Pen: x:%3, y:%4 | selection x:%5 y: %6, width: %7, height: %8")).
-			arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
+		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9")).
+			arg(_topLeft.y() / _prdata.screenPageHeight + 1).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
 			arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());
 	}
 	else
-		qs = QString(tr("   Left:%1, Top:%2 | Pen: x:%3, y:%4 ")).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
+		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ")).arg(_topLeft.y() / _prdata.screenPageHeight + 1).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
 	emit TextToToolbar(qs);
 }
 

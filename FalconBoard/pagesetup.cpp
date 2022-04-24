@@ -22,7 +22,7 @@ QPageSize::PageSizeId PageId(int index)
 
 int PageSetupDialog::_GetScreenSize(int index, QSize& size)
 {
-	if (ui.rbUseResInd)
+	if (ui.rbUseResInd->isChecked())
 	{
 		size = QSize(myScreenSizes[index].w, myScreenSizes[index].h);
 		return myScreenSizes[index].w;
@@ -56,8 +56,12 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actPrinterName, WhatTo
 	ui.cbScreenResolution->setCurrentIndex(resolutionIndex);
 
 	horizPixels     = s->value("hpxs", 1920).toInt();
+	useResInd = s->value("useri", true).toBool();
 
-	ui.rbUseResInd->setChecked(s->value("useri", true).toBool() );
+	ui.rbUseResInd->setChecked(useResInd);
+	ui.cbScreenResolution->setEnabled(useResInd);
+	ui.rbUseHorPixels->setChecked(!useResInd);
+	ui.sbHorizPixels->setEnabled(!useResInd);
 
 	screenDiagonal	= s->value("sdiag", 24).toInt();		// inch
 	ui.edtScreenDiag->setText(QString().setNum(screenDiagonal)) ;
@@ -140,8 +144,9 @@ void PageSetupDialog::_SaveParams()
 {
 	QSettings *s = FBSettings::Open();
 	s->setValue("resi", ui.cbScreenResolution->currentIndex());
-	s->setValue("hpxs", ui.sbHorizPixels->value());
 	s->setValue("useri", ui.rbUseResInd->isChecked());
+
+	s->setValue("hpxs", ui.sbHorizPixels->value());
 	s->setValue("sdiag", ui.edtScreenDiag->text());
 	s->setValue("pflags", flags);
 	// for PDF
@@ -252,6 +257,7 @@ void PageSetupDialog::on_rbUseResInd_toggled(bool b)
 {
 	ui.sbHorizPixels->setEnabled(!b);
 	ui.cbScreenResolution->setEnabled(b);
+	useResInd = b;
 }
 
 void PageSetupDialog::on_rb300_toggled(bool b)

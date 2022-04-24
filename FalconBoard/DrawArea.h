@@ -217,7 +217,7 @@ private:
     bool _mustRedrawArea = true;    // else no redraw
     bool _redrawPending = false;    // redraw requested when it was not enabled
            // page setup
-    int _screenWidth = 1920,        // screen width ==> pageWidth (portrait) / pageHeight (landscape)  
+    int // _screenWidth = 1920,        // screen width ==> pageWidth (portrait) / pageHeight (landscape)  
         _screenHeight = 1080;
     bool _limited = false;          // true: page width is fixed (= screen width)
     float _ppi = 96;                // pixels per screen inches
