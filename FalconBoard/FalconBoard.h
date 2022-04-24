@@ -65,6 +65,8 @@ private slots:
 	void on_actionShowPageGuides_triggered();
 
 	void on_actionLoad_triggered();
+
+	void on_actionGoToPage_triggered();
 	void on_actionCleaRecentList_triggered();
 	void _sa_actionRecentFile_triggered(int which);
 	void _sa_actionLanguage_triggered(int which);

@@ -520,22 +520,12 @@ void MyPrinter::_PrintGrid()
         y = dy - ((int)_actPage.screenArea.y() % _data.nGridSpacingY);
     }
         
-    // !!! QRect rf = _data.PrintAreaInDots();
-                                  
-    //x += rf.x(); !!!
-    //y += rf.y();
-
-
     _pImagePainter->setPen(QPen(_data.gridColor, 2, Qt::SolidLine));
-    // !!! _pImagePainter->drawRect(rf);
+    
     int w = _data.screenPageWidth, 
         h = _data.screenPageHeight;
     _pImagePainter->drawRect(QRect(0,0,w, h));
 
-    //!!! for (; y <= rf.y() + rf.height(); y += dy)      // must add back the margins (same at both sides)
-    //!!!     _pImagePainter->drawLine(rf.x(), y, rf.x() + rf.width(), y);    
-    //!!! for (; x <=  rf.x() + rf.width(); x += dx)
-    //!!!     _pImagePainter->drawLine(x, rf.y(), x, rf.y() + rf.height());
     for (; y <= h; y += dy)
         _pImagePainter->drawLine(0, y, w, y);    
     for (; x <= w; x += dx)

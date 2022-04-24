@@ -308,6 +308,12 @@ bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 }
 #endif
 
+void DrawArea::GotoPage(int page)
+{
+	_SetOrigin(QPoint(0, page * _prdata.screenPageHeight));
+	_Redraw();
+}
+
 void DrawArea::SetMode(bool darkMode, QString color, QString sGridColor, QString sPageGuideColor)
 {
 	_backgroundColor = color;

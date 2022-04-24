@@ -80,6 +80,8 @@
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
+    <addaction name="actionGoToPage"/>
+    <addaction name="separator"/>
     <addaction name="menuPen_Color"/>
     <addaction name="action_Eraser"/>
     <addaction name="separator"/>
@@ -714,6 +716,17 @@
    </property>
    <property name="toolTip">
     <string>Rotates completely selected lines/images</string>
+   </property>
+  </action>
+  <action name="actionGoToPage">
+   <property name="text">
+    <string>&amp;Go to page...</string>
+   </property>
+   <property name="toolTip">
+    <string>Go to page</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
  </widget>

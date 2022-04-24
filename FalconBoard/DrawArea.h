@@ -115,9 +115,10 @@ public:
     void DrawRect();    // use _rubberBand
     void DrawEllipse();
 */
-
     void SetScreenshotTransparency(QColor color, bool use);
 #endif
+
+    void GotoPage(int page);
 
     void SetMode(bool darkMode, QString color, QString gridColor, QString pageGuideColor);
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode

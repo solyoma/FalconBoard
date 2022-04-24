@@ -1252,6 +1252,14 @@ void FalconBoard::on_actionLoad_triggered()
 #endif
 }
 
+void FalconBoard::on_actionGoToPage_triggered()
+{
+    bool ok;
+    int n = QInputDialog::getInt(this, tr("FalconBoard - input"), tr("Go to Page"), 1, 1, ok);
+    if(ok)
+        _drawArea->GotoPage(n);
+}
+
 void FalconBoard::on_actionCleaRecentList_triggered()
 {
     ui.actionRecentDocuments->clear();
