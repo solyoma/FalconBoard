@@ -93,7 +93,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <AdditionalIncludeDirectories>.\GeneratedFiles\$(ConfigurationName);.\GeneratedFiles;.;$(Qt_INCLUDEPATH_);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -110,6 +110,7 @@
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -171,7 +172,6 @@
     <ClCompile Include="DrawArea.cpp" />
     <ClCompile Include="history.cpp" />
     <ClCompile Include="pagesetup.cpp" />
-    <ClCompile Include="pdfsetup.cpp" />
     <ClCompile Include="screenshotTransparency.cpp" />
     <ClCompile Include="snipper.cpp" />
     <ClCompile Include="main.cpp" />
@@ -207,9 +207,8 @@
     <ClInclude Include="myprinter.h" />
     <ClInclude Include="pdraw.h" />
     <QtMoc Include="screenshotTransparency.h" />
-    <QtMoc Include="pdfsetup.h" />
-    <QtMoc Include="printprogress.h" />
     <QtMoc Include="pagesetup.h" />
+    <QtMoc Include="printprogress.h" />
     <QtMoc Include="snipper.h" />
   </ItemGroup>
   <ItemGroup>

@@ -5,9 +5,9 @@
 #include <QPainter>
 #include <QThread>
 #include <QSettings>
+#include "common.h"
 #include "DrawArea.h"
 #include "screenshotTransparency.h"
-#include "common.h"
 #include "FalconBoard.h"
 #include "myprinter.h"   // for MyPrinterData
 #include "helpdialog.h"
@@ -167,12 +167,21 @@ void FalconBoard::RestoreState()
 
     MyPrinterData data;
     
-    data.screenPageWidth = s->value("hpxs", 1920).toInt();
-    data.flags = s->value("pflags", 0).toInt();		        // bit): print background image, bit 1: white background
-    _drawArea->SetPrinterData(data);
+    data.flags = s->value("pflags", 0).toInt();		        // bit 0: print background image, bit 1: white background
+    data.SetMargins(s->value("pdfmlr", 1.0).toFloat(), s->value("pdfmtb", 1.0).toFloat(), s->value("pdfgut", 0.0).toFloat(), false);
+    int resi = s->value("resi", 0).toInt();
+    if (s->value("useri",true).toBool() )
+        data.screenPageWidth = myScreenSizes[resi].w;
+    else
+        data.screenPageWidth = s->value("hpxs", 1920).toInt();
+
+    data.SetDpi(resos[s->value("pdfdpi", 0).toInt()], false);      // recalculates screen area for page and also sets 'data.screenPageHeight'
+    data.SetPrintArea(s->value("pdfpgs", 3).toInt(), true);       // using default DPI value
+
+    _drawArea->SetMyPrinterData(data);
 
 #ifndef _VIEWER
-    qs = s->value("size", "3,3,3,3,3,30").toString();      // black, red, green, blue, yellow, eraser
+    qs = s->value("size", "3,3,3,3,3,30").toString();      // pen size for black, red, green, blue, yellow, eraser
     QStringList qsl = qs.split(',');
     if (qsl.size() != PEN_COUNT)
     {
@@ -1811,7 +1820,7 @@ void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 
 void FalconBoard::on_actionPageSetup_triggered()
 {
-    _drawArea->PageSetup();
+    _drawArea->PageSetup(PageSetupDialog::wtdPageSetup);
 }
 
 void FalconBoard::on_actionExportToPdf_triggered()

@@ -57,3 +57,4 @@ FalconBoard/*.json
 *.mwb~
 *.pdf
 *.json
+*temp*

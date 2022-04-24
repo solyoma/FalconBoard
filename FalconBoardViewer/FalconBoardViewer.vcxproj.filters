@@ -39,7 +39,7 @@
     <QtUic Include="..\FalconBoard\printprogress.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="..\FalconBoard\pdfsetup.ui">
+    <QtUic Include="..\FalconBoard\pagesetup.ui">
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="..\FalconBoard\helpdialog.ui">
@@ -68,7 +68,7 @@
     <ClCompile Include="..\FalconBoard\myprinter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\FalconBoard\pdfsetup.cpp">
+    <ClCompile Include="..\FalconBoard\pagesetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\FalconBoard\bands.cpp">
@@ -91,7 +91,7 @@
     <QtMoc Include="..\FalconBoard\printprogress.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="..\FalconBoard\pdfsetup.h">
+    <QtMoc Include="..\FalconBoard\pagesetup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="..\FalconBoard\helpdialog.h">

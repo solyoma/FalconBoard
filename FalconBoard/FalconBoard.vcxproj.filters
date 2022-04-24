@@ -42,13 +42,10 @@
     <ClCompile Include="history.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pagesetup.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="myprinter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pdfsetup.cpp">
+    <ClCompile Include="pagesetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FalconBoard.cpp">
@@ -68,13 +65,10 @@
     <QtMoc Include="snipper.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="pagesetup.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="printprogress.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="pdfsetup.h">
+    <QtMoc Include="pagesetup.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="FalconBoard.h">
@@ -94,7 +88,7 @@
     <QtUic Include="printprogress.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="pdfsetup.ui">
+    <QtUic Include="pagesetup.ui">
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="FalconBoard.ui">
@@ -104,6 +98,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="helpdialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="pdfsetup.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

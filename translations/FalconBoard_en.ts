@@ -1097,345 +1097,345 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
 <context>
     <name>PdfExportDialog</name>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="26"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="26"/>
         <source>FalconBoard - PDF Export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="38"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="38"/>
         <source>Screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="50"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="50"/>
         <source>Diagonal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="72"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="72"/>
         <source>Select Screen Resolution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="76"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="76"/>
         <source>2840 x 2160 (16:9 - 4K)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="81"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="81"/>
         <source>3440 x 1440 (21:9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="86"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="86"/>
         <source>2560 x 1440 (16:9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="91"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="91"/>
         <source>2560 x 1080 (21:9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="96"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="96"/>
         <source>2048 x 1152 (16:9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="101"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="101"/>
         <source>1920 x 1200 (16:10)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="106"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="106"/>
         <source>1920 x 1080 (16:9 - Full HD)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="111"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="111"/>
         <source>1680 x 1050 (16:10)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="116"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="116"/>
         <source>1600 x 900 (16:9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="121"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="121"/>
         <source>1536 x 864 (16 x 9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="126"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="126"/>
         <source>1440 x 900 (16:10)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="131"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="131"/>
         <source>1366:768 (16:9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="136"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="136"/>
         <source>1360 x 768 (16:9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="141"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="141"/>
         <source>1280 x 1024 (5:4)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="146"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="146"/>
         <source>1280 x 800 (16:10)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="151"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="151"/>
         <source>1280 x 720 (16:9)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="156"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="156"/>
         <source>1024 x 768 (4:3)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="161"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="161"/>
         <source>800 x 600 (4:3)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="166"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="166"/>
         <source>640 x 360 (16:9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="180"/>
-        <location filename="../FalconBoard/pdfsetup.ui" line="594"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="180"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="594"/>
         <source>Resolution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="199"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="199"/>
         <source>24</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="232"/>
-        <location filename="../FalconBoard/pdfsetup.ui" line="835"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="232"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="835"/>
         <source>inch</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="237"/>
-        <location filename="../FalconBoard/pdfsetup.ui" line="830"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="237"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="830"/>
         <source>cm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="242"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="242"/>
         <source>mm</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="262"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="262"/>
         <source> pixels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="290"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="290"/>
         <source>or Horizontal Pixel Count to print on one page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="312"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="312"/>
         <source>Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="330"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="330"/>
         <source>&amp;White background</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="349"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="349"/>
         <source>&amp;Grayscale</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="381"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="381"/>
         <source>Print &amp;Background Image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="394"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="394"/>
         <source>G&amp;rid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="426"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="426"/>
         <source>Do not print &amp;images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="455"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="455"/>
         <source>PDF</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="473"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="473"/>
         <source>Paper size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="496"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="496"/>
         <source>A7 ( 74 x 105 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="501"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="501"/>
         <source>A6 (105 x 148 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="506"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="506"/>
         <source>A5 (148 x 210 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="511"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="511"/>
         <source>A4 (210 x 297 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="516"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="516"/>
         <source>A3 (297 x 420 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="521"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="521"/>
         <source>A2 (420 x 594 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="526"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="526"/>
         <source>A1 (594 x 841 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="531"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="531"/>
         <source>A0 (841 x 1189 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="536"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="536"/>
         <source>B7 (88 x 125 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="541"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="541"/>
         <source>B6 (125 x 176 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="546"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="546"/>
         <source>B5 (176 x 250 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="551"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="551"/>
         <source>B4 (250 x 353 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="556"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="556"/>
         <source>B3 (353 x 500 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="561"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="561"/>
         <source>B2 (500 x 707 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="566"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="566"/>
         <source>B1 (707 x 1000 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="571"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="571"/>
         <source>B0 (1000 x 1414 mm)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="576"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="576"/>
         <source>US Letter (8 1/2 x 11 in)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="581"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="581"/>
         <source>Legal (2 1/2 x 14 in)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="586"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="586"/>
         <source>Stationary (5 1/2 x 8 1/2 in)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="612"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="612"/>
         <source>300 dpi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="631"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="631"/>
         <source>600 dpi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="650"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="650"/>
         <source>1200 dpi</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="675"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="675"/>
         <source>Paper Orientation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="695"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="695"/>
         <source>Portrait</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="700"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="700"/>
         <source>Landscape</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="714"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="714"/>
         <source>Margins</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="738"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="738"/>
         <source>Margin Left and Right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="788"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="788"/>
         <source>Margin Top and Bottom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="883"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="883"/>
         <source>&amp;Export PDF</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pdfsetup.ui" line="896"/>
+        <location filename="../FalconBoard/pageSetup.ui" line="896"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>

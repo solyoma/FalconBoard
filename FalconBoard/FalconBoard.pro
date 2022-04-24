@@ -21,7 +21,6 @@ HEADERS += ./bands.h \
     ./FalconBoard.h \
     ./DrawArea.h \
     ./screenshotTransparency.h \
-    ./pdfsetup.h \
     ./printprogress.h \
     ./pagesetup.h \
     ./snipper.h
@@ -29,7 +28,6 @@ SOURCES += ./bands.cpp \
     ./DrawArea.cpp \
     ./history.cpp \
     ./pagesetup.cpp \
-    ./pdfsetup.cpp \
     ./screenshotTransparency.cpp \
     ./snipper.cpp \
     ./main.cpp \
@@ -38,7 +36,6 @@ SOURCES += ./bands.cpp \
 FORMS += ./FalconBoard.ui \
 	./helpdialog.ui \
     ./pagesetup.ui \
-    ./pdfsetup.ui \
     ./printprogress.ui \
     ./screenshotTransparency.ui
 RESOURCES += FalconBoard.qrc

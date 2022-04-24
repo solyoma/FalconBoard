@@ -16,7 +16,6 @@
 #include "common.h"
 #include "history.h"
 #include "pagesetup.h"
-#include "pdfsetup.h"
 #include "myprinter.h"
 #include "myevent.h"
 
@@ -53,7 +52,7 @@ public:
 
     void SetScreenSize(QSize screenSize);
 
-    void SetPrinterData(const MyPrinterData& prdata);
+    void SetMyPrinterData(const MyPrinterData& prdata);
 
     void ClearBackground();
              //  **************** history handling **************
@@ -155,6 +154,7 @@ public:
     //    ScreenShotTransparencyDialog* dlg = new ScreenShotTransparencyDialog(this, c, b);
     //    dlg->exec();
     //}
+    bool PageSetup(PageSetupDialog::WhatToDo what);
 signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo
@@ -176,7 +176,6 @@ public slots:
     void ClearHistory();
     void Print(QString fileName, QString *pdir=nullptr);
     void ExportPdf(QString fileName, QString &directory);   // filename w.o. directory
-    void PageSetup();
     void SlotForPrimaryScreenChanged(QScreen*);
     void SlotForGridSpacingChanged(int);
 #ifndef _VIEWER
@@ -373,7 +372,6 @@ private:
     void _Down(int distance = 10);
     void _Left(int distance = 10);
     void _Right(int distance = 10);
-    bool _PdfPageSetup();               // false: cancelled
     bool _NoPrintProblems();           // false: some problems
 #ifndef _VIEWER
     void _ShowCoordinates(const QPoint& qp);

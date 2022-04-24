@@ -20,7 +20,6 @@ HEADERS += ../FalconBoard/bands.h \
     ../FalconBoard/FalconBoard.h \
     ../FalconBoard/DrawArea.h \
     ../FalconBoard/screenshotTransparency.h \
-    ../FalconBoard/pdfsetup.h \
     ../FalconBoard/printprogress.h \
     ../FalconBoard/pagesetup.h \
     ../FalconBoard/snipper.h
@@ -28,7 +27,6 @@ SOURCES += ../FalconBoard/bands.cpp \
     ../FalconBoard/DrawArea.cpp \
     ../FalconBoard/history.cpp \
     ../FalconBoard/pagesetup.cpp \
-    ../FalconBoard/pdfsetup.cpp \
     ../FalconBoard/screenshotTransparency.cpp \
     ../FalconBoard/snipper.cpp \
     ../FalconBoard/main.cpp \
@@ -36,7 +34,6 @@ SOURCES += ../FalconBoard/bands.cpp \
     ../FalconBoard/myprinter.cpp
 FORMS += ../FalconBoard/FalconBoard.ui \
     ../FalconBoard/pagesetup.ui \
-    ../FalconBoard/pdfsetup.ui \
     ../FalconBoard/printprogress.ui \
     ../FalconBoard/screenshotTransparency.ui
 RESOURCES += ../FalconBoard/FalconBoard.qrc

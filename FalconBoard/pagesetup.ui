@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PageSetupClass</class>
- <widget class="QDialog" name="PageSetupClass">
+ <class>PageSetupDialog</class>
+ <widget class="QDialog" name="PageSetupDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>522</width>
-    <height>336</height>
+    <height>588</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>522</width>
-    <height>336</height>
+    <height>495</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>522</width>
-    <height>336</height>
+    <height>9999</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -28,14 +28,58 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QGroupBox" name="gbPaper">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="title">
-      <string/>
+      <string>Screen</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="0">
-       <widget class="QLabel" name="label">
+      <item row="0" column="4">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>107</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="1" colspan="2">
+       <widget class="QLineEdit" name="edtScreenDiag">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
         <property name="text">
-         <string>Screen Resolution</string>
+         <string>24</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLabel" name="label_5">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>or Horizontal Pixel Count to print on one page</string>
         </property>
        </widget>
       </item>
@@ -47,6 +91,12 @@
           <height>24</height>
          </size>
         </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
         <property name="currentIndex">
          <number>-1</number>
         </property>
@@ -55,7 +105,7 @@
         </property>
         <item>
          <property name="text">
-          <string>2840 x 2160 (16:9 - 4K)</string>
+          <string>3840 x 2160 (16:9 - 4K)</string>
          </property>
         </item>
         <item>
@@ -65,7 +115,7 @@
         </item>
         <item>
          <property name="text">
-          <string>2560 x 1440 (16:9)</string>
+          <string>2560 x 1440 (16:9 - 2K)</string>
          </property>
         </item>
         <item>
@@ -150,33 +200,79 @@
         </item>
        </widget>
       </item>
-      <item row="0" column="3">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>107</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item row="1" column="0" colspan="2">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>or Horizontal Pixel Count to print on one page</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="QSpinBox" name="sbHorizPixels">
+      <item row="2" column="4">
+       <widget class="QComboBox" name="cbUnit">
         <property name="minimumSize">
          <size>
           <width>0</width>
           <height>24</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <item>
+         <property name="text">
+          <string>inch</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>cm</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>mm</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Diagonal</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Resolution</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="4">
+       <widget class="QSpinBox" name="sbHorizPixels">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
         </property>
         <property name="suffix">
          <string> pixels</string>
@@ -198,72 +294,51 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_2">
+      <item row="0" column="3">
+       <widget class="QRadioButton" name="rbUseResInd">
         <property name="text">
-         <string>Screen diagonal</string>
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item row="2" column="1" colspan="2">
-       <widget class="QLineEdit" name="edtScreenDiag">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>24</height>
-         </size>
-        </property>
+      <item row="1" column="3">
+       <widget class="QRadioButton" name="rbUseHorPixels">
         <property name="text">
-         <string>24</string>
+         <string/>
         </property>
        </widget>
       </item>
-      <item row="2" column="3">
-       <widget class="QComboBox" name="cbUnit">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>24</height>
-         </size>
-        </property>
-        <item>
-         <property name="text">
-          <string>inch</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>cm</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>mm</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Printer</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>Paper Orientation</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="gbExportPdf">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Layout</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="1" column="1">
        <widget class="QComboBox" name="cbOrientation">
         <property name="minimumSize">
          <size>
           <width>0</width>
           <height>24</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
         </property>
         <item>
          <property name="text">
@@ -277,94 +352,358 @@
         </item>
        </widget>
       </item>
-      <item row="4" column="2" colspan="2">
-       <widget class="QGroupBox" name="groupBox">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_6">
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>0</height>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Paper size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>82</height>
          </size>
         </property>
         <property name="title">
-         <string>Options</string>
+         <string>Margins</string>
         </property>
-        <layout class="QFormLayout" name="formLayout">
+        <layout class="QGridLayout" name="gridLayout_4">
          <item row="0" column="0">
-          <widget class="QCheckBox" name="chkWhiteBackground">
+          <widget class="QLabel" name="label_8">
            <property name="minimumSize">
             <size>
              <width>0</width>
              <height>24</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
-            <string>&amp;White background</string>
+            <string>Left and Right</string>
            </property>
           </widget>
          </item>
          <item row="0" column="1">
-          <widget class="QCheckBox" name="chkGrayscale">
+          <widget class="QDoubleSpinBox" name="sbMarginLR">
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="singleStep">
+            <double>0.050000000000000</double>
+           </property>
+           <property name="stepType">
+            <enum>QAbstractSpinBox::DefaultStepType</enum>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_9">
            <property name="minimumSize">
             <size>
              <width>0</width>
              <height>24</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
-            <string>&amp;Grayscale</string>
+            <string>Top and Bottom</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="chkPrintBackgroundImage">
+         <item row="0" column="3">
+          <widget class="QDoubleSpinBox" name="sbMarginTB">
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="singleStep">
+            <double>0.050000000000000</double>
+           </property>
+           <property name="value">
+            <double>1.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" rowspan="2">
+          <widget class="QLabel" name="label_10">
            <property name="minimumSize">
             <size>
              <width>0</width>
              <height>24</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
-            <string>Print &amp;Background Image</string>
+            <string>Gutter margin</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="chkGrid">
-           <property name="text">
-            <string>G&amp;rid</string>
+         <item row="1" column="1" rowspan="2">
+          <widget class="QDoubleSpinBox" name="sbGutterMargin">
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="singleStep">
+            <double>0.050000000000000</double>
+           </property>
+           <property name="stepType">
+            <enum>QAbstractSpinBox::DefaultStepType</enum>
+           </property>
+           <property name="value">
+            <double>0.000000000000000</double>
            </property>
           </widget>
          </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="chkDontPrintImages">
+         <item row="1" column="2" rowspan="2">
+          <widget class="QLabel" name="label_11">
            <property name="minimumSize">
             <size>
              <width>0</width>
              <height>24</height>
             </size>
            </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
            <property name="text">
-            <string>Do not print &amp;images</string>
+            <string>Units:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
            </property>
           </widget>
          </item>
-         <item row="2" column="1">
-          <spacer name="horizontalSpacer_4">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
+         <item row="2" column="3">
+          <widget class="QComboBox" name="cbPdfUnit">
+           <property name="minimumSize">
             <size>
-             <width>93</width>
-             <height>15</height>
+             <width>0</width>
+             <height>24</height>
             </size>
            </property>
-          </spacer>
+           <property name="currentIndex">
+            <number>0</number>
+           </property>
+           <item>
+            <property name="text">
+             <string>inch</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>cm</string>
+            </property>
+           </item>
+          </widget>
          </item>
         </layout>
        </widget>
       </item>
-      <item row="3" column="3">
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Paper Orientation</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="cbPdfPaperSize">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>A7 ( 74 x 105 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A6 (105 x 148 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A5 (148 x 210 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A4 (210 x 297 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A3 (297 x 420 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A2 (420 x 594 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A1 (594 x 841 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A0 (841 x 1189 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B7 (88 x 125 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B6 (125 x 176 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B5 (176 x 250 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B4 (250 x 353 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B3 (353 x 500 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B2 (500 x 707 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B1 (707 x 1000 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B0 (1000 x 1414 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>US Letter (8 1/2 x 11 in)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Legal (2 1/2 x 14 in)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Stationary (5 1/2 x 8 1/2 in)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="gbPrinter">
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="title">
+      <string>Printer</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QLabel" name="lblPrinter">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="text">
+         <string> --- not selected ---</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QComboBox" name="cbPrinterSelect">
         <property name="minimumSize">
          <size>
@@ -377,17 +716,257 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1" colspan="2">
-       <widget class="QLabel" name="lblPrinter">
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="grpPrintOptions">
+     <property name="title">
+      <string/>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="leftMargin">
+       <number>1</number>
+      </property>
+      <property name="topMargin">
+       <number>1</number>
+      </property>
+      <property name="rightMargin">
+       <number>1</number>
+      </property>
+      <property name="bottomMargin">
+       <number>1</number>
+      </property>
+      <item>
+       <widget class="QGroupBox" name="gpOptions">
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>24</height>
+          <height>0</height>
          </size>
         </property>
-        <property name="text">
-         <string> --- not selected ---</string>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
         </property>
+        <property name="title">
+         <string>Options</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="3">
+          <widget class="QCheckBox" name="chkGrid">
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>G&amp;rid</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="chkPrintBackgroundImage">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Print &amp;Background Image</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="chkWhiteBackground">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>&amp;White background</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2" colspan="3">
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>290</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="0" column="4">
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>262</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="chkDontPrintImages">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Do not print &amp;images</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="2">
+          <widget class="QCheckBox" name="chkGrayscale">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>&amp;Grayscale</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="gbPDFRes">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="title">
+         <string>PDF Resolution</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="leftMargin">
+          <number>9</number>
+         </property>
+         <property name="topMargin">
+          <number>2</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>2</number>
+         </property>
+         <item>
+          <widget class="QRadioButton" name="rb300">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>300 dpi</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb600">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>600 dpi</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="rb1200">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>1200 dpi</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
@@ -424,7 +1003,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="okButton">
+      <widget class="QPushButton" name="btnOk">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -432,7 +1011,7 @@
         </size>
        </property>
        <property name="text">
-        <string>OK</string>
+        <string>O&amp;k</string>
        </property>
       </widget>
      </item>
@@ -458,7 +1037,7 @@
   <connection>
    <sender>cancelButton</sender>
    <signal>clicked()</signal>
-   <receiver>PageSetupClass</receiver>
+   <receiver>PageSetupDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

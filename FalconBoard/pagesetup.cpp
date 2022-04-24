@@ -1,5 +1,3 @@
-#include <math.h>
-
 #include <QSpinBox>
 #include <QLabel>
 #include <QScreen>
@@ -14,35 +12,22 @@
 #include "common.h"
 #include "pagesetup.h"
 
-/// <summary>
-///  screen sizes
-/// </summary>
-QSize PageSetupDialog::_pgsize[] = {
-										{2840,2160},
-										{3440,1440},
-										{2560,1440},
-										{2560,1080},
-										{2048,1152},
-										{1920,1200},
-										{1920,1080},
-										{1680,1050},
-										{1600, 900},
-										{1536, 864},
-										{1440, 900},
-										{1366, 768},
-										{1360, 768},
-										{1280,1024},
-										{1280, 800},
-										{1280, 720},
-										{1024, 768},
-										{800 , 600},
-										{640 , 360}
-};
+
+
+QPageSize::PageSizeId PageId(int index)
+{ 
+	return myPageSizes[index].pid; 
+}
+
+
 int PageSetupDialog::_GetScreenSize(int index, QSize& size)
 {
-	if (index >= 0)
-		size = _pgsize[index];
-	else
+	if (ui.rbUseResInd)
+	{
+		size = QSize(myScreenSizes[index].w, myScreenSizes[index].h);
+		return myScreenSizes[index].w;
+	}
+	else	// use horiz. pixels
 		size = QSize(horizPixels, -1);
 
 	return horizPixels;
@@ -53,8 +38,14 @@ int PageSetupDialog::GetScreenSize(QSize& size)
 	return _GetScreenSize(resolutionIndex, size);
 }
 
-PageSetupDialog::PageSetupDialog(QWidget* parent, QString actP) : _actPrinterName(actP), QDialog(parent)
+/*======== conversion ========*/
+auto getUnit(int ix) { PageSetupDialog::UnitIndex ui[] = { PageSetupDialog::uiInch,PageSetupDialog::uiCm, PageSetupDialog::uiMm }; return ui[ix]; };
+auto unitToIndex(PageSetupDialog::UnitIndex ui) { return ui == PageSetupDialog::uiInch ? 0 : ui == PageSetupDialog::uiCm ? 1 : 2; };
+
+
+PageSetupDialog::PageSetupDialog(QWidget* parent, QString actPrinterName, WhatToDo whatToDo) : whatToDo(whatToDo), actPrinterName(actPrinterName), QDialog(parent)
 {
+
 	ui.setupUi(this);
 	_busy = true;
 
@@ -62,51 +53,104 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actP) : _actPrinterNam
 
 	QSettings *s = FBSettings::Open();
 	resolutionIndex = s->value("resi", 6).toInt();		// 1920 x 1080
-	horizPixels     = s->value("hpxs", 1920).toInt();
-	screenDiagonal	= s->value("sdiag", 24).toInt();		// inch
-	unitIndex		= s->value("uf", 0).toInt();			// index to determines the multipl. factor for number in edScreenDiag number to inch
-	flags			= s->value("pflags", 0).toInt();		// bit): print background image, bit 1: white background
-
 	ui.cbScreenResolution->setCurrentIndex(resolutionIndex);
+
+	horizPixels     = s->value("hpxs", 1920).toInt();
+
+	ui.rbUseResInd->setChecked(s->value("useri", true).toBool() );
+
+	screenDiagonal	= s->value("sdiag", 24).toInt();		// inch
 	ui.edtScreenDiag->setText(QString().setNum(screenDiagonal)) ;
+
+	unitIndex		= getUnit(s->value("uf", 0).toInt());			// index to determines the multipl. factor for number in edScreenDiag number to inch
 	ui.cbUnit->setCurrentIndex(unitIndex);
+
+	flags			= s->value("pflags", 0).toInt();		// ORed PrinterFlags
+
 	ui.cbOrientation->setCurrentIndex(flags & pfLandscape ? 1 : 0);
 	ui.chkWhiteBackground->setChecked(flags & pfWhiteBackground);
 	ui.chkGrayscale->setChecked(flags & pfGrayscale);
 	ui.chkPrintBackgroundImage->setChecked(flags & pfPrintBackgroundImage);
 	ui.chkGrid->setChecked(flags & pfGrid);
 	ui.chkDontPrintImages->setChecked(flags & pfDontPrintImages);
+	// for PDF
+	pdfIndex = s->value("pdfpgs", 3).toInt();			// index in paper size combo box (default: A4)
 
-	QStringList sl = QPrinterInfo::availablePrinterNames();
-	ui.cbPrinterSelect->addItems(sl);
-	if (_actPrinterName.isEmpty())
+	pdfWidth  = myPageSizes[pdfIndex].w;					// w.o. margins in inches
+	pdfHeight = myPageSizes[pdfIndex].h;
+
+	pdfMaxLR = myPageSizes[pdfIndex].w / 3.0;				// always stored in inches
+	pdfMaxTB = myPageSizes[pdfIndex].h / 3.0;				// always stored in inches
+
+	pdfDpi = s->value("pdfdpi", 0).toInt();				// index: 0: 300, 1: 600, 2: 1200 dpi
+	pdfUnitIndex = getUnit(s->value("pdfui", 0).toInt() );
+
+	float fact = pdfUnitIndex == uiInch ? 1.0 : 2.54;				// to convert cm-s to inches
+
+	hMargin = s->value("pdfmlr", 1.0).toFloat();	// left - right	in inches
+	ui.sbMarginLR->setMaximum(pdfMaxLR*fact);		// this may be in inches or cm
+	ui.sbMarginLR->setValue(hMargin*fact);	
+
+	vMargin = s->value("pdfmtb", 1.0).toFloat();	// top - bottom	in inches
+	ui.sbMarginTB->setMaximum(pdfMaxTB*fact);		// this may be in inches or cm
+	ui.sbMarginTB->setValue(vMargin*fact);
+
+	gutterMargin = s->value("pdfgut", 0.0).toFloat();	// gutter in inches
+	ui.sbGutterMargin->setMaximum(pdfMaxTB * fact);		// this may be in inches or cm
+	ui.sbGutterMargin->setValue(gutterMargin * fact);
+
+	ui.cbPdfPaperSize->setCurrentIndex(pdfIndex);
+	ui.cbPdfUnit->setCurrentIndex(unitToIndex(pdfUnitIndex) );
+
+	switch (pdfDpi)
 	{
-		QPrinterInfo pdf = QPrinterInfo::defaultPrinter();
-		if (!pdf.isNull())
-			ui.cbPrinterSelect->setCurrentText(pdf.printerName());
+		case 0: ui.rb300->setChecked(true); break;
+		case 1: ui.rb600->setChecked(true); break;
+		case 2: 
+		default:ui.rb1200->setChecked(true); break;
 	}
-	else
-		ui.cbPrinterSelect->setCurrentText(_actPrinterName);
 
+	switch (whatToDo)
+	{
+		case wtdExportPdf:
+				ui.btnOk->setText("&Eport Pdf");
+				ui.gbPrinter->setVisible(false);
+			break;
+		case wtdPageSetup:		// page setup needs printer to set printable page size
+				ui.gbPDFRes->setVisible(false);
+		case wtdPrint:
+		default:
+			ui.gbPDFRes->setVisible(false);
+			QStringList sl = QPrinterInfo::availablePrinterNames();
+			ui.cbPrinterSelect->addItems(sl);
+			if (actPrinterName.isEmpty())
+			{
+				QPrinterInfo pdf = QPrinterInfo::defaultPrinter();
+				if (!pdf.isNull())
+					ui.cbPrinterSelect->setCurrentText(pdf.printerName());
+			}
+			else
+				ui.cbPrinterSelect->setCurrentText(actPrinterName);
+		break;
+	}
 	_busy = false;
-	FBSettings::Close();
-}
-
-void PageSetupDialog::on_okButton_clicked()
-{
-	_SaveParams();
-
-	accept();
 }
 
 void PageSetupDialog::_SaveParams()
 {
 	QSettings *s = FBSettings::Open();
-	s->setValue("resi", resolutionIndex);
+	s->setValue("resi", ui.cbScreenResolution->currentIndex());
 	s->setValue("hpxs", ui.sbHorizPixels->value());
-	s->setValue("sdiag", screenDiagonal);
+	s->setValue("useri", ui.rbUseResInd->isChecked());
+	s->setValue("sdiag", ui.edtScreenDiag->text());
 	s->setValue("pflags", flags);
-	s->setValue("ui", unitIndex);
+	// for PDF
+	s->setValue("pdfpgs", pdfIndex);
+	s->setValue("pdfmlr", hMargin);
+	s->setValue("pdfmtb", vMargin);
+	s->setValue("pdfgut", gutterMargin);
+	s->setValue("pdfui" , unitToIndex(pdfUnitIndex));
+	s->setValue("pdfdpi", pdfDpi);
 }
 
 PageSetupDialog::~PageSetupDialog()
@@ -115,8 +159,8 @@ PageSetupDialog::~PageSetupDialog()
 
 int PageSetupDialog::_GetIndexForHorizPixels(int hp)
 {
-	for (size_t i = 0; i < sizeof(_pgsize) / sizeof(QSize); ++i)
-		if (_pgsize[i].width() == hp)
+	for (size_t i = 0; i < sizeof(myScreenSizes) / sizeof(MyScreenSizes); ++i)
+		if (myScreenSizes[i].w == hp)
 			return i;
 	return -1;
 }
@@ -128,7 +172,7 @@ void PageSetupDialog::on_cbScreenResolution_currentIndexChanged(int i)
 	resolutionIndex = i;
 	_busy = true;
 	if (i >= 0)
-		ui.sbHorizPixels->setValue(_pgsize[i].width());
+		ui.sbHorizPixels->setValue(myScreenSizes[i].w);
 	_busy = false;
 }
 
@@ -145,28 +189,12 @@ void PageSetupDialog::on_sbHorizPixels_valueChanged(int val)
 
 
 void PageSetupDialog::on_edtScreenDiag_textChanged(QString& txt) { screenDiagonal = txt.toInt(); }
-void PageSetupDialog::on_cbUnit_currentIndexChanged(int i) 
+void PageSetupDialog::on_cbUnit_currentIndexChanged(int i) { unitIndex = getUnit(i); }
+void PageSetupDialog::on_cbOrientation_currentIndexChanged(int landscape) 
 { 
-	if (_busy)
-		return;
-
-	static double fact[] = { 1.0, 2.54, 25.4 };
-	_busy = true;
-	double diag = ui.edtScreenDiag->text().toDouble() / fact[unitIndex];	// back to inches
-	unitIndex = i;
-	diag *= fact[unitIndex];
-	ui.edtScreenDiag->setText(QString().setNum(int(round(diag))));
-	_busy = false;
-}
-void PageSetupDialog::on_cbOrientation_currentIndexChanged(int landscape) { flags &= ~pfLandscape; if (landscape) flags |= pfLandscape; }
-void PageSetupDialog::on_cbPrinterSelect_currentIndexChanged(int i)
-{
-	_actPrinterName.clear();
-	if (i >= 0)
-	{
-		_actPrinterName = ui.cbPrinterSelect->itemText(i);
-		ui.lblPrinter->setText(_actPrinterName);
-	}
+	flags &= ~pfLandscape; 
+	if (landscape) 
+		flags |= pfLandscape; 
 }
 
 void PageSetupDialog::on_chkPrintBackgroundImage_toggled(bool b)
@@ -207,3 +235,121 @@ void PageSetupDialog::on_chkDontPrintImages_toggled(bool b)
 	}
 }
 
+void PageSetupDialog::on_btnOk_clicked()
+{
+	_SaveParams();
+	accept();
+//	setResult(QDialog::Accepted);
+//	close();
+}
+void PageSetupDialog::on_cbPdfPaperSize_currentIndexChanged(int i)
+{
+	pdfIndex = i;
+	_ChangePdfPaperSize();
+}
+
+void PageSetupDialog::on_rbUseResInd_toggled(bool b)
+{
+	ui.sbHorizPixels->setEnabled(!b);
+	ui.cbScreenResolution->setEnabled(b);
+}
+
+void PageSetupDialog::on_rb300_toggled(bool b)
+{
+	if(b)
+		pdfDpi = 0;
+}
+void PageSetupDialog::on_rb600_toggled(bool b)
+{
+	if (b)
+		pdfDpi = 1;
+}
+void PageSetupDialog::on_rb1200_toggled(bool b)
+{
+	if (b)
+		pdfDpi = 2;
+}
+
+void PageSetupDialog::_ChangePdfPaperSize()	
+{
+	if (_busy)
+		return;
+
+	double factM = pdfUnitIndex == uiInch ? 1.0 : 2.54;	// if 0: numbers are in cm, if 1 in inches
+	if (pdfIndex >= 0)
+	{
+		pdfWidth  = myPageSizes[pdfIndex].w;
+		pdfHeight = myPageSizes[pdfIndex].h;
+		pdfMaxLR  = pdfWidth  / 3.0;
+		pdfMaxTB  = pdfHeight / 3.0;
+		if (hMargin > pdfMaxLR)
+		{
+			hMargin = pdfMaxLR;
+			_busy = true;
+			ui.sbMarginLR->setValue(pdfMaxLR * factM);
+			_busy = false;
+
+		}
+		if (vMargin > pdfMaxTB)
+		{
+			vMargin = pdfMaxTB;
+			_busy = true;
+			ui.sbMarginTB->setValue(pdfMaxTB * factM);
+			_busy = false;
+
+		}
+		ui.sbMarginLR->setMaximum( pdfMaxLR * factM );
+		ui.sbMarginTB->setMaximum( pdfMaxTB * factM );
+	}
+}
+void PageSetupDialog::_ChangeprintMarginsUnit()
+{
+	if (_busy)
+		return;
+	// unit change does not change the stored values
+	double factM = pdfUnitIndex == uiInch ? 2.54 : 1;
+	ui.sbMarginLR->setMaximum( pdfMaxLR * factM );
+	ui.sbMarginTB->setMaximum( pdfMaxTB * factM );
+	ui.sbMarginLR->setValue( hMargin * factM );
+	ui.sbMarginTB->setValue( vMargin * factM );
+}
+
+
+void PageSetupDialog::on_cbPdfUnit_currentIndexChanged(int i)
+{
+	if (_busy)
+		return;
+	pdfUnitIndex = getUnit(i);
+	_ChangeprintMarginsUnit();
+}
+
+void PageSetupDialog::on_cbPrinterSelect_currentIndexChanged(int i)
+{
+	actPrinterName.clear();
+	if (i >= 0)
+	{
+		actPrinterName = ui.cbPrinterSelect->itemText(i);
+		ui.lblPrinter->setText(actPrinterName);
+	}
+}
+
+void PageSetupDialog::on_sbMarginLR_valueChanged(double val)
+{
+	if (pdfUnitIndex == uiCm)
+		val /= 2.54;
+	hMargin = val;	// always in inches
+}
+
+void PageSetupDialog::on_sbMarginTB_valueChanged(double val)
+{
+	if (pdfUnitIndex == uiCm)
+		val /= 2.54;
+	vMargin = val;	// always in inches
+}
+
+void PageSetupDialog::on_sbGutterMargin_valueChanged(double val)
+{
+	if (pdfUnitIndex == uiCm)
+		val /= 2.54;
+	gutterMargin = val;		// always in inches
+}

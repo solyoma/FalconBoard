@@ -9,6 +9,7 @@
 #include <QMainWindow>
 #include <QDir>
 #include <QSettings>
+#include <QPageSize>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
 const long nVersion = 0x00010109;       // program version
 const QString sVersion = "1.1.10";
@@ -18,6 +19,73 @@ const QString sWindowTitle =
 #else
         "FalconBoard";
 #endif
+
+struct MyPageSizes
+{
+    double w, h;
+    int index;
+    QPageSize::PageSizeId pid;
+
+};
+
+constexpr MyPageSizes myPageSizes[] =
+{    // in inches as resolution is always in dots / inch
+                //{ 1.041666667,  1.458333333,  0, QPageSize::}, //   A10
+                //{ 1.458333333,  2.041666667,  1, QPageSize::}, //   A9	
+                //{ 2.041666667,  2.916666667,  2, QPageSize::}, //   A8	
+                { 2.916666667,  4.125000000,  3, QPageSize::A7}, //   A7	
+                { 4.125000000,  5.833333333,  4, QPageSize::A6}, //   A6	
+                { 5.833333333,  8.250000000,  5, QPageSize::A5}, //   A5	
+                { 8.267716535, 11.692913386,  6, QPageSize::A4}, //   A4	
+                {11.708333333, 16.541666667,  7, QPageSize::A3}, //   A3	
+                {16.541666667, 23.375000000,  8, QPageSize::A2}, //   A2	
+                {23.375000000, 33.125000000,  9, QPageSize::A1}, //   A1	
+                {33.125000000, 46.791666667, 10, QPageSize::A0}, //   A0 
+
+                //{ 1.208333333,  1.750000000, 11, QPageSize::}, //   B10
+                //{ 1.750000000,  2.458333333, 12, QPageSize::}, //   B9 
+                //{ 2.458333333,  3.458333333, 13, QPageSize::}, //   B8 
+                { 3.458333333,  4.916666667, 14, QPageSize::B7}, //   B7 
+                { 4.916666667,  6.916666667, 15, QPageSize::B6}, //   B6 
+                { 6.916666667,  9.833333333, 16, QPageSize::B5}, //   B5 
+                { 9.833333333, 13.916666667, 17, QPageSize::B4}, //   B4 
+                {13.916666667, 19.666666667, 18, QPageSize::B3}, //   B3 
+                {19.666666667, 27.833333333, 19, QPageSize::B2}, //   B2 
+                {27.833333333, 39.375000000, 20, QPageSize::B1}, //   B1 
+                {39.375000000, 55.666666667, 21, QPageSize::B0}, //   B0 
+
+                {8.5, 11 , 22, QPageSize::Letter}, // US Letter, 
+                {2.5, 14 , 23, QPageSize::Legal}, // US Legal,     
+                {5.5, 8.5, 24, QPageSize::B6}  // US Stationary, // ?????????
+};
+
+struct MyScreenSizes
+{
+    int w, h;
+};
+
+constexpr const MyScreenSizes myScreenSizes[] =
+{
+    {3840,   2160},
+    {3440,   1440},
+    {2560,   1440},
+    {2560,   1080},
+    {2048,   1152},
+    {1920,   1200},
+    {1920,   1080},
+    {1680,   1050},
+    {1600,   900 },
+    {1536,   864 },
+    {1440,   900 },
+    {1366,   768 },
+    {1360,   768 },
+    {1280,   1024},
+    {1280,   800 },
+    {1280,   720 },
+    {1024,   768 },
+    {800 ,   600 },
+    {640 ,   360 }
+};
 
 
 constexpr int PEN_COUNT = 6;    // no 'penNone' pen modify if pen count changes
@@ -35,6 +103,9 @@ enum PrinterFlags :char {
 };
 enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess};
 enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
+
+constexpr const int resos[] = { 300, 600, 1200 };;
+
 
 /*========================================================
  * Structure to hold item indices for one band or selection
@@ -284,5 +355,6 @@ private:
     static QSettings* _ps;
 
 };
+
 
 #endif // _COMMON_H

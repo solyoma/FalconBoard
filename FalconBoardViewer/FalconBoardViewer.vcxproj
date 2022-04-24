@@ -98,7 +98,6 @@
     <QtUic Include="..\FalconBoard\FalconBoard.ui" />
     <QtUic Include="..\FalconBoard\helpdialog.ui" />
     <QtUic Include="..\FalconBoard\pagesetup.ui" />
-    <QtUic Include="..\FalconBoard\pdfsetup.ui" />
     <QtUic Include="..\FalconBoard\printprogress.ui" />
   </ItemGroup>
   <ItemGroup>
@@ -109,7 +108,6 @@
     <ClCompile Include="..\FalconBoard\myprinter.cpp" />
     <ClCompile Include="..\FalconBoard\FalconBoard.cpp" />
     <ClCompile Include="..\FalconBoard\pagesetup.cpp" />
-    <ClCompile Include="..\FalconBoard\pdfsetup.cpp" />
     <ClCompile Include="..\FalconBoard\snipper.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -122,9 +120,8 @@
     <ClInclude Include="..\FalconBoard\history.h" />
     <ClInclude Include="..\FalconBoard\myevent.h" />
     <ClInclude Include="..\FalconBoard\myprinter.h" />
-    <QtMoc Include="..\FalconBoard\pdfsetup.h" />
-    <QtMoc Include="..\FalconBoard\printprogress.h" />
     <QtMoc Include="..\FalconBoard\pagesetup.h" />
+    <QtMoc Include="..\FalconBoard\printprogress.h" />
     <QtMoc Include="..\FalconBoard\snipper.h" />
     <QtMoc Include="..\FalconBoard\FalconBoard.h" />
   </ItemGroup>
