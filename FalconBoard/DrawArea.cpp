@@ -310,7 +310,7 @@ bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 
 void DrawArea::GotoPage(int page)
 {
-	_SetOrigin(QPoint(0, page * _prdata.screenPageHeight));
+	_SetOrigin(QPoint(0, --page * _prdata.screenPageHeight));
 	_Redraw();
 }
 
