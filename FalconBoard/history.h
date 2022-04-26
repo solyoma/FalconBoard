@@ -411,6 +411,16 @@ struct HistoryRotationItem : HistoryItem
     int Redo() override;
 };
 
+struct HistorySetTransparencyForAllScreenshotsItem : HistoryItem
+{
+    IntVector affectedIndexList;   // these images were re-created with transparent color set
+    int firstIndex = -1;            // top of pHist's screenShotImageList before this function was called
+    QColor _transparentColor;
+    HistorySetTransparencyForAllScreenshotsItem(History* pHist, QColor transparentColor);
+    int Undo() override;
+    int Redo() override;
+};
+
 
 // ******************************************************
 class History;
@@ -468,6 +478,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
 {
     friend class Bands;
     friend class HistoryScreenShotItem;
+    friend class HistorySetTransparencyForAllScreenshotsItem;
 
     HistoryList* _parent=nullptr;       // need for copy and paste
     QPoint _topLeft;                    // this history will be displayed at this position
@@ -494,7 +505,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _nextImageZorder = 0;                 // z-order of images
 
                                              // copy items on _nSelectedItemsList into this list for pasting anywhere even in newly opened documents
-    ScreenShotImageList  _belowImages;     // one or more images from screenshots
+    ScreenShotImageList  _screenShotImageList;     // one or more images from screenshots
 
     ItemIndexVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
                     _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
@@ -503,7 +514,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     QRect _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
                                         // when _nSelectedItemList is empty
 
-    IntVector _images;      // indices into _belowImages
+    IntVector _images;      // indices into _screenShotImageList
 
     bool _modified = false;
 
@@ -575,8 +586,8 @@ public:
     void ClearImageList() { _images.clear(); }
     int Countimages() { return _images.size(); }
     void AddImage(int index) { _images.push_back(index); }
-    ScreenShotImage& Image(int index) { return _belowImages[index]; }
-    ScreenShotImageList &ScreenShotList() { return _belowImages; }
+    ScreenShotImage& Image(int index) { return _screenShotImageList[index]; }
+    ScreenShotImageList &ScreenShotList() { return _screenShotImageList; }
 
     void Clear();
     void ClearName() { if (_items.isEmpty()) _fileName.clear(); }
@@ -629,9 +640,10 @@ public:
     HistoryItem* AddPastedItems(QPoint topLeft, Sprite *pSprite=nullptr);    // using 'this' and either '_copiedList'  or  pSprite->... lists
     HistoryItem* AddRecolor(FalconPenKind pk);
     HistoryItem* AddInsertVertSpace(int y, int heightInPixels);              // height < 0: delete space
-    HistoryItem* AddScreenShot(ScreenShotImage &bimg);                       // to _belowImages
+    HistoryItem* AddScreenShot(ScreenShotImage &bimg);                       // to _screenShotImageList
     HistoryItem* AddRotationItem(MyRotation rot);
     HistoryItem* AddRemoveSpaceItem(QRect &rect);
+    HistoryItem* AddScreenShotTransparencyToLoadedItem(QColor trColor);
     // --------------------- drawing -----------------------------------
     void VertShiftItemsBelow(int belowY, int deltaY);
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
@@ -641,7 +653,7 @@ public:
     HistoryItem* Redo();
 
     int GetScribblesInside(QRect rect, HistoryItemVector& hv);
-    int ImageIndexFor(QPoint& p) const { return _belowImages.ImageIndexFor(p); } // -1: no such image else index in 'pImages'
+    int ImageIndexFor(QPoint& p) const { return _screenShotImageList.ImageIndexFor(p); } // -1: no such image else index in 'pImages'
 
     void AddToSelection(int index=-1);
     QRect SelectScribblesFor(QPoint& p, bool addToPrevious);      // selects clicked (if any) into _nSelectedItemsList, and clears right and left items list

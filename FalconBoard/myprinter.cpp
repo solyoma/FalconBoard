@@ -96,6 +96,7 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
 		_printer->setPrinterName(_data.printerName);
         _printer->pageLayout().setUnits(QPageLayout::Inch);
 		_printer->setOrientation((_data.flags & pfLandscape) ? QPrinter::Landscape : QPrinter::Portrait);
+        _printer->setPageSize(QPageSize(myPageSizes[_data.paperId].pid));
         _printer->setPageMargins({ qreal(_data.HMargin()), qreal(_data.VMargin()), qreal(_data.HMargin()), qreal(_data.VMargin()) });
 
         _pDlg = _DoPrintDialog();  // includes a _CalcPages() call
@@ -110,9 +111,12 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
         // print dialog might have changed printer parameters
         // get actual _printer data (may be different from the one set in page setup)
 		_data.printerName = _printer->printerName();
-        _data.flags =_printer->orientation() == QPageLayout::Landscape ? pfLandscape : 0;
+
+        _data.flags &= ~pfLandscape;
+        _data.flags |=_printer->orientation() == QPageLayout::Landscape ? pfLandscape : 0;
+
         _data.SetDpi(_printer->resolution(),false);
-        _data.SetPrintArea(_printer->pageRect(), true);
+        _data.SetPrintArea(_printer->pageRect(QPrinter::Inch), true);
 
         _status = rsOk;
     }

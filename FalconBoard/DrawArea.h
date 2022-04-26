@@ -115,7 +115,7 @@ public:
     void DrawRect();    // use _rubberBand
     void DrawEllipse();
 */
-    void SetScreenshotTransparency(QColor color, bool use);
+    void ApplyTransparencyToLoadedScreenshots(QColor trcolor);
 #endif
 
     void GotoPage(int page);

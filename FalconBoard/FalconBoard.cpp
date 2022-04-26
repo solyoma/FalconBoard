@@ -683,10 +683,12 @@ void FalconBoard::_SelectTransparentPixelColor()
 {
 //    _drawArea->_SelectTransparentPixelColor();
     
-    ScreenShotTransparencyDialog *dlg = new ScreenShotTransparencyDialog(this, _screenshotTransparencyColor, _useScreenshotTransparency);
+    ScreenShotTransparencyDialog *dlg = new ScreenShotTransparencyDialog(this, _screenshotTransparencyColor, _useScreenshotTransparency, _applyScreenshotTransparencyToAlreadyLoaded);
     if (dlg->exec())
-        dlg->GetResult(_screenshotTransparencyColor, _useScreenshotTransparency);
+        dlg->GetResult(_screenshotTransparencyColor, _useScreenshotTransparency, _applyScreenshotTransparencyToAlreadyLoaded);
     ui.actionScreenshotTransparency->setChecked(_useScreenshotTransparency);
+    if (_applyScreenshotTransparencyToAlreadyLoaded)
+        _drawArea->ApplyTransparencyToLoadedScreenshots(_screenshotTransparencyColor);
     delete dlg;
 }
 #endif

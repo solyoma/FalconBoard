@@ -857,34 +857,34 @@ HistoryScreenShotItem::~HistoryScreenShotItem()
 
 int  HistoryScreenShotItem::Undo() // hide
 {
-	(pHist->_belowImages)[which].isVisible = false;
+	(pHist->_screenShotImageList)[which].isVisible = false;
 	return 1;
 }
 
 int  HistoryScreenShotItem::Redo() // show
 {
-	pHist->_belowImages[which].isVisible = true;
+	pHist->_screenShotImageList[which].isVisible = true;
 	return 0;
 }
 
 int HistoryScreenShotItem::ZOrder() const
 {
-	return  pHist->_belowImages[which].zOrder;
+	return  pHist->_screenShotImageList[which].zOrder;
 }
 
 QPoint HistoryScreenShotItem::TopLeft() const
 {
-	return pHist->_belowImages[which].topLeft;
+	return pHist->_screenShotImageList[which].topLeft;
 }
 
 QRect HistoryScreenShotItem::Area() const
 {
-	return QRect(pHist->_belowImages[which].topLeft, pHist->_belowImages[which].image.size());
+	return QRect(pHist->_screenShotImageList[which].topLeft, pHist->_screenShotImageList[which].image.size());
 }
 
 bool HistoryScreenShotItem::Hidden() const
 {
-	return !pHist->_belowImages[which].isVisible;
+	return !pHist->_screenShotImageList[which].isVisible;
 }
 
 bool HistoryScreenShotItem::Translatable() const
@@ -894,22 +894,22 @@ bool HistoryScreenShotItem::Translatable() const
 
 void HistoryScreenShotItem::SetVisibility(bool visible)
 {
-	pHist->_belowImages[which].isVisible = visible;
+	pHist->_screenShotImageList[which].isVisible = visible;
 }
 
 void HistoryScreenShotItem::Translate(QPoint p, int minY)
 {
-	pHist->_belowImages[which].Translate(p, minY);
+	pHist->_screenShotImageList[which].Translate(p, minY);
 }
 
 void HistoryScreenShotItem::Rotate(MyRotation rot, QRect encRect, float alpha)
 {
-	pHist->_belowImages[which].Rotate(rot, encRect);
+	pHist->_screenShotImageList[which].Rotate(rot, encRect);
 }
 
 ScreenShotImage* HistoryScreenShotItem::GetScreenShotImage() const
 {
-	return &pHist->_belowImages[which];
+	return &pHist->_screenShotImageList[which];
 }
 
 //---------------------------------------------------------
@@ -1229,7 +1229,7 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 	if (p->type == heScreenShot)
 	{
 		HistoryScreenShotItem* phi = reinterpret_cast<HistoryScreenShotItem*>(p);
-		_belowImages[phi->which].itemIndex = _items.size() - 1;		// always the last element
+		_screenShotImageList[phi->which].itemIndex = _items.size() - 1;		// always the last element
 	}
 
 	_modified = true;
@@ -1252,7 +1252,7 @@ void History::Clear()		// does not clear lists of copied items and screen snippe
 	_items.clear();
 	_redoList.clear();
 	_yxOrder.clear();
-	_belowImages.Clear();
+	_screenShotImageList.Clear();
 	_bands.Clear();
 
 	_lastZorder = DRAWABLE_ZORDER_BASE;
@@ -1346,7 +1346,7 @@ SaveResult History::Save(QString name)
 				int index = -1;
 				if (phi->IsImage())
 				{
-					ofs << _belowImages[((HistoryScreenShotItem*)phi)->which];
+					ofs << _screenShotImageList[((HistoryScreenShotItem*)phi)->which];
 					continue;
 				}
 				else
@@ -1415,9 +1415,9 @@ int History::Load(bool force)
 		if ((HistEvent(n) == heScreenShot))
 		{
 			ifs >> bimg;
-			_belowImages.push_back(bimg);
+			_screenShotImageList.push_back(bimg);
 
-			int n = _belowImages.size() - 1;
+			int n = _screenShotImageList.size() - 1;
 			HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, n);
 			_AddItem(phss);
 			continue;
@@ -1561,9 +1561,9 @@ HistoryItem* History::AddPastedItems(QPoint topLeft, Sprite* pSprite)			   // tr
 	for (ScreenShotImage si : *pCopiedImages)
 	{
 		si.itemIndex = _items.size();	// new historyItem will be here in _items
-		int n = _belowImages.size();		// and here in pImages
-		_belowImages.push_back(si);
-		_belowImages[n].Translate(topLeft, -1);
+		int n = _screenShotImageList.size();		// and here in pImages
+		_screenShotImageList.push_back(si);
+		_screenShotImageList[n].Translate(topLeft, -1);
 		HistoryScreenShotItem* p = new HistoryScreenShotItem(this, n);
 		_AddItem(p);
 	}
@@ -1601,16 +1601,16 @@ HistoryItem* History::AddInsertVertSpace(int y, int heightInPixels)
 
 HistoryItem* History::AddScreenShot(ScreenShotImage& bimg)
 {
-	int index = _belowImages.size();
-	_belowImages.push_back(bimg);
+	int index = _screenShotImageList.size();
+	_screenShotImageList.push_back(bimg);
 	HistoryScreenShotItem* phss = new HistoryScreenShotItem(this, index);
 
 	if (!_inLoad)
-		_belowImages[index].zOrder = _nextImageZorder = index;
+		_screenShotImageList[index].zOrder = _nextImageZorder = index;
 	else
-		_belowImages[index].zOrder = _nextImageZorder++;
+		_screenShotImageList[index].zOrder = _nextImageZorder++;
 
-	_belowImages[index].itemIndex = _items.size();	// _AddItem increases this
+	_screenShotImageList[index].itemIndex = _items.size();	// _AddItem increases this
 
 	return _AddItem(phss);
 }
@@ -1633,6 +1633,12 @@ HistoryItem* History::AddRemoveSpaceItem(QRect& rect)
 
 	HistoryRemoveSpaceItem* phrs = new HistoryRemoveSpaceItem(this, _nItemsRightOfList, nCntRight ? rect.width() : rect.height(), rect.bottom());
 	return _AddItem(phrs);
+}
+
+HistoryItem* History::AddScreenShotTransparencyToLoadedItem(QColor trColor)
+{
+	HistorySetTransparencyForAllScreenshotsItem* psta = new HistorySetTransparencyForAllScreenshotsItem(this, trColor);
+	return _AddItem(psta);
 }
 
 
@@ -1802,13 +1808,13 @@ int History::SelectTopmostImageFor(QPoint p)
 
 	int i;
 	if (p == QPoint(-1, -1))
-		i = _belowImages.size() - 1;
+		i = _screenShotImageList.size() - 1;
 	else
 		i = ImageIndexFor(p);		// index in _ScreenShotImages
 	if (i < 0)
 		return i;
 
-	ScreenShotImage& ssi = _belowImages[i];
+	ScreenShotImage& ssi = _screenShotImageList[i];
 	ItemIndex ind = { ssi.zOrder, ssi.itemIndex };
 	_nSelectedItemsList.push_back(ind);
 	_selectionRect = ssi.Area();
@@ -1995,7 +2001,7 @@ void History::CopySelected(Sprite* sprite)
 			const HistoryItem* item = _items[ix.index];
 			if (ix.zorder < DRAWABLE_ZORDER_BASE)	// then image
 			{
-				ScreenShotImage* pbmi = &_belowImages[dynamic_cast<const HistoryScreenShotItem*>(item)->which];
+				ScreenShotImage* pbmi = &_screenShotImageList[dynamic_cast<const HistoryScreenShotItem*>(item)->which];
 				pCopiedImages->push_back(*pbmi);
 				(*pCopiedImages)[pCopiedImages->size() - 1].Translate(-_selectionRect.topLeft(), -1);
 			}
@@ -2171,3 +2177,47 @@ void HistoryList::PasteFromClipboard()
 		}
 	}
 }
+
+//****************** HistorySetTransparencyForAllScreenshotsItem ****************
+HistorySetTransparencyForAllScreenshotsItem::HistorySetTransparencyForAllScreenshotsItem(History* pHist, QColor transparentColor) : _transparentColor(transparentColor),HistoryItem(pHist)
+{
+	Redo();
+}
+
+int HistorySetTransparencyForAllScreenshotsItem::Redo()
+{
+	ScreenShotImageList* pssil = &pHist->_screenShotImageList;
+	int siz = firstIndex = pssil->size();
+	ScreenShotImage* psi, *psin;
+	for (int i = 0; i <  firstIndex; ++i)
+	{
+		psi = &(*pssil)[i];
+		if (psi->isVisible)
+			affectedIndexList.push_back(i);
+	}
+	for (int i = 0; i < affectedIndexList.size(); ++i)
+	{
+		psi = &(*pssil)[affectedIndexList[i]];
+		pssil->push_back(*psi);
+		psi->isVisible = false;			// hide original
+		psin = &(*pssil)[siz++];
+		QBitmap bm = psin->image.createMaskFromColor(_transparentColor);
+		psin->image.setMask(bm);
+	}
+	return 1;
+}
+
+int HistorySetTransparencyForAllScreenshotsItem::Undo()
+{
+	ScreenShotImageList* pssil = &pHist->_screenShotImageList;
+	pssil->erase(pssil->begin() + firstIndex, pssil->end());
+
+	ScreenShotImage* psi;
+	for (int i = 0; i < affectedIndexList.size(); ++i)
+	{
+		psi = &(*pssil)[affectedIndexList[i]];
+		psi->isVisible = true;			// show original
+	}
+	return 1;
+}
+

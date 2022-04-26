@@ -224,6 +224,7 @@ private:
 	QString _sGridColor = "#d0d0d0",
 		    _sPageGuideColor = "#fcd475";
 	bool _useScreenshotTransparency = false;
+	bool _applyScreenshotTransparencyToAlreadyLoaded;
 	QColor _screenshotTransparencyColor;
 
 	ScreenMode _screenMode = smSystem;

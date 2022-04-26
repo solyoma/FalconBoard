@@ -25,7 +25,7 @@ struct MyPageSizes
     double w, h;
     int index;
     QPageSize::PageSizeId pid;
-
+    QPageSize PageSize() { return QPageSize(pid); }
 };
 
 constexpr MyPageSizes myPageSizes[] =

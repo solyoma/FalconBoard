@@ -306,6 +306,12 @@ bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 	}
 	return false;
 }
+
+void DrawArea::ApplyTransparencyToLoadedScreenshots(QColor trcolor)
+{
+	_history->AddScreenShotTransparencyToLoadedItem(trcolor);
+	_Redraw();
+}
 #endif
 
 void DrawArea::GotoPage(int page)
