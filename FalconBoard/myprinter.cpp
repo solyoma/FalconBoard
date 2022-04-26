@@ -355,7 +355,7 @@ int MyPrinter::_CalcPages()
                 act.ny = y;
                 for (int x = pgn.nx; x <= lpgn.nx; ++x)
                 {
-                    act.ny = y;
+                    act.nx = x;
 					sortedPageNumbers.Insert(act);
                 }
             }

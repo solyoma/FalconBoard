@@ -138,6 +138,7 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actPrinterName, WhatTo
 		break;
 	}
 	_busy = false;
+	FBSettings::Close();
 }
 
 void PageSetupDialog::_SaveParams()
@@ -156,6 +157,7 @@ void PageSetupDialog::_SaveParams()
 	s->setValue("pdfgut", gutterMargin);
 	s->setValue("pdfui" , unitToIndex(pdfUnitIndex));
 	s->setValue("pdfdpi", pdfDpi);
+	FBSettings::Close();
 }
 
 PageSetupDialog::~PageSetupDialog()
