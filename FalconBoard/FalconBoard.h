@@ -113,6 +113,8 @@ private slots:
 
 	void on_action_InsertVertSpace_triggered();
 
+	void on_actionApplyTransparencyToLoaded_triggered();
+
 	void SlotForRubberBandSelection(int on);
 
 	void slotPenWidthChanged(int val);
@@ -224,7 +226,7 @@ private:
 	QString _sGridColor = "#d0d0d0",
 		    _sPageGuideColor = "#fcd475";
 	bool _useScreenshotTransparency = false;
-	bool _applyScreenshotTransparencyToAlreadyLoaded;
+	qreal _transparencyFuzzyness = 0.0;
 	QColor _screenshotTransparencyColor;
 
 	ScreenMode _screenMode = smSystem;

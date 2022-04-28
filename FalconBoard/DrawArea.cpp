@@ -307,9 +307,9 @@ bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 	return false;
 }
 
-void DrawArea::ApplyTransparencyToLoadedScreenshots(QColor trcolor)
+void DrawArea::ApplyTransparencyToLoadedScreenshots(QColor trcolor, qreal fuzzyness)
 {
-	_history->AddScreenShotTransparencyToLoadedItem(trcolor);
+	_history->AddScreenShotTransparencyToLoadedItems(trcolor, fuzzyness);
 	_Redraw();
 }
 #endif

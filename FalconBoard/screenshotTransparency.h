@@ -11,19 +11,20 @@ class ScreenShotTransparencyDialog : public QDialog
 {
 	Q_OBJECT
 public:
-	ScreenShotTransparencyDialog(QWidget* parent, QColor trcolor, bool usetr, bool applyToLoaded);
+	ScreenShotTransparencyDialog(QWidget* parent, QColor trcolor, bool usetr, qreal fuzzyness);
 	~ScreenShotTransparencyDialog() {};
 
-	void GetResult(QColor &trcolor, bool& usetr, bool &applyToLoaded);
+	void GetResult(QColor &trcolor, bool& usetr, qreal &fuzzyness);
 
 private:
 	Ui::dlgScreenShotTrasparencyClass ui;
 
 	QColor	_trcolor;
+	qreal _fuzzyness;
 
 private slots:
 	void on_btnColor_clicked();
-	void on_chkUse_toggled(bool b);
+	void on_hsFuzzyness_valueChanged(int value);
 };
 #endif // _not VIEWER
 

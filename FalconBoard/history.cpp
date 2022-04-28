@@ -13,6 +13,73 @@ static void SwapWH(QRect& r)
 	r.setHeight(w);
 }
 
+/*=============================================================
+ * TASK:    based on QImage createMaskFromColor, but using
+ *          fuzzyness for matchineg near colors
+ * PARAMS:  pixmap: create mask for this pixmap
+ *          color:  these color defines the mask, but has
+ *          fuzzyness:  0..1.0, 1.0: all colors match
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness, Qt::MaskMode mode)
+{
+	QImage img = pixmap.toImage();
+
+	qreal hc, sc, lc;
+
+	// DEBUG
+	QColor red = "red", green="green", blue="blue",mix = "#ffffff";
+	red.toHsl().getHslF(&hc, &sc, &lc);
+	green.toHsl().getHslF(&hc, &sc, &lc);
+	blue.toHsl().getHslF(&hc, &sc, &lc);
+	mix.toHsl().getHslF(&hc, &sc, &lc);
+	// /DEBUG
+
+	color.toHsl().getHslF(&hc, &sc, &lc);
+
+	auto SameColor = [&](QColor clr) // clr is hsl
+	{
+		qreal h, s, l;
+		clr.getHslF(&h, &s, &l);
+		return qAbs(h - hc) <= fuzzyness && qAbs(s - sc) <= fuzzyness && qAbs(l - lc) <= fuzzyness;
+	};
+
+	QImage maskImage(pixmap.size(), QImage::Format_MonoLSB);
+	maskImage.fill(0);
+	uchar* s = maskImage.bits();
+
+	if (img.depth() == 32) {
+		for (int h = 0; h < img.height(); h++) 
+		{
+			const uint* sl = (const uint*)img.scanLine(h);
+			for (int w = 0; w < img.width(); w++) 
+			{
+				if (SameColor(sl[w]))
+					*(s + (w >> 3)) |= (1 << (w & 7));
+			}
+			s += maskImage.bytesPerLine();
+		}
+	}
+	else {
+		for (int h = 0; h < img.height(); h++) {
+			for (int w = 0; w < img.width(); w++) {
+				if (SameColor((uint)img.pixel(w, h)))
+					*(s + (w >> 3)) |= (1 << (w & 7));
+			}
+			s += maskImage.bytesPerLine();
+		}
+	}
+	if (mode == Qt::MaskOutColor)
+		maskImage.invertPixels();
+
+	// copyPhysicalMetadata(maskImage.d, d);
+	return QBitmap::fromImage(maskImage);
+
+
+}
+
 //-------------------------------------------------
 
 ScribbleItem::ScribbleItem(HistEvent he, int zorder) noexcept : type(he), zOrder(zorder) {}
@@ -1635,9 +1702,9 @@ HistoryItem* History::AddRemoveSpaceItem(QRect& rect)
 	return _AddItem(phrs);
 }
 
-HistoryItem* History::AddScreenShotTransparencyToLoadedItem(QColor trColor)
+HistoryItem* History::AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness)
 {
-	HistorySetTransparencyForAllScreenshotsItem* psta = new HistorySetTransparencyForAllScreenshotsItem(this, trColor);
+	HistorySetTransparencyForAllScreenshotsItems* psta = new HistorySetTransparencyForAllScreenshotsItems(this, trColor, fuzzyness);
 	return _AddItem(psta);
 }
 
@@ -2179,12 +2246,12 @@ void HistoryList::PasteFromClipboard()
 }
 
 //****************** HistorySetTransparencyForAllScreenshotsItem ****************
-HistorySetTransparencyForAllScreenshotsItem::HistorySetTransparencyForAllScreenshotsItem(History* pHist, QColor transparentColor) : _transparentColor(transparentColor),HistoryItem(pHist)
+HistorySetTransparencyForAllScreenshotsItems::HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness) : transparentColor(transparentColor),fuzzyness(fuzzyness), HistoryItem(pHist)
 {
 	Redo();
 }
 
-int HistorySetTransparencyForAllScreenshotsItem::Redo()
+int HistorySetTransparencyForAllScreenshotsItems::Redo()
 {
 	ScreenShotImageList* pssil = &pHist->_screenShotImageList;
 	int siz = firstIndex = pssil->size();
@@ -2201,13 +2268,13 @@ int HistorySetTransparencyForAllScreenshotsItem::Redo()
 		pssil->push_back(*psi);
 		psi->isVisible = false;			// hide original
 		psin = &(*pssil)[siz++];
-		QBitmap bm = psin->image.createMaskFromColor(_transparentColor);
+		QBitmap bm = MyCreateMaskFromColor(psin->image, transparentColor, fuzzyness);
 		psin->image.setMask(bm);
 	}
 	return 1;
 }
 
-int HistorySetTransparencyForAllScreenshotsItem::Undo()
+int HistorySetTransparencyForAllScreenshotsItems::Undo()
 {
 	ScreenShotImageList* pssil = &pHist->_screenShotImageList;
 	pssil->erase(pssil->begin() + firstIndex, pssil->end());

@@ -86,6 +86,7 @@
     <addaction name="action_Eraser"/>
     <addaction name="separator"/>
     <addaction name="action_Screenshot"/>
+    <addaction name="actionApplyTransparencyToLoaded"/>
     <addaction name="separator"/>
     <addaction name="action_InsertVertSpace"/>
     <addaction name="separator"/>
@@ -727,6 +728,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionApplyTransparencyToLoaded">
+   <property name="text">
+    <string>Apply Transparency For Loaded</string>
    </property>
   </action>
  </widget>

@@ -35,6 +35,7 @@ void FalconBoard::_RemoveMenus()
 
     ui.actionAutoSaveData->setVisible(false);
     ui.actionAutoSaveBackgroundImage->setVisible(false);
+    ui.actionApplyTransparencyToLoaded->setVisible(false);
     ui.menuGrid->removeAction(ui.menuGrid->actions()[2]);
     pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]);
 
@@ -683,12 +684,10 @@ void FalconBoard::_SelectTransparentPixelColor()
 {
 //    _drawArea->_SelectTransparentPixelColor();
     
-    ScreenShotTransparencyDialog *dlg = new ScreenShotTransparencyDialog(this, _screenshotTransparencyColor, _useScreenshotTransparency, _applyScreenshotTransparencyToAlreadyLoaded);
+    ScreenShotTransparencyDialog *dlg = new ScreenShotTransparencyDialog(this, _screenshotTransparencyColor, _useScreenshotTransparency, _transparencyFuzzyness);
     if (dlg->exec())
-        dlg->GetResult(_screenshotTransparencyColor, _useScreenshotTransparency, _applyScreenshotTransparencyToAlreadyLoaded);
+        dlg->GetResult(_screenshotTransparencyColor, _useScreenshotTransparency, _transparencyFuzzyness);
     ui.actionScreenshotTransparency->setChecked(_useScreenshotTransparency);
-    if (_applyScreenshotTransparencyToAlreadyLoaded)
-        _drawArea->ApplyTransparencyToLoadedScreenshots(_screenshotTransparencyColor);
     delete dlg;
 }
 #endif
@@ -1256,7 +1255,7 @@ void FalconBoard::on_actionLoad_triggered()
 
 void FalconBoard::on_actionGoToPage_triggered()
 {
-    bool ok;
+    bool ok = false;
     int n = QInputDialog::getInt(this, tr("FalconBoard - input"), tr("Go to Page"), 1, 1, ok);
     if(ok)
         _drawArea->GotoPage(n);
@@ -1714,6 +1713,11 @@ void FalconBoard::on_action_InsertVertSpace_triggered()
     _drawArea->InsertVertSpace();
 }
 
+void FalconBoard::on_actionApplyTransparencyToLoaded_triggered()
+{
+    _drawArea->ApplyTransparencyToLoadedScreenshots(_screenshotTransparencyColor, _transparencyFuzzyness);
+}
+
 void FalconBoard::SlotForRubberBandSelection(int on)
 {
     ui.action_InsertVertSpace->setEnabled(on);
@@ -1788,7 +1792,7 @@ void FalconBoard::SlotForScreenshotReady(QRect gmetry)
 
     if (_useScreenshotTransparency)
     {
-        QBitmap bm = pixmap.createMaskFromColor(_screenshotTransparencyColor);
+        QBitmap bm = MyCreateMaskFromColor(pixmap, _screenshotTransparencyColor, _transparencyFuzzyness);
         pixmap.setMask(bm);
     }
 

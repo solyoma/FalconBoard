@@ -411,12 +411,13 @@ struct HistoryRotationItem : HistoryItem
     int Redo() override;
 };
 
-struct HistorySetTransparencyForAllScreenshotsItem : HistoryItem
+struct HistorySetTransparencyForAllScreenshotsItems : HistoryItem
 {
     IntVector affectedIndexList;   // these images were re-created with transparent color set
     int firstIndex = -1;            // top of pHist's screenShotImageList before this function was called
-    QColor _transparentColor;
-    HistorySetTransparencyForAllScreenshotsItem(History* pHist, QColor transparentColor);
+    QColor transparentColor;
+    qreal fuzzyness = 0.0;
+    HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness);
     int Undo() override;
     int Redo() override;
 };
@@ -478,7 +479,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
 {
     friend class Bands;
     friend class HistoryScreenShotItem;
-    friend class HistorySetTransparencyForAllScreenshotsItem;
+    friend class HistorySetTransparencyForAllScreenshotsItems;
 
     HistoryList* _parent=nullptr;       // need for copy and paste
     QPoint _topLeft;                    // this history will be displayed at this position
@@ -643,7 +644,7 @@ public:
     HistoryItem* AddScreenShot(ScreenShotImage &bimg);                       // to _screenShotImageList
     HistoryItem* AddRotationItem(MyRotation rot);
     HistoryItem* AddRemoveSpaceItem(QRect &rect);
-    HistoryItem* AddScreenShotTransparencyToLoadedItem(QColor trColor);
+    HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
     // --------------------- drawing -----------------------------------
     void VertShiftItemsBelow(int belowY, int deltaY);
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
@@ -697,5 +698,7 @@ public:
     void CopyToClipboard();    // uses _pCopiedItems and _pCopiedImages so these must be setup first
     void PasteFromClipboard(); // only if the clipboard data is not the same as data in memory gets data from clipboard
 };
+
+QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness = 0.0, Qt::MaskMode mode = Qt::MaskInColor);
 
 #endif

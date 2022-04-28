@@ -356,5 +356,4 @@ private:
 
 };
 
-
 #endif // _COMMON_H
