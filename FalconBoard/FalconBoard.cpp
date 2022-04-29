@@ -1444,7 +1444,7 @@ void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
 void FalconBoard::SlotForTabCloseRequested(int index)
 {
 #ifndef _VIEWER
-    if (!_drawArea->IsModified(index) || _SaveIfYouWant(index, true))
+    if (!_drawArea->IsModified(index) || _SaveIfYouWant(index, true)!= srCancelled)
     {
 #endif
         _CloseTab(index);
