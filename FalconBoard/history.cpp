@@ -1092,7 +1092,7 @@ void History::RecreateBands()
 {
 	_bands.Clear();
 	int i;
-	for (i = 0; i < _items.size()-1; ++i)
+	for (i = 0; i < _items.size(); ++i)
 		_bands.Add(i);
 }
 
