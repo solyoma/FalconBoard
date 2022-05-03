@@ -345,7 +345,8 @@ void Bands::_Insert(Band& band, int index)
 	ItemIndex zind = { zi, index };
 	auto iter = std::lower_bound(band.indices.begin(), band.indices.end(), zind);
 	int i = iter - band.indices.begin();
-	band.indices.insert(i, zind);
+	if(i >= band.indices.size() || band.indices[i].index !=zind.index)
+		band.indices.insert(i, zind);
 }
 
 

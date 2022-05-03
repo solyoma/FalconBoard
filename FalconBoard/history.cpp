@@ -1748,7 +1748,7 @@ HistoryItem* History::Undo()      // returns top left after undo
 	//				and remove them from _yxOrder and _bands
 	while (count--)
 	{
-		phi = _items[actItem];	// here so index is never negative 
+		phi = _items[actItem];	// here again, index is never negative 
 		_redoList.push_back(phi);
 
 		// only scribble elements are in _yxOrder!
@@ -1797,12 +1797,12 @@ HistoryItem* History::Redo()   // returns item to redone
 
 	while (count--)
 	{
-		phi = _redoList[actItem--];
+		phi = _redoList[actItem--];	// here again
 
 		_push_back(phi);
 		_redoList.pop_back();
+		phi->Redo();
 	}
-	phi->Redo();
 
 	_modified = true;
 
