@@ -1047,6 +1047,49 @@ int HistoryRotationItem::Redo()
 }
 
 
+//****************** HistorySetTransparencyForAllScreenshotsItem ****************
+HistorySetTransparencyForAllScreenshotsItems::HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness) : transparentColor(transparentColor), fuzzyness(fuzzyness), HistoryItem(pHist)
+{
+	Redo();
+}
+
+int HistorySetTransparencyForAllScreenshotsItems::Redo()
+{
+	ScreenShotImageList* pssil = &pHist->_screenShotImageList;
+	int siz = firstIndex = pssil->size();
+	ScreenShotImage* psi, * psin;
+	for (int i = 0; i < firstIndex; ++i)
+	{
+		psi = &(*pssil)[i];
+		if (psi->isVisible)
+			affectedIndexList.push_back(i);
+	}
+	for (int i = 0; i < affectedIndexList.size(); ++i)
+	{
+		psi = &(*pssil)[affectedIndexList[i]];
+		pssil->push_back(*psi);
+		psi->isVisible = false;			// hide original
+		psin = &(*pssil)[siz++];
+		QBitmap bm = MyCreateMaskFromColor(psin->image, transparentColor, fuzzyness);
+		psin->image.setMask(bm);
+	}
+	return 1;
+}
+
+int HistorySetTransparencyForAllScreenshotsItems::Undo()
+{
+	ScreenShotImageList* pssil = &pHist->_screenShotImageList;
+	pssil->erase(pssil->begin() + firstIndex, pssil->end());
+
+	ScreenShotImage* psi;
+	for (int i = 0; i < affectedIndexList.size(); ++i)
+	{
+		psi = &(*pssil)[affectedIndexList[i]];
+		psi->isVisible = true;			// show original
+	}
+	return 1;
+}
+
 //********************************** History class ****************************
 void History::_SaveClippingRect()
 {
@@ -1432,6 +1475,7 @@ SaveResult History::Save(QString name)
 	QFile::rename(name, QString(name + "~"));
 
 	f.rename(name);
+	_isReallyUntitled = false;
 
 	return srSaveSuccess;
 }
@@ -1518,7 +1562,9 @@ int History::Load(bool force)
 
 	_loadedName = _fileName;
 
-	return  _readCount = _items.size();
+	_isReallyUntitled = _readCount = _items.size();
+
+	return  _readCount ;
 }
 
 //--------------------- Add Items ------------------------------------------
@@ -2244,47 +2290,3 @@ void HistoryList::PasteFromClipboard()
 		}
 	}
 }
-
-//****************** HistorySetTransparencyForAllScreenshotsItem ****************
-HistorySetTransparencyForAllScreenshotsItems::HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness) : transparentColor(transparentColor),fuzzyness(fuzzyness), HistoryItem(pHist)
-{
-	Redo();
-}
-
-int HistorySetTransparencyForAllScreenshotsItems::Redo()
-{
-	ScreenShotImageList* pssil = &pHist->_screenShotImageList;
-	int siz = firstIndex = pssil->size();
-	ScreenShotImage* psi, *psin;
-	for (int i = 0; i <  firstIndex; ++i)
-	{
-		psi = &(*pssil)[i];
-		if (psi->isVisible)
-			affectedIndexList.push_back(i);
-	}
-	for (int i = 0; i < affectedIndexList.size(); ++i)
-	{
-		psi = &(*pssil)[affectedIndexList[i]];
-		pssil->push_back(*psi);
-		psi->isVisible = false;			// hide original
-		psin = &(*pssil)[siz++];
-		QBitmap bm = MyCreateMaskFromColor(psin->image, transparentColor, fuzzyness);
-		psin->image.setMask(bm);
-	}
-	return 1;
-}
-
-int HistorySetTransparencyForAllScreenshotsItems::Undo()
-{
-	ScreenShotImageList* pssil = &pHist->_screenShotImageList;
-	pssil->erase(pssil->begin() + firstIndex, pssil->end());
-
-	ScreenShotImage* psi;
-	for (int i = 0; i < affectedIndexList.size(); ++i)
-	{
-		psi = &(*pssil)[affectedIndexList[i]];
-		psi->isVisible = true;			// show original
-	}
-	return 1;
-}
-

@@ -459,12 +459,13 @@ class HistoryList;
 /*========================================================
  * Class for storing history of editing
  *  contains data for items drawn on screen, 
- *      item deleteion, canvas movement, etc
+ *      item deletion, canvas movement, etc
  *
  *     _items:   generalized list of all items
  *          members are accessed by either added order
  *              or ordered by first y then x coordinates of
  *              their top left rectangle
+ *     _redoList: contains undo-ed items
  *     _actItem: index of the the last history item added.
  *              At the same time index of the last element that
  *              must be processed when drawing
@@ -484,12 +485,14 @@ class History  // stores all drawing sections and keeps track of undo and redo
     HistoryList* _parent=nullptr;       // need for copy and paste
     QPoint _topLeft;                    // this history will be displayed at this position
 
+    bool _isReallyUntitled = true;      // so we can distinguish between files named "Untitled" 
+                                        // and unsaved new data
     QString _fileName,                  // file for history
             _loadedName;                // set only after the file is loaded, used to check reloads
     bool _inLoad = false;               // in function Load() / needed for correct z- order settings
     HistoryItemVector _items,           // items in the order added. Items need not be scribble.
                                         // scribble elements on this list may be either visible or hidden
-                      _redoList;            // from _items for redo. Items need not be scribble.
+                      _redoList;        // from _items for redo. Items need not be scribbles.
                                         // scribble elements on this list may be either visible or hidden
     IntVector   _yxOrder;               // indices of all scribbles in '_items' ordered by y then x    
     Bands _bands;                       // used to cathegorize visible _items
@@ -563,6 +566,8 @@ public:
     History(const History& o);
     History(const History&& o) noexcept;
     virtual ~History();
+
+    bool IsReallyUntitled() const { return _isReallyUntitled; }
 
     constexpr QPoint TopLeft() const { return _topLeft; }
     void SetTopLeft(QPoint& topLeft) { _topLeft = topLeft; }

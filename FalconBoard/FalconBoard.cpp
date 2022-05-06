@@ -1253,6 +1253,17 @@ void FalconBoard::on_actionLoad_triggered()
 #endif
 }
 
+void FalconBoard::on_action_Close_triggered()
+{
+    SlotForTabCloseRequested(_drawArea->ActHistoryIndex());
+}
+
+void FalconBoard::on_action_CloseAll_triggered()
+{
+    while (_drawArea->AnyHistoryToClose()>=0)
+        on_action_Close_triggered();
+}
+
 void FalconBoard::on_actionGoToPage_triggered()
 {
     bool ok = false;

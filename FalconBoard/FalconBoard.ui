@@ -49,6 +49,9 @@
     </widget>
     <addaction name="actionNew"/>
     <addaction name="actionLoad"/>
+    <addaction name="action_Close"/>
+    <addaction name="action_CloseAll"/>
+    <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
     <addaction name="separator"/>
@@ -733,6 +736,19 @@
   <action name="actionApplyTransparencyToLoaded">
    <property name="text">
     <string>Apply Transparency For Loaded</string>
+   </property>
+  </action>
+  <action name="action_Close">
+   <property name="text">
+    <string>C&amp;lose</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F4</string>
+   </property>
+  </action>
+  <action name="action_CloseAll">
+   <property name="text">
+    <string>Close All</string>
    </property>
   </action>
  </widget>

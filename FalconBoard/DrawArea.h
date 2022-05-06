@@ -131,6 +131,11 @@ public:
     int HistoryListSize() const { return (int)_historyList.size(); }
 
     int IsModified(int fromIndex=-1, bool any = false) const;
+    int ActHistoryIndex() const { return _currentHistoryIndex; }
+    int AnyHistoryToClose() const
+    {
+        return _historyList.size() > 1 || (_historyList.size() == 1 && !_history->IsReallyUntitled()) ? _historyList.size() : -1;
+    }
 
     FalconPenKind PenKind() const { return _actPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
