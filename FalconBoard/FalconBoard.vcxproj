@@ -105,6 +105,7 @@
       </GenerateSourceDependencies>
       <ShowIncludes>false</ShowIncludes>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -201,6 +202,7 @@
   <ItemGroup>
     <ClInclude Include="bands.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="quadtree.h" />
     <QtMoc Include="helpdialog.h" />
     <ClInclude Include="history.h" />
     <ClInclude Include="myevent.h" />

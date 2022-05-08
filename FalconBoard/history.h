@@ -15,6 +15,8 @@
 #include "common.h"
 #include "bands.h"
 
+#include "quadtree.h"
+
 constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 
 enum HistEvent {
@@ -180,7 +182,7 @@ struct History; // forward
 
 struct HistoryItem      // base class
 {
-    History* pHist;
+    History* pHist=nullptr;
     HistEvent type;
 
     HistoryItem(History* pHist, HistEvent typ=heNone) : pHist(pHist), type(typ) {}
@@ -267,7 +269,7 @@ struct HistoryDeleteItems : public HistoryItem
 //  if both 'right' and 'left' are empty
 //      move all items below the rectangle up by the
 //      height of the rectangle
-struct HistoryRemoveSpaceItem : HistoryItem // using _selectedRect
+struct HistoryRemoveSpaceItem : public HistoryItem // using _selectedRect
 {
     ItemIndexVector modifiedList; // elements to be moved horizontally (elements on the right)
                                   // if empty move all below y up
@@ -451,10 +453,14 @@ struct Sprite
     ScreenShotImageList   images;     // image top left is relative to top left of sprite (0,0)
 };
 
-
+// vector of pointers to dynamically allocated history items
 using HistoryItemVector = QVector<HistoryItem*>;
 
 class HistoryList;
+
+using HistoryItemPointer = HistoryItem*;
+QuadArea AreaForItem(const HistoryItemPointer& phi);
+bool IsItemsEqual(const HistoryItemPointer& phi1, const HistoryItemPointer &phi2);
 
 /*========================================================
  * Class for storing history of editing
@@ -483,7 +489,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     friend class HistorySetTransparencyForAllScreenshotsItems;
 
     HistoryList* _parent=nullptr;       // need for copy and paste
-    QPoint _topLeft;                    // this history will be displayed at this position
+    QPoint _topLeft;                    // top left of the visible part of this history
 
     bool _isReallyUntitled = true;      // so we can distinguish between files named "Untitled" 
                                         // and unsaved new data
@@ -494,6 +500,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
                                         // scribble elements on this list may be either visible or hidden
                       _redoList;        // from _items for redo. Items need not be scribbles.
                                         // scribble elements on this list may be either visible or hidden
+    QuadTree<HistoryItemPointer, decltype(AreaForItem), decltype(IsItemsEqual)> *_pItemTree = nullptr;
     IntVector   _yxOrder;               // indices of all scribbles in '_items' ordered by y then x    
     Bands _bands;                       // used to cathegorize visible _items
     int _readCount = 0;                 // undo works until this index is reached
@@ -562,9 +569,9 @@ class History  // stores all drawing sections and keeps track of undo and redo
     }
 
 public:
-    History(HistoryList *parent) noexcept : _parent(parent) { _bands.SetParam(this, -1);  }
+    History(HistoryList* parent) noexcept;
     History(const History& o);
-    History(const History&& o) noexcept;
+    History(History&& o) noexcept;
     virtual ~History();
 
     bool IsReallyUntitled() const { return _isReallyUntitled; }

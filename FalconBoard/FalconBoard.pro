@@ -20,6 +20,7 @@ HEADERS += ./bands.h \
     ./myprinter.h \
     ./FalconBoard.h \
     ./DrawArea.h \
+	./quadtree.h \
     ./screenshotTransparency.h \
     ./printprogress.h \
     ./pagesetup.h \

@@ -6,6 +6,19 @@
 #include "history.h"
 //#include <cmath>
 
+QuadArea AreaForItem(const HistoryItemPointer &phi) 
+{ 
+	QRect r = phi->Area();  
+	return QuadArea(r.x(), r.y(), r.width(), r.height()); 
+}
+bool IsItemsEqual(const HistoryItemPointer &phi1, const HistoryItemPointer &phi2)
+{
+	return phi1->type == phi2->type &&
+		phi1->Area() == phi2->Area() &&
+		phi1->Hidden() == phi2->Hidden()
+		;
+}
+
 static void SwapWH(QRect& r)
 {
 	int w = r.width();
@@ -493,7 +506,7 @@ bool HistoryItem::operator<(const HistoryItem& other)
 // type heScribble, heEraser
 HistoryScribbleItem::HistoryScribbleItem(History* pHist, ScribbleItem& dri) : HistoryItem(pHist, dri.type), scribbleItem(dri)
 {
-	type = dri.type;
+//	type = dri.type;
 	scribbleItem.SetBoundingRectangle();
 }
 
@@ -1101,6 +1114,11 @@ void History::_RestoreClippingRect()
 	_clpRect = _savedClps.pop();
 }
 
+History::History(HistoryList* parent) noexcept: _parent(parent) 
+{ 
+	_pItemTree = new QuadTree<HistoryItem*, decltype(AreaForItem), decltype(IsItemsEqual)> (QuadArea(0, 0, 4000, 3000), AreaForItem, IsItemsEqual);
+	_bands.SetParam(this, -1); 
+}
 
 History::History(const History& o)
 {
@@ -1108,19 +1126,27 @@ History::History(const History& o)
 	_items = o._items;
 	_bands = o._bands;
 	_yxOrder = o._yxOrder;
+	_pItemTree = o._pItemTree;
 }
 
-History::History(const History&& o) noexcept
+History::History(History&& o) noexcept
 {
 	_parent = o._parent;
 	_items = o._items;
 	_bands = o._bands;
 	_yxOrder = o._yxOrder;
+	_pItemTree = o._pItemTree;
+
+	o._items.empty();
+	o._yxOrder.empty();
+	o._parent	= nullptr;
+	o._pItemTree= nullptr;
 }
 
 History::~History()
 {
 	Clear();
+	delete _pItemTree;
 }
 
 /*=============================================================
@@ -1344,7 +1370,12 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 
 	_modified = true;
 
-	return _items[_items.size() - 1];		// always the last element
+	p = _items[_items.size() - 1];
+
+	if(p->IsSaveable())
+		_pItemTree->Add(p);
+
+	return p;		// always the last element
 }
 
 bool History::_IsSaveable(int i)
