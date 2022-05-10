@@ -54,9 +54,6 @@
     <ClCompile Include="screenshotTransparency.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="bands.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DrawArea.h">
@@ -115,9 +112,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="myevent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pdraw.h">

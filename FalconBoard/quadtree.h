@@ -36,7 +36,7 @@
 * 
 * How to use:
 *	In class History add  to get area of item
-* 		const QuadArea AreaForItem(HistoryItem &*p)
+* 		const QuadArea AreaForItem(int &)
 *	and determine equality of items:
 *		const bool AreEquals(HistoryItem &*p1, HistoryItem &*p2)
 * 
@@ -69,7 +69,7 @@ constexpr V2 operator/(const V2 l, real c) { return V2(l.x / c, l.y / c); }
 
 class QuadArea
 {
-	real x1=0, y1=0, x2=100, y2=100;
+	real x1=0, y1=0, x2=0, y2=0;
 public:
 	QuadArea() {}
 	QuadArea(real left, real top, real width, real height) noexcept :x1(left), y1(top), x2(left + width), y2(top + height) 
@@ -80,6 +80,7 @@ public:
 	{
 		assert(size.x && size.y);
 	}
+	bool IsValid() const { return x1 < x2&& y1 < y2; }
 
 	constexpr bool Contains(const V2& p) const noexcept
 	{
@@ -120,6 +121,9 @@ public:
 	constexpr V2 TopLeft() const noexcept { return V2(x1,y1); }
 	constexpr V2 Size() const noexcept { return V2(Width(), Height()); }
 	constexpr V2 Center() const noexcept { return V2(x1 + Width()/2, y1 + Height()/2); }
+
+	constexpr void SetWidth(real newWidth) { x2 = x1 + newWidth; }
+	constexpr void SetHeight(real newHeight) { y2 = y1 + newHeight; }
 	
 };
 
@@ -151,20 +155,32 @@ public:
 	{
 		QuadArea areaV = _AreaFor(value);
 		if (!_area.Contains(areaV))
-			Resize(_area.Union(areaV), &value); // also adds new value
+		{				  // area always starts at (0,0)
+			QuadArea newArea = _area.Union(areaV);
+				// to decrease the frequency of resizing enlarge area minimum 1000 points in any direction
+			if (newArea.Width() - _area.Width())  // then enlarge x
+				newArea.SetWidth(newArea.Width() + 1000);
+			if (newArea.Height() - _area.Height())  // then enlarge y
+				newArea.SetHeight(newArea.Height() + 1000);
+			Resize(newArea, &value); // also adds new value
+		}
 		else
 			_Add(_rootNode.get(), 0, _area, value);
+		++_count;
 	}
 
 	void Remove(const T& value)
 	{
 		_Remove(_rootNode.get(), _area, value);
+		if (_count) 
+			--_count;
 	}
 
 	std::vector<T> GetValues(const QuadArea& area) const
 	{
 		auto values = std::vector<T>();
-		_Query(_rootNode.get(), _area, area, values);
+		if(_area.Intersects(area) )
+			_Query(_rootNode.get(), _area, area, values);
 		return values;
 	}
 
@@ -176,7 +192,7 @@ public:
 			values.push_back(*pNewItem);
 
 		_rootNode.get()->Clear();
-
+		_count = 0;
 		_area = area;
 		_CalcMaxDepth(_area);
 		_AddAllItems(values);
@@ -185,6 +201,22 @@ public:
 	constexpr QuadArea Area() const
 	{
 		return _area;
+	}
+
+	constexpr std::size_t Count(QuadArea area = QuadArea()) 
+	{
+		if (area.IsValid())
+			return _CountForArea(_rootNode.get(), _area, area);
+		else
+			return _count;
+	}
+
+	constexpr T BottomItem() 
+	{
+		int y = 0;
+		T item = 0;
+		_BottomItem(_rootNode.get(), item, y);
+		return item;
 	}
 
 private:
@@ -217,6 +249,7 @@ private:
 
 	QuadArea _area;		// for this level
 	int _maxDepth = 8;
+	std::size_t _count = 0;
 
 	void _CalcMaxDepth(QuadArea area)
 	{
@@ -318,12 +351,12 @@ private:
 			auto i = _GetQuadrant(area, areaV);
 			// Add the value to a child if the value is entirely contained in it
 			if (i != -1)
-			{ // DEBUG
-				QuadArea chArea = _AreaOfThisChild(area, i);
-				QuadNode* pn = node->children[static_cast<std::size_t>(i)].get();
-				_Add(pn, depth + 1, chArea, value);
-			}
-//				_Add(node->children[static_cast<std::size_t>(i)].get(), depth + 1, _AreaOfThisChild(area, i), value);
+			//{ // DEBUG
+			//	QuadArea chArea = _AreaOfThisChild(area, i);
+			//	QuadNode* pn = node->children[static_cast<std::size_t>(i)].get();
+			//	_Add(pn, depth + 1, chArea, value);
+			//}
+				_Add(node->children[static_cast<std::size_t>(i)].get(), depth + 1, _AreaOfThisChild(area, i), value);
 			// Otherwise, we add the value in the current node
 			else
 				node->values.push_back(value);
@@ -383,14 +416,14 @@ private:
 	{
 		// Find the value in node->values
 		auto it = std::find_if(std::begin(node->values), std::end(node->values),
-			[this, &value](const auto& rhs) { return mEqual(value, rhs); });
+			[this, &value](const auto& rhs) { return _Equal(value, rhs); });
 		assert(it != std::end(node->values) && "Trying to remove a value that is not present in the node");
 		// Swap with the last element and pop back
 		*it = std::move(node->values.back());
 		node->values.pop_back();
 	}
 
-	void _TryMerge(QuadNode* node)
+	bool _TryMerge(QuadNode* node)
 	{
 		assert(node != nullptr);
 		assert(!_IsLeaf(node) && "Only interior nodes can be merged");
@@ -439,12 +472,55 @@ private:
 		}
 	}
 
+	int _CountForArea(QuadNode *node, const QuadArea area, const QuadArea queryArea)
+	{
+		int cnt = 0;
+		assert(area.IsValid());
+		for (const auto& value : node->values)
+		{
+			if (queryArea.Intersects(_AreaFor(value)))
+				++cnt;
+		}
+		if (!_IsLeaf(node))
+		{
+			for (auto i = std::size_t(0); i < node->children.size(); ++i)
+			{
+				auto childArea = _AreaOfThisChild(area, static_cast<int>(i));
+				if (queryArea.Intersects(childArea))
+					cnt += _CountForArea(node->children[i].get(), childArea, queryArea);
+			}
+		}
+		return cnt;
+	}
+
 	// SA
 
 	void _AddAllItems(std::vector<T> &values)
 	{
 		for (auto v : values)
 			Add(v);
+	}
+
+	int _BottomItem(QuadNode* node, T &item, int bottomY) // returns y for bottom item + item in item
+	{
+		for (auto v : node->values)
+		{
+			QuadArea av = _AreaFor(v);
+			if (av.Bottom() > bottomY)
+			{
+				item = v;
+				bottomY = av.Bottom();
+			}
+		}
+
+		if (!_IsLeaf(node))
+		{
+			bottomY = _BottomItem(node->children[0].get(), item, bottomY);
+			bottomY = _BottomItem(node->children[1].get(), item, bottomY);
+			bottomY = _BottomItem(node->children[2].get(), item, bottomY);
+			bottomY = _BottomItem(node->children[3].get(), item, bottomY);
+		}
+		return bottomY;
 	}
 };
 

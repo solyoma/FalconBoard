@@ -11,8 +11,8 @@
 #include <QSettings>
 #include <QPageSize>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
-const long nVersion = 0x0001010B;       // program version
-const QString sVersion = "1.1.11";
+const long nVersion = 0x0001010C;       // program version
+const QString sVersion = "1.1.12";
 const QString sWindowTitle =
 #ifdef _VIEWER
         "FalconBoard Viewer";
@@ -106,21 +106,6 @@ enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
 
 constexpr const int resos[] = { 300, 600, 1200 };;
 
-
-/*========================================================
- * Structure to hold item indices for one band or selection
- *  An ItemIndex may hold scribbles or screenshot images
- *  Screenshot items have zorder-s below DRAWABLE_ZORDER_BASE
- *-------------------------------------------------------*/
-struct ItemIndex
-{
-    int zorder;                 // indices are ordered in ascending zorder
-                                // if < DRAWABLE_ZORDER_BASE then image
-    int index;                  // in pHist->_items
-    bool operator<(const ItemIndex& other) const noexcept { return zorder < other.zorder; }
-    bool operator==(const ItemIndex& other) const noexcept { return index == other.index; }
-};
-using ItemIndexVector = QVector<ItemIndex>;  // ordered by 'zorder'
 
 using IntVector = QVector<int>;
 

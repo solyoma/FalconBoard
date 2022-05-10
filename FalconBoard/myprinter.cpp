@@ -188,8 +188,8 @@ MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
 //----------------------------------------------
 struct PageNum2
 {
-    int ny, nx;     // ordinal of page vertically and horizontally
-    MyPrinter::YIndexVector yindices; 
+    int ny=0, nx=0;     // ordinal of page vertically and horizontally
+    IntVector yindices; 
 
     PageNum2() { yindices.resize(1); }
 
@@ -235,7 +235,7 @@ static struct SortedPageNumbers
         Clear();
         screenPageRect = screenRect; 
     }
-    void Insert(PageNum2 pgn)
+    void Insert(PageNum2 &pgn)
     {
         int pos = pgpos(pgn);       // index of first element that is equal or larger than pgn
         if (pos == pgns.size())     // all elements were smaller
@@ -254,7 +254,7 @@ static struct SortedPageNumbers
     }
     PageNum2 &PageForPoint(const QPoint& p, int Yindex, PageNum2 &pgn)
     {
-        pgn.yindices[0].yix = Yindex;
+        pgn.yindices[0] = Yindex;
 
         pgn.ny = p.y() / screenPageRect.height();
         pgn.nx = p.x() / screenPageRect.width();
@@ -341,42 +341,26 @@ int MyPrinter::_CalcPages()
     // a list of pages ordered first by y then by x page indices
     HistoryItem* phi;
     PageNum2 pgn;
-    for (int yi = 0; yi < nSize; ++yi) 
-    {
-        phi = _pHist->atYIndex(yi);
-        if (phi->Hidden())
-            continue;
 
-        if (phi->IsImage())   // then this item is in all page rectangles it intersects
+    QSize usedArea = _pHist->UsedArea();
+    int maxY = usedArea.height();
+    int maxX;   // on a _data.ScreenPageHeight high band
+    int ny = 0;     // page y index
+
+    for (int y = 0; y < maxY; y += _data.screenPageHeight, ++ny)
+    {
+        maxX = _pHist->RightMostInBand(QRect(0, y, usedArea.width(), _data.screenPageHeight));
+        pgn.clear();
+        pgn.ny = ny;
+
+        for (pgn.nx = 0; pgn.nx * _data.screenPageWidth < maxX; ++pgn.nx)
         {
-            PageNum2 lpgn;
-            sortedPageNumbers.PageForPoint(phi->Area().topLeft(), yi, pgn);         
-            sortedPageNumbers.PageForPoint(phi->Area().bottomRight(), yi, lpgn);
-            pgn.yindices[0].zorder = lpgn.yindices[0].zorder = phi->ZOrder();       // screen shots below others
-            PageNum2 act = pgn;
-            for (int y = pgn.ny; y <= lpgn.ny; ++y)
-            {
-                act.ny = y;
-                for (int x = pgn.nx; x <= lpgn.nx; ++x)
-                {
-                    act.nx = x;
-					sortedPageNumbers.Insert(act);
-                }
-            }
-        }
-        else                            // scribbles, ereases and other (future) scribbles
-        {                               // must be checked point by point
-            switch (phi->type)
-            {
-                case heEraser:
-                case heScribble:
-                    pgn.yindices[0].zorder = phi->ZOrder();
-                    sortedPageNumbers.AddPoints(phi, yi, pgn);
-                    break;
-                default: break;
-            }
+            QRect rect(pgn.nx * _data.screenPageWidth, pgn.ny * _data.screenPageHeight, _data.screenPageWidth, _data.screenPageHeight);
+            pgn.yindices = _pHist->GetItemIndexesInRect(rect);
+            sortedPageNumbers.Insert(pgn);
         }
     }
+        
     // add pages to linear page list
     _pages.clear();
     Page pg;
@@ -450,9 +434,9 @@ int MyPrinter::_PageForPoint(const QPoint p)
  *                  page boundaries)
  *          - screenshot images may extend to more than one pages
  *-------------------------------------------------------*/
-bool MyPrinter::_PrintItem(Yindex yi)
+bool MyPrinter::_PrintItem(int yi)
 {
-    HistoryItem * phi = _pHist->atYIndex(yi.yix);
+    HistoryItem * phi = _pHist->Item(yi);
     if(phi->IsImage())
     {                               // paint over background layer
         ScreenShotImage* psi = phi->GetScreenShotImage();
@@ -540,9 +524,9 @@ void MyPrinter::_PreparePage(int which)
 {
     _actPage = _pages[which];
 
-    auto compareByZorder = [&](Yindex& left, Yindex& right)
+    auto compareByZorder = [&](int& left, int& right)
     {
-        return left.zorder < right.zorder;
+        return _pHist->Item(left)->ZOrder() < _pHist->Item(right)->ZOrder();
     };
     std::sort(_actPage.yindices.begin(), _actPage.yindices.end(), compareByZorder);     // re- sort by z-order
 

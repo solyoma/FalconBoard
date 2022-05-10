@@ -42,9 +42,9 @@ public:
     DrawArea(QWidget* parent = nullptr);
     virtual ~DrawArea()
     {
-        for (auto ph : _historyList)
+        for (auto ph : historyList)
             delete ph;
-        _historyList.clear();
+        historyList.clear();
 #ifndef _VIEWER
         delete _rubberBand;
 #endif
@@ -73,13 +73,13 @@ public:
             
         if (index >= HistoryListSize())
             return QString();
-        return _historyList[index]->Name(); // may be empty!
+        return historyList[index]->Name(); // may be empty!
     }
 
     int SameFileAlreadyUsed(QString& name)
     {
-        for (int i=0; i < (int)_historyList.size(); ++i)	// no list so big to require unsigned long
-            if (_historyList[i]->Name() == name)
+        for (int i=0; i < (int)historyList.size(); ++i)	// no list so big to require unsigned long
+            if (historyList[i]->Name() == name)
                 return i;
         return -1;
     }
@@ -97,7 +97,7 @@ public:
     { 
         if (index < 0) 
             index = _currentHistoryIndex;
-        return  _historyList[index]->Save(name); 
+        return  historyList[index]->Save(name); 
     }
 
     bool OpenBackgroundImage(const QString& fileName);
@@ -128,13 +128,13 @@ public:
 
     void AddScreenShotImage(QPixmap& image);
 
-    int HistoryListSize() const { return (int)_historyList.size(); }
+    int HistoryListSize() const { return (int)historyList.size(); }
 
     int IsModified(int fromIndex=-1, bool any = false) const;
     int ActHistoryIndex() const { return _currentHistoryIndex; }
     int AnyHistoryToClose() const
     {
-        return _historyList.size() > 1 || (_historyList.size() == 1 && !_history->IsReallyUntitled()) ? _historyList.size() : -1;
+        return historyList.size() > 1 || (historyList.size() == 1 && !_history->IsReallyUntitled()) ? historyList.size() : -1;
     }
 
     FalconPenKind PenKind() const { return _actPenKind;  }
@@ -215,7 +215,6 @@ private:
 #endif
 private:
     History *_history=nullptr;      // actual history (every scribble and image element with undo/redo)
-    HistoryList _historyList;       // many histories are possible
     int _currentHistoryIndex = -1,  // actual history index, -1: none
         _previousHistoryIndex = -1; // this was the current index before something happened
 

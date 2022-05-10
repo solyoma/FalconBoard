@@ -146,16 +146,7 @@ public:
     QPrinter* Printer() const { return _printer; }
 public:
     //----------------------------------------------
-    struct Yindex
-    {
-        int yix;
-        int zorder;     // then by z-order [screenshots:0, other:1]
-        bool operator==(const Yindex& other) { return yix == other.yix && zorder == other.zorder; }
-        bool operator!=(const Yindex& other) { return !operator==(other); }
-        bool operator<(const Yindex& other) { return yix < other.yix ? true: zorder < other.zorder ? true : false; }
-    };
-
-    using YIndexVector = QVector<Yindex>;
+    using YIndexVector = QVector<int>;
 private:
     QWidget* _parent;
     struct Page
@@ -191,7 +182,7 @@ private:
     bool _AllocateResources();
     bool _FreeResources();
     int  _CalcPages();              // using _data 
-    bool _PrintItem(Yindex yi);
+    bool _PrintItem(int yi);
     void _PrintGrid();
     void _PreparePage(int which);
     bool _PrintPage(int page, bool last);  // using _history last: no new page after this

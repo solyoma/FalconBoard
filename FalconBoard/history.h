@@ -13,7 +13,6 @@
 #include <QIODevice>
 
 #include "common.h"
-#include "bands.h"
 
 #include "quadtree.h"
 
@@ -194,7 +193,6 @@ struct HistoryItem      // base class
     virtual ScribbleItem* GetVisibleScribble(int index = 0) const { return nullptr; } // returns pointer to the index-th ScribbleItem
     virtual ScribbleItem* GetScribble(int index = 0) const { return nullptr; } // returns pointer to the index-th ScribbleItem even when it is not visible
     virtual ScreenShotImage* GetScreenShotImage() const { return nullptr; }
-    virtual ItemIndex ItxFrom(int index) const { ItemIndex itx; itx.index = index; itx.zorder = ZOrder(); return itx; }
 
     virtual bool Translatable() const { return false;  }
     virtual void Translate(QPoint p, int minY) { } // translates if top is >= minY
@@ -246,10 +244,10 @@ struct HistoryScribbleItem : public HistoryItem
 //--------------------------------------------
 struct HistoryDeleteItems : public HistoryItem
 {
-    ItemIndexVector deletedList;   // absolute indexes of scribble elements in '*pHist'
+    IntVector deletedList;   // absolute indexes of scribble elements in '*pHist'
     int Undo() override;
     int Redo() override;
-    HistoryDeleteItems(History* pHist, ItemIndexVector& selected);
+    HistoryDeleteItems(History* pHist, IntVector& selected);
     HistoryDeleteItems(HistoryDeleteItems& other);
     HistoryDeleteItems& operator=(const HistoryDeleteItems& other);
     HistoryDeleteItems(HistoryDeleteItems&& other) noexcept;
@@ -271,14 +269,14 @@ struct HistoryDeleteItems : public HistoryItem
 //      height of the rectangle
 struct HistoryRemoveSpaceItem : public HistoryItem // using _selectedRect
 {
-    ItemIndexVector modifiedList; // elements to be moved horizontally (elements on the right)
+    IntVector modifiedList; // elements to be moved horizontally (elements on the right)
                                   // if empty move all below y up
     int delta;              // translate with this amount left OR up
     int y;                  // topmost coordinate to remove space from
 
     int Undo() override;
     int Redo() override;
-    HistoryRemoveSpaceItem(History* pHist, ItemIndexVector&toModify, int distance, int y);
+    HistoryRemoveSpaceItem(History* pHist, IntVector&toModify, int distance, int y);
     HistoryRemoveSpaceItem(HistoryRemoveSpaceItem& other);
     HistoryRemoveSpaceItem& operator=(const HistoryRemoveSpaceItem& other);
     HistoryRemoveSpaceItem(HistoryRemoveSpaceItem&& other) noexcept;
@@ -343,14 +341,14 @@ struct HistoryPasteItemTop : HistoryItem
 //--------------------------------------------
 struct HistoryReColorItem : HistoryItem
 {
-    ItemIndexVector selectedList;               // indexes  to elements in '*pHist'
+    IntVector selectedList;               // indexes  to elements in '*pHist'
     QVector<FalconPenKind> penKindList;         // colors for elements in selectedList
     FalconPenKind pk;                           
     QRect boundingRectangle;            // to scroll here when undo/redo
 
     int Undo() override;
     int Redo() override;
-    HistoryReColorItem(History* pHist, ItemIndexVector&selectedList, FalconPenKind pk);
+    HistoryReColorItem(History* pHist, IntVector&selectedList, FalconPenKind pk);
     HistoryReColorItem(HistoryReColorItem& other);
     HistoryReColorItem& operator=(const HistoryReColorItem& other);
     HistoryReColorItem(HistoryReColorItem&& other) noexcept;
@@ -403,10 +401,10 @@ struct HistoryRotationItem : HistoryItem
     bool flipH = false;
     bool flipV = false;
     float rAlpha = 0.0;
-    ItemIndexVector nSelectedItemList;
+    IntVector nSelectedItemList;
     QRect encRect;         // encompassing rectangle: all items inside
 
-    HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, ItemIndexVector selList, float alpha=0.0);
+    HistoryRotationItem(History* pHist, MyRotation rotation, QRect rect, IntVector selList, float alpha=0.0);
     HistoryRotationItem(const HistoryRotationItem& other);
     HistoryRotationItem& operator=(const HistoryRotationItem& other);
     int Undo() override;
@@ -448,7 +446,8 @@ struct Sprite
     bool itemsDeleted = true;   // unless Alt+
     bool visible = true;// copying should create new invisible sprite
 
-    ItemIndexVector       nSelectedItemsList;     // indices into 'pHist->_items', that are completely inside the rubber band rectangle
+
+    IntVector       nSelectedItemsList;     // indices into 'pHist->_items', that are completely inside the rubber band rectangle
     ScribbleItemVector    items;      // each point of items[..] is relative to top-left of sprite (0,0)
     ScreenShotImageList   images;     // image top left is relative to top left of sprite (0,0)
 };
@@ -459,8 +458,8 @@ using HistoryItemVector = QVector<HistoryItem*>;
 class HistoryList;
 
 using HistoryItemPointer = HistoryItem*;
-QuadArea AreaForItem(const HistoryItemPointer& phi);
-bool IsItemsEqual(const HistoryItemPointer& phi1, const HistoryItemPointer &phi2);
+QuadArea AreaForItem(const int &index);
+bool IsItemsEqual(const int& index1, const int &index2);
 
 /*========================================================
  * Class for storing history of editing
@@ -484,7 +483,6 @@ bool IsItemsEqual(const HistoryItemPointer& phi1, const HistoryItemPointer &phi2
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    friend class Bands;
     friend class HistoryScreenShotItem;
     friend class HistorySetTransparencyForAllScreenshotsItems;
 
@@ -500,9 +498,8 @@ class History  // stores all drawing sections and keeps track of undo and redo
                                         // scribble elements on this list may be either visible or hidden
                       _redoList;        // from _items for redo. Items need not be scribbles.
                                         // scribble elements on this list may be either visible or hidden
-    QuadTree<HistoryItemPointer, decltype(AreaForItem), decltype(IsItemsEqual)> *_pItemTree = nullptr;
-    IntVector   _yxOrder;               // indices of all scribbles in '_items' ordered by y then x    
-    Bands _bands;                       // used to cathegorize visible _items
+        // Quad tree for storing indices in History::_items *same as pointers)
+    QuadTree<int, decltype(AreaForItem), decltype(IsItemsEqual)> *_pItemTree = nullptr;
     int _readCount = 0;                 // undo works until this index is reached
                                         // unscribble items have no indices in here
     friend class _YItems;
@@ -518,7 +515,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
                                              // copy items on _nSelectedItemsList into this list for pasting anywhere even in newly opened documents
     ScreenShotImageList  _screenShotImageList;     // one or more images from screenshots
 
-    ItemIndexVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
+    IntVector _nSelectedItemsList,      // indices into '_items', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
                     _nItemsRightOfList,       // -"- for elements that were at the right of the rubber band
                     _nItemsLeftOfList;        // -"- for elements that were at the left of the rubber band
     int _nIndexOfFirstScreenShot=0;       // index of the first scribble (not image) element that is below a given y (always calulate)
@@ -543,22 +540,8 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     bool _IsSaveable(int i);
 
-    int _YIndexForXY(QPoint topLeft);        // index of top-left-most element below xy (y larger or equal to xy.y) 
-                                        // in _items, using '_yOrder' (binary search)
-//    int _YIndexWhichInside();// index of top most element whose area includes point xy
-    QPoint _XYForIndex(int index)       // y coord of (physical) index-th element no check if thisa is valid!
-    {
-        return _items[index]->TopLeft();
-    }
-    int _YIndexForIndex(int index);
     void _push_back(HistoryItem* pi);
 
-    HistoryItem* _YItems(int yindex) const
-    { 
-        if(yindex < 0 || yindex >= _yxOrder.size() )
-            return nullptr;
-        return _items[_yxOrder[yindex]]; 
-    }
     void _SaveClippingRect();
     void _RestoreClippingRect();
     void _ClearSelectLists() 
@@ -574,14 +557,17 @@ public:
     History(History&& o) noexcept;
     virtual ~History();
 
+    IntVector GetItemIndexesInRect(QRect r);
+    QSize UsedArea();   // of all points and images
+    int CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize); // -1: invalid page for px, -2: invalid page for py i.e. outside used area. First call with getAreaSize=true, others with false
+
+    HistoryItemPointer Item(int index) const { return _items[index]; }
     bool IsReallyUntitled() const { return _isReallyUntitled; }
 
     constexpr QPoint TopLeft() const { return _topLeft; }
     void SetTopLeft(QPoint& topLeft) { _topLeft = topLeft; }
 
-    void SetBandHeight(int h) { _bands.SetParam(this, h); }
-    void RecreateBands();   // use when positions of many items change
-    int RightMostInRect(QRect rect);
+    int RightMostInBand(QRect rect);    // only top and bottom of rect is used
 
     void SetClippingRect(const QRect& rect) { _clpRect = rect;  }
     void SetVisibility(int index, bool visible)
@@ -591,9 +577,9 @@ public:
 
         _items[index]->SetVisibility(visible);
         if (visible)
-            _bands.Add(index);
+            _pItemTree->Add(index);
         else
-            _bands.Remove(index); 
+            _pItemTree->Remove(index);
     }
 
     void ClearImageList() { _images.clear(); }
@@ -607,10 +593,10 @@ public:
 
 
     int Size() const;   // _items's size
-    int CountOfVisible() const; // visible from yxOrder
-    int CountOfScribble() const { return _yxOrder.size(); }
+    int CountOfVisible() const; // visible 
+    int CountOfScribble() const;
     int SelectedSize() const { return _nSelectedItemsList.size(); }
-    ItemIndexVector& SelectedItemsList() { return _nSelectedItemsList; }
+    IntVector& SelectedItemsList() { return _nSelectedItemsList; }
 
 
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
@@ -634,13 +620,7 @@ public:
     HistoryItem* LastScribble() const;
     HistoryItem* operator[](int index);   // index: absolute index
     HistoryItem* operator[](int index) const { return _items[index]; }  // index: physical index in _items
-    HistoryItem* atYIndex(int yindex) const        // yindex: index in _yxOrder - only scribbles
-    {
-        return _YItems(yindex);
-    }
-    int IndexForYIndex(int yix);
     void ReplaceItem(int index, HistoryItem* pi);     // index: in '_items'
-    void RemoveItemsStartingAt(int index);
 
     QPoint BottomRightVisible(QSize screenSize) const;      // returns bottom right coordinate of last visible item
 
@@ -682,7 +662,7 @@ public:
     void CollectPasted(const QRect &rect);   // if items pasted copies them into '_nSelectedItemsList'
 
     const QRect BoundingRect() const { return _selectionRect; }
-    const ItemIndexVector& Selected() const { return _nSelectedItemsList;  }
+    const IntVector& Selected() const { return _nSelectedItemsList;  }
 };
 
 class HistoryList : public std::vector<History*>
@@ -693,6 +673,7 @@ class HistoryList : public std::vector<History*>
     ScreenShotImageList* _pCopiedImages = nullptr; // put copied images on this list 
     ScribbleItemVector* _pCopiedItems = nullptr;   // points to list in Draw Area 
     QRect *_pCopiedRect;                           // bounding rectangle for copied items used for paste operation
+    int _actual = -1;
 
 public:
     HistoryList() { _pClipBoard = QApplication::clipboard(); }
@@ -706,11 +687,23 @@ public:
     const QVector<ScribbleItem>& CopiedItems() const { return *_pCopiedItems;  }
     int CopiedCount() const { return _pCopiedItems->size();  }
     QRect const *CopiedRect() const { return _pCopiedRect; }
+    History*& operator[](int index)     // will throw if index < 0 && _actual < 0
+    {
+        if (index < 0)
+            return std::vector<History*>::operator[](_actual);
+		else
+		{
+			_actual = index;
+			return std::vector<History*>::operator[](index);
+		}
+    }
 
     void CopyToClipboard();    // uses _pCopiedItems and _pCopiedImages so these must be setup first
     void PasteFromClipboard(); // only if the clipboard data is not the same as data in memory gets data from clipboard
 };
 
 QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness = 0.0, Qt::MaskMode mode = Qt::MaskInColor);
+
+extern HistoryList historyList;
 
 #endif

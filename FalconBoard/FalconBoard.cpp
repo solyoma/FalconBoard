@@ -1267,7 +1267,7 @@ void FalconBoard::on_action_CloseAll_triggered()
 void FalconBoard::on_actionGoToPage_triggered()
 {
     bool ok = false;
-    int n = QInputDialog::getInt(this, tr("FalconBoard - input"), tr("Go to Page"), 1, 1, ok);
+    int n = QInputDialog::getInt(this, tr("FalconBoard - Go to Page"), tr("Page:"), 1, 1, 1000000, 1, &ok);
     if(ok)
         _drawArea->GotoPage(n);
 }

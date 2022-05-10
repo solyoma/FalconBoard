@@ -47,11 +47,11 @@ DrawArea::DrawArea(QWidget* parent) : QWidget(parent)
 	setAttribute(Qt::WA_TabletTracking);
 	setCursor(Qt::CrossCursor);
 	setMouseTracking(true);
-	_historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
+	historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
 	drawColors.Setup();
 	penCursors.Setup();
 
-	_historyList.SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
+	historyList.SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
 }
 
 void DrawArea::SetScreenSize(QSize screenSize)
@@ -120,28 +120,28 @@ void DrawArea::ClearBackground()
  *-------------------------------------------------------*/
 int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 {
-	if (_historyList.capacity() == (unsigned long)HistoryListSize())
+	if (historyList.capacity() == (unsigned long)HistoryListSize())
 		return -1;
 
 	if (_history)
 		_history->SetTopLeft(_topLeft);
 
-	History* ph = new History(&_historyList);
+	History* ph = new History(&historyList);
 	//    _history.SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
 	if (!name.isEmpty())
 		ph->SetName(name);
 
-	if ((unsigned long)insertAt > _historyList.capacity())
+	if ((unsigned long)insertAt > historyList.capacity())
 	{
-		_historyList.push_back(ph);
+		historyList.push_back(ph);
 		insertAt = HistoryListSize() - 1;
 	}
 	else
-		_historyList.insert(_historyList.begin() + insertAt, ph);
+		historyList.insert(historyList.begin() + insertAt, ph);
 
 	bool b = _currentHistoryIndex == insertAt;
 	_currentHistoryIndex = insertAt;
-	_history = _historyList[insertAt];
+	_history = historyList[insertAt];
 	if (!name.isEmpty() && loadIt)
 		if (!_history->Load())
 			return -2;
@@ -186,7 +186,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 			if (_history)    // there is a history
 				_history->SetTopLeft(_topLeft);
 			_currentHistoryIndex = index;
-			_history = _historyList[index];
+			_history = historyList[index];
 			_topLeft = _history->TopLeft();
 		}
 		else
@@ -222,8 +222,8 @@ int DrawArea::RemoveHistory(int index)
 	if (index < 0 || index > cnt)
 		return -1;
 
-	delete _historyList[index];
-	_historyList.erase(_historyList.begin() + index);
+	delete historyList[index];
+	historyList.erase(historyList.begin() + index);
 	--cnt;
 	if (index == _currentHistoryIndex)
 	{
@@ -249,9 +249,9 @@ int DrawArea::RemoveHistory(int index)
  *-------------------------------------------------------*/
 void DrawArea::MoveHistory(int from, int to)
 {
-	History* pdh = _historyList[to];
-	_historyList[to] = _historyList[from];
-	_historyList[from] = pdh;
+	History* pdh = historyList[to];
+	historyList[to] = historyList[from];
+	historyList[from] = pdh;
 	_currentHistoryIndex = from;
 }
 
@@ -383,10 +383,10 @@ int DrawArea::IsModified(int fromIndex, bool any) const
 	if (fromIndex < 0)
 		fromIndex = _currentHistoryIndex;
 	if (!any)
-		return _historyList[fromIndex]->IsModified() ? fromIndex + 1 : 0;
+		return historyList[fromIndex]->IsModified() ? fromIndex + 1 : 0;
 	// else 
 	for (int i = fromIndex; i < HistoryListSize(); ++i)
-		if (_historyList[i]->IsModified())
+		if (historyList[i]->IsModified())
 			return  i + 1;
 	return 0;
 }
@@ -673,7 +673,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 #ifndef _VIEWER
 			if (bPaste)         // paste as sprite
 			{
-				_historyList.PasteFromClipboard();
+				historyList.PasteFromClipboard();
 
 				if (!_copiedItems.isEmpty() || !_copiedImages.isEmpty())    // anything to paste?
 				{
@@ -1844,11 +1844,11 @@ void DrawArea::ClearHistory()
  * PARAMS:  new screen
  * GLOBALS:
  * RETURNS:
- * REMARKS: - must be used to set bandHeight for _history
+ * REMARKS: ???
  *-------------------------------------------------------*/
 void DrawArea::SlotForPrimaryScreenChanged(QScreen* ps)
 {
-	_history->SetBandHeight(ps->geometry().height());
+	// _history->SetBandHeight(ps->geometry().height());
 }
 
 void DrawArea::SlotForGridSpacingChanged(int spacing)
@@ -2474,9 +2474,10 @@ void DrawArea::_End(bool toBottom)
 		_topLeft = _history->BottomRightVisible(geometry().size());
 	else  // just go end of rightmost scribble in actual viewport
 	{
-		int x = _history->RightMostInRect(_canvasRect) - width();
+		int x = _history->RightMostInBand(_canvasRect) - width();
 		if (x < 0)
 			x = 0;
+		x += 20;	// leave empty space to the right
 		_topLeft.setX(x);
 		_Redraw();
 	}
