@@ -312,6 +312,32 @@
       <string>Options</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
+      <item row="1" column="2" colspan="2">
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>290</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="3">
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>262</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
       <item row="0" column="0">
        <widget class="QCheckBox" name="chkWhiteBackground">
         <property name="minimumSize">
@@ -330,38 +356,6 @@
          <string>&amp;White background</string>
         </property>
        </widget>
-      </item>
-      <item row="0" column="1" colspan="2">
-       <widget class="QCheckBox" name="chkGrayscale">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>&amp;Grayscale</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="3">
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>262</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
       <item row="1" column="0">
        <widget class="QCheckBox" name="chkPrintBackgroundImage">
@@ -382,28 +376,15 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QCheckBox" name="chkGrid">
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>G&amp;rid</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2" colspan="2">
-       <spacer name="horizontalSpacer_2">
+      <item row="2" column="1" colspan="3">
+       <spacer name="horizontalSpacer_4">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>290</width>
-          <height>20</height>
+          <width>93</width>
+          <height>15</height>
          </size>
         </property>
        </spacer>
@@ -427,18 +408,50 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1" colspan="3">
-       <spacer name="horizontalSpacer_4">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="chkGrid">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
         </property>
-        <property name="sizeHint" stdset="0">
+        <property name="text">
+         <string>G&amp;rid</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" colspan="2">
+       <widget class="QCheckBox" name="chkGrayscale">
+        <property name="minimumSize">
          <size>
-          <width>93</width>
-          <height>15</height>
+          <width>0</width>
+          <height>24</height>
          </size>
         </property>
-       </spacer>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>&amp;Grayscale</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QCheckBox" name="chkOpenInViewer">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Open PDF in default viewer (viewer must be set in the OS)</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -452,7 +465,7 @@
       </font>
      </property>
      <property name="title">
-      <string>PDF</string>
+      <string>Paper</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">

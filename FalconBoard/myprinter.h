@@ -31,6 +31,8 @@ class MyPrinterData
     QRectF _printAreaInInches;           // full print (not screen) page in inches
     QRect  _printAreaInDots;             // full print (not screen) page in dots
     int _dpi = 300;
+
+
     void _ConvertAreaToDots()
     {
         _printAreaInDots = QRectF( _printAreaInInches.x() * _dpi, _printAreaInInches.y()* _dpi, _printAreaInInches.width()* _dpi, _printAreaInInches.height()* _dpi).toRect();
@@ -71,6 +73,8 @@ public:
     int nGridSpacingX       = 64,    // in dots/pixels
         nGridSpacingY       = 64;
     bool gridIsFixed        = true;
+
+    bool openPDFInViewerAfterPrint = false;
 
         // for PDF printing only
     QString fileName;

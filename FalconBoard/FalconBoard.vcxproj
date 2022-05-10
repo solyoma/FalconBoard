@@ -186,7 +186,6 @@
     <QtUic Include="FalconBoard.ui" />
     <QtUic Include="helpdialog.ui" />
     <QtUic Include="pagesetup.ui" />
-    <QtUic Include="pdfsetup.ui" />
     <QtUic Include="printprogress.ui" />
     <QtUic Include="screenshotTransparency.ui" />
   </ItemGroup>

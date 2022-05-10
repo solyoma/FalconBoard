@@ -71,6 +71,7 @@ private slots:
 	void on_chkGrayscale_toggled(bool b);
 	void on_chkGrid_toggled(bool b);
 	void on_chkDontPrintImages_toggled(bool);
+	void on_chkOpenPDFInViewer_toggled(bool);
 	void on_cbPdfPaperSize_currentIndexChanged(int i);
 
 	void on_rbUseResInd_toggled(bool b);

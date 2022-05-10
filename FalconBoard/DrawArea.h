@@ -252,6 +252,7 @@ private:
 
     bool    _bPageSetupValid;
     bool    _bPageSetupUsed = false;
+    bool    _openPDFInViewerAfterPrint = false;
 
 
     std::chrono::milliseconds _msecs = 10ms;   // when delayed playback

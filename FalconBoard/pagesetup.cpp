@@ -71,6 +71,7 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actPrinterName, WhatTo
 
 	flags			= s->value("pflags", 0).toInt();		// ORed PrinterFlags
 
+	ui.chkOpenPDFInViewer->setChecked(flags & pfOpenPDFInViewer);
 	ui.cbOrientation->setCurrentIndex(flags & pfLandscape ? 1 : 0);
 	ui.chkWhiteBackground->setChecked(flags & pfWhiteBackground);
 	ui.chkGrayscale->setChecked(flags & pfGrayscale);
@@ -122,6 +123,7 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actPrinterName, WhatTo
 			break;
 		case wtdPageSetup:		// page setup needs printer to set printable page size
 				ui.gbPDFRes->setVisible(false);
+				ui.chkOpenPDFInViewer->setVisible(false);
 		case wtdPrint:
 		default:
 			ui.gbPDFRes->setVisible(false);
@@ -149,7 +151,7 @@ void PageSetupDialog::_SaveParams()
 
 	s->setValue("hpxs", ui.sbHorizPixels->value());
 	s->setValue("sdiag", ui.edtScreenDiag->text());
-	s->setValue("pflags", flags);
+	s->setValue("pflags", flags);	// includes pfOpenPDFInViewer
 	// for PDF
 	s->setValue("pdfpgs", pdfIndex);
 	s->setValue("pdfmlr", hMargin);
@@ -242,12 +244,20 @@ void PageSetupDialog::on_chkDontPrintImages_toggled(bool b)
 	}
 }
 
+void PageSetupDialog::on_chkOpenPDFInViewer_toggled(bool b)
+{
+	flags &= ~pfOpenPDFInViewer;
+	if (b)
+	{
+		flags |= pfOpenPDFInViewer;
+		ui.chkPrintBackgroundImage->setChecked(false);
+	}
+}
+
 void PageSetupDialog::on_btnOk_clicked()
 {
 	_SaveParams();
 	accept();
-//	setResult(QDialog::Accepted);
-//	close();
 }
 void PageSetupDialog::on_cbPdfPaperSize_currentIndexChanged(int i)
 {

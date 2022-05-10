@@ -1405,11 +1405,12 @@ void FalconBoard::SaveVisibleAsTriggered()
 void FalconBoard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About FalconBoard"),
-        QString(tr("Open source White/blackboard application")+
+        QString(tr("Open source Whiteboard/blackboard application")+
             tr("<p>Version ")+ sVersion+ "</p>")+
-            tr("<p>© A. Sólyom (2020-21)</p><br>"
+            tr("<p>© A. Sólyom (2020-22)</p><br>"
             "<p>https://github.com/solyoma/FalconBoard</p>"
-            "<p>Based on Qt's <b>Scribble</b> example.</p>"));
+            "<p>Based on Qt's <b>Scribble</b> example.</p>"
+            "<p>QuadTree code from <b>https://github.com/pvigier/Quadtree</b>"));
 }
 
 void FalconBoard::on_actionHelp_triggered()

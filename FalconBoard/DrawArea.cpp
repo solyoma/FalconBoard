@@ -5,14 +5,15 @@
 #include <QPainter>
 
 #include <QMessageBox>
+#include <QDesktopServices>
 
 #if defined(QT_PRINTSUPPORT_LIB)
-#include <QtPrintSupport/qtprintsupportglobal.h>
-#if QT_CONFIG(printdialog)
-#include <QPrinter>
-#include <QPrintDialog>
-#include <QPrinterInfo>
-#endif
+	#include <QtPrintSupport/qtprintsupportglobal.h>
+	#if QT_CONFIG(printdialog)
+		#include <QPrinter>
+		#include <QPrintDialog>
+		#include <QPrinterInfo>
+	#endif
 #endif
 
 #include <math.h>
@@ -1872,6 +1873,8 @@ bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
 			_prdata.printerName = pageDlg->actPrinterName;
 			_bPageSetupUsed = !_prdata.printerName.isEmpty();
 		}
+		else
+			_openPDFInViewerAfterPrint = pageDlg->flags & pfOpenPDFInViewer;
 #define SQUARE(a)  (a*a)
 
 		if (!pageDlg->useResInd)
@@ -1989,11 +1992,17 @@ void DrawArea::Print(QString name, QString* pdir)
 		_prdata.nGridSpacingX = _nGridSpacingX;
 		_prdata.nGridSpacingY = _nGridSpacingY;
 		_prdata.gridIsFixed = _gridIsFixed;
+		_prdata.openPDFInViewerAfterPrint = _openPDFInViewerAfterPrint;
+
 		_printer = new MyPrinter(this, _history, _prdata);     // _prdata may be modified!
 		if (_NoPrintProblems())   // only when not Ok
 		{
 			_printer->Print();
-			_NoPrintProblems();
+			if (_NoPrintProblems() && _openPDFInViewerAfterPrint)		// prints errors if any
+			{
+				QUrl url = QUrl::fromLocalFile(_prdata.fileName);
+				QDesktopServices::openUrl(url);
+			}
 		}
 	}
 	_prdata.bExportPdf = false;

@@ -99,7 +99,8 @@ enum PrinterFlags :char {
     pfGrid                  = 4,
     pfGrayscale             = 8,
     pfLandscape             = 16,
-    pfDontPrintImages       = 32
+    pfDontPrintImages       = 32,
+    pfOpenPDFInViewer       = 64
 };
 enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess};
 enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};

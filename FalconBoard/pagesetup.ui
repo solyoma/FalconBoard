@@ -755,19 +755,6 @@
          <string>Options</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="3">
-          <widget class="QCheckBox" name="chkGrid">
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>G&amp;rid</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="0">
           <widget class="QCheckBox" name="chkPrintBackgroundImage">
            <property name="minimumSize">
@@ -784,6 +771,57 @@
            </property>
            <property name="text">
             <string>Print &amp;Background Image</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="chkDontPrintImages">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Do not print &amp;images</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QCheckBox" name="chkGrid">
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>G&amp;rid</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1" colspan="2">
+          <widget class="QCheckBox" name="chkGrayscale">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>&amp;Grayscale</string>
            </property>
           </widget>
          </item>
@@ -832,14 +870,8 @@
            </property>
           </spacer>
          </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="chkDontPrintImages">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>24</height>
-            </size>
-           </property>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="chkOpenPDFInViewer">
            <property name="font">
             <font>
              <weight>50</weight>
@@ -847,18 +879,12 @@
             </font>
            </property>
            <property name="text">
-            <string>Do not print &amp;images</string>
+            <string>Open PDF in default viewer</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1" colspan="2">
-          <widget class="QCheckBox" name="chkGrayscale">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>24</height>
-            </size>
-           </property>
+         <item row="2" column="1">
+          <widget class="QLabel" name="label_3">
            <property name="font">
             <font>
              <weight>50</weight>
@@ -866,7 +892,7 @@
             </font>
            </property>
            <property name="text">
-            <string>&amp;Grayscale</string>
+            <string>(viewer must be set in the OS)</string>
            </property>
           </widget>
          </item>
