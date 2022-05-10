@@ -15,8 +15,9 @@
 #include <QEvent>
 #include <QActionGroup>
 
-#include "snipper.h"
-
+#ifndef _VIEWER
+	#include "snipper.h"
+#endif
 #include "ui_FalconBoard.h"
 
 //class DrawArea;
@@ -215,7 +216,9 @@ private:
 
 	QActionGroup* _penGroup, *_modeGroup;
 
+#ifndef _VIEWER
 	Snipper* _plblScreen = nullptr;		// screen grab label
+#endif
 
 	QString _sBackgroundColor = "#FFFFFF",
 			_sBackgroundHighLigtColor="#D8EAF9",

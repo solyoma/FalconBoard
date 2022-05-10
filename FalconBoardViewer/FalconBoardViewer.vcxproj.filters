@@ -59,9 +59,6 @@
     <ClCompile Include="..\FalconBoard\FalconBoard.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\FalconBoard\snipper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\FalconBoard\pagesetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -77,9 +74,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="..\FalconBoard\FalconBoard.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="..\FalconBoard\snipper.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="..\FalconBoard\pagesetup.h">
@@ -106,6 +100,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\FalconBoard\myevent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\FalconBoard\quadtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
