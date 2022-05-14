@@ -22,7 +22,7 @@ bool IsItemsEqual(const int &i1, const int &i2)
 	History* ph = historyList[-1];
 	assert(ph);
 	HistoryItemPointer phi1 = ph->Item(i1),
-					   phi2 = ph->Item(i1);
+					   phi2 = ph->Item(i2);
 	return phi1->type == phi2->type &&
 		phi1->Area() == phi2->Area() &&
 		phi1->Hidden() == phi2->Hidden()
@@ -800,7 +800,7 @@ bool HistoryPasteItemTop::Hidden() const
 void HistoryPasteItemTop::SetVisibility(bool visible)
 {
 	for (int i = 1; i <= count; ++i)
-		(*pHist)[indexOfBottomItem + moved + i]->SetVisibility(visible);
+		pHist->SetVisibility(indexOfBottomItem + moved + i, visible);
 }
 
 void HistoryPasteItemTop::Translate(QPoint p, int minY)
@@ -1260,7 +1260,7 @@ void History::_push_back(HistoryItem* pi)
 	int s = _items.size();					 // physical index to put into _yxOrder 
 	_items.push_back(pi);					 // always append
 
-	if (pi->IsScribble())	// Only scribble elements are put into the quadTree
+	if (pi->IsSaveable())	// Only scribble elements are put into the quadTree
 		_pItemTree->Add(s);
 }
 
@@ -1338,7 +1338,7 @@ void History::Clear()		// does not clear lists of copied items and screen snippe
 	_readCount = 0;
 
 	_loadedName.clear();
-	_pItemTree->Resize(QuadArea(0,0, 4000,3000));
+	_pItemTree->Resize(QuadArea(0,0, 4000,3000), nullptr, false);
 
 	_modified = false;
 }
@@ -1750,6 +1750,7 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 void History::InserVertSpace(int y, int heightInPixels)
 {
 	VertShiftItemsBelow(y, heightInPixels);
+	_pItemTree->Resize(_pItemTree->Area());
 }
 
 HistoryItem* History::Undo()      // returns top left after undo
@@ -1771,8 +1772,8 @@ HistoryItem* History::Undo()      // returns top left after undo
 		phi = _items[actItem];	// here again, index is never negative 
 		_redoList.push_back(phi);
 
-		// only scribble elements are in _yxOrder!
-		if (phi->IsScribble())
+		// only scribble and screenshot elements are in _pItemTree!
+		if (phi->type == heScreenShot || phi->type ==heScribble)
 			_pItemTree->Remove(actItem);
 
 		_items.pop_back();	// we need _items for removing the yindex
@@ -1887,7 +1888,10 @@ int History::CollectItemsInside(QRect rect) // only
 	{
 		HistoryItem* phi = _items[ix];
 		if (rect.contains(phi->Area()))
+		{
 			_nSelectedItemsList.push_back(ix);
+			_selectionRect = _selectionRect.united(phi->Area());
+		}
 		else if (phi->Area().left() < rect.left())
 			_nItemsLeftOfList.push_back(ix);
 		else 

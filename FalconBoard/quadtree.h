@@ -153,6 +153,7 @@ public:
 
 	void Add(const T& value)	// dynamically change the area
 	{
+		bool res = false;
 		QuadArea areaV = _AreaFor(value);
 		if (!_area.Contains(areaV))
 		{				  // area always starts at (0,0)
@@ -162,11 +163,12 @@ public:
 				newArea.SetWidth(newArea.Width() + 1000);
 			if (newArea.Height() - _area.Height())  // then enlarge y
 				newArea.SetHeight(newArea.Height() + 1000);
-			Resize(newArea, &value); // also adds new value
+			Resize(newArea, &value, true); // also adds new value
 		}
 		else
-			_Add(_rootNode.get(), 0, _area, value);
-		++_count;
+			res = _Add(_rootNode.get(), 0, _area, value);
+		if(res)
+			++_count;
 	}
 
 	void Remove(const T& value)
@@ -184,9 +186,11 @@ public:
 		return values;
 	}
 
-	void Resize(QuadArea area, const T* pNewItem = nullptr)
+	void Resize(QuadArea area, const T* pNewItem = nullptr, bool savePrevVals=true)
 	{
-		std::vector<T> values = GetValues(_area);
+		std::vector<T> values;
+		if(savePrevVals)
+			values = GetValues(_area);
 
 		if (pNewItem)
 			values.push_back(*pNewItem);
@@ -325,25 +329,33 @@ private:
 			return -1;
 	}
 
-	void _Add(QuadNode* node, std::size_t depth, const QuadArea& area, const T& value)
+	bool _Add(QuadNode* node, std::size_t depth, const QuadArea& area, const T& value)
 	{
 		assert(node != nullptr);
 		QuadArea areaV = _AreaFor(value);
 		assert(area.Contains(areaV));
+		if (std::find(node->values.begin(), node->values.end(), value) != node->values.end())		// already added
+			return false;
+
+		bool res = false;
+
 		if (_IsLeaf(node))
 		{
-			// V2 childAreaSize = area.Size() / real(2);
+
 			bool insertIntoThisNode =
 				(node->values.size() < _MAX_ALLOWED_IN_ONE_NODE) ||	   // when there is space
 				(depth == _maxDepth); // ||								   // or no more split possible
 				// (childAreaSize.x <= areaV.Width() || childAreaSize.y <= areaV.Height()); // or does not fit into any children
 			
 			if (insertIntoThisNode)
+			{
 				node->values.push_back(value);
+				res = true;
+			}
 			else  // Otherwise, we split and we try again
 			{
 				_Split(node, area);
-				_Add(node, depth, area, value);	// still may not be added to any children
+				res = _Add(node, depth, area, value);	// still may not be added to any children
 			}
 		}
 		else
@@ -351,16 +363,14 @@ private:
 			auto i = _GetQuadrant(area, areaV);
 			// Add the value to a child if the value is entirely contained in it
 			if (i != -1)
-			//{ // DEBUG
-			//	QuadArea chArea = _AreaOfThisChild(area, i);
-			//	QuadNode* pn = node->children[static_cast<std::size_t>(i)].get();
-			//	_Add(pn, depth + 1, chArea, value);
-			//}
-				_Add(node->children[static_cast<std::size_t>(i)].get(), depth + 1, _AreaOfThisChild(area, i), value);
-			// Otherwise, we add the value in the current node
-			else
+				res = _Add(node->children[static_cast<std::size_t>(i)].get(), depth + 1, _AreaOfThisChild(area, i), value);
+			else	   // Otherwise, we add the value to the current node
+			{
 				node->values.push_back(value);
+				res = true;
+			}
 		}
+		return res;
 	}
 
 	void _Split(QuadNode* node, const QuadArea& area)
@@ -417,10 +427,12 @@ private:
 		// Find the value in node->values
 		auto it = std::find_if(std::begin(node->values), std::end(node->values),
 			[this, &value](const auto& rhs) { return _Equal(value, rhs); });
-		assert(it != std::end(node->values) && "Trying to remove a value that is not present in the node");
-		// Swap with the last element and pop back
-		*it = std::move(node->values.back());
-		node->values.pop_back();
+		//assert(it != std::end(node->values) && "Trying to remove a value that is not present in the node");
+		if (it != node->values.end())
+		{// Swap with the last element and pop back
+			*it = std::move(node->values.back());
+			node->values.pop_back();
+		}
 	}
 
 	bool _TryMerge(QuadNode* node)

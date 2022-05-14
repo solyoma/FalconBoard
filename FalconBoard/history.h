@@ -572,10 +572,8 @@ public:
     void SetClippingRect(const QRect& rect) { _clpRect = rect;  }
     void SetVisibility(int index, bool visible)
     {
-        if (_items[index]->Hidden() == !visible)    // when it does not change
-            return;
-
-        _items[index]->SetVisibility(visible);
+        if (_items[index]->Hidden() == visible)    // when it does change
+            _items[index]->SetVisibility(visible);
         if (visible)
             _pItemTree->Add(index);
         else

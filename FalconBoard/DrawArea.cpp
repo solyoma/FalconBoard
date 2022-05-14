@@ -223,8 +223,9 @@ int DrawArea::RemoveHistory(int index)
 	if (index < 0 || index > cnt)
 		return -1;
 
-	delete historyList[index];
+	History *phi = historyList[index];
 	historyList.erase(historyList.begin() + index);
+	delete phi;
 	--cnt;
 	if (index == _currentHistoryIndex)
 	{
