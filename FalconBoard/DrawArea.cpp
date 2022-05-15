@@ -483,13 +483,16 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 	int key = event->key();
 
 #if !defined _VIEWER && defined _DEBUG
+	bool redraw = false;
+	if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::ShiftModifier)))
+		_pencilmode = !_pencilmode, redraw=true;
 	if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::AltModifier)))
 	{                           // toggle debug mode
 		_debugmode = !_debugmode;
-		if (_mods.testFlag(Qt::ShiftModifier))
-			_pencilmode = !_pencilmode;
-		_Redraw();
+		redraw = true;
 	}
+	if(redraw)
+		_Redraw();
 #endif
 
 	if (!_scribbling && !_pendown && key == Qt::Key_Space && !event->isAutoRepeat())

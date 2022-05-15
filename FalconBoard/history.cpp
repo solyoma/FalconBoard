@@ -1732,12 +1732,20 @@ HistoryItem* History::AddScreenShotTransparencyToLoadedItems(QColor trColor, qre
 
 void History::VertShiftItemsBelow(int thisY, int dy) // using the y and z-index ordered index '_yOrder'
 {
+	// DEBUG
+#if !defined _VIEWER && defined _DEBUG
+	_pItemTree->DebugPrint();
+#endif
+	// /DEBUG
 	QuadArea area = _pItemTree->Area();
 	area = QuadArea(area.Left(), thisY, area.Width(), area.Height());
 	std::vector<int> iv = _pItemTree->GetValues(area);
 
-	for(auto ind: iv)
-		_items[ind]->Translate({ 0,dy }, thisY);
+	for (auto ind : iv)
+	{
+		if(_items[ind]->Area().top() >= thisY)
+			_items[ind]->Translate({ 0,dy }, -1);
+	}
 	_modified = true;
 }
 
@@ -1879,27 +1887,36 @@ int History::CollectItemsInside(QRect rect) // only
 	// first select all items inside a band whose top and bottom are set from 'rect'
 	// but it occupies the whole width of the paper
 	QuadArea area = QuadArea(0, rect.top(), _pItemTree->Area().Width(), rect.height());
-	std::vector<int> iv = _pItemTree->GetValues(area);
-	_SortFunc sortFunc(*this);
-	std::sort(iv.begin(), iv.end(), sortFunc );
-
-	// then separate these into lists
-	for (auto ix : iv)
+	std::vector<int> iv = _pItemTree->GetValues(area);	// iv includes items with only partially inside rect
+	for (int i = iv.size()-1; i >= 0; --i)
 	{
-		HistoryItem* phi = _items[ix];
-		if (rect.contains(phi->Area()))
-		{
-			_nSelectedItemsList.push_back(ix);
-			_selectionRect = _selectionRect.united(phi->Area());
-		}
-		else if (phi->Area().left() < rect.left())
-			_nItemsLeftOfList.push_back(ix);
-		else 
-			_nItemsRightOfList.push_back(ix);
+		int ix = iv[i];
+		if (!rect.contains(_items[ix]->Area()))
+			iv.erase(iv.begin() + i);
 	}
-	if (_nSelectedItemsList.isEmpty())		// save for removing empty space
-		_selectionRect = rect;
+	if (iv.size())
+	{
 
+		_SortFunc sortFunc(*this);
+		std::sort(iv.begin(), iv.end(), sortFunc);
+
+		// then separate these into lists
+		for (auto ix : iv)
+		{
+			HistoryItem* phi = _items[ix];
+			if (rect.contains(phi->Area()))
+			{
+				_nSelectedItemsList.push_back(ix);
+				_selectionRect = _selectionRect.united(phi->Area());
+			}
+			else if (phi->Area().left() < rect.left())
+				_nItemsLeftOfList.push_back(ix);
+			else
+				_nItemsRightOfList.push_back(ix);
+		}
+		if (_nSelectedItemsList.isEmpty())		// save for removing empty space
+			_selectionRect = rect;
+	}
 	return _nSelectedItemsList.size();
 }
 

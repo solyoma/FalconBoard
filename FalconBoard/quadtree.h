@@ -54,6 +54,10 @@
 #include <array>
 #include <memory>
 #include <functional>
+#if !defined _VIEWER && defined _DEBUG
+	#include <iostream>
+	#include <fstream>
+#endif
 
 using real = float;
 
@@ -69,61 +73,61 @@ constexpr V2 operator/(const V2 l, real c) { return V2(l.x / c, l.y / c); }
 
 class QuadArea
 {
-	real x1=0, y1=0, x2=0, y2=0;
+	real _left=0, _top=0, _right=0, _bottom=0;
 public:
 	QuadArea() {}
-	QuadArea(real left, real top, real width, real height) noexcept :x1(left), y1(top), x2(left + width), y2(top + height) 
+	QuadArea(real left, real top, real width, real height) noexcept :_left(left), _top(top), _right(left + width), _bottom(_top + height) 
 	{
-		assert(x2 > x1 && y2 > y1);
+		assert(_right > _left && _bottom > _top);
 	};
 	QuadArea(V2 leftTop, V2 size) noexcept : QuadArea(leftTop.x, leftTop.y, size.x, size.y) 
 	{
 		assert(size.x && size.y);
 	}
-	bool IsValid() const { return x1 < x2&& y1 < y2; }
+	bool IsValid() const { return _left < _right&& _top < _bottom; }
 
 	constexpr bool Contains(const V2& p) const noexcept
 	{
-		return !(p.x < x1 || p.y < y1 || p.x > x2 || p.y > y2); // was >= x2/y2
+		return !(p.x < _left || p.y < _top || p.x > _right || p.y > _bottom); // was >= _right/_bottom
 	}
 
 	constexpr bool Contains(const QuadArea& r) const noexcept
 	{
-		return (r.x1 >= x1) && (r.x2 < x2) && (r.y1 >= y1) && (r.y2 <= y2);
+		return (r._left >= _left) && (r._right < _right) && (r._top >= _top) && (r._bottom <= _bottom);
 	}
 
 	constexpr bool Intersects(const QuadArea& r) const noexcept
 	{
-		return (x1 < r.x2 && x2 >= r.x1 && y1 < r.y2 && y2>= r.y1);
+		return (_left < r._right && _right >= r._left && _top < r._bottom && _bottom>= r._top);
 	}
 
 	QuadArea Union(const QuadArea& other) const noexcept
 	{
-		QuadArea area(x1,y1,x2,y2);
-		if (x1 > other.x1)
-			area.x1 = other.x1;
-		if (y1 > other.y1)
-			area.y1 = other.y1;
-		if (area.x2 < other.x2)
-			area.x2 = other.x2;
-		if (y2 < other.y2)
-			area.y2 = other.y2;
+		QuadArea area(_left,_top,_right,_bottom);
+		if (_left > other._left)
+			area._left = other._left;
+		if (_top > other._top)
+			area._top = other._top;
+		if (area._right < other._right)
+			area._right = other._right;
+		if (_bottom < other._bottom)
+			area._bottom = other._bottom;
 
 		return area;
 	}
-	constexpr real Left() const noexcept { return x1; }
-	constexpr real Top() const noexcept { return y1; }
-	constexpr real Right() const noexcept { return x2; }
-	constexpr real Bottom() const noexcept { return y2; }
-	constexpr real Width() const noexcept { return x2 - x1; }
-	constexpr real Height() const noexcept { return y2 - y1; }
+	constexpr real Left() const noexcept { return _left; }
+	constexpr real Top() const noexcept { return _top; }
+	constexpr real Right() const noexcept { return _right; }
+	constexpr real Bottom() const noexcept { return _bottom; }
+	constexpr real Width() const noexcept { return _right - _left; }
+	constexpr real Height() const noexcept { return _bottom - _top; }
 
-	constexpr V2 TopLeft() const noexcept { return V2(x1,y1); }
+	constexpr V2 TopLeft() const noexcept { return V2(_left,_top); }
 	constexpr V2 Size() const noexcept { return V2(Width(), Height()); }
-	constexpr V2 Center() const noexcept { return V2(x1 + Width()/2, y1 + Height()/2); }
+	constexpr V2 Center() const noexcept { return V2(_left + Width()/2, _top + Height()/2); }
 
-	constexpr void SetWidth(real newWidth) { x2 = x1 + newWidth; }
-	constexpr void SetHeight(real newHeight) { y2 = y1 + newHeight; }
+	constexpr void SetWidth(real newWidth) { _right = _left + newWidth; }
+	constexpr void SetHeight(real newHeight) { _bottom = _top + newHeight; }
 	
 };
 
@@ -222,7 +226,20 @@ public:
 		_BottomItem(_rootNode.get(), item, y);
 		return item;
 	}
-
+#if !defined _VIEWER && defined _DEBUG
+	constexpr void DebugPrint()
+	{
+		std::ofstream f;
+		f.open("quadtreeDebug.txt");
+		f << "Root Node. Total count: " << _count << ", area:"; 
+		_DebugAreaPrint(f, _area);
+		f << " contains " << _rootNode->values.size() << " values\n";
+		if (!_IsLeaf(_rootNode.get()))
+			for (int i = 0; i < _rootNode->children.size(); ++i)
+				_DebugPrint(f, _rootNode->children[i].get(), _area, i, "    ");
+		f.close();
+	}
+#endif
 private:
 			// functions defined elswhere
 	AreaFor *_AreaFor;
@@ -252,7 +269,7 @@ private:
 	std::unique_ptr<QuadNode> _rootNode;	// pointer so it can be deleted
 
 	QuadArea _area;		// for this level
-	int _maxDepth = 8;
+	int _maxDepth = 10;
 	std::size_t _count = 0;
 
 	void _CalcMaxDepth(QuadArea area)
@@ -513,27 +530,46 @@ private:
 			Add(v);
 	}
 
-	int _BottomItem(QuadNode* node, T &item, int bottomY) // returns y for bottom item + item in item
+	int _BottomItem(QuadNode* node, T &item, int _bottomY) // returns y for _bottom item + item in item
 	{
 		for (auto v : node->values)
 		{
 			QuadArea av = _AreaFor(v);
-			if (av.Bottom() > bottomY)
+			if (av.Bottom() > _bottomY)
 			{
 				item = v;
-				bottomY = av.Bottom();
+				_bottomY = av.Bottom();
 			}
 		}
 
 		if (!_IsLeaf(node))
 		{
-			bottomY = _BottomItem(node->children[0].get(), item, bottomY);
-			bottomY = _BottomItem(node->children[1].get(), item, bottomY);
-			bottomY = _BottomItem(node->children[2].get(), item, bottomY);
-			bottomY = _BottomItem(node->children[3].get(), item, bottomY);
+			_bottomY = _BottomItem(node->children[0].get(), item, _bottomY);
+			_bottomY = _BottomItem(node->children[1].get(), item, _bottomY);
+			_bottomY = _BottomItem(node->children[2].get(), item, _bottomY);
+			_bottomY = _BottomItem(node->children[3].get(), item, _bottomY);
 		}
-		return bottomY;
+		return _bottomY;
 	}
+#if !defined _VIEWER && defined _DEBUG
+	void _DebugAreaPrint(std::ofstream &f, QuadArea area)
+	{
+		f << "(" << area.Left() << "," << area.Top() << " " << area.Width() << " x " << area.Height() << ") ";
+	}
+	void _DebugPrint(std::ofstream& f, QuadNode* node, QuadArea areaOfParent, int quadrant, std::string indent)
+	{
+		QuadArea area = _AreaOfThisChild(areaOfParent, quadrant);
+		f << indent << "Level #"<< indent.length()/4 <<" Child node - area:";
+		_DebugAreaPrint(f, area);
+		f << " contains " << node->values.size() << " values\n";
+		int val = 947;
+		if (std::find(std::begin(node->values),std::end(node->values), val) != std::end(node->values))
+			f << indent << indent << " contains 947\n";
+		if (!_IsLeaf(node))
+			for (int i = 0; i < node->children.size(); ++i)
+				_DebugPrint(f, node->children[i].get(), area, i, indent + "   ");
+	}
+#endif
 };
 
 
