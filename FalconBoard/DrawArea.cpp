@@ -508,7 +508,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
 				);
 
-		if (_rubberBand)    // delete rubberband for any keypress except pure modifiers  or space bar
+		if (_rubberBand) 
 		{
 			bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
 				bCut = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
@@ -625,9 +625,12 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			}
 			else if (key == Qt::Key_C && !bCopy)   // draw ellipse
 			{
-				_actPenWidth = _penWidth;
 				_lastScribbleItem.clear();
+
+				_actPenWidth = _penWidth;
 				_lastScribbleItem.type = heScribble;
+				_lastScribbleItem.penWidth = _actPenWidth;
+				_lastScribbleItem.penKind= _actPenKind;
 
 				QPainterPath myPath;
 				QRect rf = _rubberRect;
@@ -667,7 +670,44 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_history->AddToSelection();
 				}
 			}
-			else if (bRemove)
+			else if ((key == Qt::Key_X && !bCut) || (key == Qt::Key_Period))   // mark center with cross
+			{
+				_lastScribbleItem.clear();
+
+				qreal x0 = _rubberRect.left() + _rubberRect.width() / 2.0, y0 = _rubberRect.top() + _rubberRect.height() / 2.0;
+				_actPenWidth = _penWidth;
+				_lastScribbleItem.type = heScribble;
+				_lastScribbleItem.penWidth = _actPenWidth;
+				_lastScribbleItem.penKind= _actPenKind;
+				_lastPointC = QPoint(x0, y0) +_topLeft;
+				if (key == Qt::Key_Period)
+				{
+					_lastScribbleItem.add(_lastPointC);
+					_lastScribbleItem.add(_lastPointC);
+					_DrawLineTo(QPoint(_lastPointC));
+				}
+				else	// cross, 45 degree length 3 x penWidth
+				{
+					int d = 3 * _actPenWidth,
+						_x0 = _topLeft.x(), _y0 = _topLeft.y();
+					int x1 = x0 - d, x2 = x0 + d,
+						y1 = y0 - d, y2 = y0 + d;
+					_lastScribbleItem.add(QPoint(x1 + _x0, y1+_y0));
+					_lastPointC = QPoint(x1, y1);
+					_lastScribbleItem.add(QPoint(x2 + _x0, y2 + _y0));
+					_DrawLineTo(QPoint(x2, y2));
+					_lastScribbleItem.add(QPoint(x0+_x0, y0+_y0));
+					_DrawLineTo(QPoint(x0, y0));
+					_lastScribbleItem.add(QPoint(x1+_x0,y2+_y0));
+					_DrawLineTo(QPoint(x1, y2));
+					_lastScribbleItem.add(QPoint(x2+_x0,y1+_y0));
+					_DrawLineTo(QPoint(x2, y1));
+				}
+				HistoryItem* pscrbl = _history->AddScribbleItem(_lastScribbleItem);
+				pscrbl->GetScribble()->bndRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
+
+			}
+			else if (bRemove)			   // delete rubberband for any keypress except pure modifiers  or space bar
 				_HideRubberBand(true);
 
 		}

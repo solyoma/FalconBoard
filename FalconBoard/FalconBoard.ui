@@ -101,6 +101,7 @@
     <addaction name="separator"/>
     <addaction name="actionDrawEllipse"/>
     <addaction name="actionRectangle"/>
+    <addaction name="actionMarkCenterpoint"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -749,6 +750,14 @@
   <action name="action_CloseAll">
    <property name="text">
     <string>Close All</string>
+   </property>
+  </action>
+  <action name="actionMarkCenterpoint">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Mark Center point of selection</string>
    </property>
   </action>
  </widget>
