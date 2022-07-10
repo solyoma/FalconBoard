@@ -897,10 +897,10 @@ int  HistoryReColorItem::Redo()
 {
 	for (auto index : selectedList)
 	{
-		int index = 0;
+		int ivis = 0;
 		ScribbleItem* pdri;
 		HistoryItem* phi = (*pHist)[index];
-		while ((pdri = phi->GetVisibleScribble(index++)))
+		while ((pdri = phi->GetVisibleScribble(ivis++)))
 		{
 			penKindList.push_back(pdri->penKind);
 			pdri->penKind = pk;
@@ -1397,7 +1397,7 @@ SaveResult History::Save(QString name)
 	if (name != _loadedName)
 		_loadedName = _fileName = name;
 
-	if (_pItemTree->Count() == 0)					// no elements or no visible elements
+	if (_pItemTree->Count() == 0 && !_modified)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
 		return srSaveSuccess;
