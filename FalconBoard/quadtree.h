@@ -137,6 +137,7 @@ public:
  *  'isEqual(const &T, const&T)' must check if the values are equal
  * 
  * A QuadTree has this as its head and a series of linked nodes
+ *  'invoke_result_t' requires C++17
  *------------------------------------------------------------*/
 template <typename T, typename AreaFor, typename Equal = std::equal_to<T>> 
 class QuadTree
@@ -148,7 +149,8 @@ class QuadTree
 
 public:
 	const int _MIN_WIDTH = 200, _MIN_HEIGHT = 200;
-	const int _MAX_ALLOWED_IN_ONE_NODE = 32; // if more than this many items and _maxDepth not reached and the item's area fits into the children split node to 4 children
+	const int _MAX_ALLOWED_IN_ONE_NODE = 32; // if more than this many items and _maxDepth not reached 
+											 // and the item's area fits into the children => split node to 4 children
 
 	QuadTree(QuadArea area, AreaFor areaFor, Equal isEqual) : _area(area), _AreaFor(areaFor), _Equal(isEqual), _rootNode(std::make_unique<QuadNode>())
 	{
@@ -241,7 +243,7 @@ public:
 	}
 #endif
 private:
-			// functions defined elswhere
+			// these two functions defined elsewhere
 	AreaFor *_AreaFor;
 	Equal *_Equal;
 
