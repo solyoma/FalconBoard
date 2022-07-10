@@ -22,45 +22,45 @@ Invalid file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1941"/>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1944"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1996"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
         <source>FalconBoard - Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1941"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1996"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1944"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
         <source>Can&apos;t find printer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1947"/>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1950"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
         <source>FalconBoard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1947"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
         <source>Print error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1950"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
         <source>Print cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2540"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2595"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2545"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2600"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -856,11 +856,6 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="418"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection&lt;br/&gt;&lt;/span&gt;&lt;br/&gt;Press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;right mouse (pen) button&lt;/span&gt; or press and hold &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; /Command+ &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; and move the mouse (pen) around. Release the mouse or pen button when finished. &lt;/p&gt;&lt;p&gt;When you release the button the selection shrinks to enclose completely selected strokes (including or excluding eraser lines, depending on the initial manual selection!). If you don&apos;t want the selection to shrink (for instance making a rectangle around a region) press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Alt/Option&lt;/span&gt; on the keyboard before releasing the mouse or pen button.&lt;/p&gt;&lt;p&gt;To get not just a rectangular, but a square selection (for drawing squares or circles instead of rectangles or ellipses) press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift &lt;/span&gt; key during selection.&lt;/p&gt;&lt;p&gt;Area selection will select each and every strokes completely inside the selection area. If you want to select just some strokes, use the method described below.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To select a screenshot or pen strokes&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Press and hold &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;/&lt;span style=&quot; font-weight:600;&quot;&gt;Command &lt;/span&gt;and click on the screenshot image or on a pen stroke. The topmost screenshot or all strokes below the pen will be selected.&lt;br/&gt;More than one stroke can be selected if you hold down the both the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl/Command&lt;/span&gt; and a &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift&lt;/span&gt; key together and clicking an all strokes you want to select.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection during a screenshot (F4) key&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;Press and holdthe left mouse button while dragging the mouse. When the button is released the selected area will be copied into the dokument below the pen strokes and becomes selected, redy to move around with the mouse.&lt;/p&gt;&lt;p&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; to remove the selection or to return without a screen shot taken..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../FalconBoard/helpdialog.ui" line="214"/>
         <source>Rectangles</source>
         <translation type="unfinished"></translation>
@@ -913,6 +908,11 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="409"/>
         <source>Selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/helpdialog.ui" line="418"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection&lt;br/&gt;&lt;/span&gt;&lt;br/&gt;Press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;right mouse (pen) button&lt;/span&gt; or press and hold &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; /Command+ &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; and move the mouse (pen) around. Release the mouse or pen button when finished. &lt;/p&gt;&lt;p&gt;When you release the button the selection shrinks to enclose completely selected strokes (including or excluding eraser lines, depending on the initial manual selection!). If you don&apos;t want the selection to shrink (for instance making a rectangle around a region) press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Alt/Option&lt;/span&gt; on the keyboard before releasing the mouse or pen button.&lt;/p&gt;&lt;p&gt;To get a square selection (for drawing squares or circles instead of rectangles or ellipses) press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift &lt;/span&gt;key during selection. If you hold the &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Alt/Option&lt;/span&gt; key down then the selection expands from the starting point. So you may draw concentric circles or rectangles.&lt;/p&gt;&lt;p&gt;Area selection will select each and every strokes completely inside the selection area. If you want to select just some strokes, use the method described below.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To select a screenshot or pen strokes&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Press and hold &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;/&lt;span style=&quot; font-weight:600;&quot;&gt;Command &lt;/span&gt;and click on the screenshot image or on a pen stroke. The topmost screenshot or all strokes below the pen will be selected.&lt;br/&gt;More than one stroke can be selected if you hold down the both the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl/Command&lt;/span&gt; and a &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift&lt;/span&gt; key together and clicking an all strokes you want to select.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection during a screenshot (F4) key&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;Press and holdthe left mouse button while dragging the mouse. When the button is released the selected area will be copied into the dokument below the pen strokes and becomes selected, redy to move around with the mouse.&lt;/p&gt;&lt;p&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; to remove the selection or to return without a screen shot taken..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

@@ -1033,11 +1033,26 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 	}
 	else if (_rubberBand && ((event->buttons & Qt::RightButton) ||
 		((event->buttons & Qt::LeftButton) && event->mods.testFlag(Qt::ControlModifier))))
-	{         // modify existing rubber band using either the right button or Ctrl+left button
+	{         
+		// modify existing rubber band using either the right button or Ctrl+left button
+		// if the shift is held down the shape will be a square
+		// if holding down Alt then the rubberband will be centered on its starting poition
 		QPoint epos = event->pos;
 		if (event->mods.testFlag(Qt::ShiftModifier))        // constrain rubberband to a square
 			epos.setX(_rubberBand->geometry().x() + (epos.y() - _rubberBand->geometry().y()));
-		_rubberBand->setGeometry(QRect(_rubber_origin, epos).normalized()); // means: top < bottom, left < right
+
+		QPoint origin = _rubber_origin;	// we may modify this because of Alt modifier
+		QPoint delta;
+		if (event->mods.testFlag(Qt::AltModifier))	// then the rubberband goes outward from origin
+		{
+			delta = epos - _rubber_origin;	// some coordinate may be negative
+			origin -= delta;
+		}
+			// DEBUG
+			//qDebug("epos:(%d,%d), delta:(%d, %d), origin:(%d,%d), rubber0: (%d,%d)",
+			//	epos.x(), epos.y(), delta.x(), delta.y(), origin.x(), origin.y(),
+			//	_rubber_origin.x(), _rubber_origin.y());
+		_rubberBand->setGeometry(QRect(origin, epos).normalized()); // means: top < bottom, left < right
 
 // DEBUG
 //#if defined _DEBUG

@@ -325,7 +325,7 @@ private:
 
 private:
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
-    QPoint   _rubber_origin,            // no need for this, possibly
+    QPoint   _rubber_origin,            // position where we stated to draw the rubber band
              _topLeftWhenRubber;        // top left when the rubbar band was hidden
                                         // used to re-show rubberband after a scroll
                                         // or during move paper 

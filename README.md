@@ -1,7 +1,7 @@
 # ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png) FalconBoard
-Last modified: April 10. 2022
+Last modified: July 10. 2022
 
-FalconBoard (previous name MyWhiteboard) is a cross platform open source 
+FalconBoard is a cross platform open source 
 whiteboard / blackboard application with unique features that makes it 
 perfectly suited for classroom or for online lectures. It has a semi 
 infinite canvas, unlimited drawings, unlimited undo and redo, colored 
@@ -38,14 +38,20 @@ saved drawings, but cannot modify them or create PDFs.
         be a square.
         If the area contained any complete drawings or screenshots then 
         the selection will constrict around those.
-		If the Alt key is kept pressed during selection the selection will 
-		not constrict to any elements inside it.
+		If the Alt key is pressed before letting the mouse button up the 
+		selection will not constrict to any elements inside it.
+		If The Alt key is kept pressed during selection the selection will
+		expand from the original start position and will not constrict
+		when the button is released. This way you can draw concentric
+		circles or rectangles.
    -  While a selection is active
         - insert vertical space by pressing F5. Height of the space is the 
             height of the selection
         - draw a rectangle around it by pressing the R key. For a contracted
           selection there is a small padding inside this rectangle
         - draw an ellipse or a circle inside it by pressing C
+		- mark the center of the selection by a dot or an x by pressing the 
+		  corresponding key
         - if there were displayed items inside the area:
             - click inside the area and hold to move the marked items around,
               on the screen release the button to paste it to that position.
@@ -81,6 +87,7 @@ saved drawings, but cannot modify them or create PDFs.
   Completely open source (see Copyright)
         I used some icons [from PikaJian's Whitepad project](https://github.com/PikaJian)
         but no code was used from that project.
+		The QuadTree code is taken from [PVigier](https://github.com/pvigier/Quadtree)
   Written in C++ with Qt (multi platform).
   Both Visual Studio project files and a QtDesigner project files are included.
   
