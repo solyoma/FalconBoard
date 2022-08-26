@@ -1648,7 +1648,7 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
 				_isHorizontal = false;
 			_drawStarted = true;
 		// DEBUG
-		qDebug("_drawStarted? %s, shift? %s, horiz? %s dx:%d,dy:%d", _drawStarted ?  "yes":"no",_mods.testFlag(Qt::ShiftModifier) ? "yes":"no", _isHorizontal ? "yes":"no",dx,dy);
+		// qDebug("_drawStarted? %s, shift? %s, horiz? %s dx:%d,dy:%d", _drawStarted ?  "yes":"no",_mods.testFlag(Qt::ShiftModifier) ? "yes":"no", _isHorizontal ? "yes":"no",dx,dy);
 		// /DEBUG
 			// replace most points keeping only the first, and the last
 
