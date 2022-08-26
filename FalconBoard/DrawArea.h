@@ -233,8 +233,8 @@ private:
     bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
     Qt::KeyboardModifiers _mods;
 
-    bool    _startSet = false;      // calculate start vector
-    bool    _isHorizontal;          // when _shitKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
+    bool    _drawStarted = false;      // calculate start vector
+    bool    _isHorizontal;          // when _shiftKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
                                     // and used in line drawing
 
     bool    _allowPen = true;       // true if message is only accepted from the pen
@@ -345,7 +345,7 @@ private:
 #ifndef _VIEWER
     void _SetLastPointPosition();           // for actual _history
     bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
-    QPoint _CorrectForDirection(QPoint &newp);     // using _startSet and _isHorizontal
+    QPoint _CorrectForDirection(QPoint &newp);     // using _drawStarted and _isHorizontal
     void _CreatePens();
 #endif
 

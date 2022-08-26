@@ -770,7 +770,13 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 void DrawArea::keyReleaseEvent(QKeyEvent* event)
 {
-	_mods = event->modifiers();
+	Qt::KeyboardModifiers newmods = event->modifiers();
+	if (_mods.testFlag(Qt::ShiftModifier) && !newmods.testFlag(Qt::ShiftModifier))
+	{
+		_drawStarted = false;
+		_firstPointC = _lastPointC;
+	}
+	_mods = newmods;
 
 	if ((!_spaceBarDown && (!_mods.testFlag(Qt::ShiftModifier) || !event->spontaneous() || event->isAutoRepeat()))) //?
 	{
@@ -794,7 +800,7 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 	//if(event->key() == Qt::Key_Shift)
 	//    _shiftKeyDown = false;
 
-	_startSet = false;
+	_drawStarted = false;
 	//_altKeyDown = event->key() == Qt::Key_Alt;
 	QWidget::keyReleaseEvent(event);
 }
@@ -1165,7 +1171,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 #endif 
 		_scribbling = false;
 		_pendown = false;
-		_startSet = false;
+		_drawStarted = false;
 	}
 #ifndef _VIEWER
 	else if (_rubberBand)
@@ -1580,7 +1586,7 @@ void DrawArea::_InitRubberBand(MyPointerEvent* event)
  *-------------------------------------------------------*/
 void DrawArea::_ModifyIfSpecialDirection(QPoint& qpC)
 {
-	if (_startSet)
+	if (_drawStarted)
 	{
 		if (_isHorizontal)
 			qpC.setY(_firstPointC.y());
@@ -1615,13 +1621,13 @@ void DrawArea::_SetLastPointPosition()
  *              yet in which direction
  * REMARKS: - Expects _lastScribbleItem to contain at least
  *              two points
- *          - without contraint does not modify newEndPoint
+ *          - without constraint does not modify newEndPoint
  *              and always returns true
  *-------------------------------------------------------*/
 bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to canvas, not _topLeft
 {
 	//DEBUG_LOG(QString("CanSavePoint #1: firstPointC:(%1,%2) newEndPointC=(%3,%4)").arg(_firstPointC.x()).arg(_firstPointC.y()).arg(newEndPointC.x()).arg(newEndPointC.y()))
-	if (!_startSet && (_mods.testFlag(Qt::ShiftModifier) && (_pendown || _scribbling)))
+	if (!_drawStarted && (_mods.testFlag(Qt::ShiftModifier) && (_pendown || _scribbling)))
 	{
 		int x0 = _firstPointC.x(),    // relative to canvas
 			y0 = _firstPointC.y(),
@@ -1640,7 +1646,10 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
 				_isHorizontal = true;
 			else if (dy > dx)
 				_isHorizontal = false;
-			_startSet = true;
+			_drawStarted = true;
+		// DEBUG
+		qDebug("_drawStarted? %s, shift? %s, horiz? %s dx:%d,dy:%d", _drawStarted ?  "yes":"no",_mods.testFlag(Qt::ShiftModifier) ? "yes":"no", _isHorizontal ? "yes":"no",dx,dy);
+		// /DEBUG
 			// replace most points keeping only the first, and the last
 
 			_ModifyIfSpecialDirection(_lastPointC);
@@ -1656,7 +1665,7 @@ bool DrawArea::_CanSavePoint(QPoint& newEndPointC)   // endPoint relative to can
 
 QPoint DrawArea::_CorrectForDirection(QPoint& newpC)     // newpC canvas relative
 {
-	if (_startSet)
+	if (_drawStarted)
 	{
 		if (_isHorizontal)
 			newpC.setY(_firstPointC.y());
@@ -1730,7 +1739,7 @@ bool DrawArea::_DrawFreehandLineTo(QPoint endPointC)
 #ifndef _VIEWER
 	if ((result = _CanSavePoint(endPointC)))     // i.e. must save point
 	{
-		_CorrectForDirection(endPointC); // when _startSet leaves only one coord moving
+		_CorrectForDirection(endPointC); // when _drawStarted leaves only one coord moving
 		_DrawLineTo(endPointC);
 	}
 #endif

@@ -561,7 +561,10 @@ public:
     QSize UsedArea();   // of all points and images
     int CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize); // -1: invalid page for px, -2: invalid page for py i.e. outside used area. First call with getAreaSize=true, others with false
 
-    HistoryItemPointer Item(int index) const { return _items[index]; }
+    HistoryItemPointer Item(int index) const 
+    { 
+        return _items[index]; 
+    }
     bool IsReallyUntitled() const { return _isReallyUntitled; }
 
     constexpr QPoint TopLeft() const { return _topLeft; }

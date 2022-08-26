@@ -11,8 +11,8 @@
 #include <QSettings>
 #include <QPageSize>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
-const long nVersion = 0x0001010C;       // program version
-const QString sVersion = "1.1.12";
+const long nVersion = 0x0001010D;       // program version
+const QString sVersion = "1.1.13";
 const QString sWindowTitle =
 #ifdef _VIEWER
         "FalconBoard Viewer";

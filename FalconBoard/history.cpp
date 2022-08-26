@@ -25,7 +25,8 @@ bool IsItemsEqual(const int &i1, const int &i2)
 					   phi2 = ph->Item(i2);
 	return phi1->type == phi2->type &&
 		phi1->Area() == phi2->Area() &&
-		phi1->Hidden() == phi2->Hidden()
+		phi1->Hidden() == phi2->Hidden() &&
+		phi1->ZOrder() == phi2->ZOrder()
 		;
 }
 
@@ -1784,7 +1785,7 @@ HistoryItem* History::Undo()      // returns top left after undo
 		if (phi->type == heScreenShot || phi->type ==heScribble)
 			_pItemTree->Remove(actItem);
 
-		_items.pop_back();	// we need _items for removing the yindex
+		_items.pop_back();	// we need _items for removing the
 		--actItem;
 	}
 	_modified = true;
