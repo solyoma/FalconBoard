@@ -1782,7 +1782,7 @@ HistoryItem* History::Undo()      // returns top left after undo
 		_redoList.push_back(phi);
 
 		// only scribble and screenshot elements are in _pItemTree!
-		if (phi->type == heScreenShot || phi->type ==heScribble)
+		if (phi->type == heScreenShot || phi->type ==heScribble || phi->type == heEraser)
 			_pItemTree->Remove(actItem);
 
 		_items.pop_back();	// we need _items for removing the
