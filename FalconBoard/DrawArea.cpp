@@ -510,6 +510,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 		if (_rubberBand) 
 		{
+
 			bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
 				bCut = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
 				((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
@@ -589,34 +590,48 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_Redraw();
 				}
 			}
-			else if (key == Qt::Key_R)    // draw rectangle with margin or w,o, margin with Shift
+			else if (key == Qt::Key_R)    // draw rectangle with margin or w,o, margin with Ctrl or filled with Shift
 			{
 				_actPenWidth = _penWidth;
 				_lastScribbleItem.clear();
 				_lastScribbleItem.type = heScribble;
 				// when any draweables is selected draw the rectangle around them 
 				// leaving _actPenWidth/2+1 pixel margins on each sides
-				int margin = /* !_mods.testFlag(Qt::ShiftModifier)*/ _history->SelectedSize() ? _actPenWidth / 2 + 1 : 0;
+				int margin = !_mods.testFlag(Qt::ControlModifier) && _history->SelectedSize() ? _actPenWidth / 2 + 1 : 0;
 
 				int x1, y1, x2, y2, x3, y3, x4, y4;
-				x1 = _rubberRect.x() - margin;                y1 = _rubberRect.y() - margin;
+				x1 = _rubberRect.x() - margin;              y1 = _rubberRect.y() - margin;
 				x2 = x1 + _rubberRect.width() + 2 * margin; y2 = y1;
 				x3 = x2;                                    y3 = y1 + _rubberRect.height() + 2 * margin;
 				x4 = x1;                                    y4 = y3;
 
+				QPainterPath myPath;
 				_firstPointC = _lastPointC = QPoint(x1, y1);
 				_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
-				_DrawLineTo(QPoint(x2, y2));
 				_lastScribbleItem.add(QPoint(x2, y2) + _topLeft);
-				_DrawLineTo(QPoint(x3, y3));
 				_lastScribbleItem.add(QPoint(x3, y3) + _topLeft);
-				_DrawLineTo(QPoint(x4, y4));
 				_lastScribbleItem.add(QPoint(x4, y4) + _topLeft);
-				_DrawLineTo(QPoint(x1, y1));
 				_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
+
+				_firstPointC = _lastPointC = QPoint(x1, y1);
+				//_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
+				//_DrawLineTo(QPoint(x2, y2));
+				//_lastScribbleItem.add(QPoint(x2, y2) + _topLeft);
+				//_DrawLineTo(QPoint(x3, y3));
+				//_lastScribbleItem.add(QPoint(x3, y3) + _topLeft);
+				//_DrawLineTo(QPoint(x4, y4));
+				//_lastScribbleItem.add(QPoint(x4, y4) + _topLeft);
+				//_DrawLineTo(QPoint(x1, y1));
+				//_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
 
 				_lastScribbleItem.penKind = _actPenKind;
 				_lastScribbleItem.penWidth = _actPenWidth;
+
+				_lastScribbleItem.filled = _mods.testFlag(Qt::ShiftModifier);
+
+				myPath.addRect(x1, y1, x2 - x1+1, y3 - y1+1);
+				_PaintPath(myPath, _lastScribbleItem.filled);
+
 
 				_rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
 				_rubberBand->setGeometry(_rubberRect);
@@ -651,18 +666,10 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 							_lastScribbleItem.add(_lastPointC + _topLeft);
 						}
 					}
-					// 1 block DBEUG
-					{
-						QPainter painter(_pActCanvas);
-						QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
-						painter.setPen(pen);
-						if (_erasemode && !_debugmode)
-							painter.setCompositionMode(QPainter::CompositionMode_Clear);
-						else
-							painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-						painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
-						painter.drawPath(myPath);
-					}
+					_lastScribbleItem.filled = _mods.testFlag(Qt::ShiftModifier);
+
+					_PaintPath(myPath, _lastScribbleItem.filled);
+
 					_rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
 					_rubberBand->setGeometry(_rubberRect);
 					HistoryItem* pscrbl = _history->AddScribbleItem(_lastScribbleItem);
@@ -1818,20 +1825,6 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 	_actPenWidth = pscrbl->penWidth;
 	_erasemode = pscrbl->type == heEraser ? true : false;
 
-
-	QPainter painter(_pActCanvas);
-	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-
-	painter.setPen(pen);
-	if (_erasemode && !_debugmode)
-		painter.setCompositionMode(QPainter::CompositionMode_Clear);
-	else
-		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-	painter.setRenderHint(QPainter::Antialiasing);
-
-	QRect rect = _clippingRect.translated(-_topLeft); // _pActCanvas relative
-	painter.setClipRect(rect);
-
 	_lastPointC = pscrbl->points[0] - _topLeft;
 	QPoint pt;
 	// use painter paths
@@ -1852,11 +1845,17 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 		}
 		else
 			path.translate(-_topLeft);
-		painter.drawPath(path);
+		_PaintPath(path, pscrbl->filled);
 		_lastPointC = pscrbl->points[pscrbl->points.size() - 1] - _topLeft;
 	}
 	else
-		painter.drawPoint(_lastPointC);
+	{
+		//painter.drawPoint(_lastPointC);
+		QPainterPath path;
+		path.moveTo(_lastPointC);
+		path.lineTo(_lastPointC);
+		_PaintPath(path, false);
+	}
 #else
 	if (pscrbl->points.size() > 1)
 		pt = pscrbl->points[1] - _topLeft;
@@ -2153,6 +2152,30 @@ void DrawArea::_RestoreCursor()
 		_cursorSaved = false;
 	}
 }
+
+void DrawArea::_PaintPath(QPainterPath& myPath, bool filled)
+{
+	QPainter painter(_pActCanvas);
+	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+	painter.setPen(pen);
+	if (_erasemode && !_debugmode)
+		painter.setCompositionMode(QPainter::CompositionMode_Clear);
+	else
+		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+	painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
+
+	QRect rect = _clippingRect.translated(-_topLeft); // _pActCanvas relative
+	painter.setClipRect(rect);
+
+
+	if (filled)
+	{
+		painter.setBrush(drawColors[_actPenKind]);
+		painter.drawPolygon(myPath.toFillPolygon());
+	}
+	else
+		painter.drawPath(myPath);
+};
 
 
 /*========================================================

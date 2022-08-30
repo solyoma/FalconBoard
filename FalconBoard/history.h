@@ -65,6 +65,7 @@ struct ScribbleItem        // drawn on layer mltScribbleItem
     FalconPenKind penKind = penBlack;
     int penWidth =1;
     QPolygon points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
+    bool filled = false;            // wheather closed polynom (ellipse or rectangle) is filled
     MyRotation rot = rotNone;       // used only when rotation item added
     float rAlpha = 0;               // for 'rotAlpha': rotation around  center of bounding box
     QRect bndRect;                  // top left-bttom right coordinates of bounding rectangle

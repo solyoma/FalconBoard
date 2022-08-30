@@ -138,6 +138,7 @@ ScribbleItem& ScribbleItem::operator=(const ScribbleItem& di)
 	type = di.type;
 	zOrder = di.zOrder;
 	penKind = di.penKind;
+	filled = di.filled;
 	penWidth = di.penWidth;
 	points = di.points;
 	bndRect = di.bndRect;
@@ -149,6 +150,7 @@ ScribbleItem& ScribbleItem::operator=(const ScribbleItem&& di)  noexcept
 	type = di.type;
 	zOrder = di.zOrder;
 	penKind = di.penKind;
+	filled = di.filled;
 	penWidth = di.penWidth;
 	points = di.points;
 	bndRect = di.bndRect;
@@ -160,6 +162,7 @@ void ScribbleItem::clear()
 	points.clear();
 	bndRect = QRect();
 	type = heNone;
+	filled = false;
 }
 
 bool ScribbleItem::IsExtension(const QPoint& p, const QPoint& p1, const QPoint& p2) // vectors p->p1 and p1->p are parallel?
@@ -342,7 +345,7 @@ void ScribbleItem::Rotate(MyRotation rotation, QRect encRect, float alpha)	// ro
 
 inline QDataStream& operator<<(QDataStream& ofs, const ScribbleItem& di)
 {
-	ofs << (qint32)di.type << di.zOrder << (qint32)di.penKind << (qint32)di.penWidth;
+	ofs << (qint32)di.type << di.zOrder <<  ((qint32)di.penKind | (di.filled ? 128 : 0)) << (qint32)di.penWidth;	// for circles and rectangles
 	ofs << (qint32)di.points.size();
 	for (auto pt : di.points)
 		ofs << (qint32)pt.x() << (qint32)pt.y();
@@ -353,7 +356,8 @@ inline QDataStream& operator>>(QDataStream& ifs, ScribbleItem& di)
 {
 	qint32 n;
 	ifs >> n; di.zOrder = n;
-	ifs >> n; di.penKind = (FalconPenKind)n;
+	ifs >> n; di.penKind = (FalconPenKind)(n & ~128);
+	di.filled = n & 128;
 	ifs >> n; di.penWidth = n;
 
 	qint32 x, y;
