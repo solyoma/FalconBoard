@@ -363,7 +363,8 @@ private:
     QColor _PenColor();
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
-    void _PaintPath(QPainterPath& pp, bool filled);
+    QPainter *_GetPainter(QImage *pCanvas);
+    void _PaintPath(QPainterPath& pp, bool filled, QPainter *painter=nullptr);
 #ifndef _VIEWER
     void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
 #endif

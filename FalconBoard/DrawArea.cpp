@@ -597,20 +597,28 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_lastScribbleItem.type = heScribble;
 				// when any draweables is selected draw the rectangle around them 
 				// leaving _actPenWidth/2+1 pixel margins on each sides
-				int margin = !_mods.testFlag(Qt::ControlModifier) && _history->SelectedSize() ? _actPenWidth / 2 + 1 : 0;
+				int margin = !_mods.testFlag(Qt::ControlModifier) && _history->SelectedSize() ? _actPenWidth  : 0;
 
-				int x1, y1, x2, y2, x3, y3, x4, y4;
-				x1 = _rubberRect.x() - margin;              y1 = _rubberRect.y() - margin;
-				x2 = x1 + _rubberRect.width() + 2 * margin; y2 = y1;
-				x3 = x2;                                    y3 = y1 + _rubberRect.height() + 2 * margin;
-				x4 = x1;                                    y4 = y3;
+				int x1, y1, x2, y2;
+				x1 = _rubberRect.x() - margin;              
+				y1 = _rubberRect.y() - margin;
+				x2 = x1 + _rubberRect.width() + 2 * margin - 1; y2 = y1;
+				y2 = y1 + _rubberRect.height() + 2 * margin - 1;
+				
+				if (margin)
+				{
+					_rubberRect.setLeft(x1);
+					_rubberRect.setTop(y1);
+					_rubberRect.setWidth(x2-x1+1);
+					_rubberRect.setHeight(y2-y1+1);
+				}
 
 				QPainterPath myPath;
 				_firstPointC = _lastPointC = QPoint(x1, y1);
 				_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
+				_lastScribbleItem.add(QPoint(x2, y1) + _topLeft);
 				_lastScribbleItem.add(QPoint(x2, y2) + _topLeft);
-				_lastScribbleItem.add(QPoint(x3, y3) + _topLeft);
-				_lastScribbleItem.add(QPoint(x4, y4) + _topLeft);
+				_lastScribbleItem.add(QPoint(x1, y2) + _topLeft);
 				_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
 
 				_firstPointC = _lastPointC = QPoint(x1, y1);
@@ -629,7 +637,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 				_lastScribbleItem.filled = _mods.testFlag(Qt::ShiftModifier);
 
-				myPath.addRect(x1, y1, x2 - x1+1, y3 - y1+1);
+				myPath.addRect(x1, y1, x2 - x1+1, y2 - y1+1);
 				_PaintPath(myPath, _lastScribbleItem.filled);
 
 
@@ -2153,28 +2161,36 @@ void DrawArea::_RestoreCursor()
 	}
 }
 
-void DrawArea::_PaintPath(QPainterPath& myPath, bool filled)
+QPainter *DrawArea::_GetPainter(QImage *pCanvas)
 {
-	QPainter painter(_pActCanvas);
+	QPainter *painter = new QPainter(pCanvas);
 	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
-	painter.setPen(pen);
+	painter->setPen(pen);
 	if (_erasemode && !_debugmode)
-		painter.setCompositionMode(QPainter::CompositionMode_Clear);
+		painter->setCompositionMode(QPainter::CompositionMode_Clear);
 	else
-		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-	painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
+		painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+	painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
 	QRect rect = _clippingRect.translated(-_topLeft); // _pActCanvas relative
-	painter.setClipRect(rect);
+	painter->setClipRect(rect);
+	return painter;
+}
 
+void DrawArea::_PaintPath(QPainterPath& myPath, bool filled, QPainter *pPainter)
+{
+	QPainter *painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
 
 	if (filled)
 	{
-		painter.setBrush(drawColors[_actPenKind]);
-		painter.drawPolygon(myPath.toFillPolygon());
+		painter->setBrush(drawColors[_actPenKind]);
+		painter->drawPolygon(myPath.toFillPolygon());
 	}
 	else
-		painter.drawPath(myPath);
+		painter->drawPath(myPath);
+
+	if(!pPainter)
+		delete painter;
 };
 
 
@@ -2665,7 +2681,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
 	pSprite->image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32);
 	pSprite->image.fill(Qt::transparent);     // transparent
 
-	QPainter painter(&pSprite->image);
+	QPainter *painter = _GetPainter(&pSprite->image);
 	QRect sr, tr;   // source & target
 	for (ScreenShotImage& si : pSprite->images)
 	{
@@ -2681,7 +2697,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
 		if (tr.height() < sr.height())
 			tr.setHeight(sr.height());
 
-		painter.drawPixmap(tr, si.image, sr);
+		painter->drawPixmap(tr, si.image, sr);
 	}
 	// save color and line width
 	FalconPenKind pk = _actPenKind;
@@ -2694,38 +2710,40 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
 		_actPenWidth = di.penWidth;
 		_erasemode = di.type == heEraser ? true : false;
 
-		if (_erasemode)
-			painter.setCompositionMode(QPainter::CompositionMode_Clear);
-		else
-			painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-
-		painter.setPen(QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap,
-			Qt::RoundJoin));
-
 		QPoint p0 = di.points[0],        // sprite relative coordinates
 			p;
 
 		if (di.points.size() == 1)
-			painter.drawPoint(p);
+			painter->drawPoint(p);
 		else
+		{
+			QPolygon polygon;
+			polygon.append(p0);
 			for (int i = 1; i < di.points.size(); ++i)
 			{
 				p = di.points[i];
-				if (p == p0)
-					painter.drawPoint(p);
-				else
-					painter.drawLine(p0, p);
+				//if (p == p0)
+				//	painter.drawPoint(p);
+				//else
+//					painter.drawLine(p0, p);
+				polygon.append(p);
 				p0 = p;
 			}
+			QPainterPath path;
+			path.addPolygon(polygon);
+			_PaintPath(path, di.filled, painter);
+		}
 	}
 	// create border to see the rectangle
 	if (_erasemode && !_debugmode)
-		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-	painter.setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
-	painter.drawLine(0, 0, pSprite->rect.width(), 0);
-	painter.drawLine(pSprite->rect.width(), 0, pSprite->rect.width(), pSprite->rect.height());
-	painter.drawLine(pSprite->rect.width(), pSprite->rect.height(), 0, pSprite->rect.height());
-	painter.drawLine(0, pSprite->rect.height(), 0, 0);
+		painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+	painter->setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
+	painter->drawLine(0, 0, pSprite->rect.width(), 0);
+	painter->drawLine(pSprite->rect.width(), 0, pSprite->rect.width(), pSprite->rect.height());
+	painter->drawLine(pSprite->rect.width(), pSprite->rect.height(), 0, pSprite->rect.height());
+	painter->drawLine(0, pSprite->rect.height(), 0, 0);
+
+	delete painter;
 
 	// restore data
 	_actPenKind = pk;
