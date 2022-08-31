@@ -85,7 +85,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 
     connect(qApp, &QApplication::primaryScreenChanged, _drawArea, &DrawArea::SlotForPrimaryScreenChanged);
 
-    RestoreState();     // sets up all history item names, and loads the last used one
+    RestoreState();     // sets up all history item names, and loads the last used ones
 
     _SetupIconsForPenColors(_screenMode);
     setAcceptDrops(true);
@@ -218,23 +218,40 @@ void FalconBoard::RestoreState()
     _lastPDFDir  = s->value("lastPDFDir",  "").toString();
     if (!_lastPDFDir.isEmpty() && _lastPDFDir[_lastPDFDir.size() - 1] != '/')
         _lastPDFDir += "/";
-            // tabs
+
+    // command line arguments    
+    QStringList paramsList = QCoreApplication::arguments();
+    for (auto& s : paramsList)
+        s = QDir::cleanPath(s);     // need not exist
+
+    int argc = 10 - paramsList.size() + 1;     // max 10 tabs can be opened, 0. params is command path
+    // tabs
 
     s->beginGroup("tabs");
     int nFilesToRestore = s->value("tabSize", 0).toInt();
     if (nFilesToRestore)
     {
         bool b = false; // window title set?
-        for(int n = 1; n <= nFilesToRestore && n < 10;++n)
+        for(int n = 1; n <= nFilesToRestore && n < argc; ++n )
         {
             qs = QString("fn%1").arg(n);
             qs = s->value(qs, QString()).toString();
-            _AddNewTab(qs, false);  // do not load data yet
-            if (!qs.isEmpty() || !b)
-               b = true, setWindowTitle(sWindowTitle + QString(" - %1").arg(qs));
-            
+            if (paramsList.indexOf(qs) < 0 && QFile::exists(qs) )    // if any of the old files is in the argument list do not use it
+            {
+                _AddNewTab(qs, false);  // do not load data yet
+                if (!qs.isEmpty() || !b)
+                    b = true, setWindowTitle(sWindowTitle + QString(" - %1").arg(qs));
+            }
         }
-        _nLastTab = s->value("lastTab", 0).toInt();
+        if (paramsList.size() > 1)
+        {
+            for (int n = 1; n < paramsList.size(); ++n) // 0th parameter is program name
+                _AddNewTab(paramsList[n], false);
+            setWindowTitle(sWindowTitle + QString(" - %1").arg(paramsList[paramsList.size() - 1]));
+            _nLastTab = _pTabs->count() - 1;
+        }
+        else
+            _nLastTab = s->value("lastTab", 0).toInt();
     }
     else        // nothing to restore: create first tab
         _AddNewTab();    // + new empty history
