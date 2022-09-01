@@ -365,6 +365,7 @@ private:
     void _RestoreCursor();
     QPainter *_GetPainter(QImage *pCanvas);
     void _PaintPath(QPainterPath& pp, bool filled, QPainter *painter=nullptr);
+    void _PaintPolygon(QPolygon& pp, bool filled, QPainter *painter=nullptr);
 #ifndef _VIEWER
     void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
 #endif

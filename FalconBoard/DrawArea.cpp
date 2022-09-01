@@ -425,7 +425,6 @@ bool DrawArea::RecolorSelected(int key)
 
 	if (phi)
 		_Redraw();
-	_actPenKind = opk; // restore
 	return true;
 }
 void DrawArea::SynthesizeKeyEvent(Qt::Key key)
@@ -569,7 +568,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			}
 			else if (bRecolor)
 			{
-				ChangePenColorByKeyboard(key);
 				RecolorSelected(key);
 			}
 
@@ -602,18 +600,9 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				int x1, y1, x2, y2;
 				x1 = _rubberRect.x() - margin;              
 				y1 = _rubberRect.y() - margin;
-				x2 = x1 + _rubberRect.width() + 2 * margin - 1; y2 = y1;
+				x2 = x1 + _rubberRect.width() + 2 * margin - 1;
 				y2 = y1 + _rubberRect.height() + 2 * margin - 1;
 				
-				if (margin)
-				{
-					_rubberRect.setLeft(x1);
-					_rubberRect.setTop(y1);
-					_rubberRect.setWidth(x2-x1+1);
-					_rubberRect.setHeight(y2-y1+1);
-				}
-
-				QPainterPath myPath;
 				_firstPointC = _lastPointC = QPoint(x1, y1);
 				_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
 				_lastScribbleItem.add(QPoint(x2, y1) + _topLeft);
@@ -622,26 +611,18 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
 
 				_firstPointC = _lastPointC = QPoint(x1, y1);
-				//_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
-				//_DrawLineTo(QPoint(x2, y2));
-				//_lastScribbleItem.add(QPoint(x2, y2) + _topLeft);
-				//_DrawLineTo(QPoint(x3, y3));
-				//_lastScribbleItem.add(QPoint(x3, y3) + _topLeft);
-				//_DrawLineTo(QPoint(x4, y4));
-				//_lastScribbleItem.add(QPoint(x4, y4) + _topLeft);
-				//_DrawLineTo(QPoint(x1, y1));
-				//_lastScribbleItem.add(QPoint(x1, y1) + _topLeft);
 
 				_lastScribbleItem.penKind = _actPenKind;
 				_lastScribbleItem.penWidth = _actPenWidth;
 
 				_lastScribbleItem.filled = _mods.testFlag(Qt::ShiftModifier);
 
+				QPainterPath myPath;
 				myPath.addRect(x1, y1, x2 - x1+1, y2 - y1+1);
 				_PaintPath(myPath, _lastScribbleItem.filled);
 
 
-				_rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
+				_rubberRect.adjust(-_actPenWidth, -_actPenWidth, _actPenWidth, _actPenWidth);
 				_rubberBand->setGeometry(_rubberRect);
 				/*HistoryItem *pscrbl =*/ (void)_history->AddScribbleItem(_lastScribbleItem);
 				_history->AddToSelection();
@@ -678,7 +659,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 					_PaintPath(myPath, _lastScribbleItem.filled);
 
-					_rubberRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
+					_rubberRect.adjust(-_actPenWidth, -_actPenWidth, _actPenWidth, _actPenWidth);
 					_rubberBand->setGeometry(_rubberRect);
 					HistoryItem* pscrbl = _history->AddScribbleItem(_lastScribbleItem);
 					pscrbl->GetScribble()->bndRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
@@ -2193,6 +2174,18 @@ void DrawArea::_PaintPath(QPainterPath& myPath, bool filled, QPainter *pPainter)
 		delete painter;
 };
 
+void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter *pPainter)
+{
+	QPainter *painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
+
+	if (filled)
+		painter->setBrush(drawColors[_actPenKind]);
+	painter->drawPolygon(myPolygon);
+
+	if(!pPainter)
+		delete painter;
+};
+
 
 /*========================================================
  * TASK:    plots visible 'Scribbleable's onto _pActCanvas
@@ -2657,7 +2650,7 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
  * PARAMS:  pos: event position relative to _topLeft
  *          rect: from _rubberRect relative to _topLeft
  *          deleted: was items deleted at original position?
- *                  false: no copied to sprite
+ *                  false: no, just copied to sprite
  *          setVisible: should we display the sprite? (default: true)
  * GLOBALS: _topLeft, _pSprite
  * RETURNS: _pSprite
@@ -2674,6 +2667,10 @@ Sprite* DrawArea::_CreateSprite(QPoint pos, QRect& rect, bool deleted, bool setV
 
 Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, bool deleted, bool setVisible)
 {
+	// DEBUG
+	// qDebug("rect = (x:%d,y:%d,w:%d,h:%d)", rect.x(), rect.y(), rect.width(), rect.height());
+	// /DEBUG
+
 	pSprite->visible = setVisible;
 	pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
 	pSprite->topLeft = rect.topLeft();     // sprite top left
@@ -2710,28 +2707,18 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
 		_actPenWidth = di.penWidth;
 		_erasemode = di.type == heEraser ? true : false;
 
-		QPoint p0 = di.points[0],        // sprite relative coordinates
-			p;
+		QPoint p = di.points[0];        // sprite relative coordinates
 
 		if (di.points.size() == 1)
 			painter->drawPoint(p);
 		else
 		{
 			QPolygon polygon;
-			polygon.append(p0);
+			polygon.append(p);
 			for (int i = 1; i < di.points.size(); ++i)
-			{
-				p = di.points[i];
-				//if (p == p0)
-				//	painter.drawPoint(p);
-				//else
-//					painter.drawLine(p0, p);
-				polygon.append(p);
-				p0 = p;
-			}
-			QPainterPath path;
-			path.addPolygon(polygon);
-			_PaintPath(path, di.filled, painter);
+				polygon.append(di.points[i]);
+
+			_PaintPolygon(polygon, di.filled, painter);
 		}
 	}
 	// create border to see the rectangle

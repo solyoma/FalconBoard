@@ -1553,53 +1553,44 @@ void FalconBoard::on_actionShowPageGuides_triggered()
 #ifndef _VIEWER
 void FalconBoard::on_action_Black_triggered()
 {
-    if (!_drawArea->RecolorSelected(Qt::Key_1))
-    {
-        _SetBlackPen();
-        _SetCursor(csPen);
-        _SetPenWidth(penBlack);
-        ui.centralWidget->setFocus();
-    }
+    _drawArea->RecolorSelected(Qt::Key_1);
+    _SetBlackPen();
+    _SetCursor(csPen);
+    _SetPenWidth(penBlack);
+    ui.centralWidget->setFocus();
 };
 void FalconBoard::on_action_Red_triggered() 
-{
-    if (!_drawArea->RecolorSelected(Qt::Key_2))
-    {
-        _SetRedPen();
-        _SetCursor(csPen);
-        _SetPenWidth(penRed);
-        ui.centralWidget->setFocus();
-    }
+{   
+    _drawArea->RecolorSelected(Qt::Key_2);
+    _SetRedPen();
+    _SetCursor(csPen);
+    _SetPenWidth(penRed);
+    ui.centralWidget->setFocus();
 };
+
 void FalconBoard::on_action_Green_triggered()
 {
-    if (!_drawArea->RecolorSelected(Qt::Key_3))
-    {
-        _SetGreenPen();
-        _SetCursor(csPen);
-        _SetPenWidth(penGreen);
-        ui.centralWidget->setFocus();
-    }
+	_drawArea->RecolorSelected(Qt::Key_3);
+	_SetGreenPen();
+	_SetCursor(csPen);
+	_SetPenWidth(penGreen);
+	ui.centralWidget->setFocus();
 };
 void FalconBoard::on_action_Blue_triggered()
 {
-    if (!_drawArea->RecolorSelected(Qt::Key_4))
-    {
-        _SetBluePen();
-        _SetCursor(csPen);
-        _SetPenWidth(penBlue);
-        ui.centralWidget->setFocus();
-    }
+	_drawArea->RecolorSelected(Qt::Key_4);
+	_SetBluePen();
+	_SetCursor(csPen);
+	_SetPenWidth(penBlue);
+	ui.centralWidget->setFocus();
 };
 void FalconBoard::on_action_Yellow_triggered()
 {
-    if (!_drawArea->RecolorSelected(Qt::Key_5))
-    {
-        _SetYellowPen();
-        _SetCursor(csPen);
-        _SetPenWidth(penYellow);
-        ui.centralWidget->setFocus();
-    }
+	_drawArea->RecolorSelected(Qt::Key_5);
+	_SetYellowPen();
+	_SetCursor(csPen);
+	_SetPenWidth(penYellow);
+	ui.centralWidget->setFocus();
 };
 
 void FalconBoard::on_action_Eraser_triggered()
