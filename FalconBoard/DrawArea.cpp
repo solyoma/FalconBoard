@@ -666,16 +666,18 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_history->AddToSelection();
 				}
 			}
-			else if ((key == Qt::Key_X && !bCut) || (key == Qt::Key_Period))   // mark center with cross
+			else if ((key == Qt::Key_X && !bCut) || (key == Qt::Key_Period))   // mark center with cross or a period
 			{
 				_lastScribbleItem.clear();
 
 				qreal x0 = _rubberRect.left() + _rubberRect.width() / 2.0, y0 = _rubberRect.top() + _rubberRect.height() / 2.0;
+				QPoint centerPoint(x0, y0);
+
 				_actPenWidth = _penWidth;
 				_lastScribbleItem.type = heScribble;
 				_lastScribbleItem.penWidth = _actPenWidth;
 				_lastScribbleItem.penKind= _actPenKind;
-				_lastPointC = QPoint(x0, y0) +_topLeft;
+				_lastPointC = centerPoint +_topLeft;
 				if (key == Qt::Key_Period)
 				{
 					_lastScribbleItem.add(_lastPointC);
@@ -701,6 +703,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				}
 				HistoryItem* pscrbl = _history->AddScribbleItem(_lastScribbleItem);
 				pscrbl->GetScribble()->bndRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
+				_history->SelectScribblesFor(centerPoint, true);
 
 			}
 			else if (bRemove)			   // delete rubberband for any keypress except pure modifiers  or space bar
