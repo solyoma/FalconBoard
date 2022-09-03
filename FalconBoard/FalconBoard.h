@@ -100,7 +100,12 @@ private slots:
 	void on_actionHFlip_triggered();
 	void on_actionVFlip_triggered();
 	void on_actionRectangle_triggered();
+	void on_actionDrawFilledRectangle_triggered();
 	void on_actionDrawEllipse_triggered();
+	void on_actionDrawFilledEllipse_triggered();
+
+	void on_actionMarkCenterPoint_triggered();
+	void on_actionXToCenterPoint_triggered();
 
 	void on_action_Screenshot_triggered();
 	void on_actionScreenshotTransparency_triggered();

@@ -427,9 +427,9 @@ bool DrawArea::RecolorSelected(int key)
 		_Redraw();
 	return true;
 }
-void DrawArea::SynthesizeKeyEvent(Qt::Key key)
+void DrawArea::SynthesizeKeyEvent(Qt::Key key, Qt::KeyboardModifier mod)
 {
-	QKeyEvent event(QEvent::KeyPress, key, Qt::NoModifier);
+	QKeyEvent event(QEvent::KeyPress, key, mod);
 	keyPressEvent(&event);
 }
 #endif
@@ -2728,6 +2728,9 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
 			for (int i = 1; i < di.points.size(); ++i)
 				polygon.append(di.points[i]);
 
+			QPen pen(drawColors[di.penKind]);
+			pen.setWidth(di.penWidth);
+			painter->setPen(pen);
 			_PaintPolygon(polygon, di.filled, painter);
 		}
 	}
@@ -2797,5 +2800,6 @@ void DrawArea::_PasteSprite()
 
 	emit CanUndo(_history->CanUndo());
 	emit CanRedo(_history->CanRedo());
+	emit RubberBandSelection(true);
 }
 #endif

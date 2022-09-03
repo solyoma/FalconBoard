@@ -1639,9 +1639,28 @@ void FalconBoard::on_actionRectangle_triggered()
     _drawArea->SynthesizeKeyEvent(Qt::Key_R);
 }
 
+void FalconBoard::on_actionDrawFilledRectangle_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_R, Qt::ShiftModifier);
+}
+
 void FalconBoard::on_actionDrawEllipse_triggered()
 {
     _drawArea->SynthesizeKeyEvent(Qt::Key_C);
+}
+void FalconBoard::on_actionDrawFilledEllipse_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_C, Qt::ShiftModifier);
+}
+
+void FalconBoard::on_actionMarkCenterPoint_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_Period);
+}
+
+void FalconBoard::on_actionXToCenterPoint_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_X);
 }
 
 void FalconBoard::on_action_Screenshot_triggered()
@@ -1748,6 +1767,17 @@ void FalconBoard::on_actionApplyTransparencyToLoaded_triggered()
 void FalconBoard::SlotForRubberBandSelection(int on)
 {
     ui.action_InsertVertSpace->setEnabled(on);
+    ui.actionRotateLeft->setEnabled(on);
+    ui.actionRotateRight->setEnabled(on);
+    ui.actionRotate180->setEnabled(on);
+    ui.actionHFlip->setEnabled(on);
+    ui.actionVFlip->setEnabled(on);
+    ui.actionDrawEllipse->setEnabled(on);
+    ui.actionDrawFilledEllipse->setEnabled(on);
+    ui.actionRectangle->setEnabled(on);
+    ui.actionDrawFilledRectangle->setEnabled(on);
+    ui.actionMarkCenterPoint->setEnabled(on);
+    ui.actionXToCenterPoint->setEnabled(on);
 }
 
 void FalconBoard::slotPenWidthChanged(int val)

@@ -100,8 +100,12 @@
     <addaction name="actionVFlip"/>
     <addaction name="separator"/>
     <addaction name="actionDrawEllipse"/>
+    <addaction name="actionDrawFilledEllipse"/>
     <addaction name="actionRectangle"/>
-    <addaction name="actionMarkCenterpoint"/>
+    <addaction name="actionDrawFilledRectangle"/>
+    <addaction name="separator"/>
+    <addaction name="actionMarkCenterPoint"/>
+    <addaction name="actionXToCenterPoint"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -665,6 +669,9 @@
    </property>
   </action>
   <action name="actionRotateLeft">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Rotate Left 9&amp;0°</string>
    </property>
@@ -676,6 +683,9 @@
    </property>
   </action>
   <action name="actionRotateRight">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Rotate Right &amp;90°</string>
    </property>
@@ -684,6 +694,9 @@
    </property>
   </action>
   <action name="actionHFlip">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Flip &amp;Horizontal</string>
    </property>
@@ -692,6 +705,9 @@
    </property>
   </action>
   <action name="actionVFlip">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Flip &amp;Vertical</string>
    </property>
@@ -700,6 +716,9 @@
    </property>
   </action>
   <action name="actionDrawEllipse">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Draw an ellipse or a &amp;Circle</string>
    </property>
@@ -708,6 +727,9 @@
    </property>
   </action>
   <action name="actionRectangle">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Draw a &amp;Rectangle</string>
    </property>
@@ -716,6 +738,9 @@
    </property>
   </action>
   <action name="actionRotate180">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Rotate 1&amp;80°</string>
    </property>
@@ -752,12 +777,36 @@
     <string>Close All</string>
    </property>
   </action>
-  <action name="actionMarkCenterpoint">
+  <action name="actionMarkCenterPoint">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
     <string>Mark Center point of selection</string>
+   </property>
+  </action>
+  <action name="actionDrawFilledEllipse">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Draw a filled Ellipse or Circle</string>
+   </property>
+  </action>
+  <action name="actionDrawFilledRectangle">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Draw a Filled Rectangle</string>
+   </property>
+  </action>
+  <action name="actionXToCenterPoint">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>'X' to Center point of selection</string>
    </property>
   </action>
  </widget>

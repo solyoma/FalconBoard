@@ -108,7 +108,7 @@ public:
     bool RecolorSelected(int key); // true: recolored
     void SetLimitedPage(bool limited) { _limited = limited; }
 
-    void SynthesizeKeyEvent(Qt::Key key);
+    void SynthesizeKeyEvent(Qt::Key key, Qt::KeyboardModifier mod=Qt::NoModifier);
 /*
     void RotateImage(MyRotation rot);
     void FlipImage(bool horiz, bool vert);
