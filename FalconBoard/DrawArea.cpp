@@ -2182,9 +2182,16 @@ void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter *pPainte
 	QPainter *painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
 
 	if (filled)
+	{
 		painter->setBrush(drawColors[_actPenKind]);
-	painter->drawPolygon(myPolygon);
-
+		painter->drawPolygon(myPolygon);
+	}
+	else
+	{
+		QPainterPath path;
+		path.addPolygon(myPolygon);
+		painter->drawPath(path);
+	}
 	if(!pPainter)
 		delete painter;
 };
