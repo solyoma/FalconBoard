@@ -110,7 +110,7 @@ constexpr const int resos[] = { 300, 600, 1200 };;
 
 using IntVector = QVector<int>;
 
-const QString UNTITLED = QString(QMainWindow::tr("Untitled"));
+extern QString UNTITLED;     // in falconBoard.cpp
 
 // ******************************************************
 //  KELL EZ???
@@ -150,9 +150,9 @@ public:
 };
 #endif
 
-inline bool IsUntitled(QString name)
+inline int IsUntitled(QString name)
 {
-    return name.isEmpty() || name.left(UNTITLED.length()) == UNTITLED;
+    return name.isEmpty() ? 1 : (name.left(UNTITLED.length()) == UNTITLED ? 2 : 0);
 }
 
 // ******************************************************

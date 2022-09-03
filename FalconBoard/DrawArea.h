@@ -69,7 +69,7 @@ public:
     QString HistoryName(int index = -1, QString qsDefault=QString()) const       // may be empty!
     {
         if (index < 0)
-            return _history ? _history->Name() : qsDefault;
+            return _history ? (_history->Size() ? _history->Name() : qsDefault) : qsDefault;
             
         if (index >= HistoryListSize())
             return QString();

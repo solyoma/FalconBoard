@@ -758,8 +758,11 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 #endif
 		}
 #ifndef _VIEWER
-		emit CanUndo(_history->CanUndo());
-		emit CanRedo(_history->CanRedo());
+		if (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt)
+		{
+			emit CanUndo(_history->CanUndo());
+			emit CanRedo(_history->CanRedo());
+		}
 #endif
 	}
 }

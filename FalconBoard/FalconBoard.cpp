@@ -14,9 +14,12 @@
 
 QSize FalconBoard::screenSize;
 
+QString UNTITLED = QString(QMainWindow::tr("Untitled"));
+
     // these two must be stored somewhere
 QString FBSettings::homePath;
 QSettings* FBSettings::_ps = nullptr;
+
 
 int nUntitledOrder = 1;
 
@@ -99,7 +102,7 @@ QString FalconBoard::_NextUntitledName()
 	int n = -1, m;
 	QString qsUntitled = UNTITLED;
 	for (int i = 0; i < _pTabs->count(); ++i)
-        if (IsUntitled(_pTabs->tabText(i)) )
+        if (IsUntitled(_pTabs->tabText(i)) == 2)
         {
             m = _pTabs->tabText(i).mid(UNTITLED.length()).toInt();
             if (m < 0)
@@ -1004,12 +1007,16 @@ void FalconBoard::closeEvent(QCloseEvent* event)
     {
         res &= _SaveIfYouWant(n - 1, !ui.actionAutoSaveData->isChecked()) == srSaveSuccess ? true : false;
     }
-    if( (_saveResult == srSaveSuccess) && res)
-		event->accept();
+    if ((_saveResult == srSaveSuccess) && res)
+    {
+        SaveState();
+        event->accept();
+    }
     else
 		event->ignore();
-#endif
+#else
     SaveState();        // viewer: always
+#endif
 }
 
 void FalconBoard::showEvent(QShowEvent* event)
@@ -1368,7 +1375,7 @@ void FalconBoard::on_actionSaveAs_triggered() // current tab
     QString fname = _drawArea->HistoryName(UNTITLED);
     if (fname.isEmpty())
         fname = _NextUntitledName();
-    QString initialPath = _lastDir + fname; // QDir::currentPath() + "/untitled.mwb";
+    QString initialPath = _lastDir + fname; 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
                         initialPath, tr("FalconBoard Files (*.mwb);; All Files (*))"));
     if (fileName.isEmpty())
@@ -1405,7 +1412,7 @@ void FalconBoard::SaveVisibleAsTriggered()
     if (_fileFormat.isEmpty())
         _fileFormat = "png";
 
-    QString initialPath = QDir::currentPath() + "/untitled." + _fileFormat;
+    QString initialPath = QDir::currentPath() + "/" + UNTITLED+"." + _fileFormat;
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
         initialPath,
@@ -1759,13 +1766,13 @@ void FalconBoard::slotPenWidthEditingFinished()
 void FalconBoard::SlotForUndo(bool b)
 {
     ui.actionUndo->setEnabled(b);
-    _SetTabText(-1, _drawArea->HistoryName());
+//    _SetTabText(-1, _drawArea->HistoryName());
 }
 
 void FalconBoard::SlotForRedo(bool b)
 {
     ui.actionRedo->setEnabled(b);
-    _SetTabText(-1, _drawArea->HistoryName());
+  //  _SetTabText(-1, _drawArea->HistoryName());
 }
 
 void FalconBoard::SlotForFocus()
