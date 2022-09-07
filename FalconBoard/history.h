@@ -45,8 +45,8 @@ enum ScribbleSubType { sstScribble,     // any number
                        sstQuadrangle     // 4 points, where the last and first are equal
                      };    
 enum MyRotation { rotNone, 
-            rotR90, rotL90, rot180, rotFlipH, rotFlipV,     // these leave the top left corner in place
-            rotAlpha                                        // alpha: around the center of the bounding box, increasescounterclockwise
+                  rotR90, rotL90, rot180, rotFlipH, rotFlipV,     // these leave the top left corner in place
+                  rotAlpha                                        // alpha: around the center of the bounding box, increases counterclockwise
                 };
 enum MyLayer { 
                 mlyBackgroundImage,         // lowest layer: background image
@@ -490,8 +490,6 @@ class History  // stores all drawing sections and keeps track of undo and redo
     HistoryList* _parent=nullptr;       // need for copy and paste
     QPoint _topLeft;                    // top left of the visible part of this history
 
-    bool _isReallyUntitled = true;      // so we can distinguish between files named "Untitled" 
-                                        // and unsaved new data
     QString _fileName,                  // file for history
             _loadedName;                // set only after the file is loaded, used to check reloads
     bool _inLoad = false;               // in function Load() / needed for correct z- order settings
@@ -503,7 +501,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     QuadTree<int, decltype(AreaForItem), decltype(IsItemsEqual)> *_pItemTree = nullptr;
     int _readCount = 0;                 // undo works until this index is reached
                                         // unscribble items have no indices in here
-    friend class _YItems;
+    bool _isSaved = false;              // clear after every change!
     QRect _clpRect;                     // clipping rectangle for selecting points to draw
                                         // before searching operations set this when it is changed
     QStack<QRect> _savedClps;           // clipRect saves
@@ -566,7 +564,6 @@ public:
     { 
         return _items[index]; 
     }
-    bool IsReallyUntitled() const { return _isReallyUntitled; }
 
     constexpr QPoint TopLeft() const { return _topLeft; }
     void SetTopLeft(QPoint& topLeft) { _topLeft = topLeft; }
@@ -593,7 +590,6 @@ public:
     void Clear();
     void ClearName() { if (_items.isEmpty()) _fileName.clear(); }
 
-
     int Size() const;   // _items's size
     int CountOfVisible() const; // visible 
     int CountOfScribble() const;
@@ -604,7 +600,10 @@ public:
     const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
     const qint32 MAGIC_VERSION = 0x56010108; // V 01.00.00      Cf.w. common.h
 
-    QString Name() const { return _fileName; }
+    QString Name() const 
+    { 
+        return _fileName; 
+    }
     SaveResult Save(QString name);
 
     void SetName(QString name)
@@ -614,7 +613,10 @@ public:
     }
 
     int Load(bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
-    bool IsModified() const { return _modified & CanUndo(); }
+    bool IsModified() const 
+    { 
+        return _modified & CanUndo(); 
+    }
     bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
     bool CanRedo() const { return _redoList.size(); }
     void ClearUndo() { _readCount = _items.size(); }

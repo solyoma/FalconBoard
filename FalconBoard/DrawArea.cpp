@@ -103,7 +103,7 @@ void DrawArea::ClearBackground()
 
 /*========================================================
  * TASK:    adds new history and set it to be the current one
- *          if a name is given loads the history as well
+ *          if a name is given tries to load the history as well
  * PARAMS:  name: name for new history. String may be empty
  *                  in which case a new unsaved page is added
  *                  or if it is 'Untitled.mwb' (depending on language)
@@ -111,12 +111,13 @@ void DrawArea::ClearBackground()
  *          insertAt - insert at this position.
  *                  if > capacity then at the end
  *          loadIt - if name is not empty also load data
- * GLOBALS: _history
+ * GLOBALS: _history, _topLeft,_currentHistoryIndex
  * RETURNS: index of added history or
  *              -1 if capacity reached or
- *              -2 if file name given but could not load it
- *          but file did not exist
- * REMARKS: - adding history is unsucessfull if it is full
+ *              -2 if file could not not be loaded
+ *					because either file does not exist
+ *					or a read error
+ * REMARKS: - adding history is unsucessfull if all slots are full
  *          - capacity is always smaller than 100000!
  *-------------------------------------------------------*/
 int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
@@ -144,9 +145,11 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 	_currentHistoryIndex = insertAt;
 	_history = historyList[insertAt];
 	if (!name.isEmpty() && loadIt)
-		if (!_history->Load())
+	{
+		int res = _history->Load();
+		if(res < 0)
 			return -2;
-
+	}
 	_topLeft = QPoint(0, 0);
 
 	if (!b)
@@ -375,9 +378,9 @@ void DrawArea::AddScreenShotImage(QPixmap& image)
  *          any - if true check all histories until the
  *              first modified is found
  * GLOBALS: _currentHistoryIndex
- * RETURNS: if any= false: history index + 1 if modified or 0
- *                = true : the index +1 of the first modified
- *                  history starting at 'fromIndex'
+ * RETURNS: if any == false: history index + 1 if modified or 0
+ *                 == true : the index +1 of the first modified
+ *							 history starting at 'fromIndex'
  * REMARKS: - only set 'any' to true when closing the program.
  *-------------------------------------------------------*/
 int DrawArea::IsModified(int fromIndex, bool any) const
@@ -419,8 +422,7 @@ bool DrawArea::RecolorSelected(int key)
 	if (!_history->SelectedSize())
 		_history->CollectItemsInside(_rubberRect.translated(_topLeft));
 
-	FalconPenKind opk = _actPenKind,		// save
-				  pk = PenKindFromKey(key);
+	FalconPenKind pk = PenKindFromKey(key);
 	HistoryItem* phi = _history->AddRecolor(pk);
 
 	if (phi)
@@ -1922,8 +1924,6 @@ void DrawArea::SlotForGridSpacingChanged(int spacing)
 
 bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
 {
-	static float fact[] = { 1.0, 1.0 / 2.54, 1.0 / 25.4 };   // inch, cm, mm
-
 	PageSetupDialog* pageDlg = new PageSetupDialog(this, _prdata.printerName, what);
 	bool res = false;
 	bool forPdf = what == PageSetupDialog::wtdExportPdf;
@@ -2407,8 +2407,6 @@ void DrawArea::_ShiftRectangle(QPoint delta, QRect& clip1, QRect& clip2)
 		dstRow,      // destination start on _pOtherCanvas
 		dstCol;
 
-	uchar* bitsSrc = _pActCanvas->bits(),
-		* bitsDest = _pOtherCanvas->bits();
 	int pixelSizeInBytes = _canvas1.bytesPerLine() / _canvas1.width();
 
 	int dx = qAbs(delta.x()), dy = qAbs(delta.y());
@@ -2431,7 +2429,7 @@ void DrawArea::_ShiftRectangle(QPoint delta, QRect& clip1, QRect& clip2)
 			clip1 = QRect(0, h - dy, w - dx, dy);
 			clip2 = QRect(w - dx, 0, dx, h - dy);
 		}
-		else if (delta.y() < 0 && (delta.x() <= 0) || (delta.x() < 0 && delta.y() <= 0))
+		else if ((delta.y() < 0 && delta.x() <= 0) || (delta.x() < 0 && delta.y() <= 0))
 		{
 			srcSRow = 0;
 			srcSCol = 0;

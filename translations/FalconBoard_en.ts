@@ -22,45 +22,45 @@ Invalid file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1996"/>
         <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
         <source>FalconBoard - Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1996"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
         <source>Can&apos;t find printer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
         <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2008"/>
         <source>FalconBoard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
         <source>Print error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2008"/>
         <source>Print cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2646"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2649"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2651"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2654"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -1364,11 +1364,6 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <source>FalconBoard - Save PDF As</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="17"/>
-        <source>Untitled</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -1420,6 +1415,16 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
     <message>
         <location filename="../FalconBoard/myprinter.cpp" line="644"/>
         <source>This option is not yet implemented</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/main.cpp" line="43"/>
+        <source>FalconBoard Viewer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="17"/>
+        <source>Untitled</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -414,18 +414,22 @@ void ScreenShotImage::Rotate(MyRotation rot, QRect encRect, float alpha)
 	bool fliph = false, flipv = true;	// defaullt flip orientations
 	switch (rot)
 	{
-	case rotR90: transform.rotate(270); image = image.transformed(transform, Qt::SmoothTransformation); break;
-	case rotL90: transform.rotate(90);  image = image.transformed(transform, Qt::SmoothTransformation); break;
-	case rot180: transform.rotate(180); image = image.transformed(transform, Qt::SmoothTransformation); break;
-	case rotFlipH:
-		fliph = true;
-		flipv = false;		// NO break here!										// CHECK IF WORKING!
-	case rotFlipV:
-		img = image.toImage();
-		img = img.mirrored(fliph, flipv);
-		image = image.fromImage(img);
-		break;
-	default: break;
+		case rotR90: transform.rotate(270); image = image.transformed(transform, Qt::SmoothTransformation); break;
+		case rotL90: transform.rotate(90);  image = image.transformed(transform, Qt::SmoothTransformation); break;
+		case rot180: transform.rotate(180); image = image.transformed(transform, Qt::SmoothTransformation); break;
+		case rotFlipH:
+			fliph = true;
+			flipv = false;		// NO break here!										// CHECK IF WORKING!
+		case rotFlipV:
+			img = image.toImage();
+			img = img.mirrored(fliph, flipv);
+			image = image.fromImage(img);
+			break;
+		case rotAlpha:
+			transform.rotate(alpha); image = image.transformed(transform, Qt::SmoothTransformation);
+			break;
+		default: 
+			break;
 	}
 }
 
@@ -890,10 +894,11 @@ int  HistoryReColorItem::Undo()
 	int iact = 0;
 	for (auto index : selectedList)
 	{
-		int index = 0;
 		ScribbleItem* pdri;
 		HistoryItem* phi = (*pHist)[index];
-		while ((pdri = phi->GetVisibleScribble(index++)))
+
+		int ivis = 0;
+		while ((pdri = phi->GetVisibleScribble(ivis++)))
 			pdri->penKind = penKindList[iact++];
 	}
 	return 1;
@@ -1100,7 +1105,7 @@ int HistoryRotationItem::Redo()
 
 
 //****************** HistorySetTransparencyForAllScreenshotsItem ****************
-HistorySetTransparencyForAllScreenshotsItems::HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness) : transparentColor(transparentColor), fuzzyness(fuzzyness), HistoryItem(pHist)
+HistorySetTransparencyForAllScreenshotsItems::HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness) : fuzzyness(fuzzyness), transparentColor(transparentColor), HistoryItem(pHist)
 {
 	Redo();
 }
@@ -1187,7 +1192,7 @@ IntVector History::GetItemIndexesInRect(QRect r)
 	std::vector<int> iv = _pItemTree->GetValues(AreaForQRect(r) );	// only visible elements!
 	_SortFunc sortFunc(*this);
 	std::sort(iv.begin(), iv.end(), sortFunc);
-	IntVector resv = QVector<int>::fromStdVector(iv);
+	IntVector resv = QVector<int>(iv.begin(), iv.end()); //  ::fromStdVector(iv);	<- deprecated
 	return resv;
 }
 
@@ -1204,7 +1209,6 @@ QSize History::UsedArea()
 
 int History::CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize)	// px, py = 0, 1, ...
 {
-	int cnt;
 	static QSize usedSize;
 	if (getAreaSize)
 	{
@@ -1454,7 +1458,6 @@ SaveResult History::Save(QString name)
 	QFile::rename(name, QString(name + "~"));
 
 	f.rename(name);
-	_isReallyUntitled = false;
 
 	return srSaveSuccess;
 }
@@ -1463,19 +1466,21 @@ SaveResult History::Save(QString name)
 /*========================================================
  * TASK:	Loads saved file whose name is set into _fileName
  * PARAMS:	'force' load it even when already loaded
- * GLOBALS:
- * RETURNS: -1: file does not exist
+ *				in which case it overwrites data in memory
+ * GLOBALS: _fileName, _inLoad,_readCount,_items,
+ *			_screenShotImageList,_modified, 
+ * RETURNS:   -1: file does not exist
  *			< -1: file read error number of records read so
- *				far  is -(ret. value+2)
- *			 0:	read error
- *			>0: count of items read
+ *				  far  is -(ret. value+2)
+ *			   0: invalid file
+ *			>  0: count of items read
  * REMARKS: - beware of old version files
  *			- when 'force' clears data first
  *			- both _fileName and _loadedName can be empty
  *-------------------------------------------------------*/
 int History::Load(bool force)
 {
-	if (!force && _fileName == _loadedName)
+	if (!force && _fileName == _loadedName)	// already loaded?
 		return _readCount;
 
 	QFile f(_fileName);
@@ -1528,7 +1533,7 @@ int History::Load(bool force)
 		if (ifs.status() != QDataStream::Ok)
 		{
 			_inLoad = false;
-			return -_items.size() - 2;
+			return -(_items.size() + 2);
 		}
 
 		++i;
@@ -1541,9 +1546,7 @@ int History::Load(bool force)
 
 	_loadedName = _fileName;
 
-	_isReallyUntitled = _readCount = _items.size();
-
-	return  _readCount ;
+	return  _readCount = i ;
 }
 
 //--------------------- Add Items ------------------------------------------
@@ -1775,7 +1778,7 @@ HistoryItem* History::Undo()      // returns top left after undo
 	// ------------- first Undo top item
 	HistoryItem* phi = _items[--actItem];
 	int count = phi->Undo();		// it will affect this many elements (copy / paste )
-	QRect rect = phi->Area();		// area of undo
+    // QRect rect = phi->Area();		// area of undo
 
 	// -------------then move item(s) from _items to _redoList
 	//				and remove them from the quad tree

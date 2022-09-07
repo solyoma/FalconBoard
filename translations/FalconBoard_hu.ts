@@ -23,45 +23,45 @@ Nem FalconBoard fájl</translation>
         <translation>File olvasási hiba. Eddig %1 rekordot olvastam be. Mentsd el a fájlt a hiba kijavításához!</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1996"/>
         <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
         <source>FalconBoard - Error</source>
         <translation>FalconBoard - Hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1996"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation>Erőforrás lefoglalási hiba. Nincs elég memória?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
         <source>Can&apos;t find printer</source>
         <translation>Nem találom a nyomtatót</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
         <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2008"/>
         <source>FalconBoard - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
         <source>Print error</source>
         <translation>Nyomtatási hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2008"/>
         <source>Print cancelled</source>
         <translation>Megszakítottad a nyomtatást</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2646"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2649"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 | Kijelölés: x:%6, y:%7, szél.:%8, mag.:%9</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2651"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2654"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 </translation>
     </message>
@@ -1387,11 +1387,6 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <source>FalconBoard - Save PDF As</source>
         <translation>FalconBoard - PDF elmentése más néven</translation>
     </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="17"/>
-        <source>Untitled</source>
-        <translation>Névtelen</translation>
-    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -1444,6 +1439,16 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <location filename="../FalconBoard/myprinter.cpp" line="644"/>
         <source>This option is not yet implemented</source>
         <translation>Ez a lehetőség még nem működik</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/main.cpp" line="43"/>
+        <source>FalconBoard Viewer</source>
+        <translation>FalconBoard Megjelenítő</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="17"/>
+        <source>Untitled</source>
+        <translation>Új fájl</translation>
     </message>
 </context>
 <context>

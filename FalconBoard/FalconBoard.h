@@ -273,6 +273,7 @@ private:
 	void _AddSaveVisibleAsMenu();
 
 	SaveResult _saveResult = srSaveSuccess;	// because save as slot can't return a value
+	int _saveCount = 0;						// this many documents saved
 			// for _SaveXX() 0: cancelled, -1 error, 1 success
 	SaveResult _SaveIfYouWant(int index, bool mustAsk = false);
 	SaveResult _SaveFile(const QString name);
@@ -305,6 +306,7 @@ private:
 
 	int _AddNewTab(QString fname = QString(), bool loadIt = true, bool force=false);
 	void _CloseTab(int index);
+	void _SetResetChangedMark(int index);
 	void _SetTabText(int index, QString fname);
 	void _SetupMode(ScreenMode mode);
 	void _ClearRecentMenu();

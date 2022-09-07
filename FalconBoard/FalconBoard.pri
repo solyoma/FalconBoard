@@ -7,31 +7,32 @@
 message("You are running qmake on a generated .pro file. This may not work!")
 
 
-HEADERS += ./bands.h \
-    ./common.h \
+HEADERS += ./common.h \
+    ./DrawArea.h \
+    ./FalconBoard.h \
+    ./helpdialog.h \
     ./history.h \
     ./myevent.h \
     ./myprinter.h \
-    ./FalconBoard.h \
-    ./DrawArea.h \
-    ./screenshotTransparency.h \
-    ./pdfsetup.h \
-    ./printprogress.h \
     ./pagesetup.h \
+    ./pdraw.h \
+    ./printprogress.h \
+    ./quadtree.h \
+    ./screenshotTransparency.h \
     ./snipper.h
-SOURCES += ./bands.cpp \
-    ./DrawArea.cpp \
+SOURCES += ./DrawArea.cpp \
+    ./FalconBoard.cpp \
     ./history.cpp \
+    ./main.cpp \
+    ./myprinter.cpp
     ./pagesetup.cpp \
-    ./pdfsetup.cpp \
     ./screenshotTransparency.cpp \
     ./snipper.cpp \
-    ./main.cpp \
-    ./FalconBoard.cpp \
-    ./myprinter.cpp
 FORMS += ./FalconBoard.ui \
+    ./helpdialog.ui \
     ./pagesetup.ui \
-    ./pdfsetup.ui \
     ./printprogress.ui \
     ./screenshotTransparency.ui
+TRANSLATIONS += ../translations/FalconBoard_en.ts \
+    ../translations/FalconBoard_hu.ts
 RESOURCES += FalconBoard.qrc

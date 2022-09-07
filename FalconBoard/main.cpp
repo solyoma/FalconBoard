@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
 
 	FalconBoard w;
 #ifdef _VIEWER
-	w.setWindowTitle("FalconBoard Viewer");
+	w.setWindowTitle(QObject::tr("FalconBoard Viewer"));
 #endif
 	w.SetLanguages(fileNames, ixLang);
 	w.show();

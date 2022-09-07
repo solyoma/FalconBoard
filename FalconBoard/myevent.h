@@ -39,8 +39,8 @@ public:
 			{
 				pwe = dynamic_cast<QWheelEvent*>(pevent);
 				buttons = pwe->buttons();
-				pos = pwe->pos();
-				globalPos = pwe->globalPos();
+				pos = pwe->position().toPoint();
+				globalPos = pwe->globalPosition().toPoint();
 
 			}
 			else

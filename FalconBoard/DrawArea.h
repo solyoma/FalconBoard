@@ -132,9 +132,9 @@ public:
 
     int IsModified(int fromIndex=-1, bool any = false) const;
     int ActHistoryIndex() const { return _currentHistoryIndex; }
-    int AnyHistoryToClose() const
+    int AnyHistoryToSave() const
     {
-        return historyList.size() > 1 || (historyList.size() == 1 && !_history->IsReallyUntitled()) ? historyList.size() : -1;
+        return historyList.size() > 1 || (historyList.size() == 1 && !_history->IsModified()) ? historyList.size() : -1;
     }
 
     FalconPenKind PenKind() const { return _actPenKind;  }

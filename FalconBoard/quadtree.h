@@ -76,7 +76,7 @@ class QuadArea
 	real _left=0, _top=0, _right=0, _bottom=0;
 public:
 	QuadArea() {}
-	QuadArea(real left, real top, real width, real height) noexcept :_left(left), _top(top), _right(left + width), _bottom(_top + height) 
+    QuadArea(real left, real top, real width, real height) noexcept : _left(left), _top(top),_right(left + width), _bottom(_top + height)
 	{
 		assert(_right > _left && _bottom > _top);
 	};
@@ -149,7 +149,7 @@ class QuadTree
 
 public:
 	const int _MIN_WIDTH = 200, _MIN_HEIGHT = 200;
-	const int _MAX_ALLOWED_IN_ONE_NODE = 32; // if more than this many items and _maxDepth not reached 
+	const size_t _MAX_ALLOWED_IN_ONE_NODE = 32; // if more than this many items and _maxDepth not reached 
 											 // and the item's area fits into the children => split node to 4 children
 
 	QuadTree(QuadArea area, AreaFor areaFor, Equal isEqual) : _area(area), _AreaFor(areaFor), _Equal(isEqual), _rootNode(std::make_unique<QuadNode>())

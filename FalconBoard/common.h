@@ -102,7 +102,7 @@ enum PrinterFlags :char {
     pfDontPrintImages       = 32,
     pfOpenPDFInViewer       = 64
 };
-enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess};
+enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess, srNoSave};
 enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
 
 constexpr const int resos[] = { 300, 600, 1200 };;
