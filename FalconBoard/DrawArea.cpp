@@ -2183,6 +2183,7 @@ void DrawArea::_PaintPath(QPainterPath& myPath, bool filled, QPainter *pPainter)
 void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter *pPainter)
 {
 	QPainter *painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
+	painter->setCompositionMode(_erasemode ? QPainter::CompositionMode_Clear : QPainter::CompositionMode_Source);
 
 	if (filled)
 	{
@@ -2721,7 +2722,10 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPoint cursorPos, QRect rect, 
 		QPoint p = di.points[0];        // sprite relative coordinates
 
 		if (di.points.size() == 1)
+		{
+			painter->setCompositionMode(_erasemode ? QPainter::CompositionMode_Clear : QPainter::CompositionMode_Source);
 			painter->drawPoint(p);
+		}
 		else
 		{
 			QPolygon polygon;
