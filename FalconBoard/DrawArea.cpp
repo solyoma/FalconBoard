@@ -1827,7 +1827,10 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 	// use painter paths
 #if 1
 	int cnt = pscrbl->points.size();
-	if (cnt > 2 || (cnt == 2 && _lastPointC != pscrbl->points[1] - _topLeft))
+	//if(cnt == 1 || (cnt == 2 && pscrbl->points[0] == pscrbl->points[1]) )
+		//painter.drawPoint(_lastPointC);
+
+	if (cnt > 2 || (cnt == 2 && pscrbl->points[0] != pscrbl->points[1]))
 	{
 		QPainterPath path = pscrbl->pPath;
 
@@ -1845,13 +1848,12 @@ void DrawArea::_DrawAllPoints(ScribbleItem* pscrbl)
 		_PaintPath(path, pscrbl->filled);
 		_lastPointC = pscrbl->points[pscrbl->points.size() - 1] - _topLeft;
 	}
-	else
+	else	// single point
 	{
-		//painter.drawPoint(_lastPointC);
-		QPainterPath path;
-		path.moveTo(_lastPointC);
-		path.lineTo(_lastPointC);
-		_PaintPath(path, false);
+		QPolygon poly;
+		poly.append(_lastPointC);
+		poly.append(_lastPointC);
+		_PaintPolygon(poly, false);
 	}
 #else
 	if (pscrbl->points.size() > 1)
@@ -2164,20 +2166,37 @@ QPainter *DrawArea::_GetPainter(QImage *pCanvas)
 	return painter;
 }
 
-void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter *pPainter)
+/*=============================================================
+ * TASK:	draws a filled, or unfilled polygon
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:	must be separate from _PaintPath as paths need 
+ *			not be closed
+ *------------------------------------------------------------*/
+void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter* pPainter)
 {
 	bool emode = _erasemode;
 	if (_actPenKind == penEraser)
 		_erasemode = true;
 
 	QPainter *painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
-	painter->setPen(drawColors[_actPenKind]);
+	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+	pen.setWidth(_actPenWidth);
+	painter->setPen(pen);
 	painter->setCompositionMode(_erasemode ? QPainter::CompositionMode_Clear : QPainter::CompositionMode_Source);
 
 	if (filled)
 	{
 		painter->setBrush(drawColors[_actPenKind]);
 		painter->drawPolygon(myPolygon);
+	}
+	else if(myPolygon.size() == 2 && myPolygon[0]==myPolygon[1])
+	{
+		QPoint pt = myPolygon[0];
+		painter->setPen(pen);
+		painter->drawPoint(pt);
+
 	}
 	else
 	{
@@ -2190,10 +2209,48 @@ void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter *pPainte
 	_erasemode = emode;
 };
 
+/*=============================================================
+ * TASK:	draws a filled (=closed) path, or any oyjer
+ * PARAMS:	myPath - path to paint. it may contain a single point
+ *			filled - only used for closed paths: fill it?
+ *			pPainter - external painter or nullptr
+ * GLOBALS:_actPenKind, _actPenWidth
+ * RETURNS:
+ * REMARKS:	must be separate from _PaintPolygon as paths need 
+ *			not be closed
+ *------------------------------------------------------------*/
 void DrawArea::_PaintPath(QPainterPath& myPath, bool filled, QPainter *pPainter)
 {
-	QPolygon myPolygon = myPath.toFillPolygon().toPolygon();
-	_PaintPolygon(myPolygon, filled, pPainter);
+	bool emode = _erasemode;
+	if (_actPenKind == penEraser)
+		_erasemode = true;
+
+	QPainter* painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
+	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+	pen.setWidth(_actPenWidth);
+	painter->setPen(pen);
+
+	painter->setCompositionMode(_erasemode ? QPainter::CompositionMode_Clear : QPainter::CompositionMode_Source);
+
+	if (filled)
+	{
+		painter->setBrush(drawColors[_actPenKind]);
+		painter->drawPolygon(myPath.toFillPolygon());
+	}
+	else
+	{
+		QPolygon poly = myPath.toFillPolygon().toPolygon();
+		if (poly.size() > 2 || poly[0] != poly[1])
+			painter->drawPath(myPath);
+		else
+		{
+			QPoint pt = poly[0];
+			painter->drawPoint(pt);
+		}
+	}
+	if (!pPainter)
+		delete painter;
+	_erasemode = emode;
 };
 
 
