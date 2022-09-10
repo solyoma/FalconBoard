@@ -2164,25 +2164,14 @@ QPainter *DrawArea::_GetPainter(QImage *pCanvas)
 	return painter;
 }
 
-void DrawArea::_PaintPath(QPainterPath& myPath, bool filled, QPainter *pPainter)
-{
-	QPainter *painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
-
-	if (filled)
-	{
-		painter->setBrush(drawColors[_actPenKind]);
-		painter->drawPolygon(myPath.toFillPolygon());
-	}
-	else
-		painter->drawPath(myPath);
-
-	if(!pPainter)
-		delete painter;
-};
-
 void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter *pPainter)
 {
+	bool emode = _erasemode;
+	if (_actPenKind == penEraser)
+		_erasemode = true;
+
 	QPainter *painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
+	painter->setPen(drawColors[_actPenKind]);
 	painter->setCompositionMode(_erasemode ? QPainter::CompositionMode_Clear : QPainter::CompositionMode_Source);
 
 	if (filled)
@@ -2198,6 +2187,13 @@ void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter *pPainte
 	}
 	if(!pPainter)
 		delete painter;
+	_erasemode = emode;
+};
+
+void DrawArea::_PaintPath(QPainterPath& myPath, bool filled, QPainter *pPainter)
+{
+	QPolygon myPolygon = myPath.toFillPolygon().toPolygon();
+	_PaintPolygon(myPolygon, filled, pPainter);
 };
 
 
