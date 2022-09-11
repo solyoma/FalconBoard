@@ -141,6 +141,7 @@ private slots:
 
 	void SlotForLabel(QString text);
 	void SlotForPenKindChange(FalconPenKind pk);
+	void SlotForChkGridOn(bool checked);
 
 #endif
 	void on_actionPageSetup_triggered();
@@ -206,6 +207,7 @@ private:
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
+	QCheckBox* _pChkGridOn = nullptr;
 	QTabBar  * _pTabs = nullptr;
 	QLabel   * _plblMsg = nullptr;		// put on status bar
 

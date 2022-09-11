@@ -71,6 +71,9 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     _drawArea->SetScreenSize(screenSize);
 
     _CreateAndAddActions(); // to toolbar
+    connect(_pChkGridOn, &QCheckBox::toggled, ui.actionShowGrid, &QAction::setChecked);
+    connect(_pChkGridOn, &QCheckBox::toggled, this, &FalconBoard::SlotForChkGridOn);
+
     connect(&_signalMapper, SIGNAL(mapped(int)), SLOT(_sa_actionRecentFile_triggered(int)));
     connect(&_languageMapper, SIGNAL(mapped(int)), SLOT(_sa_actionLanguage_triggered(int)));
 #ifdef _VIEWER
@@ -158,8 +161,8 @@ void FalconBoard::RestoreState()
         default: break;
     }
     int n = s->value("grid", 0).toInt();
-    ui.actionShowGrid->setChecked(n & 1);
     ui.actionFixedGrid->setChecked(n & 2);
+    _pChkGridOn->setChecked(n & 1);
     _drawArea->SetGridOn(n & 1, n & 2);
     n = s->value("pageG", 0).toInt(0);
     ui.actionShowPageGuides->setChecked(n);
@@ -477,7 +480,11 @@ void FalconBoard::_CreateAndAddActions()
 
     ui.mainToolBar->addSeparator();
 
-    ui.mainToolBar->addWidget(new QLabel(tr("Grid size:")));
+//    ui.mainToolBar->addWidget(new QLabel(tr("Grid ")));
+    _pChkGridOn = new QCheckBox(tr("Grid size:"));
+    ui.mainToolBar->addWidget(_pChkGridOn);
+//    ui.mainToolBar->addWidget(new QLabel(tr(" size:")));
+
 
     _psbGridSpacing = new QSpinBox();
     _psbGridSpacing->setMinimum(10);
@@ -488,8 +495,6 @@ void FalconBoard::_CreateAndAddActions()
     rect.setWidth(60);
     _psbGridSpacing->setGeometry(rect);
     ui.mainToolBar->addWidget(_psbGridSpacing);
-
-    ui.mainToolBar->addAction(ui.actionShowGrid);
 
     ui.mainToolBar->addSeparator();
     ui.mainToolBar->addAction(ui.action_Screenshot);
@@ -1546,7 +1551,12 @@ void FalconBoard::SlotForTabSwitched(int direction)
 
 void FalconBoard::on_actionShowGrid_triggered()
 {
+    if (_busy)
+        return;
+    ++_busy;
     _drawArea->SetGridOn(ui.actionShowGrid->isChecked(), ui.actionFixedGrid->isChecked());
+    _pChkGridOn->setChecked(ui.actionShowGrid->isChecked());
+    --_busy;
 }
 
 void FalconBoard::on_actionFixedGrid_triggered()
@@ -1931,6 +1941,13 @@ void FalconBoard::on_actionExportToPdf_triggered()
     int pos = saveName.lastIndexOf('/');
     QString name = _lastPDFDir + saveName.mid(pos+1);
     _drawArea->ExportPdf(name, _lastPDFDir);
+}
+
+void FalconBoard::SlotForChkGridOn(bool checked)
+{
+    if (_busy)
+        return;
+    on_actionShowGrid_triggered();
 }
 
 
