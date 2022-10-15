@@ -683,10 +683,10 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				if (key == Qt::Key_Period)
 				{
 					_lastScribbleItem.add(_lastPointC);
-					_lastScribbleItem.add(_lastPointC);
+//					_lastScribbleItem.add(_lastPointC);
 					_DrawLineTo(QPoint(_lastPointC));
 				}
-				else	// cross, 45 degree length 3 x penWidth
+				else	// cross, 45 degree length 2 x 3 x sqrt(2) x penWidth
 				{
 					int d = 3 * _actPenWidth,
 						_x0 = _topLeft.x(), _y0 = _topLeft.y();
@@ -704,7 +704,11 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_DrawLineTo(QPoint(x2, y1));
 				}
 				HistoryItem* pscrbl = _history->AddScribbleItem(_lastScribbleItem);
-				pscrbl->GetScribble()->bndRect.adjust(-_actPenWidth / 2.0, -_actPenWidth / 2.0, _actPenWidth / 2.0, _actPenWidth / 2.0);
+				QRect* pr = &pscrbl->GetScribble()->bndRect;
+				QRectF rfBndRect = *pr;
+				qreal w = (_actPenWidth + 1.0) / 2.0;
+				rfBndRect.adjust(-w, -w, w, w);
+				pscrbl->GetScribble()->bndRect = rfBndRect.toRect();
 				_history->SelectScribblesFor(centerPoint, true);
 
 			}
@@ -1016,59 +1020,67 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 						// because tablet events frequency is large
 
 #ifndef _VIEWER
-	if (_rubberBand && _spaceBarDown && (event->buttons & Qt::LeftButton))
+	if (_rubberBand)
 	{
-		if (event->fromPen)
-		{
-			++counter;
-			if (counter >= REFRESH_LIMIT)
-			{
-				counter = 0;
-				_Redraw();
-				_lastPointC = event->pos;
-			}
-		}
-		QPoint  dr = (event->pos - _lastPointC);   // displacement vector
-		if (!dr.manhattanLength())
-			return;
-		_ShiftOrigin(-dr);
-
-		if (!event->fromPen)    // else already redrawn
-		{
-			_Redraw();
-			_lastPointC = event->pos;
-		}
-
-		_ReshowRubberBand();
-	}
-	else if (_rubberBand && ((event->buttons & Qt::RightButton) ||
-		((event->buttons & Qt::LeftButton) && event->mods.testFlag(Qt::ControlModifier))))
-	{         
-		// modify existing rubber band using either the right button or Ctrl+left button
-		// if the shift is held down the shape will be a square
-		// if holding down Alt then the rubberband will be centered on its starting poition
 		QPoint epos = event->pos;
-		if (event->mods.testFlag(Qt::ShiftModifier))        // constrain rubberband to a square
-			epos.setX(_rubberBand->geometry().x() + (epos.y() - _rubberBand->geometry().y()));
-
-		QPoint origin = _rubber_origin;	// we may modify this because of Alt modifier
-		QPoint delta;
-		if (event->mods.testFlag(Qt::AltModifier))	// then the rubberband goes outward from origin
+		if (epos.x() < 0)
+			epos.setX(0);
+		if (epos.y() < 0)
+			epos.setY(0);
+		
+		if (_spaceBarDown && (event->buttons & Qt::LeftButton))
 		{
-			delta = epos - _rubber_origin;	// some coordinate may be negative
-			origin -= delta;
+			if (event->fromPen)
+			{
+				++counter;
+				if (counter >= REFRESH_LIMIT)
+				{
+					counter = 0;
+					_Redraw();
+					_lastPointC = epos;
+				}
+			}
+			QPoint  dr = (epos - _lastPointC);   // displacement vector
+			if (!dr.manhattanLength())
+				return;
+			_ShiftOrigin(-dr);
+
+			if (!event->fromPen)    // else already redrawn
+			{
+				_Redraw();
+				_lastPointC = epos;
+			}
+
+			_ReshowRubberBand();
 		}
+		else if (((event->buttons & Qt::RightButton) ||
+			((event->buttons & Qt::LeftButton) && event->mods.testFlag(Qt::ControlModifier))))
+		{
+			// modify existing rubber band using either the right button or Ctrl+left button
+			// if the shift is held down the shape will be a square
+			// if holding down Alt then the rubberband will be centered on its starting poition
+			if (event->mods.testFlag(Qt::ShiftModifier))        // constrain rubberband to a square
+				epos.setX(_rubberBand->geometry().x() + (epos.y() - _rubberBand->geometry().y()));
+
+			QPoint origin = _rubber_origin;	// we may modify this because of Alt modifier
+			QPoint delta;
+			if (event->mods.testFlag(Qt::AltModifier))	// then the rubberband goes outward from origin
+			{
+				delta = epos - _rubber_origin;	// some coordinate may be negative
+				origin -= delta;
+			}
 			// DEBUG
 			//qDebug("epos:(%d,%d), delta:(%d, %d), origin:(%d,%d), rubber0: (%d,%d)",
 			//	epos.x(), epos.y(), delta.x(), delta.y(), origin.x(), origin.y(),
 			//	_rubber_origin.x(), _rubber_origin.y());
-		_rubberBand->setGeometry(QRect(origin, epos).normalized()); // means: top < bottom, left < right
+			_rubberBand->setGeometry(QRect(origin, epos).normalized()); // means: top < bottom, left < right
 
-// DEBUG
-//#if defined _DEBUG
-//        qDebug("%s: rubberband size:%d,%d", (event->fromPen ? "tablet":"mouse:"),_rubberBand->size().width(), _rubberBand->size().height());
-//#endif
-// /DEBUG
+	// DEBUG
+	//#if defined _DEBUG
+	//        qDebug("%s: rubberband size:%d,%d", (event->fromPen ? "tablet":"mouse:"),_rubberBand->size().width(), _rubberBand->size().height());
+	//#endif
+	// /DEBUG
+		}
 	}
 	else
 		// no rubber band
@@ -2210,7 +2222,7 @@ void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter* pPainte
 };
 
 /*=============================================================
- * TASK:	draws a filled (=closed) path, or any oyjer
+ * TASK:	draws a filled (=closed) path, or any other
  * PARAMS:	myPath - path to paint. it may contain a single point
  *			filled - only used for closed paths: fill it?
  *			pPainter - external painter or nullptr

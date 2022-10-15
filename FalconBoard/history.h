@@ -16,9 +16,8 @@
 
 #include "quadtree.h"
 
-constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
-
-enum HistEvent {
+// for versions 1.x
+enum HistEvent1 {
     heNone,
         // these are types saved on disk
     heScribble,        // series of points from start to finish of scribble
@@ -51,14 +50,14 @@ enum MyRotation { rotNone,
 enum MyLayer { 
                 mlyBackgroundImage,         // lowest layer: background image
                 mlyScreenShot,              // screenshot layer: may write over it
-                mlyScribbleItem,               // scribbles are drawn here
+                mlyScribbleItem,            // scribbles are drawn here
                 mlySprite                   // layer for sprites (moveable images)
              };
 
 // stores the coordinates of line strokes from pen down to pen up:
 struct ScribbleItem        // drawn on layer mltScribbleItem
 {                   
-    HistEvent type = heNone;
+    HistEvent1 type = heNone;
     int zOrder = 0;
     bool isVisible = true;
 
@@ -72,7 +71,7 @@ struct ScribbleItem        // drawn on layer mltScribbleItem
                                     // not saved on disk, recreated on read
     QPainterPath pPath;         // used for faster successive displays
 
-    ScribbleItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
+    ScribbleItem(HistEvent1 he = heNone, int zorder = 0) noexcept;       // default constructor
     ScribbleItem(const ScribbleItem& di);
     ScribbleItem(const ScribbleItem&& di) noexcept;
     ScribbleItem& operator=(const ScribbleItem& di);
@@ -114,7 +113,7 @@ struct TextItem {
                                     // not saved on disk, recreated on read
     QString fontAsString;           // list of all properties separated by commas
 
-    TextItem(HistEvent he = heNone, int zorder = 0) noexcept;       // default constructor
+    TextItem(HistEvent1 he = heNone, int zorder = 0) noexcept;       // default constructor
     TextItem(const TextItem& di);
     TextItem(const TextItem&& di) noexcept;
     TextItem& operator=(const TextItem& di);
@@ -183,9 +182,9 @@ struct History; // forward
 struct HistoryItem      // base class
 {
     History* pHist=nullptr;
-    HistEvent type;
+    HistEvent1 type;
 
-    HistoryItem(History* pHist, HistEvent typ=heNone) : pHist(pHist), type(typ) {}
+    HistoryItem(History* pHist, HistEvent1 typ=heNone) : pHist(pHist), type(typ) {}
     virtual ~HistoryItem() {}
 
     virtual int ZOrder() const { return 0; }

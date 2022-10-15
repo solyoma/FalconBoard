@@ -46,6 +46,19 @@ struct _SortFunc
 {
 	History &history;
 	_SortFunc(History & h) : history(h) {}
+	//bool operator()(int i, int j) 
+	//{
+	//	if (history.Item(i)->ZOrder() > history.Item(j)->ZOrder())
+	//		return false;
+
+	//	// zOrder OK, see y and x coordinates
+	//	if (history.Item(i)->TopLeft().y() < history.Item(j)->TopLeft().y())
+	//		return true;
+	//	else if (history.Item(i)->TopLeft().y() == history.Item(j)->TopLeft().y() && history.Item(i)->TopLeft().x() < history.Item(j)->TopLeft().x())
+	//		return true;
+	//	else
+	//		return false;
+	//}
 	bool operator()(int i, int j) 
 	{
 		if (!history.Item(i)->Area().intersects(history.Item(j)->Area()))
@@ -130,7 +143,7 @@ QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness, Qt
 
 //-------------------------------------------------
 
-ScribbleItem::ScribbleItem(HistEvent he, int zorder) noexcept : type(he), zOrder(zorder) {}
+ScribbleItem::ScribbleItem(HistEvent1 he, int zorder) noexcept : type(he), zOrder(zorder) {}
 ScribbleItem::ScribbleItem(const ScribbleItem& di) { *this = di; }
 ScribbleItem::ScribbleItem(const ScribbleItem&& di) noexcept { *this = di; }
 ScribbleItem& ScribbleItem::operator=(const ScribbleItem& di)
@@ -1506,8 +1519,8 @@ int History::Load(bool force)
 	int i = 0, n;
 	while (!ifs.atEnd())
 	{
-		ifs >> n;	// HistEvent				
-		if ((HistEvent(n) == heScreenShot))
+		ifs >> n;	// HistEvent1				
+		if ((HistEvent1(n) == heScreenShot))
 		{
 			ifs >> bimg;
 			_screenShotImageList.push_back(bimg);
@@ -1518,7 +1531,7 @@ int History::Load(bool force)
 			continue;
 		}
 
-		di.type = (HistEvent)n;
+		di.type = (HistEvent1)n;
 
 		ifs >> di;
 		// patch for older versions:
@@ -1969,16 +1982,8 @@ int History::SelectTopmostImageFor(QPoint p)
  *------------------------------------------------------------*/
 QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 {
-	int cnt = 0;
-	int ii;
-	IntVector iv;
-
 	int w = 3;	// +-
 	int pw;			// pen width
-
-	QRect rp = QRect(p, QSize(1, 1)).adjusted(-w, -w, w, w),
-		r;
-	QRect result;
 
 	ScribbleItem* pscr;
 	ScribbleSubType typ;
@@ -2021,6 +2026,11 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 		return (int)d < pscr->penWidth + w;
 	};
 
+	int cnt = 0;
+	int ii;
+	IntVector iv;
+	QRect result;
+
 	auto addToIv = [&](ScribbleItem* pscr, int i)
 	{
 		++cnt;
@@ -2028,6 +2038,9 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 		iv.push_back(ii);
 		result = result.united(pscr->bndRect);
 	};
+
+	QRectF rp = QRectF(p, QSize(1, 1)).adjusted(-w, -w, w, w),
+		   r;
 
 	for (int i = 0; i < _items.size(); ++i)
 	{
@@ -2037,7 +2050,7 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 			if (pscr)
 			{
 				typ = pscr->SubType();
-				if (pscr && pscr->bndRect.contains(p))
+				if (pscr->bndRect.contains(p))
 				{
 					pw = (pscr->penWidth + 1) / 2;
 					if (typ != sstScribble)	//line or quadrangle
@@ -2050,7 +2063,7 @@ QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
 					{
 						for (int j = 0; j < pscr->points.size(); ++j)
 						{
-							r = QRect(pscr->points[j], QSize(1, 1)).adjusted(-pw, -pw, pw, pw);
+							r = QRectF(pscr->points[j], QSize(1, 1)).adjusted(-pw, -pw, pw, pw);
 							if (r.intersects(rp))
 							{
 								addToIv(pscr, i);

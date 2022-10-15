@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QPageSize>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
+constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 const long nVersion = 0x0001010E;       // program version
 const QString sVersion = "1.1.14";
 const QString sWindowTitle =

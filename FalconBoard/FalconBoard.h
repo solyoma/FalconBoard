@@ -141,9 +141,8 @@ private slots:
 
 	void SlotForLabel(QString text);
 	void SlotForPenKindChange(FalconPenKind pk);
-	void SlotForChkGridOn(bool checked);
-
 #endif
+	void SlotForChkGridOn(bool checked);
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() { _drawArea->Print();  }
 	void on_actionExportToPdf_triggered();
