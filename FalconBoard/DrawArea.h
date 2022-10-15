@@ -5,7 +5,7 @@
 #include <QColor>
 #include <QImage>
 #include <QBitmap>
-#include <QPoint>
+#include <QPointF>
 #include <QWidget>
 #include <QRubberBand>
 #include <QTabletEvent>
@@ -124,7 +124,7 @@ public:
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
     void SetPenKind(FalconPenKind newKind, int newWidth);
 
-    void SetOrigin() { _topLeft = QPoint(); }
+    void SetOrigin() { _topLeft = QPointF(); }
 
     void AddScreenShotImage(QPixmap& image);
 
@@ -259,7 +259,8 @@ private:
     bool _delayedPlayback = false; // ???? to make it work not user drawing should be done in an other thread
    
     // final image is shown on the widget in paintEvent(). 
-    // These images are the layers to display on the widget
+    // These images are the logical layers (the order the objects are drown) 
+    // to display on the widget
     // Layers from top to bottom:
     //      _sprite         - only when moving graphs by the mouse, transparent image just holds the sprite
     //      _canvas         - transparent QImage with drawings
@@ -267,14 +268,14 @@ private:
     //      _grid           - not an image. Just drawn after background when it must be shown moves together with the canvas window
     //      _background     - image loaded from file
     //      the DrawArea widget - background color
-    ScreenShotImageList _copiedImages;     // copy images on _nSelectedList to this
-    ScribbleItemVector _copiedItems;       // other items to this list 
-    QRect _copiedRect;                     // bounding rectangle for copied items used for paste operation
+    ScreenShotImageList _copiedImages;      // copy images on _nSelectedList to this
+    DrawableList _copiedItems;              // other items to this list 
+    QRectF _copiedRect;                     // bounding rectangle for copied items used for paste operation
 
     QImage  _background,
             _canvas1, _canvas2;      // transparent layer, draw on this then show background and this on the widget
                             // origin: (0,0) point on canvas first shown
-    QImage *_pActCanvas, *_pOtherCanvas;        // point to actual canvas to be painted and next cancas to draw on
+    QImage *_pActCanvas, *_pOtherCanvas;        // point to actual canvas to be painted and next canvas to draw on
     // to move selected area around
     Sprite * _pSprite = nullptr;         // copy of elements in _rubberRect to move around
 
@@ -293,24 +294,31 @@ private:
     QColor _gridColor = "#d0d0d0";          // for white system color scheme
     QColor _pageGuideColor = "#fcd475";     // - " - r 
 
-    QPoint  _topLeft,   // actual top left of visible canvas, relative to origin  either (0,0) or positive x and/or y values
+    QPointF _topLeft,   // actual top left of visible canvas, relative to origin  either (0,0) or positive x and/or y values
             _lastMove;  // value of last canvas move 
 
     const int SmallStep = 1,           // used ehen the shift is pressed with the arrow keys
               NormalStep = 10,         // shift screen this many pixels on one press on arrow key 
               LargeStep = 100;         // or with this many pixels if holding down the Ctrl key 
 
-    QPoint  _firstPointC, // canvas relative first point drawn
+    QPointF _firstPointC, // canvas relative first point drawn
             _lastPointC;  // canvas relative last point drawn relative to visible image
-    ScribbleItem _lastScribbleItem;
+    DrawableCross   _lastDrawableCross;
+    DrawableDot      _lastDotItem;
+    DrawableEllipse  _lastEllipseItem;
+    DrawableItem*   _pLastDrawableItem = nullptr; // set to either of the following:
+    DrawableScribble _lastScribbleItem;
+    DrawableRectangle _lastRectangleItem;
+    DrawableText     _lastTextItem;
+
     QCursor _savedCursor;
     bool _cursorSaved = false;
 
-    QPoint _lastCursorPos;  // set in MyMoveEvent()
+    QPointF _lastCursorPos;  // set in MyMoveEvent()
 
 
-    QRect   _canvasRect;    // document (0,0) relative rectangle
-    QRect   _clippingRect;  // this too, only draw strokes inside this
+    QRectF   _canvasRect;    // document (0,0) relative rectangle
+    QRectF   _clippingRect;  // this too, only draw strokes inside this
 
 #ifndef _VIEWER
     enum class _ScrollDirection {scrollNone, scrollUp, scrollDown, scrollLeft,scrollRight };
@@ -320,16 +328,16 @@ private:
                                          // to scroll in that direction
     void _AddScrollTimer();
     void _RemoveScrollTimer();
-    _ScrollDirection _AutoScrollDirection(QPoint pt);    // sets and returns _scrollDir
+    _ScrollDirection _AutoScrollDirection(QPointF pt);    // sets and returns _scrollDir
 
 
 private:
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
-    QPoint   _rubber_origin,            // position where we stated to draw the rubber band
+    QPointF   _rubber_origin,            // position where we stated to draw the rubber band
              _topLeftWhenRubber;        // top left when the rubbar band was hidden
                                         // used to re-show rubberband after a scroll
                                         // or during move paper 
-    QRect   _rubberRect;        // used to select histoy items
+    QRectF   _rubberRect;        // used to select histoy items
 
     void _InitRubberBand( MyPointerEvent* event);
     void  _HideRubberBand(bool del=false);
@@ -341,21 +349,21 @@ private:
     void _ClearCanvas();
 
     void _SetTopLeftFromItem(HistoryItem *phi);   // possibly sets _topLeft. Must _redraw after it
-    int _CollectScribbles(HistoryItemVector &hv); // for actual clipping rect
+    int CollectDrawables(IntVector &hv); // for actual clipping rect
 #ifndef _VIEWER
     void _SetLastPointPosition();           // for actual _history
-    bool _CanSavePoint(QPoint &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
-    QPoint _CorrectForDirection(QPoint &newp);     // using _drawStarted and _isHorizontal
+    bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
+    QPointF _CorrectForDirection(QPointF &newp);     // using _drawStarted and _isHorizontal
     void _CreatePens();
 #endif
 
-    bool _DrawFreehandLineTo(QPoint endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
-    void _DrawLineTo(QPoint endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
+    bool _DrawFreehandLineTo(QPointF endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
+    void _DrawLineTo(QPointF endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
-    void _DrawAllPoints(ScribbleItem* pscrbl);
+    void _DrawAllPoints(DrawableItem* pscrbl);
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
-    bool _ReplotScribbleItem(HistoryItem* pscrbl); 
+    bool _ReplotDrawableItem(HistoryItem* pscrbl); 
     void _SetCanvasAndClippingRect();
     void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);
@@ -364,15 +372,13 @@ private:
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
     QPainter *_GetPainter(QImage *pCanvas);
-    void _PaintPath(QPainterPath& pp, bool filled, QPainter *painter=nullptr);
-    void _PaintPolygon(QPolygon& pp, bool filled, QPainter *painter=nullptr);
 #ifndef _VIEWER
-    void _ModifyIfSpecialDirection(QPoint & qp);   // modify qp by multiplying with the start vector
+    void _ModifyIfSpecialDirection(QPointF & qp);   // modify qp by multiplying with the start vector
 #endif
-    void _SetOrigin(QPoint qp);  // sets new topleft and displays it on label
-    void _ShiftOrigin(QPoint delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down
-    void _ShiftRectangle(QPoint delta, QRect &clip1, QRect &clip2);
-    void _ShiftAndDisplayBy(QPoint delta, bool smooth = false);
+    void _SetOrigin(QPointF qp);  // sets new topleft and displays it on label
+    void _ShiftOrigin(QPointF delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down
+    void _ShiftRectangle(QPointF delta, QRectF &clip1, QRectF &clip2);
+    void _ShiftAndDisplayBy(QPointF delta, bool smooth = false);
     void _PageUp();
     void _PageDown();
     void _Home(bool toTop);     // else just position x=0 
@@ -383,11 +389,11 @@ private:
     void _Right(int distance = 10);
     bool _NoPrintProblems();           // false: some problems
 #ifndef _VIEWER
-    void _ShowCoordinates(const QPoint& qp);
-    Sprite * _CreateSprite(QPoint cursorPos, QRect& rect, bool itemsDeleted, bool setVisible=true);
-    Sprite * _PrepareSprite(Sprite *pSprite, QPoint cursorPos, QRect rect, bool itemsDeleted, bool setVisible=true);
+    void _ShowCoordinates(const QPointF& qp);
+    Sprite * _CreateSprite(QPointF cursorPos, QRectF& rect, bool itemsDeleted, bool setVisible=true);
+    Sprite * _PrepareSprite(Sprite *pSprite, QPointF cursorPos, QRectF rect, bool itemsDeleted, bool setVisible=true);
     Sprite * _SpriteFromLists(); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible
-    void _MoveSprite(QPoint pt);
+    void _MoveSprite(QPointF pt);
     void _PasteSprite();
 private slots:
     void _ScrollTimerSlot();

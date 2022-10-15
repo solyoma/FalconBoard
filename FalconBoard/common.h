@@ -11,8 +11,11 @@
 #include <QSettings>
 #include <QPageSize>
 // version number 0xMMIISS;     M - major, I-minor, s- sub
-const long nVersion = 0x0001010E;       // program version
-const QString sVersion = "1.1.14";
+constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
+
+const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
+const qint32 MAGIC_VERSION = 0x56020000; // V 02.00.00      Cf.w. common.h
+const QString sVersion = "2.0.0";
 const QString sWindowTitle =
 #ifdef _VIEWER
         "FalconBoard Viewer";
@@ -304,6 +307,14 @@ public:
     }
 };
 extern PenCursors penCursors;       // in drawarea.cpp
+
+
+QPointF CenterOf(QRectF rect)
+{
+    return QPointF(rect.left() + rect.width() / 2.0, rect.top() + rect.height() / 2.0);
+}
+
+
 
 /*=============================================================
  * TASK:    centralized settings handler

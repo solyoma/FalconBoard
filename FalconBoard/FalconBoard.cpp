@@ -144,7 +144,7 @@ void FalconBoard::RestoreState()
         qs = s->value("version", "0").toString();       // (immediate toInt() looses digits)
         long ver = qs.toInt(0, 0);                                   // format Major.mInor.Sub
 
-        if ((ver & 0xFFFFFF00) != (nVersion & 0xFFFFFF00))        // sub version number not used
+        if ((ver & 0xFFFFFF00) != (MAGIC_VERSION & 0xFFFFFF00))        // sub version number not used
         {
             QFile::remove(qsSettingsName);
             _AddNewTab();
@@ -311,7 +311,7 @@ void FalconBoard::SaveState()
 	s->setValue("geometry", saveGeometry());
 	s->setValue("windowState", saveState());
     QString qsVersion("0x%1");
-    qsVersion = qsVersion.arg(nVersion, 8, 16, QLatin1Char('0') );
+    qsVersion = qsVersion.arg(MAGIC_VERSION, 8, 16, QLatin1Char('0') );
 	s->setValue("version", qsVersion);
     if (_actLanguage < 0)
         s->remove("lang");

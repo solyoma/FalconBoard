@@ -248,7 +248,7 @@ private:
 	Equal *_Equal;
 
 	// contains pointers to children and an array of items (pointers to HistoryItems) inside this node
-	// only values are added here which completely inside this node
+	// only values are added here which are completely inside this node
 	struct QuadNode		
 	{
 		std::array<std::unique_ptr<QuadNode>, 4> children;
