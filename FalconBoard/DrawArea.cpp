@@ -2707,15 +2707,16 @@ void DrawArea::_ShowCoordinates(const QPoint& qp)
 	qpt += _topLeft;
 
 	QString qs;
+	int pg = int((_topLeft.y() + qp.y()) / _prdata.screenPageHeight) + 1;
 	if (_rubberBand)
 	{
 		QRect r = _rubberBand->geometry();
 		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9")).
-			arg(_topLeft.y() / _prdata.screenPageHeight + 1).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
+			arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
 			arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());
 	}
 	else
-		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ")).arg(_topLeft.y() / _prdata.screenPageHeight + 1).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
+		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ")).arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
 	emit TextToToolbar(qs);
 }
 
