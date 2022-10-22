@@ -19,12 +19,6 @@
 #include <math.h>
 
 #include "DrawArea.h"
-#include "DrawArea.h"
-#include "DrawArea.h"
-
-//#include "common.h"
-
-//#include "myprinter.h"
 
 #define DEBUG_LOG(qs) \
 {							 \
@@ -51,8 +45,6 @@ DrawArea::DrawArea(QWidget* parent) : QWidget(parent)
 	historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
 	drawColors.Setup();
 	penCursors.Setup();
-
-	historyList.SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
 }
 
 void DrawArea::SetScreenSize(QSize screenSize)
@@ -343,17 +335,18 @@ void DrawArea::SetPenKind(FalconPenKind newKind, int width)
 		_penWidth = width;
 }
 
-void DrawArea::AddScreenShotImage(QPixmap& image)
+void DrawArea::AddScreenShotImage(QPixmap& animage)
 {
 	DrawableScreenShot bimg;
-	int x = (geometry().width() - image.width()) / 2,
-		y = (geometry().height() - image.height()) / 2;
+	int x = (geometry().width() -  animage.width()) / 2,
+		y = (geometry().height() - animage.height()) / 2;
 
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;
 	bimg.startPos = QPointF(x, y) + _topLeft;
+	bimg.image = animage;
+	_history->AddDrawableItem(bimg);
 
-	_history->AddScreenShot(image, bimg);
 #if !defined _VIEWER
 	int drix = _history->SelectTopmostImageUnder(QPointF(-1, -1));    // latest image
 	if (drix >= 0)
@@ -563,7 +556,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				if (phi)
 				{
 					_Redraw(); // update();
-					_rubberRect = QRectF(_rubberRect.topLeft(), _copiedRect.size());
+					_rubberRect = QRectF(_rubberRect.topLeft(), historyList.CopiedRect().size());
 					_rubberBand->setGeometry(_rubberRect.toRect());
 					_history->CollectPasted(_rubberRect.translated(_topLeft));
 				}
@@ -601,7 +594,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				qreal margin = !_mods.testFlag(Qt::ControlModifier) && _history->SelectedSize() ?   adjustment : 0;
 				QRectF r = _rubberRect.adjusted(-margin, -margin,margin,margin);	// will also resizes _rubberRect
 
-				_lastRectangleItem = DrawableRectangle(r, -1, _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
+				_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
 
 				QPainter* painter = _GetPainter(_pActCanvas);
 				_lastRectangleItem.Draw(painter, _topLeft);
@@ -618,7 +611,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			{
 				_actPenWidth = _penWidth;
 				qreal adjustment = ((qreal)_actPenWidth + 1) / 2 + 1;
-				_lastEllipseItem = DrawableEllipse(_rubberRect, -1, _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
+				_lastEllipseItem = DrawableEllipse(_rubberRect.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
 				
 				QPainter* painter = _GetPainter(_pActCanvas);
 				_lastEllipseItem.Draw(painter, _topLeft);
@@ -636,7 +629,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			else if (key == Qt::Key_X && !bCut)   // mark center with cross
 			{
 				_actPenWidth = _penWidth;
-				_lastDrawableCross = DrawableCross(_rubberRect.center(), 10, -1, _actPenKind, _actPenWidth);
+				_lastDrawableCross = DrawableCross(_rubberRect.translated(_topLeft).center(), 10, _history->GetZorder(false), _actPenKind, _actPenWidth);
 
 				QPainter* painter = _GetPainter(_pActCanvas);
 				_lastDrawableCross.Draw(painter, _topLeft);
@@ -649,7 +642,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			else if (key == Qt::Key_Period)   // mark center with cross or a period
 			{
 				_actPenWidth = _penWidth;
-				_lastDotItem = DrawableDot(_rubberRect.center(), -1, _actPenKind, _actPenWidth);
+				_lastDotItem = DrawableDot(_rubberRect.translated(_topLeft).center(), _history->GetZorder(false), _actPenKind, _actPenWidth);
 
 				QPainter* painter = _GetPainter(_pActCanvas);
 				_lastDotItem.Draw(painter, _topLeft);
@@ -670,7 +663,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			{
 				historyList.PasteFromClipboard();
 
-				if (!_copiedItems.isEmpty() || !_copiedImages.isEmpty())    // anything to paste?
+				if (!historyList.CopiedItems().Size())    // anything to paste?
 				{
 					_pSprite = _SpriteFromLists();
 					_PasteSprite();
@@ -1227,14 +1220,16 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
  * PARAMS:  event
  * GLOBALS:
  * RETURNS:
- * REMARKS: - layers:
+ * REMARKS: - logical layers:
  *                  top     sprite layer     ARGB
- *                          _pActCanvas          ARGB
+ *                          _pActCanvas      ARGB
  *                          page guides if shown
  *                          screenshots
  *                          grid        if shown
  *                  bottom  background image if any
  *          - paint these in bottom to top order on this widget
+ *			- drawables are already painted on in-memory
+ *				pixmap (_pActCanvas) and just copied here
  *          - event->rect() is widget relative
  *          - area to paint is clipped to event->rect()
  *              any other clipping is applied on top of this
@@ -1369,8 +1364,11 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
 	_lastScribbleItem.clear();
 	_actPenWidth = _penWidth;
 
-	_lastScribbleItem.penKind = _actPenKind;
+	_lastScribbleItem.SetPenKind(_actPenKind);
+//	_lastScribbleItem.SetPenColor();
 	_lastScribbleItem.penWidth = _actPenWidth;
+	_lastScribbleItem.startPos = _lastPointC + _topLeft;
+	_lastScribbleItem.zOrder = _history->GetZorder(false);
 	if (_lastPointC.x() >= 0)    // else no last point yet
 		_lastScribbleItem.add(_lastPointC + _topLeft);
 }
@@ -1560,7 +1558,7 @@ void DrawArea::_SetLastPointPosition()
 	{
 		DrawableItem* pscri = phi->GetDrawable(true);
 		if (pscri)
-			_lastPointC = ((DrawableScribble*)pscri)->points[((DrawableScribble*)pscri)->points.size() - 1];
+			_lastPointC = pscri->GetLastDrawnPoint();
 	}
 	else
 		_lastPointC = _topLeft;
@@ -1996,12 +1994,12 @@ void DrawArea::_Redraw(bool clear)
 	FalconPenKind savekind = _actPenKind;
 	bool saveEraseMode = _erasemode;
 
-	HistoryItemVector forPage;
+	IntVector /*HistoryItemVector*/ forPage;
 	CollectDrawables(forPage);  // in clipping area
 	if (clear)
 		_ClearCanvas();
 	for (auto phi : forPage)
-		_ReplotDrawableItem(phi);
+		_ReplotDrawableItem(_history->Drawable(phi));
 
 	_actPenKind = savekind;
 	_penWidth = savewidth;
@@ -2076,13 +2074,13 @@ QPainter *DrawArea::_GetPainter(QImage *pCanvas)
  *             are part of a pasted stack of items
  *				They are painted in paintEvent
  *-------------------------------------------------------*/
-bool DrawArea::_ReplotDrawableItem(HistoryItem* phi)
+bool DrawArea::_ReplotDrawableItem(DrawableItem* pdrwi)
 {
-	if (!phi || phi->IsImage() || !phi->IsVisible() ||!phi->Area().intersects(_clippingRect))
+	if (!pdrwi || pdrwi->IsImage() || !pdrwi->IsVisible() ||!pdrwi->Area().intersects(_clippingRect))
 		return false;
 
 	QPainter painter(_pActCanvas);
-	phi->Draw(_pActCanvas, _topLeft, _clippingRect);
+	pdrwi->Draw(&painter, _topLeft, _clippingRect);
 
 	return true;
 }
@@ -2218,12 +2216,12 @@ void DrawArea::_ShiftOrigin(QPointF delta)
 
 /*=============================================================
  * TASK:    shifts rectangular part of _pActCanvas to
- *          canvas _pOtherCanvas then exchanges these
+ *          canvas _pOtherCanvas then exchanges canvases
  * PARAMS:  delta value in pixels
  * GLOBALS: _pActCanvas, _pOtherCanvas
- * RETURNS: nothing and the two clipping area to be filled
+ * RETURNS: nothing The two clipping areas will be filled
  * REMARKS: - both canvases have same size and other attributes
- *          - usiong memcpy, so the horizontal pixel position
+ *          - using memcpy, so the horizontal pixel position
  *            uses units of bytes/pixel (pixelSizeInBytes)
  *------------------------------------------------------------*/
 void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
@@ -2474,15 +2472,16 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	qpt += _topLeft;
 
 	QString qs;
+	int pg = int((_topLeft.y() + qp.y()) / _prdata.screenPageHeight) + 1;
 	if (_rubberBand)
 	{
 		QRectF r = _rubberBand->geometry();
 		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9")).
-			arg(_topLeft.y() / _prdata.screenPageHeight + 1).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
+			arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
 			arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());
 	}
 	else
-		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ")).arg(_topLeft.y() / _prdata.screenPageHeight + 1).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
+		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ")).arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
 	emit TextToToolbar(qs);
 }
 
@@ -2514,12 +2513,13 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	// DEBUG
 	// qDebug("rect = (x:%d,y:%d,w:%d,h:%d)", rect.x(), rect.y(), rect.width(), rect.height());
 	// /DEBUG
-
+	int sprite_margin = 1; // pixel for border on either side
 	pSprite->visible = setVisible;
 	pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
-	pSprite->topLeft = rect.topLeft();     // sprite top left
+	pSprite->topLeft = rect.topLeft() - QPoint(sprite_margin, sprite_margin);     // sprite top left
 	pSprite->dp = cursorPos - pSprite->topLeft; // cursor position rel. to sprite
-	pSprite->image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32);
+	pSprite->rect.adjust(0, 0, 2*sprite_margin, 2*sprite_margin);
+	pSprite->image = QImage(pSprite->rect.width(), pSprite->rect.height(), QImage::Format_ARGB32);
 	pSprite->image.fill(Qt::transparent);     // transparent
 
 	QPainter *painter = _GetPainter(&pSprite->image);
@@ -2529,41 +2529,46 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	int pw = _actPenWidth;
 	bool em = _erasemode;
 
-	for (auto& di : pSprite->items)
+	int ix, siz = pSprite->items.Size();
+	DrawableItem* pdrwi;
+	for (ix = 0; ix < siz; ++ix )	// first show the screenshots they are in zorder already
 	{
-		if (di->dtType == DrawableType::dtScreenShot)
-		{
-			DrawableScreenShot*ss = (DrawableScreenShot*)di;
-			tr = QRectF(ss->startPos, pSprite->rect.size());
-			sr = ss->Image().rect();       
+		pdrwi = pSprite->items[ix];
+		if (pdrwi->dtType != DrawableType::dtScreenShot)   // screenshots are nelow others
+			break;
 
-			if (sr.width() > tr.width())
-				sr.setWidth(tr.width());
-			if (sr.height() > tr.height())
-				sr.setHeight(tr.height());
-			if (sr.width() < tr.width())
-				tr.setWidth(sr.width());
-			if (tr.height() < sr.height())
-				tr.setHeight(sr.height());
+		pdrwi = pSprite->items[ix];
+		DrawableScreenShot* pSs = (DrawableScreenShot*)pdrwi;
+		tr = QRectF(pSs->startPos, pSprite->rect.size());
+		sr = pSs->Image().rect();
 
-			painter->drawPixmap(tr, ss->Image(), sr);
-		}
-		else
-		{
-			_actPenKind = di->penKind;
-			_actPenWidth = di->penWidth;
-			_erasemode = di->penKind == penEraser ? true : false;
-			di->Draw(painter, QPointF(0, 0), pSprite->rect);
-		}
+		if (sr.width() > tr.width())
+			sr.setWidth(tr.width());
+		if (sr.height() > tr.height())
+			sr.setHeight(tr.height());
+		if (sr.width() < tr.width())
+			tr.setWidth(sr.width());
+		if (tr.height() < sr.height())
+			tr.setHeight(sr.height());
+
+		painter->drawPixmap(tr, pSs->Image(), sr);
 	}
+	for (; ix < siz; ++ix )	// then the others
+	{
+		pdrwi = pSprite->items[ix];
+		_actPenKind = pdrwi->PenKind();
+		_actPenWidth = pdrwi->penWidth;
+		pdrwi->Draw(painter, _topLeft + QPointF(sprite_margin, sprite_margin), pSprite->rect);
+	}
+
 	// create border to see the rectangle
-	if (_erasemode && !_debugmode)
-		painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+	painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
 	painter->setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
-	painter->drawLine(0, 0, pSprite->rect.width(), 0);
-	painter->drawLine(pSprite->rect.width(), 0, pSprite->rect.width(), pSprite->rect.height());
-	painter->drawLine(pSprite->rect.width(), pSprite->rect.height(), 0, pSprite->rect.height());
-	painter->drawLine(0, pSprite->rect.height(), 0, 0);
+	painter->drawRect(QRectF(QPoint(0,0), pSprite->rect.size()) );
+	//painter->drawLine(0, 0, pSprite->rect.width(), 0);
+	//painter->drawLine(pSprite->rect.width(), 0, pSprite->rect.width(), pSprite->rect.height());
+	//painter->drawLine(pSprite->rect.width(), pSprite->rect.height(), 0, pSprite->rect.height());
+	//painter->drawLine(0, pSprite->rect.height(), 0, 0);
 
 	delete painter;
 
@@ -2577,8 +2582,8 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 
 Sprite* DrawArea::_SpriteFromLists()
 {
-	Sprite* pSprite = new Sprite(_history, _copiedRect, &_copiedItems);
-	return _PrepareSprite(pSprite, _lastCursorPos, _copiedRect.translated(_lastCursorPos), false, true);
+	Sprite* pSprite = new Sprite(_history, historyList.CopiedRect(), _history->SelectedItemsList() );
+	return _PrepareSprite(pSprite, _lastCursorPos, historyList.CopiedRect().translated(_lastCursorPos), false, true);
 }
 
 void DrawArea::_MoveSprite(QPointF dr)
@@ -2610,10 +2615,10 @@ void DrawArea::_PasteSprite()
 	_pSprite = nullptr;             // so the next paint event finds no sprite
 	_history->AddPastedItems(ps->topLeft + _topLeft, ps);    // add at window relative position: top left = (0,0)
 	QRectF updateRect = ps->rect.translated(ps->topLeft).toRect();    // original rectangle
-	update(updateRect);
+	update(updateRect.toRect());
 	_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
 	_rubberRect = updateRect;
-	_rubberBand->setGeometry(updateRect);
+	_rubberBand->setGeometry(updateRect.toRect());
 	_rubberBand->show();
 	delete ps;
 

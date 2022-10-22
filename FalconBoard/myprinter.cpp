@@ -335,7 +335,7 @@ int MyPrinter::_CalcPages()
 {
     sortedPageNumbers.Init( QRectF(0, 0, _data.screenPageWidth, _data.screenPageHeight) );
 
-    int nSize = _pHist->CountOfScribble();
+    int nSize = _pHist->CountOfVisible();
 
     // for each scribble determine pages it apperas on and prepare
     // a list of pages ordered first by y then by x page indices
@@ -356,7 +356,7 @@ int MyPrinter::_CalcPages()
         for (pgn.nx = 0; pgn.nx * _data.screenPageWidth < maxX; ++pgn.nx)
         {
             QRectF rect(pgn.nx * _data.screenPageWidth, pgn.ny * _data.screenPageHeight, _data.screenPageWidth, _data.screenPageHeight);
-            pgn.yindices = _pHist->GetDrawableItemIndexesInRect(rect);
+            _pHist->GetDrawablesInside(rect, pgn.yindices);
             sortedPageNumbers.Insert(pgn);
         }
     }
@@ -455,10 +455,10 @@ bool MyPrinter::_PrintItem(int yi)
         else
             _pImagePainter->drawPixmap(visibleRect, psi->Image(), srcRect);
     }
-    else if (phi->Type() == dtScribble)
+    else if (phi->Type() == DrawableType::dtScribble)
     {             // paint over transparent layer
         DrawableItem* pDrwbl = phi->GetDrawable(true);    // dot, ellipse, rectangle, scribble, text
-        FalconPenKind pk = pDrwbl->penKind;
+        FalconPenKind pk = pDrwbl->PenKind();
         int pw = pDrwbl->penWidth;
 
         pDrwbl->Draw(_pDrawablePainter, _actPage.screenArea.topLeft());

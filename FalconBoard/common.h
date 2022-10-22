@@ -115,44 +115,6 @@ using IntVector = QVector<int>;
 
 extern QString UNTITLED;     // in falconBoard.cpp
 
-// ******************************************************
-//  KELL EZ???
-// 
-//----------------------------- MyPainter -------------------
-#if 0
-#include <QPainter>
-class FalconPainter
-{
-    QImage *_canvas = nullptr;
-    QFont _font;
-    QColor _penColor, _brushColor;
-    int _penWidth;
-    Qt::PenStyle _penStyle = Qt::SolidLine;
-    QPainter::CompositionMode _compMode;
-public:
-    FalconPainter(QImage *canvas=nullptr):_canvas(canvas) {}
-
-    inline void SetFont(QFont& font) { _font = font; }
-    inline void FontFromString(QString sfont) { _font.fromString(sfont); }
-    inline QFont Font() const {
-        return  _font;
-    }
-    inline QString FontToString() const { return _font.toString();  }
-    inline void SetCompositionMode(QPainter::CompositionMode cm) { _compMode = cm; }
-    inline void SetPen(QColor& penColor, int width = 0, Qt::PenStyle style=Qt::SolidLine) 
-    { 
-        _penColor = penColor;
-        if(width > 0) 
-            _penWidth = width;
-        _penStyle = style;
-    }
-    inline void SetPen(QString colorName, int width= -1, Qt::PenStyle style = Qt::SolidLine) { _penColor = colorName; }
-    inline void SetPenStyle(Qt::PenStyle penStyle) { _penStyle = penStyle; }
-
-    void DrawLine(); // uses _brushColor
-};
-#endif
-
 inline int IsUntitled(QString name)
 {
     return name.isEmpty() ? 1 : (name.left(UNTITLED.length()) == UNTITLED ? 2 : 0);
@@ -307,14 +269,6 @@ public:
     }
 };
 extern PenCursors penCursors;       // in drawarea.cpp
-
-
-QPointF CenterOf(QRectF rect)
-{
-    return QPointF(rect.left() + rect.width() / 2.0, rect.top() + rect.height() / 2.0);
-}
-
-
 
 /*=============================================================
  * TASK:    centralized settings handler

@@ -8,12 +8,18 @@
 
 HistoryList historyList;       // many histories are possible
 
+QRectF QuadAreaToArea(const QuadArea& qarea)
+{
+	QRectF area = QRectF(qarea.Left(), qarea.Top(), qarea.Right(), qarea.Bottom());
+	return area;
+}
+
 QuadArea AreaForItem(const int &i) 
 { 
 	History* ph = historyList[-1];
 	assert(ph);
-	HistoryItemPointer phi = ph->Item(i);
-	QRectF r = phi->Area();  
+	DrawableItem *pdrwi = ph->Drawable(i);
+	QRectF r = pdrwi->Area();  
 	return QuadArea(r.x(), r.y(), r.width(), r.height()); 
 }
 bool IsItemsEqual(const int &i1, const int &i2)
@@ -54,6 +60,7 @@ struct _SortFunc
 				else
 					return false;
 		}
+		return false;
 	}
 };
 
@@ -127,14 +134,17 @@ QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness, Qt
 
 /* *********************** Drawables ********************/
 			// DrawableItem
+bool DrawableItem::drawStarted;
 
 DrawableItem& DrawableItem::operator=(const DrawableItem& other)
 {
+	*(DrawablePen*)this = (DrawablePen&)other;
+	//penColor = other.penColor;
+	//SetPenKind( other.penKind);
+	//penWidth = other.penWidth;
+
 	dtType = other.dtType;
 	startPos = other.startPos;
-	penColor = other.penColor;
-	penKind = other.penKind;
-	penWidth = other.penWidth;
 	zOrder = other.zOrder;
 	angle = other.angle;
 	isVisible = other.isVisible;
@@ -207,21 +217,29 @@ void DrawableItem::Rotate(MyRotation rot, QRectF insideThisRectangle, qreal alph
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 {
-	ofs << (int)di.dtType << di.startPos << (int)di.penKind << di.penColor << di.penWidth << di.angle;
-	ofs << di.erasers;
-	//ofs << di.erasers.size();
-	//for (auto er : di.erasers)
-	//	ofs << er.eraserPenWidth << er.eraserStroke;
+	ofs << (int)di.dtType << di.startPos << (int)di.PenKind() /*<< di.PenColor()*/ << di.penWidth << di.angle;
+	ofs << di.erasers.size();
+	for (auto e : di.erasers)
+	{
+		ofs << e.eraserPenWidth << e.eraserStroke;
+	}
 
 	return ofs;
 }
-inline QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		
+inline QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not saved, so not set, must set it after all drawables read in
 {
 	int n;
 	ifs >> n; di.dtType = (DrawableType)n;
 	ifs >> n;
-	di.penKind = (FalconPenKind)n;
-	ifs >> di.startPos >> di.penColor >> di.penWidth >> di.angle >> di.erasers;
+	di.SetPenKind( (FalconPenKind)n);
+	ifs >> di.startPos /*>> di.penColor*/ >> di.penWidth >> di.angle;
+	ifs >> n;
+	while (n--)
+	{
+		DrawableItem::EraserData ed;
+		ifs >> ed.eraserPenWidth >> ed.eraserStroke;
+		di.erasers.push_back(ed);
+	}
 
 	return ifs;
 }
@@ -238,14 +256,14 @@ void DrawableDot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QR
 	{
 		SetPainterPenAndBrush(painter, clipR);
 		QPointF pt = startPos - topLeftOfVisibleArea;
-		QPen pen(penColor);
+		QPen pen(PenColor());
 		pen.setWidth(penWidth);
 		painter->setPen(pen);
 
 		painter->drawPoint(startPos);
 	}
 	else
-		DrawWithEraser(painter, topLeftOfVisibleArea);
+		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
 
@@ -287,7 +305,7 @@ void DrawableCross::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const 
 		painter->drawLine(rect.topRight(), rect.bottomLeft());
 	}
 	else
-		DrawWithEraser(painter, topLeftOfVisibleArea);
+		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di)
@@ -347,7 +365,7 @@ void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, cons
 	{
 		QColor c;
 		if (isFilled)
-			c = penColor;
+			c = PenColor();
 		SetPainterPenAndBrush(painter, clipR, c);
 		painter->drawEllipse(rect.translated(-topLeftOfVisibleArea));
 	}
@@ -414,12 +432,12 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 	{
 		QColor c;
 		if (isFilled)
-			c = penColor;
+			c = PenColor();
 		SetPainterPenAndBrush(painter, clipR, c);
 		painter->drawRect(rect.translated(-topLeftOfVisibleArea));
 	}
 	else
-		DrawWithEraser(painter, topLeftOfVisibleArea);
+		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di)
@@ -441,16 +459,14 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawableRectangle& di)		  // ca
 //-------------------------------------------------------------
 
 
-void DrawableScreenShot::AddImage(QPixmap& image)
+void DrawableScreenShot::AddImage(QPixmap& animage)
 {
-	imgIndex = pScreenShots->size();
-	pScreenShots->append(image);
+	image = animage;
 }
 
 inline QRectF DrawableScreenShot::Area() const
 {
-	QPixmap& img = (*pScreenShots)[imgIndex];
-	return QRectF(startPos, img.size());
+	return QRectF(startPos, image.size());
 }
 
 QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
@@ -462,7 +478,6 @@ void DrawableScreenShot::Rotate(MyRotation rot, QRectF encRect, qreal alpha)
 {
 	QTransform transform;
 	QImage img;
-	QPixmap &image = (*pScreenShots)[imgIndex];
 	bool fliph = false, flipv = true;	// defaullt flip orientations
 	switch (rot)
 	{
@@ -493,24 +508,21 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 		painter->drawPixmap(startPos - topLeftOfVisibleArea, Image());
 	}
 	else
-		DrawWithEraser(painter, topLeftOfVisibleArea);
+		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
 
 // ---------------------------------------------
 inline QDataStream& operator<<(QDataStream& ofs, const DrawableScreenShot& bimg)
 {
-	ofs << (DrawableItem&)bimg << (*bimg.pScreenShots)[bimg.imgIndex];
+	ofs << (DrawableItem&)bimg << bimg.image;
 
 	return ofs;
 }
 
 inline QDataStream& operator>>(QDataStream& ifs, DrawableScreenShot& bimg)	  // call AFTER header is read in
 {	 
-	QPixmap image;
-	ifs >> image;
-	bimg.pScreenShots->append(image);
-	bimg.imgIndex = bimg.pScreenShots->size() - 1;
+	ifs >> bimg.image;
 	return ifs;
 }
 
@@ -520,23 +532,25 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawableScreenShot& bimg)	  // 
 
 DrawableScribble::DrawableScribble(FalconPenKind penKind, qreal penWidth, int zorder) noexcept : DrawableItem(DrawableType::dtScribble, points.boundingRect().topLeft(), zOrder, penKind, penWidth) {}
 DrawableScribble::DrawableScribble(const DrawableScribble& di) { *this = di; }
-DrawableScribble::DrawableScribble(const DrawableScribble&& di) noexcept { *this = di; }
+DrawableScribble::DrawableScribble(DrawableScribble&& di) noexcept { *this = di; }
 DrawableScribble& DrawableScribble::operator=(const DrawableScribble& di)
 {
+	*(DrawableItem*)this = (DrawableItem&)di;
+	//SetPenKind( di.penKind);
+	//penWidth = di.penWidth;
 	dtType = di.dtType;
 	zOrder = di.zOrder;
-	penKind = di.penKind;
-	penWidth = di.penWidth;
 	points = di.points;
 	return *this;
 }
 
-DrawableScribble& DrawableScribble::operator=(const DrawableScribble&& di)  noexcept
+DrawableScribble& DrawableScribble::operator=(DrawableScribble&& di)  noexcept
 {
+	*(DrawableItem*)this = (DrawableItem&&)di;
+	//SetPenKind( di.penKind);
+	//penWidth = di.penWidth;
 	dtType = di.dtType;
 	zOrder = di.zOrder;
-	penKind = di.penKind;
-	penWidth = di.penWidth;
 	points = di.points;
 	return *this;
 }
@@ -557,8 +571,9 @@ bool DrawableScribble::IsExtension(const QPointF& p, const QPointF& p1, const QP
 		vpp = p1 - p2;
 
 	// the two vectors point in the same direction when vpp.y()/vpp.x() == vp.y()/vp.x()
+	// and both delta has the same sign. (turning back is not an extension)
 	// i.e to avoid checking for zeros in divison: 
-	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && (vp.x() * vpp.x() > 0);
+	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && ( (vp.x() != vpp.x() && vp.x() * vpp.x() > 0) || (vp.y() != vpp.y() && vp.y() * vpp.y() > 0));
 }
 
 void DrawableScribble::add(QPointF p)
@@ -703,7 +718,7 @@ void DrawableScribble::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, con
 		painter->drawPolyline(pol);
 	}
 	else
-		DrawWithEraser(painter, topLeftOfVisibleArea);
+		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
 
@@ -742,7 +757,7 @@ void DrawableText::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const Q
 		// draw normally using 'painter' and 'topLeftOfVisibleArea'
 	}
 	else
-		DrawWithEraser(painter, topLeftOfVisibleArea);
+		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
 inline QDataStream& operator<<(QDataStream& ofs, const DrawableText& di)
@@ -761,30 +776,7 @@ inline QDataStream& operator>>(QDataStream& ifs, DrawableText& di)           // 
 			//=====================================
 IntVector DrawableList::ListOfItemIndicesInRect(QRectF &r)	const
 {
-	auto sortFunc = [&](int i, int j) 				// returns true if item i comes before item j
-	{
-		DrawableItem* pdri1 = (*this)[i], * pdri2 = (*this)[j];
-		// no two items may have the same z-order
-		bool zOrderOk = pdri1->zOrder < pdri2->zOrder;
-
-		if (zOrderOk)	// zOrder OK
-			return true;
-		else
-		{
-			if (!pdri1->Area().intersects(pdri2->Area()))
-				if (pdri1->startPos.y() < pdri2->startPos.y())
-					return true;
-				else if (pdri1->startPos.y() == pdri2->startPos.y() && pdri1->startPos.x() < pdri2->startPos.x())
-					return true;
-				else
-					return false;
-		}
-	};
-
-	std::vector<int> iv = _pItemTree->GetValues(AreaForQRect(r));	// only visible elements!
-	std::sort(iv.begin(), iv.end(), sortFunc);
-	IntVector resv = QVector<int>(iv.begin(), iv.end()); //  ::fromStdVector(iv);	<- deprecated
-	return resv;
+	return _pQTree ? _pQTree->GetValues(&_items, r) : IntVector();
 }
 
 IntVector DrawableList::ListOfItemIndicesInQuadArea(QuadArea& r) const
@@ -798,9 +790,9 @@ QPointF DrawableList::BottomRightLimit(QSize& screenSize)
 	QPointF pt;
 	int ixBottom = 0;
 
-	if (_pItemTree->Count())
+	if (_pQTree && _pQTree->Count())
 	{
-		ixBottom = _pItemTree->BottomItem();
+		ixBottom = _pQTree->BottomItem();
 		DrawableItem* pdri = (*this)[ixBottom];
 		pt = pdri->Area().topLeft();
 		pt.setY(pt.y() - screenSize.height() / 2);
@@ -826,7 +818,7 @@ DrawableScreenShot* DrawableList::NextVisibleScreenShot()
 	if (_canvasRect.isNull())
 		return nullptr;
 
-	while (++_imageIndex < size())
+	while (++_imageIndex < _items.size())
 	{
 		if ((*this)[_imageIndex]->dtType == DrawableType::dtScreenShot && (*this)[_imageIndex]->isVisible)
 		{
@@ -838,15 +830,15 @@ DrawableScreenShot* DrawableList::NextVisibleScreenShot()
 }
 
 void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-index ordered index '_yOrder'
-{
+{														  // _pQTree must not be NULL
 	// DEBUG
 #if !defined _VIEWER && defined _DEBUG
-	_pItemTree->DebugPrint();
+	_pQTree->pItemTree->DebugPrint();
 #endif
 	// /DEBUG
-	QuadArea area = _pItemTree->Area();
-	area = QuadArea(area.Left(), thisY, area.Width(), area.Height());
-	std::vector<int> iv = _pItemTree->GetValues(area);
+	QuadArea area = _pQTree->Area();
+	QRectF r = QRectF(area.Left(), thisY, area.Width(), area.Height());
+	IntVector iv = _pQTree->GetValues(&_items, r);
 
 	for (auto ind : iv)
 	{
@@ -854,7 +846,7 @@ void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-i
 			(*this)[ind]->Translate({ 0, (qreal)dy }, -1);
 	}
 
-	_pItemTree->Resize(_pItemTree->Area());
+	_pQTree->Resize(_pQTree->Area());
 }
 
 
@@ -867,7 +859,7 @@ void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-i
  * One history element
  *-------------------------------------------------------*/
 
-HistoryItem::HistoryItem(History* pHist, HistEvent typ = HistEvent::heNone) : pHist(pHist), type(typ), pDrawables(pHist->Drawables()) {}
+HistoryItem::HistoryItem(History* pHist, HistEvent typ) : pHist(pHist), type(typ), pDrawables(pHist->Drawables()) {}
 
 
 bool HistoryItem::operator<(const HistoryItem& other)
@@ -892,22 +884,21 @@ bool HistoryItem::operator<(const HistoryItem& other)
 //-------------------------------------------- 
 // HistoryDrawableItem
 //--------------------------------------------
-// expects a complete subclass cast as Drawableheader and adds a copy of it
+// expects a complete subclass cast as DrawableItem and adds a copy of it
 HistoryDrawableItem::HistoryDrawableItem(History* pHist, DrawableItem& dri) : HistoryItem(pHist, HistEvent::heDrawable)
 {
-	DrawableItem* _Drawable;
-
+	DrawableItem* _pDrawable;
 	switch (dri.dtType)
 	{
-		case DrawableType::dtDot:			_Drawable = new DrawableDot(dynamic_cast<DrawableDot&>(dri));				break;
-		case DrawableType::dtCross:		_Drawable = new DrawableCross(dynamic_cast<DrawableCross&>(dri));			break;
-		case DrawableType::dtEllipse:		_Drawable = new DrawableEllipse(dynamic_cast<DrawableEllipse&>(dri));		break;
-		case DrawableType::dtRectangle:	_Drawable = new DrawableRectangle(dynamic_cast<DrawableRectangle&>(dri));	break;
-		case DrawableType::dtScribble:	_Drawable = new DrawableScribble(dynamic_cast<DrawableScribble&>(dri));		break;
-		case DrawableType::dtScreenShot:	_Drawable = new DrawableScreenShot(dynamic_cast<DrawableScreenShot&>(dri));	break;
-		case DrawableType::dtText:		_Drawable = new DrawableText(dynamic_cast<DrawableText&>(dri));				break;
+		case DrawableType::dtDot:		_pDrawable = new DrawableDot(dynamic_cast<DrawableDot&>(dri));				break;
+		case DrawableType::dtCross:		_pDrawable = new DrawableCross(dynamic_cast<DrawableCross&>(dri));			break;
+		case DrawableType::dtEllipse:	_pDrawable = new DrawableEllipse(dynamic_cast<DrawableEllipse&>(dri));		break;
+		case DrawableType::dtRectangle:	_pDrawable = new DrawableRectangle(dynamic_cast<DrawableRectangle&>(dri));	break;
+		case DrawableType::dtScribble:	_pDrawable = new DrawableScribble(dynamic_cast<DrawableScribble&>(dri));		break;
+		case DrawableType::dtScreenShot:_pDrawable = new DrawableScreenShot(dynamic_cast<DrawableScreenShot&>(dri));	break;
+		case DrawableType::dtText:		_pDrawable = new DrawableText(dynamic_cast<DrawableText&>(dri));				break;
 	}
-	indexOfDrawable = pHist->AddToDrawables(_Drawable);
+	indexOfDrawable = pHist->AddToDrawables(_pDrawable);
 }
 
 HistoryDrawableItem::HistoryDrawableItem(History* pHist, DrawableItem* pdri) : HistoryItem(pHist, HistEvent::heDrawable)
@@ -933,9 +924,9 @@ void HistoryDrawableItem::SetVisibility(bool visible)
 	pDrawables->SetVisibility(indexOfDrawable,visible);	// also adds to or removes from quad tree
 }
 
-bool HistoryDrawableItem::IsHidden() const
+bool HistoryDrawableItem::IsVisible() const
 {
-	return !_Drawable()->isVisible;
+	return _Drawable()->isVisible;
 }
 
 HistoryDrawableItem& HistoryDrawableItem::operator=(const HistoryDrawableItem& other)
@@ -957,7 +948,22 @@ int HistoryDrawableItem::ZOrder() const
 	return _Drawable()->zOrder;
 }
 
-DrawableItem* HistoryDrawableItem::GetDrawable(bool onlyVisible, int* pIndex = nullptr) const
+int HistoryDrawableItem::Undo()
+{
+	pHist->Drawables()->Undo();	// also removes from QuadTree
+	return 1;
+}
+
+int HistoryDrawableItem::Redo()
+{
+	pHist->Drawables()->Redo(); // also adds to quadtree
+	return 1;
+}
+
+//-------------------------------------------- 
+// HistoryDeleteItem
+//--------------------------------------------
+DrawableItem* HistoryDrawableItem::GetDrawable(bool onlyVisible, int* pIndex) const
 {
 	if (pIndex)
 		*pIndex = indexOfDrawable;
@@ -1164,9 +1170,9 @@ int HistoryPasteItemTop::Redo()		// elements copied back to '_items' already
 	return count + moved + 1;	// we are at bottom item -> change stack pointer to top item
 }
 
-bool HistoryPasteItemTop::IsHidden() const
+bool HistoryPasteItemTop::IsVisible() const
 {
-	return (*pHist)[indexOfBottomItem]->IsHidden();
+	return (*pHist)[indexOfBottomItem]->IsVisible();
 }
 
 void HistoryPasteItemTop::SetVisibility(bool visible)
@@ -1218,11 +1224,10 @@ HistoryReColorItem::HistoryReColorItem(History* pHist, DrawableIndexVector& sele
 {
 	type = HistEvent::heRecolor;
 
-	int n = 0;						  // set size for penKind array and get encompassing rectangle
 	for (auto drix : selectedList)
 	{
-		boundingRectangle = boundingRectangle.united((*pHist)[drix]->Area());
-		n += (*pHist)[drix]->Size();
+		DrawableItem* pdrwi = pHist->Drawable(drix);
+		boundingRectangle = boundingRectangle.united(pdrwi->Area());
 	}
 	Redo();		// get original colors and set new color tp pk
 }
@@ -1261,25 +1266,18 @@ int  HistoryReColorItem::Undo()
 	int iact = 0;
 	for (auto drix : selectedList)
 	{
-		DrawableItem* pdri;
-		HistoryItem* phi = (*pHist)[drix];	 // must be a drawable item!
-
-		if((pdri = phi->GetDrawable(true)))
-			pdri->penKind = penKindList[iact++];
+		DrawableItem* pdri = pHist->Drawable(drix);
+		pdri->SetPenKind( penKindList[iact++]);
 	}
 	return 1;
 }
 int  HistoryReColorItem::Redo()
 {
-	for (auto drix : selectedList)
+	for (auto drix : selectedList)	// selectedlist: indices of drawables in pHist
 	{
-		DrawableItem* pdri;
-		HistoryItem* phi = (*pHist)[drix];
-		if ((pdri = phi->GetDrawable(true)))
-		{
-			penKindList.push_back(pdri->penKind);
-			pdri->penKind = pk;
-		}
+		DrawableItem* pdri = pHist->Drawable(drix);
+		penKindList.push_back(pdri->PenKind());
+		pdri->SetPenKind( pk);
 	}
 	return 0;
 }
@@ -1365,21 +1363,21 @@ int HistoryRotationItem::Undo()
 	float alpha = rAlpha;
 	switch (rot)
 	{
-	case rotR90:
-		rotation = rotL90;
-		break;
-	case rotL90:
-		rotation = rotR90;
-		break;
-	case rot180:
-	case rotFlipH:
-	case rotFlipV:
-		break;
-	case rotAlpha:
-		alpha = -rAlpha;
-		break;
-	default:
-		break;
+		case rotR90:
+			rotation = rotL90;
+			break;
+		case rotL90:
+			rotation = rotR90;
+			break;
+		case rot180:
+		case rotFlipH:
+		case rotFlipV:
+			break;
+		case rotAlpha:
+			alpha = -rAlpha;
+			break;
+		default:
+			break;
 	}
 	for (auto dri : driSelectedDrawables)
 		(*pHist)[dri]->Rotate(rotation, encRect, alpha);
@@ -1451,30 +1449,32 @@ int HistorySetTransparencyForAllScreenshotsItems::Undo()
 }
 
 //********************************** History class ****************************
-void History::_SaveClippingRect()
-{
-	_savedClps.push(_clpRect);
-}
-
-void History::_RestoreClippingRect()
-{
-	_clpRect = _savedClps.pop();
-}
-
 History::History(HistoryList* parent) noexcept: _parent(parent) 
 { 
+	_quadTreeDelegate.SetUp();
+	_drawables.SetQuadTreeDelegate(&_quadTreeDelegate).SetZorderStore(&_zorderStore);	// allocate objects and set them 
+	_drawables.SetZorderStore(&_zorderStore);
 }
 
 History::History(const History& o)
 {
 	_parent = o._parent;
 	_items = o._items;
+	_redoList = o._redoList;
+	_drawables = o._drawables;
+	_quadTreeDelegate = o._quadTreeDelegate;
+
+	_zorderStore = o._zorderStore;
 }
 
 History::History(History&& o) noexcept
 {
 	_parent = o._parent;
 	_items = o._items;
+	_redoList = o._redoList;
+	_drawables = o._drawables;
+	_quadTreeDelegate = o._quadTreeDelegate;
+	_zorderStore = o._zorderStore;
 
 	o._items.empty();
 	o._parent	= nullptr;
@@ -1483,6 +1483,16 @@ History::History(History&& o) noexcept
 History::~History()
 {
 	Clear();
+}
+
+void History::_SaveClippingRect()
+{
+	_savedClps.push(_clpRect);
+}
+
+void History::_RestoreClippingRect()
+{
+	_clpRect = _savedClps.pop();
 }
 
 QSizeF History::UsedArea()
@@ -1562,8 +1572,14 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 	// _selectionRect = QRectF();
 
 	_items.push_back(p);
-
-	_redoList.clear();	// no undo after new item added
+		  // no undo after new item added
+	for(auto a: _redoList)
+		if (a->type == HistEvent::heDrawable)
+		{
+			_drawables.ClearRedo();			// any  Undo()-t drawbles must be removed
+			break;
+		}
+	_redoList.clear();	
 	//if (p->Type() == dtScreenShot)
 	//{
 	//	HistoryDrawableItem* phi = reinterpret_cast<HistoryDrawableItem*>(p);
@@ -1592,7 +1608,6 @@ void History::Clear()		// does not clear lists of copied items and screen snippe
 
 	_items.clear();
 	_redoList.clear();
-	_screenShotImageList.clear();
 
 	_drawables.Clear();			// images and others
 	_readCount = 0;
@@ -1815,7 +1830,8 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 
 			qint32 n;
 			ifs >> n; dScrb.zOrder = n;
-			ifs >> n; dScrb.penKind = (FalconPenKind)(n & ~128);
+			ifs >> n; dScrb.SetPenKind( (FalconPenKind)(n & ~128));
+			// dScrb.SetPenColor();	// from penKind
 			bool filled = n & 128;
 			ifs >> n; dScrb.penWidth = n;
 
@@ -1832,33 +1848,36 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 			if (dScrb.points.size() == 2 && dScrb.points[0] == dScrb.points[1])	// then its a Dot
 			{
 				dDot.penWidth = dScrb.penWidth;
-				dDot.penKind = dScrb.penKind;
-				dDot.SetPenColor();
+				dDot.SetPenKind(dScrb.PenKind());
+				//dDot.penColor = dScrb.penColor;
 				dDot.startPos = dScrb.points[0];
 				pdrwh = &dDot;
 			}
-			auto isRectangle = [&](QPolygonF& poly)
+			else
 			{
-				return dScrb.points.size() == 5 &&
-					dScrb.points[4] == dScrb.points[0] &&
-					dScrb.points[1].y() == dScrb.points[0].y() &&
-					dScrb.points[2].x() == dScrb.points[1].x() &&
-					dScrb.points[3].y() == dScrb.points[2].y();
-			};
-			if (isRectangle(dScrb.points))
-			{
-				pdrwh = &dRct;
-				*pdrwh = (DrawableItem&)dScrb;
-				dRct.rect = QRectF(dScrb.points[0], QSizeF(dScrb.points[1].x() - dScrb.points[0].x(), dScrb.points[2].y() - dScrb.points[1].y()));
+				auto isRectangle = [&](QPolygonF& poly)
+				{
+					return dScrb.points.size() == 5 &&
+						dScrb.points[4] == dScrb.points[0] &&
+						dScrb.points[1].y() == dScrb.points[0].y() &&
+						dScrb.points[2].x() == dScrb.points[1].x() &&
+						dScrb.points[3].y() == dScrb.points[2].y();
+				};
+				if (isRectangle(dScrb.points))
+				{
+					pdrwh = &dRct;
+					*pdrwh = (DrawableItem&)dScrb;
+					dRct.rect = QRectF(dScrb.points[0], QSizeF(dScrb.points[1].x() - dScrb.points[0].x(), dScrb.points[2].y() - dScrb.points[1].y()));
+					//dRct.SetPenColor();
+				}
 			}
-
 			// patch for older versions:
 			if (version < 0x56010108)
 			{
-				if (dScrb.penKind == penEraser)
-					dScrb.penKind = penYellow;
-				else if (dScrb.penKind == penYellow)
-					dScrb.penKind = penEraser;
+				if (dScrb.PenKind()== penEraser)
+					dScrb.SetPenKind(penYellow);
+				else if (dScrb.PenKind()== penYellow)
+					dScrb.SetPenKind( penEraser);
 			}
 			// end patch
 			if (ifs.status() != QDataStream::Ok)
@@ -1950,8 +1969,8 @@ HistoryItem* History::AddDeleteItems(Sprite* pSprite)
  *-------------------------------------------------------*/
 HistoryItem* History::AddPastedItems(QPointF topLeft, Sprite* pSprite)			   // tricky
 {
-	DrawableList* pCopiedItems = pSprite ? &pSprite->items : _parent->_pCopiedItems;
-	QRectF* pCopiedRect = pSprite ? &pSprite->rect : _parent->_pCopiedRect;
+	DrawableList* pCopiedItems = pSprite ? &pSprite->items : &_parent->_copiedItems;
+	QRectF* pCopiedRect = pSprite ? &pSprite->rect : &_parent->_copiedRect;
 
 	if (!pCopiedItems->Size())	// any drawable
 		return nullptr;          // do not add an empty list
@@ -1974,7 +1993,7 @@ HistoryItem* History::AddPastedItems(QPointF topLeft, Sprite* pSprite)			   // t
 	}
 
 	//----------- add drawables
-	for (auto si : *pCopiedItems)
+	for (auto si : *pCopiedItems->Items())
 	{
 		si->Translate(topLeft, -1);
 		HistoryDrawableItem* p = new HistoryDrawableItem(this, si);	   // si's data remains where it was
@@ -1982,7 +2001,7 @@ HistoryItem* History::AddPastedItems(QPointF topLeft, Sprite* pSprite)			   // t
 	}
 	// ------------Add Paste top marker item
 	QRectF rect = pCopiedRect->translated(topLeft);
-	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->size(), rect);
+	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->Size(), rect);
 	if (pSprite)
 		pt->moved = pSprite->itemsDeleted ? 1 : 0;		// mark it moved
 
@@ -2063,11 +2082,6 @@ HistoryItem* History::Undo()      // returns top left after undo
 	{
 		phi = _items[actItem];	// here again, index is never negative 
 		_redoList.push_back(phi);
-
-		// only drawable elements are in _pItemTree
-		int index;
-		if(phi->GetDrawable(true, &index)->isVisible)
-			_drawables.Remove(index);
 
 		_items.pop_back();	// we need _items for removing the
 		--actItem;
@@ -2207,7 +2221,7 @@ int History::SelectTopmostImageUnder(QPointF p)
 	int /*DrawableItemIndex*/ dri;
 	if (p == QPointF(-1, -1))
 	{
-		dri = _drawables.size() - 1;
+		dri = _drawables.Size() - 1;
 
 		DrawableItem* pdrh;
 		pdrh = _drawables[dri];
@@ -2278,10 +2292,13 @@ QRectF History::SelectDrawablesUnder(QPointF& p, bool addToPrevious)
  *			into '_copiedItems' and to the clipboard
  *
  * PARAMS:	sprite: possible null pointer to sprite
+ *				that contains the copied drawables
+ *				when null _copiedItems is used
  * GLOBALS: _parent (HistoryList)
  *			_driSelectedDrawables -only used if
- *			the sprite does not yet has its list
- *			filled in
+ *					the sprite does not yet has its list
+ *					filled in
+ *			_selectionRect
  * RETURNS:	nothing
  * REMARKS: - if sprite is null copies items into
  *				'_copiedItems' else into the sprite
@@ -2291,7 +2308,7 @@ QRectF History::SelectDrawablesUnder(QPointF& p, bool addToPrevious)
  *-------------------------------------------------------*/
 void History::CopySelected(Sprite* sprite)
 {
-	DrawableList* pCopiedItems = sprite ? &sprite->items  : _parent->_pCopiedItems;
+	DrawableList& copiedItems = sprite ? sprite->items  : _parent->_copiedItems;
 	DrawableIndexVector* pSelectedDri;
 	if (sprite)
 	{
@@ -2304,20 +2321,22 @@ void History::CopySelected(Sprite* sprite)
 
 	if (!pSelectedDri->isEmpty())
 	{
-		pCopiedItems->clear();
+		copiedItems.Clear();
 
 		for (auto ix : _driSelectedDrawables)  // absolute drawable item indices of visible items selected
 		{
 			DrawableItem* pdri = _drawables[ix];
 
-			pCopiedItems->CopyDrawable(*pdri);
+			copiedItems.CopyDrawable(*pdri);
 		}
-		*_parent->_pCopiedRect = _selectionRect.translated(-_selectionRect.topLeft());
+		_parent->_copiedRect = _selectionRect.translated(-_selectionRect.topLeft());
 
-		std::sort(pCopiedItems->begin(), pCopiedItems->end(), [](DrawableItem& pl, DrawableScribble& pr) {return pl.zOrder < pr.zOrder; });
+		DrawableItemList *pdrl = copiedItems.Items();
 
+		std::sort(pdrl->begin(), pdrl->end(), [](DrawableItem* pl, DrawableItem* pr) {return pl->zOrder, pr->zOrder; });
+																			
 		if (sprite)
-			sprite->rect = *_parent->_pCopiedRect;	// (0,0, width, height)
+			sprite->rect = _parent->_copiedRect;	// (0,0, width, height)
 
 		_parent->CopyToClipboard();
 	}
@@ -2355,7 +2374,7 @@ void History::CollectPasted(const QRectF& rect)
 }
 
 // ********************************** Sprite *************
-Sprite::Sprite(History* ph, QRectF& rectf, const DrawableIndexVector &dri) : pHist(ph), driSelectedDrawables(dri)
+Sprite::Sprite(History* ph, const QRectF& rectf, const DrawableIndexVector &dri) : pHist(ph), driSelectedDrawables(dri)
 {
 	ph->CopySelected(this);
 	rect = rectf;	// set in CopySelected() so must overwrite it here
@@ -2373,22 +2392,22 @@ constexpr const char* fbmimetype = "falconBoard-data/mwb";
 /*=============================================================
  * TASK:	copies selected images and scribbles to clipboard
  * PARAMS:
- * GLOBALS: _pCopiedItem, _pCopiedImages, _copyGUID
+ * GLOBALS: _copiedItem, _copiedImages, _copyGUID
  * RETURNS:
  * REMARKS:
  *------------------------------------------------------------*/
 void HistoryList::CopyToClipboard()
 {
-	if (!_pCopiedItems || !_pCopiedItems->size())
+	if (!_copiedItems.Size())
 		return;
 
 	// copy to system clipboard
 	QByteArray clipData;
 	QDataStream data(&clipData, QIODevice::WriteOnly);		  // uses internal QBuffer
 
-	data << *_pCopiedRect;
-	data << _pCopiedItems->size();
-	for (auto sr : *_pCopiedItems)
+	data << _copiedRect;
+	data << _copiedItems.Items()->size();
+	for (auto sr : *_copiedItems.Items())
 		data << sr;
 
 	QMimeData* mimeData = new QMimeData;
@@ -2425,7 +2444,7 @@ void HistoryList::PasteFromClipboard()
 	{
 		_copyGUID = s.mid(19);
 
-		_pCopiedItems->clear();
+		_copiedItems.Clear();
 		QByteArray pclipData = pMime->data(formats[formatIndex]);
 		QDataStream data(pclipData);		  // uses internal QBuffer
 
@@ -2434,13 +2453,13 @@ void HistoryList::PasteFromClipboard()
 		QString qs;
 		int cnt;
 
-		data >> *_pCopiedRect;
+		data >> _copiedRect;
 		data >> cnt;
 		while (cnt--)
 		{
 			data >> dri.dtType;	
 			data >> dri;			// this must be called aftetr type was read
-			_pCopiedItems->push_back(&dri);
+			_copiedItems.AddDrawable(&dri);
 		}
 	}
 }

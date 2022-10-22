@@ -230,10 +230,10 @@ private:
     MyPrinter* _printer = nullptr;
 
             // key states used
-    bool    _spaceBarDown = false;  // true when canvas is moved with the mouse or the pen
+    bool    _spaceBarDown = false;  // when true canvas is moved with the mouse or the pen
     Qt::KeyboardModifiers _mods;
 
-    bool    _drawStarted = false;      // calculate start vector
+    bool    _drawStarted = false;   // calculate start vector
     bool    _isHorizontal;          // when _shiftKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
                                     // and used in line drawing
 
@@ -268,9 +268,8 @@ private:
     //      _grid           - not an image. Just drawn after background when it must be shown moves together with the canvas window
     //      _background     - image loaded from file
     //      the DrawArea widget - background color
-    ScreenShotImageList _copiedImages;      // copy images on _nSelectedList to this
-    DrawableList _copiedItems;              // other items to this list 
-    QRectF _copiedRect;                     // bounding rectangle for copied items used for paste operation
+    //DrawableList _copiedItems;              // replaced by  'HistoryList::CopiedItems other items to this list 
+    // QRectF _copiedRect;                    // replaced by  'HistoryList::CopiedRect()' bounding rectangle for copied items used for paste operation
 
     QImage  _background,
             _canvas1, _canvas2;      // transparent layer, draw on this then show background and this on the widget
@@ -288,7 +287,7 @@ private:
                                 // grid 
     bool   _bGridOn = false;
     bool   _gridIsFixed = false;
-    bool   _bPageGuidesOn = false;          // true: draw line on page breaks depending on _pageHeight and _pageWidth
+    bool   _bPageGuidesOn = false;          // true: draw line for page breaks on printer depending on _pageHeight and _pageWidth
     int    _nGridSpacingX = 64,
            _nGridSpacingY = 64;
     QColor _gridColor = "#d0d0d0";          // for white system color scheme
@@ -363,7 +362,7 @@ private:
     void _DrawAllPoints(DrawableItem* pscrbl);
     void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
 
-    bool _ReplotDrawableItem(HistoryItem* pscrbl); 
+    bool _ReplotDrawableItem(DrawableItem* pscrbl); 
     void _SetCanvasAndClippingRect();
     void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);
