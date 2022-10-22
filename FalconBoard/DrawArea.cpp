@@ -2491,7 +2491,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
  * TASK:    Create a new sprite using lists of selected
  *          items and images
  * PARAMS:  pos: event position relative to _topLeft
- *          rect: from _rubberRect relative to _topLeft
+ *          rectOnScreen: area on screen (from _rubberRect) relative to _topLeft
  *          deleted: was items deleted at original position?
  *                  false: no, just copied to sprite
  *          setVisible: should we display the sprite? (default: true)
@@ -2501,29 +2501,29 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
  *            which leaves previously copied items intact
  *              so paste operation still pastes the non sprite
  *              data
+ *			- sprite's _items have already rectOnScreen top left
+ *				relative coordinates
  *-------------------------------------------------------*/
-Sprite* DrawArea::_CreateSprite(QPointF pos, QRectF& rect, bool deleted, bool setVisible)
+Sprite* DrawArea::_CreateSprite(QPointF pos, QRectF& rectOnScreen, bool deleted, bool setVisible)
 {
 	_pSprite = new Sprite(_history);        // this copies the selected items into lists
-	return _PrepareSprite(_pSprite, pos, rect, deleted, setVisible);
+	return _PrepareSprite(_pSprite, pos, rectOnScreen, deleted, setVisible);
 }
 
-Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect, bool deleted, bool setVisible)
+Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rectOnScreen, bool deleted, bool setVisible)
 {
 	// DEBUG
 	// qDebug("rect = (x:%d,y:%d,w:%d,h:%d)", rect.x(), rect.y(), rect.width(), rect.height());
 	// /DEBUG
-	int sprite_margin = 1; // pixel for border on either side
 	pSprite->visible = setVisible;
 	pSprite->itemsDeleted = deleted;       // signal if element(s) was(were) deleted before moving
-	pSprite->topLeft = rect.topLeft() - QPoint(sprite_margin, sprite_margin);     // sprite top left
+	pSprite->topLeft = rectOnScreen.topLeft() - QPoint(pSprite->margin, pSprite->margin);     // sprite top left
 	pSprite->dp = cursorPos - pSprite->topLeft; // cursor position rel. to sprite
-	pSprite->rect.adjust(0, 0, 2*sprite_margin, 2*sprite_margin);
+	pSprite->rect.adjust(0, 0, 2*pSprite->margin, 2*pSprite->margin); // increase size to make space for dashed border
 	pSprite->image = QImage(pSprite->rect.width(), pSprite->rect.height(), QImage::Format_ARGB32);
 	pSprite->image.fill(Qt::transparent);     // transparent
 
 	QPainter *painter = _GetPainter(&pSprite->image);
-	QRectF sr, tr;   // source & target
 	// save color and line width
 	FalconPenKind pk = _actPenKind;
 	int pw = _actPenWidth;
@@ -2531,10 +2531,11 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 
 	int ix, siz = pSprite->items.Size();
 	DrawableItem* pdrwi;
-	for (ix = 0; ix < siz; ++ix )	// first show the screenshots they are in zorder already
+	QRectF sr, tr;   // source & target
+	for (ix = 0; ix < siz; ++ix )	// first draw the screenshots items are in zorder already
 	{
 		pdrwi = pSprite->items[ix];
-		if (pdrwi->dtType != DrawableType::dtScreenShot)   // screenshots are nelow others
+		if (pdrwi->dtType != DrawableType::dtScreenShot)   // screenshots are below others
 			break;
 
 		pdrwi = pSprite->items[ix];
@@ -2553,12 +2554,12 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 
 		painter->drawPixmap(tr, pSs->Image(), sr);
 	}
-	for (; ix < siz; ++ix )	// then the others
+	for (; ix < siz; ++ix )	// then the other Drawables
 	{
 		pdrwi = pSprite->items[ix];
 		_actPenKind = pdrwi->PenKind();
 		_actPenWidth = pdrwi->penWidth;
-		pdrwi->Draw(painter, _topLeft + QPointF(sprite_margin, sprite_margin), pSprite->rect);
+		pdrwi->Draw(painter, _topLeft + QPointF(pSprite->margin, pSprite->margin), pSprite->rect);
 	}
 
 	// create border to see the rectangle

@@ -50,16 +50,6 @@ struct _SortFunc
 
 		if (zOrderOk)	// zOrder OK
 			return true;
-		else
-		{
-			if (!history.Item(i)->Area().intersects(history.Item(j)->Area()))
-				if (history.Item(i)->TopLeft().y() < history.Item(j)->TopLeft().y())
-					return true;
-				else if (history.Item(i)->TopLeft().y() == history.Item(j)->TopLeft().y() && history.Item(i)->TopLeft().x() < history.Item(j)->TopLeft().x())
-					return true;
-				else
-					return false;
-		}
 		return false;
 	}
 };
@@ -1926,11 +1916,29 @@ HistoryItem* History::AddClearDown()
 	return pi;
 }
 
-HistoryItem* History::AddDrawableItem(DrawableItem& itm)	// may be after an undo, so
-{				                                            // delete all scribbles after the last visible one (items[lastItem].scribbleIndex)
+HistoryItem* History::AddDrawableItem(DrawableItem& itm)	
+{				                                            
+	if (itm.dtType == DrawableType::dtScribble)	  // then delete previous item if it was a DrawableDot
+	{										      // that started this line
+		int n = _items.size()-1;
+		HistoryItem* pitem = n < 0 ? nullptr : _items[n];
+		if (pitem && pitem->type == HistEvent::heDrawable)
+		{
+			HistoryDrawableItem* phdi = (HistoryDrawableItem*)pitem;
+			DrawableItem* pdrwi = _drawables[phdi->indexOfDrawable];
+			if (pdrwi->dtType == DrawableType::dtDot)	// remove dot that was a start of a line
+			{
+				if (pdrwi->startPos == itm.startPos)
+				{
+					delete pitem;
+					_items.pop_back();
+				}
+			}
+		}
+	}
 	HistoryDrawableItem* p = new HistoryDrawableItem(this, itm);
-	return _AddItem(p);
-}
+	return _AddItem(p);		 // may be after an undo, so
+}							 // delete all item after the last visible one (items[lastItem].scribbleIndex)
 
 
 /*========================================================

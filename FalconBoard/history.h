@@ -704,16 +704,7 @@ struct QuadTreeDelegate
 
             if (zOrderOk)	// zOrder OK
                 return true;
-            else                         // zorder i >= zorder j
-            //{
-            //    if (!pdri1->Area().intersects(pdri2->Area()))
-            //        if (pdri1->startPos.y() < pdri2->startPos.y())
-            //            return true;
-            //        else if (pdri1->startPos.y() == pdri2->startPos.y() && pdri1->startPos.x() < pdri2->startPos.x())
-            //            return true;
-            //        else
-            //            return false;
-            //}
+            // zorder i >= zorder j
             return false;
         };
 
@@ -1496,6 +1487,8 @@ struct Sprite
 {
     Sprite(History* ph);
     Sprite(History* ph, const QRectF &rect, const DrawableIndexVector &dri);
+
+    const int margin = 1; // pixel
 
     History* pHist;
     QPointF topLeft;     // top,left: position of sprite rel. to top left of visible area of canvas
