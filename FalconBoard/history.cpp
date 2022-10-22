@@ -2219,16 +2219,7 @@ int History::SelectTopmostImageUnder(QPointF p)
 	_driSelectedDrawablesAtLeft.clear();
 
 	int /*DrawableItemIndex*/ dri;
-	if (p == QPointF(-1, -1))
-	{
-		dri = _drawables.Size() - 1;
-
-		DrawableItem* pdrh;
-		pdrh = _drawables[dri];
-	}
-	else
-		dri = _drawables.IndexOfTopMostItemUnder(p, 1, DrawableType::dtScreenShot);		// index in _ScreenShotImages
-//	if (dri.type == DrawableType::dtNone)
+	dri = _drawables.IndexOfTopMostItemUnder(p, 1, DrawableType::dtScreenShot);
 	if (dri < 0 )
 		return dri;
 

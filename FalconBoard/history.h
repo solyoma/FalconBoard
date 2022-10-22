@@ -1111,6 +1111,17 @@ public:
     }
     int/*DrawableItemIndex*/ IndexOfTopMostItemUnder(QPointF point, int penWidth, DrawableType type = DrawableType::dtNone) const
     {
+        if (point == QPoint(-1, -1))  // select topmost item
+        {
+            for (int i = _items.size() - 1; i >= 0; --i)
+                if (_items[i]->dtType == type)
+                    return i;
+            return -1;
+        }
+
+        // else create a vector with all of the items under an area
+        // around the point
+
         DrawableItemIndex res;
 
         QRectF rect(point.x() - 5, point.y() - 5, 10, 10);
