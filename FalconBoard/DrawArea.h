@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "common.h"
+#include "drawables.h"
 #include "history.h"
 #include "pagesetup.h"
 #include "myprinter.h"

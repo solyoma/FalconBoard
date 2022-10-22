@@ -54,6 +54,9 @@
     <ClCompile Include="screenshotTransparency.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="drawables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DrawArea.h">
@@ -117,6 +120,9 @@
     <ClInclude Include="quadtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="drawables.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="FalconBoard.qrc">
@@ -143,5 +149,6 @@
     <None Include="..\translations\FalconBoard_hu.qm">
       <Filter>Translation Files</Filter>
     </None>
+    <None Include="drawables.hu" />
   </ItemGroup>
 </Project>

@@ -13,6 +13,7 @@ UI_DIR += ./Debug/Ui
 RCC_DIR += ./Debug/rcc
 win32:RC_FILE = FalconBoard.rc
 HEADERS += ./common.h \
+	./drawables.h \
     ./DrawArea.h \
     ./FalconBoard.h \
     ./history.h \
@@ -20,20 +21,19 @@ HEADERS += ./common.h \
     ./myevent.h \
     ./myprinter.h \
 	./quadtree.h \
-    ./screenshotTransparency.h \
-    ./printprogress.h \
-    ./quadtree.h \
     ./pagesetup.h \
+    ./printprogress.h \
+    ./screenshotTransparency.h \
     ./snipper.h
-SOURCES += ./bands.cpp \
+SOURCES += ./drawables.cpp \
     ./DrawArea.cpp \
+    ./FalconBoard.cpp \
     ./history.cpp \
+    ./main.cpp \
+    ./myprinter.cpp
     ./pagesetup.cpp \
     ./screenshotTransparency.cpp \
     ./snipper.cpp \
-    ./main.cpp \
-    ./FalconBoard.cpp \
-    ./myprinter.cpp
 FORMS += ./FalconBoard.ui \
 	./helpdialog.ui \
     ./pagesetup.ui \

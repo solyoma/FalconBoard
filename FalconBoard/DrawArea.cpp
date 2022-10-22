@@ -1110,9 +1110,16 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				//DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
 				if (_DrawFreehandLineTo(event->pos))
 					_lastScribbleItem.add(_lastPointC + _topLeft);
+				if (_lastScribbleItem.points.size() == 2 && _lastScribbleItem.points.at(0) == _lastScribbleItem.points.at(1))
+				{
+					(DrawableItem&)_lastDotItem = (DrawableItem&)_lastScribbleItem;
+					_lastDotItem.dtType = DrawableType::dtDot;
+					_history->AddDrawableItem(_lastDotItem);
+				}
+				else
+					_history->AddDrawableItem(_lastScribbleItem);
 
 				//DEBUG_LOG(QString("Mouse release #2: _lastPoint: (%1,%2)\n__lastDrwanItem point size:%3").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(_lastScribbleItem.points.size()))
-				_history->AddDrawableItem(_lastScribbleItem);
 
 				emit CanUndo(_history->CanUndo());
 				emit CanRedo(_history->CanRedo());
