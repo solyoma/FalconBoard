@@ -254,7 +254,7 @@ void DrawableDot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QR
 {
 	if (drawStarted)
 	{
-		SetPainterPenAndBrush(painter, clipR);
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea));
 		QPointF pt = startPos - topLeftOfVisibleArea;
 		QPen pen(PenColor());
 		pen.setWidth(penWidth);
@@ -297,7 +297,7 @@ void DrawableCross::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const 
 {
 	if (drawStarted)
 	{
-		SetPainterPenAndBrush(painter);
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea) );
 		QPointF dist(length / sqrt(2), length / sqrt(2));
 		QRectF rect(startPos - dist, startPos + dist);
 		rect.translate(-topLeftOfVisibleArea);
@@ -366,7 +366,7 @@ void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, cons
 		QColor c;
 		if (isFilled)
 			c = PenColor();
-		SetPainterPenAndBrush(painter, clipR, c);
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
 		painter->drawEllipse(rect.translated(-topLeftOfVisibleArea));
 	}
 	else
@@ -433,7 +433,7 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 		QColor c;
 		if (isFilled)
 			c = PenColor();
-		SetPainterPenAndBrush(painter, clipR, c);
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
 		painter->drawRect(rect.translated(-topLeftOfVisibleArea));
 	}
 	else
@@ -504,7 +504,7 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 {
 	if (drawStarted)
 	{
-		SetPainterPenAndBrush(painter); // this painter paints on screenshot layer!
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea)); // this painter paints on screenshot layer!
 		painter->drawPixmap(startPos - topLeftOfVisibleArea, Image());
 	}
 	else
@@ -560,7 +560,7 @@ void DrawableScribble::clear()
 	points.clear();
 }
 
-bool DrawableScribble::IsExtension(const QPointF& p, const QPointF& p1, const QPointF& p2) // vectors p->p1 and p1->p are parallel?
+bool DrawableScribble::IsExtension(const QPointF& p, const QPointF& p1, const QPointF& p2) // vectors p->p1 and p1->p point to same direction?
 {
 	//return false;       // DEBUG as it is not working yet
 
@@ -712,7 +712,7 @@ void DrawableScribble::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, con
 {
 	if (drawStarted)
 	{
-		SetPainterPenAndBrush(painter);
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea));
 		// draw normally using 'painter' and 'topLeftOfVisibleArea'
 		QPolygonF pol = points.translated(-topLeftOfVisibleArea);
 		painter->drawPolyline(pol);
@@ -753,7 +753,7 @@ void DrawableText::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const Q
 {
 	if (drawStarted)
 	{
-		SetPainterPenAndBrush(painter); // ???
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea)); // ???
 		// draw normally using 'painter' and 'topLeftOfVisibleArea'
 	}
 	else
