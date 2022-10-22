@@ -190,7 +190,7 @@ bool ScribbleItem::IsExtension(const QPoint& p, const QPoint& p1, const QPoint& 
 
 	// the two vectors point in the same direction when vpp.y()/vpp.x() == vp.y()/vp.x()
 	// i.e to avoid checking for zeros in divison: 
-	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && (vp.x() * vpp.x() > 0);
+	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && ((vp.x() != vpp.x() && vp.x() * vpp.x() > 0) || (vp.y() != vpp.y() && vp.y() * vpp.y() > 0));
 }
 
 void ScribbleItem::add(QPoint p)
