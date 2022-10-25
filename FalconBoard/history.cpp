@@ -123,13 +123,13 @@ int HistoryDrawableItem::ZOrder() const
 
 int HistoryDrawableItem::Undo()
 {
-	pHist->Drawables()->Undo();	// also removes from QuadTree
+	pHist->Drawables()->Undo();	// also removes from Quad tree
 	return 1;
 }
 
 int HistoryDrawableItem::Redo()
 {
-	pHist->Drawables()->Redo(); // also adds to quadtree
+	pHist->Drawables()->Redo(); // also adds to Quad tree
 	return 1;
 }
 
@@ -163,6 +163,7 @@ int  HistoryDeleteItems::Undo()	  // reveal items
 {
 	for (auto drix : deletedList)
 		pDrawables->SetVisibility(drix, true);
+	
 	return 1;
 }
 int  HistoryDeleteItems::Redo()	// hide items
@@ -351,7 +352,10 @@ bool HistoryPasteItemTop::IsVisible() const
 void HistoryPasteItemTop::SetVisibility(bool visible)
 {
 	for (int i = 1; i <= count; ++i)
-		pDrawables->SetVisibility(indexOfBottomItem + moved + i, visible);
+	{
+		HistoryDrawableItem* phd = (HistoryDrawableItem*)(*pHist)[indexOfBottomItem + moved + i];
+		pDrawables->SetVisibility(phd->indexOfDrawable, visible);
+	}
 }
 
 void HistoryPasteItemTop::Translate(QPointF p, int minY)
@@ -655,7 +659,7 @@ History::History(History&& o) noexcept
 
 History::~History()
 {
-	Clear();
+	Clear(true);
 }
 
 void History::_SaveClippingRect()
@@ -704,10 +708,8 @@ int History::RightMostInBand(QRectF rect)
 {
 	IntVector iv;
 
-	QuadArea area( AreaForQRect(rect));	
 	// only get areas till right of Quad are
-	area = QuadArea(0, area.Top(), _drawables.Area().Right(), area.Height());
-	iv = _drawables.ListOfItemIndicesInQuadArea(area);
+	iv = _drawables.ListOfItemIndicesInRect(rect);
 
 	if (iv.empty())
 		return 0;
@@ -772,7 +774,7 @@ bool History::_IsSaveable(int i)
 	return _items[i]->IsSaveable();
 }
 
-void History::Clear()		// does not clear lists of copied items and screen snippets
+void History::Clear(bool andDeleteQuadTree)		// does not clear lists of copied items and screen snippets
 {
 	for (auto i : _items)
 		delete i;
@@ -782,7 +784,7 @@ void History::Clear()		// does not clear lists of copied items and screen snippe
 	_items.clear();
 	_redoList.clear();
 
-	_drawables.Clear();			// images and others
+	_drawables.Clear(andDeleteQuadTree);			// images and others + clear _pQTree and set it to nullptr
 	_readCount = 0;
 	_loadedName.clear();
 
@@ -921,8 +923,8 @@ int History::Load(bool force)
 	Clear();
 	
 	int res;
-	if (version & 0x00FF0000 <= 0x020000)
-		res = _LoadV1(ifs, force);
+	if ((version & 0x00FF0000) <= 0x020000)
+		res = _LoadV1(ifs, version,  force);
 	else
 		res = _LoadV2(ifs, force);
 
@@ -1122,7 +1124,7 @@ HistoryItem* History::AddDrawableItem(DrawableItem& itm)
 	}
 	HistoryDrawableItem* p = new HistoryDrawableItem(this, itm);
 	return _AddItem(p);		 // may be after an undo, so
-}							 // delete all item after the last visible one (items[lastItem].scribbleIndex)
+}							 // delete all items after the last visible one (items[lastItem].scribbleIndex)
 
 
 /*========================================================
@@ -1161,7 +1163,7 @@ HistoryItem* History::AddDeleteItems(Sprite* pSprite)
  *-------------------------------------------------------*/
 HistoryItem* History::AddPastedItems(QPointF topLeft, Sprite* pSprite)			   // tricky
 {
-	DrawableList* pCopiedItems = pSprite ? &pSprite->items : &_parent->_copiedItems;
+	DrawableList* pCopiedItems = pSprite ? &pSprite->drawables : &_parent->_copiedItems;
 	QRectF* pCopiedRect = pSprite ? &pSprite->rect : &_parent->_copiedRect;
 
 	if (!pCopiedItems->Size())	// any drawable
@@ -1170,7 +1172,7 @@ HistoryItem* History::AddPastedItems(QPointF topLeft, Sprite* pSprite)			   // t
 
 	HistoryDeleteItems* phd = nullptr;
 	if (pSprite && pSprite->itemsDeleted)	// then on top of _items there is a HistoryDeleteItems
-	{
+	{										// which has to be moved above the past bottom item
 		phd = (HistoryDeleteItems*)_items[_items.size() - 1];	// pointer to HistoryDeleteItems
 		_items.pop_back();
 	}
@@ -1188,7 +1190,8 @@ HistoryItem* History::AddPastedItems(QPointF topLeft, Sprite* pSprite)			   // t
 	for (auto si : *pCopiedItems->Items())
 	{
 		si->Translate(topLeft, -1);
-		HistoryDrawableItem* p = new HistoryDrawableItem(this, si);	   // si's data remains where it was
+		//si->zOrder = -1;	// so it will be on top
+		HistoryDrawableItem* p = new HistoryDrawableItem(this, *si);	   // si's data remains where it was
 		_AddItem(p);
 	}
 	// ------------Add Paste top marker item
@@ -1360,7 +1363,7 @@ void History::AddToSelection(int index)
  *				are in '_driSelectedDrawables'. In that case
  *				it is equal to 'rect'
  *-------------------------------------------------------*/
-int History::CollectItemsInside(QRectF rect) // only 
+int History::CollectDrawablesInside(QRectF rect) // only 
 {
 	_ClearSelectLists();
 	_selectionRect = QRectF();     // minimum size of selection document (0,0) relative!
@@ -1368,35 +1371,31 @@ int History::CollectItemsInside(QRectF rect) // only
 	// first select all items inside a band whose top and bottom are set from 'rect'
 	// but it occupies the whole width of the paper
 	QuadArea area = QuadArea(0, rect.top(), _drawables.Area().Width(), rect.height());
-	IntVector iv = _drawables.ListOfItemIndicesInQuadArea(area);
+	DrawableIndexVector iv = _drawables.ListOfItemIndicesInQuadArea(area);
 	for (int i = iv.size()-1; i >= 0; --i)
 	{
 		int ix = iv[i];
-		if (!rect.contains(_items[ix]->Area()))
+		if (!rect.contains(_drawables[ix]->Area()))
 			iv.erase(iv.begin() + i);
 	}
 	if (iv.size())
 	{
-
 		_SortFunc sortFunc(*this);
 		std::sort(iv.begin(), iv.end(), sortFunc);
 
 		// then separate these into lists
 		for (auto ix : iv)
 		{
-			HistoryItem* phi = _items[ix];
-			HistoryDrawableItem* phdi = (HistoryDrawableItem*)_items[ix];
-			DrawableItem* pdri = _drawables[phdi->indexOfDrawable];
-			int/*DrawableItemIndex*/ drix = phdi->indexOfDrawable;
-			if (rect.contains(phi->Area()))
+			DrawableItem* pdri = _drawables[ix];
+			if (rect.contains(pdri->Area()))
 			{
-				_driSelectedDrawables.push_back(drix);
-				_selectionRect = _selectionRect.united(phi->Area());
+				_driSelectedDrawables.push_back(ix);
+				_selectionRect = _selectionRect.united(pdri->Area());
 			}
-			else if (phi->Area().left() < rect.left())
-				_driSelectedDrawablesAtLeft.push_back(drix);
+			else if (pdri->Area().left() < rect.left())
+				_driSelectedDrawablesAtLeft.push_back(ix);
 			else
-				_driSelectedDrawablesAtRight.push_back(drix);
+				_driSelectedDrawablesAtRight.push_back(ix);
 		}
 		if (_driSelectedDrawables.isEmpty())		// save for removing empty space
 			_selectionRect = rect;
@@ -1487,11 +1486,11 @@ QRectF History::SelectDrawablesUnder(QPointF& p, bool addToPrevious)
  *				'_copiedItems' else into the sprite
  *			- origin of drawables in '_copiedItems'
  *				will be (0,0)
- *			- '_selectionRect''s top left will also be (0,0)
+ *			- '_copiedRect's' top left will also be (0,0)
  *-------------------------------------------------------*/
 void History::CopySelected(Sprite* sprite)
 {
-	DrawableList& copiedItems = sprite ? sprite->items  : _parent->_copiedItems;
+	DrawableList& copiedItems = sprite ? sprite->drawables : _parent->_copiedItems;
 	DrawableIndexVector* pSelectedDri;
 	if (sprite)
 	{
@@ -1510,16 +1509,19 @@ void History::CopySelected(Sprite* sprite)
 		{
 			DrawableItem* pdri = _drawables[ix];
 
-			copiedItems.CopyDrawable(*pdri);
+			copiedItems.CopyDrawable(*pdri, _selectionRect.topLeft());	// shift coordinates to be relative to top left of selection
 		}
 		_parent->_copiedRect = _selectionRect.translated(-_selectionRect.topLeft());
 
 		DrawableItemList *pdrl = copiedItems.Items();
 
-		std::sort(pdrl->begin(), pdrl->end(), [](DrawableItem* pl, DrawableItem* pr) {return pl->zOrder, pr->zOrder; });
+		std::sort(pdrl->begin(), pdrl->end(), [](DrawableItem* pl, DrawableItem* pr) {return pl->zOrder < pr->zOrder; });
 																			
 		if (sprite)
+		{
 			sprite->rect = _parent->_copiedRect;	// (0,0, width, height)
+			sprite->topLeft = _selectionRect.topLeft();
+		}
 
 		_parent->CopyToClipboard();
 	}

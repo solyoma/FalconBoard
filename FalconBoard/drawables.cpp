@@ -7,10 +7,10 @@ QRectF QuadAreaToArea(const QuadArea& qarea)
 	QRectF area = QRectF(qarea.Left(), qarea.Top(), qarea.Right(), qarea.Bottom());
 	return area;
 }
-
+// QuadArea containes indices into active _history's _drawables
 QuadArea AreaForItem(const int& i)
 {
-	History* ph = historyList[-1];
+	History* ph = historyList[-1];				// pointer to actual history
 	assert(ph);
 	DrawableItem* pdrwi = ph->Drawable(i);
 	QRectF r = pdrwi->Area();
@@ -18,14 +18,14 @@ QuadArea AreaForItem(const int& i)
 }
 bool IsItemsEqual(const int& i1, const int& i2)
 {
-	History* ph = historyList[-1];
+	History* ph = historyList[-1];				// pointer to actual history
 	assert(ph);
-	HistoryItemPointer phi1 = ph->Item(i1),
-		phi2 = ph->Item(i2);
-	return phi1->type == phi2->type &&
-		phi1->Area() == phi2->Area() &&
-		phi1->IsHidden() == phi2->IsHidden() &&
-		phi1->ZOrder() == phi2->ZOrder()
+	DrawableItem*pdrwi1 = ph->Drawable(i1),
+				*pdrwi2 = ph->Drawable(i2);
+	return pdrwi1->dtType == pdrwi2->dtType &&
+			pdrwi1->Area() == pdrwi2->Area() &&
+			pdrwi1->isVisible == pdrwi2->isVisible &&
+			pdrwi1->zOrder == pdrwi2->zOrder
 		;
 }
 
@@ -318,6 +318,7 @@ void DrawableEllipse::Translate(QPointF dr, qreal minY)
 {
 	if (rect.top() > minY)
 	{
+		startPos += dr;
 		rect.moveTo(rect.topLeft() + dr);
 		for (auto e : erasers)
 			for (auto& es : e.eraserStroke)
@@ -383,6 +384,7 @@ void DrawableRectangle::Translate(QPointF dr, qreal minY)             // only if
 {
 	if (rect.top() > minY)
 	{
+		startPos += dr;
 		rect.moveTo(rect.topLeft() + dr);
 		for (auto e : erasers)
 			for (auto& es : e.eraserStroke)
@@ -582,6 +584,7 @@ void DrawableScribble::Translate(QPointF dr, qreal  minY)
 	if (Area().y() < minY || !isVisible)
 		return;
 
+	startPos += dr;
 	for (int i = 0; i < points.size(); ++i)
 		points[i] = points[i] + dr;
 }
@@ -749,10 +752,9 @@ IntVector DrawableList::ListOfItemIndicesInRect(QRectF& r)	const
 	return _pQTree ? _pQTree->GetValues(&_items, r) : IntVector();
 }
 
-IntVector DrawableList::ListOfItemIndicesInQuadArea(QuadArea& r) const
+IntVector DrawableList::ListOfItemIndicesInQuadArea(QuadArea& q) const
 {
-	QRectF rect = QuadAreaToArea(r);
-	return ListOfItemIndicesInRect(rect);
+	return _pQTree ? _pQTree->GetValues(&_items, q) : IntVector();
 }
 
 QPointF DrawableList::BottomRightLimit(QSize& screenSize)

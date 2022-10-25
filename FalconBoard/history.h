@@ -112,7 +112,7 @@ private:
 //--------------------------------------------
 struct HistoryDeleteItems : public HistoryItem
 {
-    DrawableIndexVector deletedList;   // absolute indexes of scribble elements in '*pHist'
+    DrawableIndexVector deletedList;   // absolute indexes of drawable elements in 'pHist->_drawables'
     int Undo() override;
     int Redo() override;
     HistoryDeleteItems(History* pHist, DrawableIndexVector& selected);
@@ -315,7 +315,7 @@ struct Sprite
 
     DrawableIndexVector       driSelectedDrawables;   // indices into 'pHist->_drawables' of items to be copied, that are completely inside the rubber band rectangle
                                                       // needed for hiding source items when required
-    DrawableList              items;                  // copied items are duplicates of drawables in 'driSelectedDrawables'
+    DrawableList              drawables;              // copied items are duplicates of drawables in 'driSelectedDrawables'
                                                       // each point of items[..] is relative to top-left of sprite (0,0)
 };
 
@@ -440,7 +440,7 @@ public:
     DrawableScreenShot* FirstVisibleScreenShot(const QRectF& canvasRect) { return _drawables.FirstVisibleScreenShot(canvasRect); }
     DrawableScreenShot* NextVisibleScreenShot() { return _drawables.NextVisibleScreenShot(); }
 
-    void Clear();
+    void Clear(bool andDeleteQuadTree = false);
     void ClearName() { if (_items.isEmpty()) _fileName.clear(); }
 
     int Size() const;   // _items's size
@@ -472,7 +472,7 @@ public:
     void ClearUndo() { _readCount = _items.size(); }
 
     HistoryItem* LastScribble() const;
-    HistoryItem* operator[](int index);   // index: absolute index
+    HistoryItem* operator[](int index);   // index: absolute index in _items
     HistoryItem* operator[](int index) const { return _items[index]; }  // index: physical index in _items
     HistoryItem* operator[](DrawableItemIndex dri);   // index: absolute index
     HistoryItem* operator[](DrawableItemIndex dri) const { return _items[dri.index]; }  // index: physical index in _items
@@ -504,7 +504,7 @@ public:
     void AddToSelection(int index=-1);
     QRectF SelectDrawablesUnder(QPointF& p, bool addToPrevious);      // selects clicked (if any) into _driSelectedDrawables, and clears right and left items list
     int /*DrawableItemIndex*/ SelectTopmostImageUnder(QPointF p);
-    int CollectItemsInside(QRectF rect);
+    int CollectDrawablesInside(QRectF rect);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
     void SetSelectionRect(QRectF& rect)

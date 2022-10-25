@@ -702,6 +702,11 @@ struct QuadTreeDelegate
     IntVector GetValues(const DrawableItemList* pItems, const QRectF& area) const
     {
         extern QuadArea AreaForQRect(QRectF rect);
+        return GetValues(pItems, AreaForQRect(area));
+
+    }
+    IntVector GetValues(const DrawableItemList* pItems, const QuadArea& area) const
+    {
 
         auto sortFunc = [&](int i, int j) 				// returns true if item 'i' comes before item 'j'
         {
@@ -715,7 +720,7 @@ struct QuadTreeDelegate
             return false;
         };
 
-        std::vector<int> iv = pItemTree->GetValues(AreaForQRect(area));	// only visible elements!
+        std::vector<int> iv = pItemTree->GetValues(area);	// only visible elements!
         std::sort(iv.begin(), iv.end(), sortFunc);
         IntVector resv = QVector<int>(iv.begin(), iv.end()); //  ::fromStdVector(iv);	<- deprecated
         return resv;
@@ -847,6 +852,7 @@ public:
     ~DrawableList()              // pQTree is deleted elsewhere!
     {
         Clear();
+        _pQTree = nullptr;
     }
 
     DrawableItemList* Items() { return &_items; }
@@ -856,45 +862,55 @@ public:
         _pZorderStore->Reset();
     }
 
-    void Clear()
+    void Clear(bool andDeleteQuadTree = false)
     {
+        if (_pQTree)
+        {
+            _pQTree->Clear();
+            if (andDeleteQuadTree)
+                _pQTree = nullptr;
+        }
+
         for (auto a : _items)
                 delete a;
         _items.clear();
-        if(_pQTree)
-            _pQTree->Clear();
         if(_pZorderStore)
-                ResetZorder();
+            ResetZorder();
+    }
+            // these two used only when a new drawable is just added or the top van is remeoved
+    void Undo()    // moves last item to _redoItems w.o. deleting them
+    {                       // and removes them from the quad tree
+        int i = _items.size() - 1;
+        if (_pQTree)
+             _pQTree->Remove(i);
+        _redoItems.push_back(_items.at(i));
+        _items.pop_back();
     }
 
-    void Undo(int n = 1)    // moves last n items to _redoItems w.o. deleting them
-    {
-        for (int i = _items.size() - 1; n && i != -1; --i,--n)
-        {
-            if (_pQTree)
-                _pQTree->Remove(i);
-            _redoItems.push_back(_items.at(i));
-            _items.pop_back();
-        }
+    void Redo()    // moves last item from _redoItems 
+    {                       // and adds them from the quad tree
+        int k = _redoItems.size()-1;
+        _items.push_back(_redoItems.at(k));
+        _redoItems.pop_back();
+        if (_pQTree)
+            _pQTree->Add(k);
     }
-    void Redo(int n = 1)
-    {
-        int k = _items.size();
-        for (int i = _redoItems.size() - 1; n && i != -1; --i,--n)
-        {
-            _items.push_back(_redoItems.at(i));
-            _redoItems.pop_back();
 
-            if (_pQTree)
-                _pQTree->Add(k++);
-        }
-        
-    }
     void ClearRedo()
     {
         for (auto a : _redoItems)
             delete a;
         _redoItems.clear();
+    }
+
+    void Pop_back(int n = 1)    // Deletes last n items. Used only when history's undo list is discarded
+    {
+        for (int i = _items.size() - 1; i >= 0; --i)
+        {
+            SetVisibility(i, false);    // removes them from QuadTree if they were there
+            delete _items[i];
+            _items.pop_back();
+        }
     }
 
     int Count(const QuadArea& area = QuadArea())
@@ -954,7 +970,7 @@ public:
     }
     void SetVisibility(int index, bool visible)
     {                     // _pQTree must not be null
-        if ((*this)[index]->isVisible == visible)    // when it does change
+        if ((*this)[index]->isVisible != visible)    // when it does change
             (*this)[index]->isVisible = visible;
         if (visible)
             _pQTree->Add(index);
@@ -974,24 +990,29 @@ public:
         return ix;
     }
 
-    int CopyDrawable(DrawableItem& dri) // adds copy of existing object on the heap
+    int CopyDrawable(DrawableItem& dri, QPointF topLeft) // adds copy of existing object on the heap
     {
         if(_pZorderStore) // then the copy's zOrder must be increased'
             dri.zOrder = _pZorderStore->GetZorder(dri.dtType == DrawableType::dtScreenShot);
 
+        DrawableItem* pres = nullptr;
         switch (dri.dtType)
         {
-            case DrawableType::dtDot:       return Push_back(new DrawableDot((DrawableDot&)dri)); break;
-            case DrawableType::dtCross:     return Push_back(new DrawableCross((DrawableCross&)dri)); break;
-            case DrawableType::dtEllipse:   return Push_back(new DrawableEllipse((DrawableEllipse&)dri)); break;
-            case DrawableType::dtRectangle: return Push_back(new DrawableRectangle((DrawableRectangle&)dri)); break;
-            case DrawableType::dtScreenShot:return Push_back(new DrawableScreenShot((DrawableScreenShot&)dri)); break;
-            case DrawableType::dtScribble:  return Push_back(new DrawableScribble((DrawableScribble&)dri)); break;
-            case DrawableType::dtText:      return Push_back(new DrawableText((DrawableText&)dri)); break;
+            case DrawableType::dtDot:       pres = new DrawableDot((DrawableDot&)dri); break;
+            case DrawableType::dtCross:     pres = new DrawableCross((DrawableCross&)dri); break;
+            case DrawableType::dtEllipse:   pres = new DrawableEllipse((DrawableEllipse&)dri); break;
+            case DrawableType::dtRectangle: pres = new DrawableRectangle((DrawableRectangle&)dri); break;
+            case DrawableType::dtScreenShot:pres = new DrawableScreenShot((DrawableScreenShot&)dri); break;
+            case DrawableType::dtScribble:  pres = new DrawableScribble((DrawableScribble&)dri); break;
+            case DrawableType::dtText:      pres = new DrawableText((DrawableText&)dri); break;
             default:  break;
         }
+        if (pres)
+        {
+            pres->Translate(-topLeft, 0);
+            return Push_back(pres);
+        }
 
-        // return IndexVectorIterator();
         return -1;
     }
 

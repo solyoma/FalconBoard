@@ -413,7 +413,7 @@ bool DrawArea::RecolorSelected(int key)
 	if (!_rubberBand)
 		return false;
 	if (!_history->SelectedSize())
-		_history->CollectItemsInside(_rubberRect.translated(_topLeft));
+		_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
 
 	FalconPenKind pk = PenKindFromKey(key);
 	HistoryItem* phi = _history->AddRecolor(pk);
@@ -1145,7 +1145,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 		if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
 		{
 			_rubberRect = _rubberBand->geometry();
-			_history->CollectItemsInside(_rubberRect.translated(_topLeft));
+			_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
 			if (_history->SelectedSize() && !event->mods.testFlag(Qt::AltModifier))
 			{
 				_rubberBand->setGeometry(_history->BoundingRect().translated(-_topLeft).toRect());
@@ -2536,16 +2536,16 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	int pw = _actPenWidth;
 	bool em = _erasemode;
 
-	int ix, siz = pSprite->items.Size();
+	int ix, siz = pSprite->drawables.Size();
 	DrawableItem* pdrwi;
 	QRectF sr, tr;   // source & target
 	for (ix = 0; ix < siz; ++ix )	// first draw the screenshots items are in zorder already
 	{
-		pdrwi = pSprite->items[ix];
+		pdrwi = pSprite->drawables[ix];
 		if (pdrwi->dtType != DrawableType::dtScreenShot)   // screenshots are below others
 			break;
 
-		pdrwi = pSprite->items[ix];
+		pdrwi = pSprite->drawables[ix];
 		DrawableScreenShot* pSs = (DrawableScreenShot*)pdrwi;
 		tr = QRectF(pSs->startPos, pSprite->rect.size());
 		sr = pSs->Image().rect();
@@ -2563,16 +2563,16 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	}
 	for (; ix < siz; ++ix )	// then the other Drawables
 	{
-		pdrwi = pSprite->items[ix];
+		pdrwi = pSprite->drawables[ix];
 		_actPenKind = pdrwi->PenKind();
 		_actPenWidth = pdrwi->penWidth;
-		pdrwi->Draw(painter, _topLeft + QPointF(pSprite->margin, pSprite->margin), pSprite->rect);
+		pdrwi->Draw(painter, QPointF(0,0), pSprite->rect);
 	}
 
 	// create border to see the rectangle
 	painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
 	painter->setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
-	painter->drawRect(QRectF(QPoint(0,0), pSprite->rect.size()) );
+	painter->drawRect(QRectF(QPoint(pSprite->margin/2.0, pSprite->margin / 2.0), pSprite->rect.size()) );
 	//painter->drawLine(0, 0, pSprite->rect.width(), 0);
 	//painter->drawLine(pSprite->rect.width(), 0, pSprite->rect.width(), pSprite->rect.height());
 	//painter->drawLine(pSprite->rect.width(), pSprite->rect.height(), 0, pSprite->rect.height());
