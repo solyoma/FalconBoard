@@ -96,6 +96,8 @@ public:
 #ifndef _VIEWER
     SaveResult Save(QString name, int index=-1) 
     { 
+        _HideRubberBand(true);
+
         if (index < 0) 
             index = _currentHistoryIndex;
         return  historyList[index]->Save(name); 

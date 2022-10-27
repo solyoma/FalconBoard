@@ -194,15 +194,28 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 		ofs << e.eraserPenWidth << e.eraserStroke;
 	}
 
+	switch (di.dtType)
+	{
+		case DrawableType::dtCross:			ofs<<(DrawableCross&)di; break;
+		case DrawableType::dtDot:			ofs<<(DrawableDot&)di; break;
+		case DrawableType::dtEllipse:		ofs<<(DrawableEllipse&)di; break;
+		case DrawableType::dtRectangle:		ofs<<(DrawableRectangle&)di; break;
+		case DrawableType::dtScreenShot:	ofs<<(DrawableScreenShot&)di; break;
+		case DrawableType::dtScribble:		ofs<<(DrawableScribble&)di; break;
+		case DrawableType::dtText:			ofs<<(DrawableText&)di; break;
+		default: break;
+	}
+
 	return ofs;
 }
 QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not saved, so not set, must set it after all drawables read in
 {
 	int n;
 	ifs >> n; di.dtType = (DrawableType)n;
+	ifs >> di.startPos;
 	ifs >> n;
 	di.SetPenKind((FalconPenKind)n);
-	ifs >> di.startPos /*>> di.penColor*/ >> di.penWidth >> di.angle;
+	ifs /*>> di.penColor*/ >> di.penWidth >> di.angle;
 	ifs >> n;
 	while (n--)
 	{
@@ -210,7 +223,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 		ifs >> ed.eraserPenWidth >> ed.eraserStroke;
 		di.erasers.push_back(ed);
 	}
-
+	// the real (derived class)  data cannot be read here into a DrawableItem
+	// that must be handled by the caller of this operator
 	return ifs;
 }
 
@@ -239,8 +253,7 @@ void DrawableDot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QR
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableDot& di)
 {
-	ofs << (DrawableItem&)di;
-	return ofs;
+	return ofs;	// already saved as the common ancestor DrawableItem is saved
 }
 QDataStream& operator>>(QDataStream& ifs, DrawableDot& di)			  // call AFTER header is read in
 {
@@ -280,7 +293,7 @@ void DrawableCross::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const 
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di)
 {
-	ofs << dynamic_cast<const DrawableItem&>(di) << di.length;
+	ofs << di.length;
 	return ofs;
 
 }
@@ -345,9 +358,9 @@ void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, cons
 }
 
 
-QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di)
+QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di) // topmost 
 {
-	ofs << dynamic_cast<const DrawableItem&>(di) << di.Area() << di.isFilled;
+	ofs << di.Area() << di.isFilled;
 	return ofs;
 
 }
@@ -412,9 +425,9 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
-QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di)
+QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di) // DrawableItem part already saved
 {
-	ofs << dynamic_cast<const DrawableItem&>(di) << di.Area() << di.isFilled;
+	ofs << di.Area() << di.isFilled;
 	return ofs;
 
 }
@@ -485,9 +498,9 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 
 
 // ---------------------------------------------
-QDataStream& operator<<(QDataStream& ofs, const DrawableScreenShot& bimg)
+QDataStream& operator<<(QDataStream& ofs, const DrawableScreenShot& bimg) // DrawableItem part already saved
 {
-	ofs << (DrawableItem&)bimg << bimg.image;
+	ofs << bimg.image;
 
 	return ofs;
 }
@@ -695,11 +708,9 @@ void DrawableScribble::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, con
 }
 
 
-QDataStream& operator<<(QDataStream& ofs, const DrawableScribble& di)
+QDataStream& operator<<(QDataStream& ofs, const DrawableScribble& di) // after header, type DrawableItem was saved
 {
-	ofs << (DrawableItem&)di << (qint32)di.points.size();
-	for (auto pt : di.points)
-		ofs << pt.x() << pt.y();
+	ofs << di.points;
 	return ofs;
 }
 // reads ONLY after the type is read in!
@@ -708,13 +719,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableScribble& di)	  // call AFTER 
 	qreal x, y;
 	di.points.clear();
 
-	qint32 n;
-	ifs >> n;
-	while (n--)
-	{
-		ifs >> x >> y;
-		di.add(x, y);
-	}
+	ifs >> di.points;
 
 	return ifs;
 }
@@ -733,9 +738,9 @@ void DrawableText::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const Q
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
-QDataStream& operator<<(QDataStream& ofs, const DrawableText& di)
+QDataStream& operator<<(QDataStream& ofs, const DrawableText& di) // DrawableItem part already saved
 {
-	ofs << (DrawableItem&)di << di.fontAsString << di._text;
+	ofs << di.fontAsString << di._text;
 	return ofs;
 }
 QDataStream& operator>>(QDataStream& ifs, DrawableText& di)           // call AFTER header is read in

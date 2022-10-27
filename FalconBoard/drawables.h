@@ -314,7 +314,7 @@ struct DrawableCross : public DrawableItem
 {
     qreal length;                 // total length of lines intersecting at 45 degree
 
-    DrawableCross()
+    DrawableCross() : DrawableItem()
     {
         dtType = DrawableType::dtCross;
     }
@@ -342,7 +342,7 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableCross& di);  // call AFT
             //----------------------------------------------------
 struct DrawableDot : public DrawableItem
 {
-    DrawableDot()
+    DrawableDot() : DrawableItem()
     {
         dtType = DrawableType::dtDot;
     }
@@ -372,7 +372,7 @@ struct DrawableEllipse : public DrawableItem
     QRectF rect;
     bool isFilled=false;        // wheather closed polygon (ellipse or rectangle) is filled
 
-    DrawableEllipse()
+    DrawableEllipse() : DrawableItem()
     {
         dtType = DrawableType::dtEllipse;
     }
@@ -429,7 +429,7 @@ struct DrawableRectangle : public DrawableItem
     QRectF rect;
     bool isFilled=false;            // wheather closed polynom (ellipse or rectangle) is filled
 
-    DrawableRectangle()
+    DrawableRectangle() : DrawableItem()
     {
         dtType = DrawableType::dtRectangle;
     }
@@ -490,7 +490,7 @@ struct DrawableScreenShot : public DrawableItem
 {
     QPixmap image;      // screenshot image
 
-    DrawableScreenShot()
+    DrawableScreenShot() : DrawableItem()
     {
         dtType = DrawableType::dtScreenShot;
     }
@@ -528,7 +528,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 {                   
     QPolygonF points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
 
-    DrawableScribble()
+    DrawableScribble() : DrawableItem()
     {
         dtType = DrawableType::dtScribble;
     }
@@ -589,7 +589,10 @@ struct DrawableText : public DrawableItem
     QString _text;                  // so that a text() fucntion can be created
     QString fontAsString;           // list of all properties separated by commas
 
-    DrawableText() = default;       // default constructor            TODO
+    DrawableText() : DrawableItem()       // default constructor            TODO
+    {
+        dtType = DrawableType::dtText;
+    }
     DrawableText(QPointF topLeft, int zorder) noexcept
     {
         ;  // TODO 
@@ -944,11 +947,10 @@ public:
     DrawableItem* NextVisibleDrawable()  // smallest in zOrder
     {
         DrawableItem* pdh;
-        //        for (++_runningIndex; _runningIndex != _itemIndices.end(); ++_runningIndex)
+
         for (++_runningIndex; _runningIndex < _indicesInRect.size(); ++_runningIndex)
         {
-            pdh = (*this)[_runningIndex];
-            //pdh = (*this)[_runningIndex->first];
+            pdh = (*this)[_indicesInRect[_runningIndex] ];
             if (pdh->isVisible)
                 return pdh;
         }

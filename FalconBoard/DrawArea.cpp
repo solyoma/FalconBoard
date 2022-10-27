@@ -254,7 +254,9 @@ void DrawArea::MoveHistory(int from, int to)
 
 int DrawArea::Load()
 {
-	//    _history->ScreenShotList().clear();
+#ifndef _VIEWER
+	_HideRubberBand(true);
+#endif
 	int res = _history->Load(); // only loads if names diferent
 
 	QString qs = _history->Name(); //  .mid(_history->Name().lastIndexOf('/') + 1);
@@ -296,6 +298,8 @@ bool DrawArea::OpenBackgroundImage(const QString& fileName)
 
 bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 {
+	_HideRubberBand(true);
+
 	QImage visibleImage = grab().toImage();
 	if (visibleImage.save(fileName, fileFormat))
 	{

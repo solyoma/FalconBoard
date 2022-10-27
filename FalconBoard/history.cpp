@@ -923,7 +923,7 @@ int History::Load(bool force)
 	Clear();
 	
 	int res;
-	if ((version & 0x00FF0000) <= 0x020000)
+	if ((version & 0x00FF0000) < 0x020000)
 		res = _LoadV1(ifs, version,  force);
 	else
 		res = _LoadV2(ifs, force);
@@ -934,7 +934,12 @@ int History::Load(bool force)
 
 int History::_LoadV2(QDataStream&ifs, bool force)
 {
-	DrawableItem dh, *pdrwh;
+	DrawableItem dh;
+
+	int n = 0;
+
+// z order counters are reset
+	DrawableItem di, * pdrwh;
 	DrawableDot dDot;
 	DrawableCross dCross;
 	DrawableEllipse dEll;
@@ -943,27 +948,22 @@ int History::_LoadV2(QDataStream&ifs, bool force)
 	DrawableText dTxt;
 	DrawableScreenShot dsImg;
 
-	int n = 0;
-
-// z order counters are reset
-	HistoryItem* phi;
-
 	while (!ifs.atEnd())
 	{
 		++n;
-		ifs >> dh;
-		switch (dh.dtType)
+		ifs >> di;
+
+		switch (di.dtType)
 		{
-			case DrawableType::dtDot:			ifs >> dDot ;  pdrwh = & dDot ; break;
-			case DrawableType::dtCross:			ifs >> dCross; pdrwh = & dCross; break;
-			case DrawableType::dtEllipse:		ifs >> dEll ;  pdrwh = & dEll ; break;
-			case DrawableType::dtRectangle:		ifs >> dRct ;  pdrwh = & dRct ; break;
-			case DrawableType::dtScreenShot:	ifs >> dsImg;  pdrwh = & dsImg; break;
-			case DrawableType::dtScribble:		ifs >> dScrb;  pdrwh = & dScrb; break;
-			case DrawableType::dtText:			ifs >> dTxt ;  pdrwh = & dTxt ; break;
-			default:break;
+			case DrawableType::dtDot:			(DrawableItem&)dDot   = di; ifs >> dDot;	pdrwh = &dDot;	break;
+			case DrawableType::dtCross:			(DrawableItem&)dCross = di; ifs >> dCross;	pdrwh = &dCross;break;
+			case DrawableType::dtEllipse:		(DrawableItem&)dEll	  = di; ifs >> dEll;	pdrwh = &dEll;	break;
+			case DrawableType::dtRectangle:		(DrawableItem&)dRct   = di; ifs >> dRct;	pdrwh = &dRct;	break;
+			case DrawableType::dtScreenShot:	(DrawableItem&)dsImg  = di; ifs >> dsImg;	pdrwh = &dsImg;	break;
+			case DrawableType::dtScribble:		(DrawableItem&)dScrb  = di; ifs >> dScrb;	pdrwh = &dScrb;	break;
+			case DrawableType::dtText:			(DrawableItem&)dTxt   = di; ifs >> dTxt;	pdrwh = &dTxt;	break;
+			default: break;
 		}
-		*pdrwh = dh;
 		(void)AddDrawableItem(*pdrwh); // this will add the drawable to the list and sets its zOrder too
 	}
 	return _readCount = n;
