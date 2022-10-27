@@ -324,7 +324,7 @@ struct DrawableCross : public DrawableItem
     void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
     QRectF Area() const override    // includes half od pen width+1 pixel
     { 
-        qreal d = penWidth / sqrt(2.0);
+        qreal d = (length + penWidth) / sqrt(2.0);
         return QRectF(startPos - QPointF(d, d), QSize(2*d, 2*d) ); 
     }
     void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR = QRectF()) override;
