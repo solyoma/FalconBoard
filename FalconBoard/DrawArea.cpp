@@ -61,7 +61,7 @@ void DrawArea::SetMyPrinterData(const MyPrinterData& prdata)
 void DrawArea::ClearRoll()
 {
 #ifndef _VIEWER
-	_HideRubberBand(true);
+	HideRubberBand(true);
 #endif
 	_history->AddClearRoll();
 	_ClearCanvas();
@@ -70,7 +70,7 @@ void DrawArea::ClearRoll()
 void DrawArea::ClearVisibleScreen()
 {
 #ifndef _VIEWER
-	_HideRubberBand(true);
+	HideRubberBand(true);
 #endif
 	_history->AddClearVisibleScreen();
 	_ClearCanvas();
@@ -79,7 +79,7 @@ void DrawArea::ClearVisibleScreen()
 void DrawArea::ClearDown()
 {
 #ifndef _VIEWER
-	_HideRubberBand(true);
+	HideRubberBand(true);
 #endif
 	_history->AddClearDown();
 	_ClearCanvas();
@@ -175,7 +175,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 	if (index != _currentHistoryIndex)
 	{
 #ifndef _VIEWER
-		_HideRubberBand(true);
+		HideRubberBand(true);
 #endif
 		if (index >= 0)     // store last viewport into previously shown history
 		{
@@ -255,7 +255,7 @@ void DrawArea::MoveHistory(int from, int to)
 int DrawArea::Load()
 {
 #ifndef _VIEWER
-	_HideRubberBand(true);
+	HideRubberBand(true);
 #endif
 	int res = _history->Load(); // only loads if names diferent
 
@@ -298,7 +298,7 @@ bool DrawArea::OpenBackgroundImage(const QString& fileName)
 
 bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 {
-	_HideRubberBand(true);
+	HideRubberBand(true);
 
 	QImage visibleImage = grab().toImage();
 	if (visibleImage.save(fileName, fileFormat))
@@ -396,7 +396,7 @@ int DrawArea::IsModified(int fromIndex, bool any) const
 #ifndef _VIEWER
 void DrawArea::InsertVertSpace()
 {
-	_HideRubberBand(true);
+	HideRubberBand(true);
 	_history->AddInsertVertSpace(_rubberRect.y() + _topLeft.y(), _rubberRect.height());
 	_Redraw();
 }
@@ -539,7 +539,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			if ((bCut || bDelete) && bCollected)
 			{
 				_history->AddDeleteItems();
-				_HideRubberBand(true);
+				HideRubberBand(true);
 				_Redraw();
 			}
 			else if (bDelete && !bCollected)     // delete empty area
@@ -547,7 +547,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				QRectF rect = _rubberRect.translated(_topLeft);
 				if (_history->AddRemoveSpaceItem(rect))     // there was something (not delete below the last item)
 				{
-					_HideRubberBand(true);
+					HideRubberBand(true);
 					_Redraw();
 				}
 			}
@@ -656,7 +656,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_history->AddToSelection(-1);
 			}
 			else if (bRemove)			   // delete rubberband for any keypress except pure modifiers  or space bar
-				_HideRubberBand(true);
+				HideRubberBand(true);
 		}
 		else    // no rubberBand
 #endif
@@ -925,7 +925,7 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 
 				}
 
-				_HideRubberBand(!_spaceBarDown);   // else move canavs with mouse, and move rubberband with it as well
+				HideRubberBand(!_spaceBarDown);   // else move canavs with mouse, and move rubberband with it as well
 			}
 
 			if (event->mods.testFlag(Qt::ShiftModifier))    // will draw straight line from last position to actual position
@@ -1176,7 +1176,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 			}
 		}
 		else
-			_HideRubberBand(true);
+			HideRubberBand(true);
 		event->accept();
 	}
 #endif
@@ -1317,7 +1317,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
  * REMARKS: - when the rubberBand is hidden and not deleted,
  *              it can be reshown using _ReshowRubberBand()
  *------------------------------------------------------------*/
-void DrawArea::_HideRubberBand(bool del)
+void DrawArea::HideRubberBand(bool del)
 {
 	if (_rubberBand && _rubberBand->isVisible())
 	{
@@ -2107,7 +2107,7 @@ void DrawArea::Undo()               // must draw again all underlying drawables
 {
 	if (_history->CanUndo())
 	{
-		_HideRubberBand(true);
+		HideRubberBand(true);
 
 		HistoryItem* phi = _history->Undo();
 		if (_history->CanUndo())
@@ -2130,7 +2130,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 	if (!phi)
 		return;
 
-	_HideRubberBand(true);
+	HideRubberBand(true);
 
 	_SetTopLeftFromItem(phi);
 	// ??    _clippingRect = phi->Area();
@@ -2184,7 +2184,7 @@ void DrawArea::SetPageGuidesOn(bool on)
 void DrawArea::_SetOrigin(QPointF o)
 {
 #ifndef _VIEWER
-	_HideRubberBand();  // and store _topLeft into _topLeftWhenRubber
+	HideRubberBand();  // and store _topLeft into _topLeftWhenRubber
 #endif
 	_topLeft = o;
 	_canvasRect.moveTo(_topLeft);

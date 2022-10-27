@@ -96,7 +96,7 @@ public:
 #ifndef _VIEWER
     SaveResult Save(QString name, int index=-1) 
     { 
-        _HideRubberBand(true);
+        HideRubberBand(true);
 
         if (index < 0) 
             index = _currentHistoryIndex;
@@ -118,6 +118,7 @@ public:
     void DrawRect();    // use _rubberBand
     void DrawEllipse();
 */
+    void HideRubberBand(bool del=false);
     void ApplyTransparencyToLoadedScreenshots(QColor trcolor, qreal fuzzyness);
 #endif
 
@@ -342,7 +343,6 @@ private:
     QRectF   _rubberRect;        // used to select histoy items
 
     void _InitRubberBand( MyPointerEvent* event);
-    void  _HideRubberBand(bool del=false);
     void _ReshowRubberBand();
 
     void _InitiateDrawingIngFromLastPos();   // from _lastPoint
