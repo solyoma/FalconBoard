@@ -28,7 +28,7 @@ public:
 		hMargin,				// left and right in inches
 		vMargin,				// top and bottom -"-
 		gutterMargin,			// left on odd, right on even pages inches
-		pdfMaxLR,				// these 2 are not saved
+		pdfMaxLR,				// these 2 are in inches and not saved
 		pdfMaxTB;
 
 	UnitIndex pdfUnitIndex;
@@ -52,7 +52,7 @@ private:
 	int _GetIndexForHorizPixels(int hp);
 	int _GetScreenSize(int index, QSize& size);
 
-	void _ChangeprintMarginsUnit(); 
+	void _ChangePrintMarginsUnit(); 
 	void _ChangePdfPaperSize(); 
 	void _SaveParams();
 
@@ -61,7 +61,7 @@ private slots:
 
 	void on_cbScreenResolution_currentIndexChanged(int i);
 	void on_sbHorizPixels_valueChanged(int val);
-	void on_edtScreenDiag_textChanged(QString& txt);
+	void on_edtScreenDiag_textChanged(const QString& txt);
 	void on_cbUnit_currentIndexChanged(int i);
 	void on_cbOrientation_currentIndexChanged(int i);
 	void on_cbPrinterSelect_currentIndexChanged(int i);

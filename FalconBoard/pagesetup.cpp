@@ -39,8 +39,15 @@ int PageSetupDialog::GetScreenSize(QSize& size)
 }
 
 /*======== conversion ========*/
-auto getUnit(int ix) { PageSetupDialog::UnitIndex ui[] = { PageSetupDialog::uiInch,PageSetupDialog::uiCm, PageSetupDialog::uiMm }; return ui[ix]; };
-auto unitToIndex(PageSetupDialog::UnitIndex ui) { return ui == PageSetupDialog::uiInch ? 0 : ui == PageSetupDialog::uiCm ? 1 : 2; };
+auto getUnit(int ix) 
+{ 
+	PageSetupDialog::UnitIndex ui[] = { PageSetupDialog::uiInch,PageSetupDialog::uiCm, PageSetupDialog::uiMm }; 
+	return ui[ix]; 
+};
+auto unitToIndex(PageSetupDialog::UnitIndex ui) 
+{ 
+	return ui == PageSetupDialog::uiInch ? 0 : ui == PageSetupDialog::uiCm ? 1 : 2; 
+};
 
 
 PageSetupDialog::PageSetupDialog(QWidget* parent, QString actPrinterName, WhatToDo whatToDo) : whatToDo(whatToDo), actPrinterName(actPrinterName), QDialog(parent)
@@ -146,11 +153,11 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, QString actPrinterName, WhatTo
 void PageSetupDialog::_SaveParams()
 {
 	QSettings *s = FBSettings::Open();
-	s->setValue("resi", ui.cbScreenResolution->currentIndex());
+	s->setValue("resi", resolutionIndex);
 	s->setValue("useri", ui.rbUseResInd->isChecked());
 
 	s->setValue("hpxs", ui.sbHorizPixels->value());
-	s->setValue("sdiag", ui.edtScreenDiag->text());
+	s->setValue("sdiag", screenDiagonal);
 	s->setValue("pflags", flags);	// includes pfOpenPDFInViewer
 	// for PDF
 	s->setValue("pdfpgs", pdfIndex);
@@ -196,9 +203,19 @@ void PageSetupDialog::on_sbHorizPixels_valueChanged(int val)
 	_busy = false;
 }
 
-
-void PageSetupDialog::on_edtScreenDiag_textChanged(QString& txt) { screenDiagonal = txt.toInt(); }
-void PageSetupDialog::on_cbUnit_currentIndexChanged(int i) { unitIndex = getUnit(i); }
+void PageSetupDialog::on_edtScreenDiag_textChanged(const QString& txt) 
+{ 
+	static int prevind = 0;
+	int actInd = ui.cbUnit->currentIndex();
+	if (prevind == actInd)		// otherwise the text is changed because the unit changed
+		screenDiagonal = txt.toInt() * (actInd == 0 ? 1.0 : (actInd == 1 ? 1 / 2.54 : 1 / 25.4));			// and this value is always in inch
+	prevind = actInd;
+}
+void PageSetupDialog::on_cbUnit_currentIndexChanged(int i) 
+{ 
+	unitIndex = getUnit(i); 
+	ui.edtScreenDiag->setText(QString().setNum(screenDiagonal * (unitIndex == uiInch ? 1.0 : (unitIndex == uiCm ? 2.54 : 25.4))));
+}
 void PageSetupDialog::on_cbOrientation_currentIndexChanged(int landscape) 
 { 
 	flags &= ~pfLandscape; 
@@ -320,12 +337,12 @@ void PageSetupDialog::_ChangePdfPaperSize()
 		ui.sbMarginTB->setMaximum( pdfMaxTB * factM );
 	}
 }
-void PageSetupDialog::_ChangeprintMarginsUnit()
+void PageSetupDialog::_ChangePrintMarginsUnit()
 {
 	if (_busy)
 		return;
 	// unit change does not change the stored values
-	double factM = pdfUnitIndex == uiInch ? 2.54 : 1;
+	double factM = pdfUnitIndex == uiInch ? 1 : 2.54;
 	ui.sbMarginLR->setMaximum( pdfMaxLR * factM );
 	ui.sbMarginTB->setMaximum( pdfMaxTB * factM );
 	ui.sbMarginLR->setValue( hMargin * factM );
@@ -338,7 +355,7 @@ void PageSetupDialog::on_cbPdfUnit_currentIndexChanged(int i)
 	if (_busy)
 		return;
 	pdfUnitIndex = getUnit(i);
-	_ChangeprintMarginsUnit();
+	_ChangePrintMarginsUnit();
 }
 
 void PageSetupDialog::on_cbPrinterSelect_currentIndexChanged(int i)

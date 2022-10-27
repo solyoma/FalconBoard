@@ -177,7 +177,7 @@ void FalconBoard::RestoreState()
     
     data.flags = s->value("pflags", 0).toInt();		        // bit 0: print background image, bit 1: white background
     data.SetMargins(s->value("pdfmlr", 1.0).toFloat(), s->value("pdfmtb", 1.0).toFloat(), s->value("pdfgut", 0.0).toFloat(), false);
-    int resi = s->value("resi", 0).toInt();
+    int resi = s->value("resi", 6).toInt(); // 1920 x 1080
     if (s->value("useri",true).toBool() )
         data.screenPageWidth = myScreenSizes[resi].w;
     else
