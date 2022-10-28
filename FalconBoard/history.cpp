@@ -8,21 +8,6 @@
 
 HistoryList historyList;       // many histories are possible
 
-struct _SortFunc
-{
-	History& history;
-	_SortFunc(History& h) : history(h) {}
-	bool operator()(int i, int j) 				// returns true if item i comes before item j
-	{											// no two items may have the same z-order
-		bool zOrderOk = history.Item(i)->ZOrder() < history.Item(j)->ZOrder();
-
-		if (zOrderOk)	// zOrder OK
-			return true;
-		return false;
-	}
-};
-
-
 //*****************************************************************************************************
 // Histoy 
 // ****************************************************************************************************
@@ -327,19 +312,17 @@ HistoryPasteItemTop& HistoryPasteItemTop::operator=(HistoryPasteItemTop&& other)
 	return *this;
 }
 
-int  HistoryPasteItemTop::Undo() // elements are in _items
+int  HistoryPasteItemTop::Undo() // elements are in _items and will be moved to _redoList after this
 {
-	SetVisibility(false);
 	if (moved)	// then the first item above the bottom item is a history delete item
 		(*pHist)[indexOfBottomItem + 1]->Undo();
 	return count + moved + 2;	// decrease actual pointer below bottom item
 }
 
-int HistoryPasteItemTop::Redo()		// elements copied back to '_items' already
+int HistoryPasteItemTop::Redo()		// elements copied back to '_items' already, but not into _pDrawables
 {
 	if (moved)	// then the first item above the bottom item is a history delete item
 		(*pHist)[indexOfBottomItem + 1]->Redo();
-	SetVisibility(true);
 
 	return count + moved + 1;	// we are at bottom item -> change stack pointer to top item
 }
@@ -349,7 +332,7 @@ bool HistoryPasteItemTop::IsVisible() const
 	return (*pHist)[indexOfBottomItem]->IsVisible();
 }
 
-void HistoryPasteItemTop::SetVisibility(bool visible)
+void HistoryPasteItemTop::SetVisibility(bool visible) // visible=false then Undo, true then redo
 {
 	for (int i = 1; i <= count; ++i)
 	{
@@ -1259,7 +1242,7 @@ void History::InserVertSpace(int y, int heightInPixels)
 	_modified = true;
 }
 
-HistoryItem* History::Undo()      // returns top left after undo
+HistoryItem* History::Undo()      // returns item on top of _items or null
 {
 	int actItem = _items.size();
 	if (!actItem || actItem == _readCount)		// no more undo
@@ -1267,8 +1250,12 @@ HistoryItem* History::Undo()      // returns top left after undo
 
 	// ------------- first Undo top item
 	HistoryItem* phi = _items[--actItem];
-	int count = phi->Undo();		// it will affect this many elements (copy / paste )
-    // QRectF rect = phi->Area();		// area of undo
+	int count = phi->Undo()-1;		// it will affect (count+1) elements (copy / paste )
+
+	_redoList.push_back(phi);		// move to redo list
+	_items.pop_back();				// and remove from _items
+	--actItem;						// because for Past items item hide and show is done 
+									// in the corresponding items in _items
 
 	// -------------then move item(s) from _items to _redoList
 	//				and remove them from the quad tree
@@ -1277,7 +1264,7 @@ HistoryItem* History::Undo()      // returns top left after undo
 	{
 		phi = _items[actItem];	// here again, index is never negative 
 		_redoList.push_back(phi);
-
+		phi->Undo();
 		_items.pop_back();	// we need _items for removing the
 		--actItem;
 	}
@@ -1380,8 +1367,7 @@ int History::CollectDrawablesInside(QRectF rect) // only
 	}
 	if (iv.size())
 	{
-		_SortFunc sortFunc(*this);
-		std::sort(iv.begin(), iv.end(), sortFunc);
+		std::sort(iv.begin(), iv.end(), [this](int i, int j) { return _drawables[i]->zOrder < _drawables[j]->zOrder; });
 
 		// then separate these into lists
 		for (auto ix : iv)

@@ -892,11 +892,11 @@ public:
 
     void Redo()    // moves last item from _redoItems 
     {                       // and adds them from the quad tree
-        int k = _redoItems.size()-1;
+        int i = _items.size(), k = _redoItems.size()-1;
         _items.push_back(_redoItems.at(k));
         _redoItems.pop_back();
         if (_pQTree)
-            _pQTree->Add(k);
+            _pQTree->Add(i);
     }
 
     void ClearRedo()
