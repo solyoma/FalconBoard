@@ -1105,7 +1105,7 @@ public:
             if (pdrw->isVisible && pdrw->PointIsNear(point, pdrw->penWidth / 2.0 + 3))
             {
                 iv.append(i); //  ({ pdrw->dtType, i, pdrw->zOrder });
-                (void)rect.united(pdrw->Area());
+                rect = rect.united(pdrw->Area());
             }
         };
 
