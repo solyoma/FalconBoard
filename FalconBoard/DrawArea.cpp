@@ -638,9 +638,11 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				QPainter* painter = _GetPainter(_pActCanvas);
 				_lastDrawableCross.Draw(painter, _topLeft);
 				delete painter;
+				_firstPointC = _lastPointC = _lastDrawableCross.startPos;;
 
 				(void) _history->AddDrawableItem(_lastDrawableCross);
 				_history->AddToSelection(-1);
+				update();
 
 			}
 			else if (key == Qt::Key_Period)   // mark center with cross or a period
@@ -654,6 +656,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 				(void) _history->AddDrawableItem(_lastDotItem);
 				_history->AddToSelection(-1);
+				update();
 			}
 			else if (bRemove)			   // delete rubberband for any keypress except pure modifiers  or space bar
 				HideRubberBand(true);
