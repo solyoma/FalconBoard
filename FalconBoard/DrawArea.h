@@ -258,6 +258,8 @@ private:
     bool    _bPageSetupUsed = false;
     bool    _openPDFInViewerAfterPrint = false;
 
+    QPointF _actMousePos;   // set in mouse/tablet events
+
 
     std::chrono::milliseconds _msecs = 10ms;   // when delayed playback
     bool _delayedPlayback = false; // ???? to make it work not user drawing should be done in an other thread
@@ -391,7 +393,7 @@ private:
     void _Right(int distance = 10);
     bool _NoPrintProblems();           // false: some problems
 #ifndef _VIEWER
-    void _ShowCoordinates(const QPointF& qp);
+    void _ShowCoordinates(const QPointF& qp);   // and sets mouse position into _actMousePos
     Sprite * _CreateSprite(QPointF cursorPos, QRectF& rect, bool itemsDeleted, bool setVisible=true);
     Sprite * _PrepareSprite(Sprite *pSprite, QPointF cursorPos, QRectF rect, bool itemsDeleted, bool setVisible=true);
     Sprite * _SpriteFromLists(); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible

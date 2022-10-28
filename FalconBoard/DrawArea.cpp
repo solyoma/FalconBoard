@@ -506,17 +506,34 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
 				);
 
+		// lambda to draw a cross at a given point
+		auto __DrawCross = [&](QPointF p, int halflen) // p rel. to Document top/left
+		{
+			_actPenWidth = _penWidth;
+			_lastDrawableCross = DrawableCross(p, halflen, _history->GetZorder(false), _actPenKind, _actPenWidth);
+
+			QPainter* painter = _GetPainter(_pActCanvas);
+			_lastDrawableCross.Draw(painter, _topLeft);
+			delete painter;
+			_firstPointC = _lastPointC = _lastDrawableCross.startPos;;
+
+			(void)_history->AddDrawableItem(_lastDrawableCross);
+			_history->AddToSelection(-1);
+			update();
+		};
+
 		if (_rubberBand) 
 		{
 
 			bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
 				bCut = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
-				((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
+							((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
 				bCopy = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
-				_mods.testFlag(Qt::ControlModifier),
+							_mods.testFlag(Qt::ControlModifier),
 				bRemove = (bDelete | bCopy | bCut | bPaste) ||
-				(key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C
-					&& key != Qt::Key_Space && key != Qt::Key_Up && key != Qt::Key_Down && key != Qt::Key_Left && key != Qt::Key_Right && key != Qt::Key_PageUp && key != Qt::Key_PageDown),
+					(key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
+						key != Qt::Key_Space && key != Qt::Key_Up && key != Qt::Key_Down && key != Qt::Key_Left && 
+						key != Qt::Key_Right && key != Qt::Key_PageUp && key != Qt::Key_PageDown),
 				bCollected = false,
 				bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5),
 
@@ -632,18 +649,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			}
 			else if (key == Qt::Key_X && !bCut)   // mark center with cross
 			{
-				_actPenWidth = _penWidth;
-				_lastDrawableCross = DrawableCross(_rubberRect.translated(_topLeft).center(), 10, _history->GetZorder(false), _actPenKind, _actPenWidth);
-
-				QPainter* painter = _GetPainter(_pActCanvas);
-				_lastDrawableCross.Draw(painter, _topLeft);
-				delete painter;
-				_firstPointC = _lastPointC = _lastDrawableCross.startPos;;
-
-				(void) _history->AddDrawableItem(_lastDrawableCross);
-				_history->AddToSelection(-1);
-				update();
-
+				__DrawCross(_rubberRect.translated(_topLeft).center(), 10);
 			}
 			else if (key == Qt::Key_Period)   // mark center with cross or a period
 			{
@@ -677,7 +683,9 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_Redraw();
 				}
 			}
-			else
+			else if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )
+				__DrawCross(_actMousePos, 10);
+			else 
 #endif
 				if (key == Qt::Key_PageUp)
 					_PageUp();
@@ -1125,7 +1133,13 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				}
 				else
 					_history->AddDrawableItem(_lastScribbleItem);
-
+// DEBUG
+				//std::ofstream alma;
+				//alma.open("_lastScribbleItem.csv");
+				//for (auto p : _lastScribbleItem.points)
+				//	alma << p.x() << "," << p.y() << std::endl;
+				//alma.close();
+// End DEBUG
 				//DEBUG_LOG(QString("Mouse release #2: _lastPoint: (%1,%2)\n__lastDrwanItem point size:%3").arg(_lastPointC.x()).arg(_lastPointC.y()).arg(_lastScribbleItem.points.size()))
 
 				emit CanUndo(_history->CanUndo());
@@ -2474,8 +2488,8 @@ void DrawArea::_Right(int amount)
 #ifndef _VIEWER
 void DrawArea::_ShowCoordinates(const QPointF& qp)
 {
-	static QPointF prevPoint = QPointF(0, 0),
-		qpt;
+	static QPointF prevPoint = QPointF(0, 0);
+	QPointF qpt;
 	if (qp.isNull())
 		qpt = prevPoint;
 	else
@@ -2484,6 +2498,8 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	_lastCursorPos = qpt;
 
 	qpt += _topLeft;
+
+	_actMousePos = qpt;
 
 	QString qs;
 	int pg = int((_topLeft.y() + qp.y()) / _prdata.screenPageHeight) + 1;

@@ -564,6 +564,19 @@ bool DrawableScribble::IsExtension(const QPointF& p, const QPointF& p1, const QP
 void DrawableScribble::add(QPointF p)
 {
 	int n = points.size() - 1;
+	// data smoothing with simple moving average of length K 
+	// of N  > K points - (lower case )p
+	// The averaged points (upper case P)
+	// formula:  n = K =>        P   = (p  + p +...+ p    ) / K
+	//            0   			  n0	 0	  1		  K-1
+	// 
+	// 
+	//           n > K			  Py   = Py  + py  +  py
+	//				  			    n+1 	     n+1    n-K+1
+	// where the x xoordinates of the p-s must be equidistant
+
+
+
 	// we need at least one point already in the array
 // if a point just extends the line in the same direction (IsExtension())
 // as the previous point was from the one before it
