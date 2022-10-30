@@ -560,7 +560,7 @@ bool DrawableScribble::IsExtension(const QPointF& p, const QPointF& p1, const QP
 
 void DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use smoothed = true when drawing by hand
 {																	// neither when reading or copying
-	static Smoother<QPointF, qreal, 20> smoother;					// Use reset when new drawing starts
+	static Smoother<QPointF, qreal, 200> smoother;					// Use reset when new drawing starts
 	if (reset)
 		smoother.Reset();
 

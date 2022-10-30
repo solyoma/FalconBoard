@@ -1103,7 +1103,12 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 				else
 				{
 					if (_DrawFreehandLineTo(event->pos))
-						_lastScribbleItem.Add(_lastPointC + _topLeft, true);	// add and smooth
+						if (_CanSavePoint(_lastPointC))
+						{
+							_CorrectForDirection(_lastPointC);
+							_lastScribbleItem.Add(_lastPointC + _topLeft, true);	// add and smooth
+							_DrawLineTo(_lastScribbleItem.GetLastDrawnPoint()-_topLeft);
+						}
 				}
 			}
 #endif
@@ -1764,20 +1769,6 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 {
 	QPainter painter(_pActCanvas);
 	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
-	/*
-								THIS DOES NOT WORK, nothing gets painted:
-		if (_actPenWidth > 2)
-		{
-			qreal cxy = _actPenWidth / 2.0;
-			QRadialGradient gradient(cxy, cxy, cxy);
-			gradient.setColorAt(0, _PenColor());
-			gradient.setColorAt(0.9, _PenColor());
-			gradient.setColorAt(1, QColor::fromRgbF(0, 0, 0, 0));
-
-			QBrush brush(gradient);
-			pen.setBrush(brush);
-		}
-	*/
 	painter.setPen(pen);
 	if (_erasemode && !_debugmode)
 		painter.setCompositionMode(QPainter::CompositionMode_Clear);
