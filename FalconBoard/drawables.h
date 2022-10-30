@@ -552,7 +552,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 
     static bool IsExtension(const QPointF& p, const QPointF& p1, const QPointF& p2 = QPoint()); // vectors p->p1 and p1->p are parallel?
 
-    void Add(QPointF p, bool smoothed = false, bool reset=false);          
+    QPointF Add(QPointF p, bool smoothed = false, bool reset=false);          
     void Add(int x, int y, bool smoothed = false, bool reset = false);
     void Smooth();               // points
 

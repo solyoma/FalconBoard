@@ -1101,14 +1101,14 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 				}
 #ifndef _VIEWER
 				else
-				{
-					if (_DrawFreehandLineTo(event->pos))
-						if (_CanSavePoint(_lastPointC))
-						{
-							_CorrectForDirection(_lastPointC);
-							_lastScribbleItem.Add(_lastPointC + _topLeft, true);	// add and smooth
-							_DrawLineTo(_lastScribbleItem.GetLastDrawnPoint()-_topLeft);
-						}
+				{	
+					QPointF tmp = event->pos;
+					if (_CanSavePoint(tmp))
+					{
+						_CorrectForDirection(tmp);
+						tmp = _lastScribbleItem.Add(tmp + _topLeft, true) - _topLeft;	// add and smooth
+						_DrawLineTo(tmp);
+					}
 				}
 			}
 #endif
@@ -1767,6 +1767,10 @@ bool DrawArea::_DrawFreehandLineTo(QPointF endPointC)
  *-------------------------------------------------------*/
 void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative 
 {
+	// DEBUG
+	 qDebug("_DrawLineTo: last:(%4.1f, %4.1f) new:(%4.1f, %4.1f)"), _lastPointC.x(), _lastPointC.y(), endPointC.x(), endPointC.y();
+	// end DEBUG
+
 	QPainter painter(_pActCanvas);
 	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
 	painter.setPen(pen);

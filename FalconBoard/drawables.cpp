@@ -558,7 +558,7 @@ bool DrawableScribble::IsExtension(const QPointF& p, const QPointF& p1, const QP
 	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && ((vp.x() != vpp.x() && vp.x() * vpp.x() > 0) || (vp.y() != vpp.y() && vp.y() * vpp.y() > 0));
 }
 
-void DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use smoothed = true when drawing by hand
+QPointF DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use smoothed = true when drawing by hand
 {																	// neither when reading or copying
 	static Smoother<QPointF, qreal, 200> smoother;					// Use reset when new drawing starts
 	if (reset)
@@ -578,6 +578,7 @@ void DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use smo
 		points[n] = p;                            // so continuation
 	else
 		points.push_back(p);
+	return p;
 }
 
 void DrawableScribble::Add(int x, int y, bool smoothed, bool reset)
