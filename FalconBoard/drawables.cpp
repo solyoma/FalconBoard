@@ -241,7 +241,7 @@ void DrawableDot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QR
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea));
 		QPointF pt = startPos - topLeftOfVisibleArea;
-		painter->drawPoint(startPos);
+		painter->drawPoint(pt);
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
