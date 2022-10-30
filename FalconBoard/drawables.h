@@ -180,11 +180,11 @@ public:
     FalconPenKind PenKind() const { return _penKind; }
     void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR = QRectF(), QColor brushColor = QColor())
     {
-        QPen pen( PenColor() );
-        pen.setWidth(penWidth);
+        QPen pen(QPen(PenColor(), penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin) );
         painter->setPen(pen);
         if (brushColor.isValid())
             painter->setBrush(QBrush(brushColor));
+        // painter's default compositionmode is SourceOver
         painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
         if(clipR.isValid())
             painter->setClipRect(clipR);
@@ -277,8 +277,8 @@ struct DrawableItem : public DrawablePen
     {
         drawStarted = true;
 
-        if (erasers.size())                 // then paint object with erasers on separate pixmap 
-        {
+        if (erasers.size())                 // then paint object first then erasers on separate pixmap 
+        {                                   // and copy the pixmap to the visible area
             QPixmap pxm(Area().size().toSize());
             QPainter myPainter(&pxm);       
             Draw(&myPainter, topLeftOfVisibleArea);     // calls painter of subclass, 
@@ -287,17 +287,17 @@ struct DrawableItem : public DrawablePen
                                             // clipRect is not important as the pixmap is exactly the right size
             // and now the erasers
             myPainter.setCompositionMode(QPainter::CompositionMode_Clear);
+            painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
             for (auto er : erasers)
             {
-                QPen pen(Qt::black);
-                pen.setWidth(er.eraserPenWidth);
+                QPen pen( QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
                 myPainter.setPen(pen);
                 myPainter.drawPolyline(er.eraserStroke);    // do not close path
             }
             painter->drawPixmap(topLeftOfVisibleArea, pxm);
         }
-        else
+        else                                // no erasers: just paint normally
             Draw(painter, topLeftOfVisibleArea, clipR);
 
         drawStarted = false;
@@ -312,7 +312,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di);
             //----------------------------------------------------
 struct DrawableCross : public DrawableItem
 {
-    qreal length;                 // total length of lines intersecting at 45 degree
+    qreal length=10;                 // total length of lines intersecting at 45 degree
 
     DrawableCross() : DrawableItem()
     {
@@ -322,7 +322,7 @@ struct DrawableCross : public DrawableItem
     DrawableCross(const DrawableCross& o) = default;
     ~DrawableCross() = default;
     void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
-    QRectF Area() const override    // includes half od pen width+1 pixel
+    QRectF Area() const override    // includes half of pen width+1 pixel
     { 
         qreal d = (length + penWidth) / sqrt(2.0);
         return QRectF(startPos - QPointF(d, d), QSize(2*d, 2*d) ); 
@@ -528,6 +528,10 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 {                   
     QPolygonF points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
 
+    // DEBUG
+    bool bSmoothDebug = false;
+    // end DEBUG
+
     DrawableScribble() : DrawableItem()
     {
         dtType = DrawableType::dtScribble;
@@ -544,15 +548,15 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
         return dtType;
     }
 
-    void clear();       // clears points
+    void Clear();       // clears points
 
     static bool IsExtension(const QPointF& p, const QPointF& p1, const QPointF& p2 = QPoint()); // vectors p->p1 and p1->p are parallel?
 
-    void add(QPointF p);          // must use SetBoundingRectangle after all points adedd
-    void add(int x, int y);      // - " - 
+    void Add(QPointF p, bool smoothed = false, bool reset=false);          
+    void Add(int x, int y, bool smoothed = false, bool reset = false);
     void Smooth();               // points
 
-    bool intersects(const QRectF& arect) const;
+    bool Intersects(const QRectF& arect) const;
 
 
 

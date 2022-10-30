@@ -399,6 +399,12 @@ private:
     Sprite * _SpriteFromLists(); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible
     void _MoveSprite(QPointF pt);
     void _PasteSprite();
+
+
+    // DEBUG
+    bool _bSmoothDebug = true;
+    // end DEBUG
+
 private slots:
     void _ScrollTimerSlot();
 #endif

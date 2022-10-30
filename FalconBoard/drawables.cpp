@@ -1,6 +1,7 @@
 
 #include "drawables.h"
 #include "history.h"
+#include "smoother.h"
 
 QRectF QuadAreaToArea(const QuadArea& qarea)
 {
@@ -240,10 +241,6 @@ void DrawableDot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QR
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea));
 		QPointF pt = startPos - topLeftOfVisibleArea;
-		QPen pen(PenColor());
-		pen.setWidth(penWidth);
-		painter->setPen(pen);
-
 		painter->drawPoint(startPos);
 	}
 	else
@@ -540,7 +537,7 @@ DrawableScribble& DrawableScribble::operator=(DrawableScribble&& di)  noexcept
 	return *this;
 }
 
-void DrawableScribble::clear()
+void DrawableScribble::Clear()
 {
 	points.clear();
 }
@@ -561,21 +558,16 @@ bool DrawableScribble::IsExtension(const QPointF& p, const QPointF& p1, const QP
 	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && ((vp.x() != vpp.x() && vp.x() * vpp.x() > 0) || (vp.y() != vpp.y() && vp.y() * vpp.y() > 0));
 }
 
-void DrawableScribble::add(QPointF p)
-{
+void DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use smoothed = true when drawing by hand
+{																	// neither when reading or copying
+	static Smoother<QPointF, qreal, 20> smoother;					// Use reset when new drawing starts
+	if (reset)
+		smoother.Reset();
+
+	if (smoothed && bSmoothDebug)
+		p = smoother.AddPoint(p);
+
 	int n = points.size() - 1;
-	// data smoothing with simple moving average of length K 
-	// of N  > K points - (lower case )p
-	// The averaged points (upper case P)
-	// formula:  n = K =>        P   = (p  + p +...+ p    ) / K
-	//            0   			  n0	 0	  1		  K-1
-	// 
-	// 
-	//           n > K			  Py   = Py  + py  +  py
-	//				  			    n+1 	     n+1    n-K+1
-	// where the x xoordinates of the p-s must be equidistant
-
-
 
 	// we need at least one point already in the array
 // if a point just extends the line in the same direction (IsExtension())
@@ -588,10 +580,10 @@ void DrawableScribble::add(QPointF p)
 		points.push_back(p);
 }
 
-void DrawableScribble::add(int x, int y)
+void DrawableScribble::Add(int x, int y, bool smoothed, bool reset)
 {
 	QPointF p(x, y);
-	add(p);
+	Add(p, smoothed, reset);
 }
 
 void DrawableScribble::Smooth()
@@ -600,7 +592,7 @@ void DrawableScribble::Smooth()
 	// ???
 }
 
-bool DrawableScribble::intersects(const QRectF& arect) const
+bool DrawableScribble::Intersects(const QRectF& arect) const
 {
 	return Area().intersects(arect);
 }

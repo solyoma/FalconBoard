@@ -480,6 +480,17 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 	_mods = event->modifiers();
 	int key = event->key();
 
+	// DEBUG
+#ifndef _VIEWER
+	if (key == Qt::Key_S)
+	{
+		_bSmoothDebug = !_bSmoothDebug;
+		qDebug("Smoothing %s", (_bSmoothDebug ? "on" : "off"));
+	}
+#endif
+	// end DEBUG
+
+
 #if !defined _VIEWER && defined _DEBUG
 	bool redraw = false;
 	if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::ShiftModifier)))
@@ -1092,7 +1103,7 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 				else
 				{
 					if (_DrawFreehandLineTo(event->pos))
-						_lastScribbleItem.add(_lastPointC + _topLeft);
+						_lastScribbleItem.Add(_lastPointC + _topLeft, true);	// add and smooth
 				}
 			}
 #endif
@@ -1124,7 +1135,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 #ifndef _VIEWER
 				//DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
 				if (_DrawFreehandLineTo(event->pos))
-					_lastScribbleItem.add(_lastPointC + _topLeft);
+					_lastScribbleItem.Add(_lastPointC + _topLeft, true);		// add and smooth
 				if (_lastScribbleItem.points.size() == 2 && _lastScribbleItem.points.at(0) == _lastScribbleItem.points.at(1))
 				{
 					(DrawableItem&)_lastDotItem = (DrawableItem&)_lastScribbleItem;
@@ -1389,16 +1400,19 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
 	if (_spaceBarDown)      // no drawing
 		return;
 
-	_lastScribbleItem.clear();
+	_lastScribbleItem.Clear();
 	_actPenWidth = _penWidth;
 
+	// DEBUG
+	_lastScribbleItem.bSmoothDebug = _bSmoothDebug;
+	// end DEBUG
 	_lastScribbleItem.SetPenKind(_actPenKind);
 //	_lastScribbleItem.SetPenColor();
 	_lastScribbleItem.penWidth = _actPenWidth;
 	_lastScribbleItem.startPos = _lastPointC + _topLeft;
 	_lastScribbleItem.zOrder = _history->GetZorder(false);
 	if (_lastPointC.x() >= 0)    // else no last point yet
-		_lastScribbleItem.add(_lastPointC + _topLeft);
+		_lastScribbleItem.Add(_lastPointC + _topLeft, true, true);		// reset then add first new point
 }
 
 /*========================================================
@@ -1767,8 +1781,8 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 	painter.setPen(pen);
 	if (_erasemode && !_debugmode)
 		painter.setCompositionMode(QPainter::CompositionMode_Clear);
-	else
-		painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+	//else			Default mode is SourceOver
+	//	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 	painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
 	QPointF ep = endPointC,
@@ -2130,9 +2144,7 @@ void DrawArea::Undo()               // must draw again all underlying drawables
 		if (_history->CanUndo())
 			_SetTopLeftFromItem(phi);
 
-		_ClearCanvas();
-
-		_Redraw();
+		_Redraw();	// _Canvas is cleared inside _Redraw
 		_clippingRect = _canvasRect;
 		_SetLastPointPosition();
 

@@ -1000,7 +1000,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 			while (n--)
 			{
 				ifs >> x >> y;
-				dScrb.add(x, y);
+				dScrb.Add(x, y);
 			}
 
 			if (dScrb.points.size() == 2 && dScrb.points[0] == dScrb.points[1])	// then its a Dot

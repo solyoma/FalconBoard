@@ -123,6 +123,9 @@
     <ClInclude Include="drawables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="smoother.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="FalconBoard.qrc">
