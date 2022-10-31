@@ -308,12 +308,13 @@ private:
 
     QPointF _firstPointC, // canvas relative first point drawn
             _lastPointC;  // canvas relative last point drawn relative to visible image
+    DrawableItem*   _pLastDrawableItem = nullptr; // set to either of the following:
     DrawableCross   _lastDrawableCross;
     DrawableDot      _lastDotItem;
     DrawableEllipse  _lastEllipseItem;
-    DrawableItem*   _pLastDrawableItem = nullptr; // set to either of the following:
-    DrawableScribble _lastScribbleItem;
+    DrawableLine     _lastLineItem;
     DrawableRectangle _lastRectangleItem;
+    DrawableScribble _lastScribbleItem;
     DrawableText     _lastTextItem;
 
     QCursor _savedCursor;

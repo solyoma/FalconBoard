@@ -50,7 +50,8 @@ enum class DrawableType {
     dtNone,
     dtCross,            // an X as a marker
     dtDot,              // single dot
-    dtEllipse,          // - " -
+    dtEllipse,          // 
+    dtLine,             // 2 endpoints
     dtRectangle,        // 4 courner points
     dtScreenShot,       // shown below any other drawable
     dtScribble,         // series of points from start to finish of scribble, eraser strokes added to  scribble
@@ -144,8 +145,6 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
 #undef SQR
 #undef DIST2
 };
-
-
 
 
             //----------------------------------------------------
@@ -424,6 +423,45 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableEllipse& di);  // call A
             //----------------------------------------------------
             // ------------------- Drawable Rectangle -------------
             //----------------------------------------------------
+struct DrawableLine : public DrawableItem
+{
+    QPointF endPoint;
+
+    DrawableLine() : DrawableItem()
+    {
+        dtType = DrawableType::dtLine;
+    }
+    DrawableLine(QPointF startPos, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);
+    DrawableLine(const DrawableLine& ol);
+    DrawableLine(DrawableLine&& ol);
+    ~DrawableLine() {}
+    DrawableLine& operator=(const DrawableLine& ol);
+    DrawableLine& operator=(const DrawableLine&& ol);
+    void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
+    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha = 0.0) override;    // alpha used only for 'rotAlpha'
+    QRectF Area() const override// includes half od pen width+1 pixel
+    {
+        QRectF rect = QRectF(startPos, QSize(qAbs( (endPoint - startPos).x()), qAbs((endPoint - startPos).y())) );
+        qreal d = penWidth / 2.0 + 1.0;
+        return rect.adjusted(-d, -d, d, d);
+    }
+    QPointF GetLastDrawnPoint() const override
+    {
+        return endPoint;
+    }
+    bool PointIsNear(QPointF p, qreal distance) const override
+    {                                                         
+        return __IsLineNearToPoint(startPos, endPoint, p, distance);
+    }
+    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+};
+QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di);
+QDataStream& operator>>(QDataStream& ifs,       DrawableLine& di);  // call AFTER header is read in
+
+;
+            //----------------------------------------------------
+            // ------------------- Drawable Rectangle -------------
+            //----------------------------------------------------
 struct DrawableRectangle : public DrawableItem
 {
     QRectF rect;
@@ -554,7 +592,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 
     QPointF Add(QPointF p, bool smoothed = false, bool reset=false);          
     void Add(int x, int y, bool smoothed = false, bool reset = false);
-    void Smooth();               // points
+    void Reset();               // points and smoother
 
     bool Intersects(const QRectF& arect) const;
 
@@ -1007,6 +1045,7 @@ public:
             case DrawableType::dtDot:       pres = new DrawableDot((DrawableDot&)dri); break;
             case DrawableType::dtCross:     pres = new DrawableCross((DrawableCross&)dri); break;
             case DrawableType::dtEllipse:   pres = new DrawableEllipse((DrawableEllipse&)dri); break;
+            case DrawableType::dtLine:      pres = new DrawableLine((DrawableLine&)dri); break;
             case DrawableType::dtRectangle: pres = new DrawableRectangle((DrawableRectangle&)dri); break;
             case DrawableType::dtScreenShot:pres = new DrawableScreenShot((DrawableScreenShot&)dri); break;
             case DrawableType::dtScribble:  pres = new DrawableScribble((DrawableScribble&)dri); break;
@@ -1047,6 +1086,7 @@ public:
             case DrawableType::dtDot:       ivi = Push_back(new DrawableDot(topLeft, _pZorderStore->GetZorder(false), penKind, penWidth)); break;
             case DrawableType::dtCross:     ivi = Push_back(new DrawableCross(topLeft, sizef.width(), _pZorderStore->GetZorder(false), penKind, penWidth)); break;
             case DrawableType::dtEllipse:   ivi = Push_back(new DrawableEllipse(QRectF(topLeft, sizef), _pZorderStore->GetZorder(false), penKind, penWidth, isFilled)); break;
+            case DrawableType::dtLine:      ivi = Push_back(new DrawableLine(topLeft, QPointF(sizef.width(),sizef.height()),_pZorderStore->GetZorder(false),penKind,penWidth) ); break;
             case DrawableType::dtRectangle: ivi = Push_back(new DrawableRectangle(QRectF(topLeft, sizef), _pZorderStore->GetZorder(false), penKind, penWidth, isFilled)); break;
             case DrawableType::dtScreenShot:ivi = Push_back(new DrawableScreenShot(topLeft, _pZorderStore->GetZorder(true), *pimage)); break;
             case DrawableType::dtScribble:  ivi = Push_back(new DrawableScribble(penKind, penWidth, _pZorderStore->GetZorder(false))); break;    // add points later

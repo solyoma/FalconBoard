@@ -1141,11 +1141,21 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				//DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
 				if (_DrawFreehandLineTo(event->pos))
 					_lastScribbleItem.Add(_lastPointC + _topLeft, true);		// add and smooth
-				if (_lastScribbleItem.points.size() == 2 && _lastScribbleItem.points.at(0) == _lastScribbleItem.points.at(1))
+				if (_lastScribbleItem.points.size() == 2)
 				{
-					(DrawableItem&)_lastDotItem = (DrawableItem&)_lastScribbleItem;
-					_lastDotItem.dtType = DrawableType::dtDot;
-					_history->AddDrawableItem(_lastDotItem);
+					if (_lastScribbleItem.points.at(0) == _lastScribbleItem.points.at(1))
+					{
+						(DrawableItem&)_lastDotItem = (DrawableItem&)_lastScribbleItem;
+						_lastDotItem.dtType = DrawableType::dtDot;
+						_history->AddDrawableItem(_lastDotItem);
+					}
+					else	// DrawableLine
+					{
+						(DrawableItem&)_lastLineItem = (DrawableItem&)_lastScribbleItem;
+						_lastLineItem.dtType = DrawableType::dtLine;
+						_lastLineItem.endPoint = _lastScribbleItem.points[1];
+						_history->AddDrawableItem(_lastLineItem);
+					}
 				}
 				else
 					_history->AddDrawableItem(_lastScribbleItem);
@@ -1768,7 +1778,7 @@ bool DrawArea::_DrawFreehandLineTo(QPointF endPointC)
 void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative 
 {
 	// DEBUG
-	 qDebug("_DrawLineTo: last:(%4.1f, %4.1f) new:(%4.1f, %4.1f)"), _lastPointC.x(), _lastPointC.y(), endPointC.x(), endPointC.y();
+	// qDebug("_DrawLineTo: last:(%4.1f, %4.1f) new:(%4.1f, %4.1f)"), _lastPointC.x(), _lastPointC.y(), endPointC.x(), endPointC.y();
 	// end DEBUG
 
 	QPainter painter(_pActCanvas);

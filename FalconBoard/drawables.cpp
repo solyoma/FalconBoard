@@ -200,6 +200,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 		case DrawableType::dtCross:			ofs<<(DrawableCross&)di; break;
 		case DrawableType::dtDot:			ofs<<(DrawableDot&)di; break;
 		case DrawableType::dtEllipse:		ofs<<(DrawableEllipse&)di; break;
+		case DrawableType::dtLine:			ofs<<(DrawableLine&)di; break;
 		case DrawableType::dtRectangle:		ofs<<(DrawableRectangle&)di; break;
 		case DrawableType::dtScreenShot:	ofs<<(DrawableScreenShot&)di; break;
 		case DrawableType::dtScribble:		ofs<<(DrawableScribble&)di; break;
@@ -366,11 +367,89 @@ QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER h
 	ifs >> di.rect >> di.isFilled;
 	return ifs;
 }
+//=====================================
+// DrawableScribble
+//=====================================
+
+
+DrawableLine::DrawableLine(QPointF startPos, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
+	endPoint(endPoint), DrawableItem(DrawableType::dtLine, startPos, zOrder, penKind, penWidth)
+{
+
+}
+
+DrawableLine::DrawableLine(const DrawableLine& ol)
+{
+	*this = ol;
+}
+
+DrawableLine::DrawableLine(DrawableLine&& ol)
+{
+	*this = ol;
+}
+
+DrawableLine& DrawableLine::operator=(const DrawableLine& ol)
+{
+	*(DrawableItem*)this = (DrawableItem&&)ol;
+
+	endPoint = ol.endPoint;
+	return *this;
+}
+
+DrawableLine& DrawableLine::operator=(const DrawableLine&& ol)
+{
+	*(DrawableItem*)this = (DrawableItem&&)ol;
+
+	endPoint = ol.endPoint;
+	return *this;
+}
+
+void DrawableLine::Translate(QPointF dr, qreal minY)
+{
+	if (startPos.y() > minY)
+	{
+		startPos += dr;
+		endPoint += dr;
+	}
+	for (auto e : erasers)
+		for (auto& es : e.eraserStroke)
+			es += dr;
+}
+
+void DrawableLine::Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha)
+{
+}
+
+void DrawableLine::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
+{
+	if (drawStarted)
+	{
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), QColor());
+		painter->drawLine(startPos-topLeftOfVisibleArea, endPoint-topLeftOfVisibleArea);
+	}
+	else
+		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
+}
+
+
+QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di) // DrawableItem part already saved
+{
+	ofs << di.endPoint;
+	return ofs;
+}
+
+QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER header is read in
+{
+	ifs >> di.endPoint;
+	return ifs;
+}
+
 
 //=====================================
 // DrawableRectangle
 //=====================================
-DrawableRectangle::DrawableRectangle(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtRectangle, rect.topLeft(), zOrder, penKind, penWidth) {}
+DrawableRectangle::DrawableRectangle(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
+	rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtRectangle, rect.topLeft(), zOrder, penKind, penWidth) {}
 DrawableRectangle::DrawableRectangle(const DrawableRectangle& di) { *this = di; }
 DrawableRectangle& DrawableRectangle::operator=(const DrawableRectangle& di)
 {
@@ -562,7 +641,10 @@ QPointF DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use 
 {																	// neither when reading or copying
 	static Smoother<QPointF, qreal, 200> smoother;					// Use reset when new drawing starts
 	if (reset)
+	{
 		smoother.Reset();
+		points.clear();
+	}
 
 	if (smoothed && bSmoothDebug)
 		p = smoother.AddPoint(p);
@@ -587,10 +669,10 @@ void DrawableScribble::Add(int x, int y, bool smoothed, bool reset)
 	Add(p, smoothed, reset);
 }
 
-void DrawableScribble::Smooth()
+void DrawableScribble::Reset()
 {
-	// smoothing points so that small variations in them vanish
-	// ???
+	Add(QPoint(), false, true);
+	points.clear();
 }
 
 bool DrawableScribble::Intersects(const QRectF& arect) const
@@ -831,4 +913,3 @@ void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-i
 
 	_pQTree->Resize(_pQTree->Area());
 }
-

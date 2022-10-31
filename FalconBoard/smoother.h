@@ -103,7 +103,7 @@ class Smoother
     {
         double alpha;
         T _prevAver;
-        bool _initted = false;
+        int _useCnt = 0;
     public:
         Exponenter()
         {
@@ -111,13 +111,13 @@ class Smoother
         }
         void Reset()
         {
-            _initted = false;
+            _useCnt = 0;
         }
         T Average(T& newData)
         {
-            if (!_initted)
+            if (_useCnt < 5)    // so a dot, a 2 point line or a 4 points rectangle does not get smoothed
             {
-                _initted = true;
+                ++_useCnt;
                 return _prevAver = newData;
             }
             else

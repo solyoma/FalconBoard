@@ -51,10 +51,11 @@ HistoryDrawableItem::HistoryDrawableItem(History* pHist, DrawableItem& dri) : Hi
 		case DrawableType::dtDot:		_pDrawable = new DrawableDot(dynamic_cast<DrawableDot&>(dri));				break;
 		case DrawableType::dtCross:		_pDrawable = new DrawableCross(dynamic_cast<DrawableCross&>(dri));			break;
 		case DrawableType::dtEllipse:	_pDrawable = new DrawableEllipse(dynamic_cast<DrawableEllipse&>(dri));		break;
+		case DrawableType::dtLine:		_pDrawable = new DrawableLine(dynamic_cast<DrawableLine&>(dri));			break;
 		case DrawableType::dtRectangle:	_pDrawable = new DrawableRectangle(dynamic_cast<DrawableRectangle&>(dri));	break;
-		case DrawableType::dtScribble:	_pDrawable = new DrawableScribble(dynamic_cast<DrawableScribble&>(dri));		break;
-		case DrawableType::dtScreenShot:_pDrawable = new DrawableScreenShot(dynamic_cast<DrawableScreenShot&>(dri));	break;
-		case DrawableType::dtText:		_pDrawable = new DrawableText(dynamic_cast<DrawableText&>(dri));				break;
+		case DrawableType::dtScribble:	_pDrawable = new DrawableScribble(dynamic_cast<DrawableScribble&>(dri));	break;
+		case DrawableType::dtScreenShot:_pDrawable = new DrawableScreenShot(dynamic_cast<DrawableScreenShot&>(dri));break;
+		case DrawableType::dtText:		_pDrawable = new DrawableText(dynamic_cast<DrawableText&>(dri));			break;
 	}
 	indexOfDrawable = pHist->AddToDrawables(_pDrawable);
 }
@@ -926,6 +927,7 @@ int History::_LoadV2(QDataStream&ifs, bool force)
 	DrawableDot dDot;
 	DrawableCross dCross;
 	DrawableEllipse dEll;
+	DrawableLine dLin;
 	DrawableRectangle dRct;
 	DrawableScribble dScrb;
 	DrawableText dTxt;
@@ -941,6 +943,7 @@ int History::_LoadV2(QDataStream&ifs, bool force)
 			case DrawableType::dtDot:			(DrawableItem&)dDot   = di; ifs >> dDot;	pdrwh = &dDot;	break;
 			case DrawableType::dtCross:			(DrawableItem&)dCross = di; ifs >> dCross;	pdrwh = &dCross;break;
 			case DrawableType::dtEllipse:		(DrawableItem&)dEll	  = di; ifs >> dEll;	pdrwh = &dEll;	break;
+			case DrawableType::dtLine:			(DrawableItem&)dLin   = di; ifs >> dLin;	pdrwh = &dLin;	break;
 			case DrawableType::dtRectangle:		(DrawableItem&)dRct   = di; ifs >> dRct;	pdrwh = &dRct;	break;
 			case DrawableType::dtScreenShot:	(DrawableItem&)dsImg  = di; ifs >> dsImg;	pdrwh = &dsImg;	break;
 			case DrawableType::dtScribble:		(DrawableItem&)dScrb  = di; ifs >> dScrb;	pdrwh = &dScrb;	break;
@@ -994,7 +997,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 			ifs >> n; dScrb.penWidth = n;
 
 			qint32 x, y;
-			dScrb.points.clear();
+			dScrb.Reset();
 
 			ifs >> n;
 			while (n--)
@@ -1086,7 +1089,7 @@ HistoryItem* History::AddClearDown()
 
 HistoryItem* History::AddDrawableItem(DrawableItem& itm)	
 {				                                            
-	if (itm.dtType == DrawableType::dtScribble)	  // then delete previous item if it was a DrawableDot
+	if (itm.dtType == DrawableType::dtLine)		  // then delete previous item if it was a DrawableDot
 	{										      // that started this line
 		int n = _items.size()-1;
 		HistoryItem* pitem = n < 0 ? nullptr : _items[n];
