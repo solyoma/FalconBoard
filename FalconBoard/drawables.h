@@ -221,11 +221,17 @@ struct DrawableItem : public DrawablePen
     DrawableItem(const DrawableItem& other) { *this = other; }
     DrawableItem& operator=(const DrawableItem& other);
 
-    virtual void AddEraserStroke(int eraserWidth, const QPolygonF &eraserStroke);
+    int AddEraserStroke(int eraserWidth, const QPolygonF &eraserStroke);  // returns # of sub-strokes added
     virtual void RemoveLastEraserStroke(EraserData* andStoreHere = nullptr);
 
     bool IsVisible() const { return isVisible; }
     bool IsImage() const { return dtType == DrawableType::dtScreenShot; }
+    virtual QPolygonF ToPolygonF() 
+	{
+		QPolygonF poly; 
+        poly << startPos; 
+        return poly;
+	}
     virtual bool IsFilled() const { return false; }
     virtual bool PointIsNear(QPointF p, qreal distance) const { return false; }// true if the point is near the circumference or for filled ellpse: inside it
 
@@ -259,6 +265,10 @@ struct DrawableItem : public DrawablePen
         if (drawStarted)
         {
             // draw normally using 'painter',clipR (if valid) and 'topLeftOfVisibleArea'
+            SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea));
+            QPointF pt = startPos - topLeftOfVisibleArea;
+            painter->drawPoint(pt);
+            // this example draws a single point (good for DrawableDot)
         }
         else 
             DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
@@ -278,23 +288,29 @@ struct DrawableItem : public DrawablePen
 
         if (erasers.size())                 // then paint object first then erasers on separate pixmap 
         {                                   // and copy the pixmap to the visible area
-            QPixmap pxm(Area().size().toSize());
-            QPainter myPainter(&pxm);       
-            Draw(&myPainter, topLeftOfVisibleArea);     // calls painter of subclass, 
+            QRectF area = Area();           // includes half of pen width
+            QPixmap pxm(area.size().toSize());
+            pxm.fill(Qt::transparent);
+            QPainter myPainter(&pxm); 
+            QPointF tl = area.topLeft() - QPointF(penWidth, penWidth) / 2.0;
+            Draw(&myPainter, tl);     // calls painter of subclass, 
                                             // which must check 'drawStarted' and 
                                             // must not call this function if it is set
                                             // clipRect is not important as the pixmap is exactly the right size
             // and now the erasers
             myPainter.setCompositionMode(QPainter::CompositionMode_Clear);
-            painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
+            myPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
             for (auto er : erasers)
             {
                 QPen pen( QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
                 myPainter.setPen(pen);
-                myPainter.drawPolyline(er.eraserStroke);    // do not close path
+                myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
             }
-            painter->drawPixmap(topLeftOfVisibleArea, pxm);
+            painter->drawPixmap(tl - topLeftOfVisibleArea, pxm);
+            // DEBUG
+            // pxm.save("pxm.png", "png");
+            // end DEBUG
         }
         else                                // no erasers: just paint normally
             Draw(painter, topLeftOfVisibleArea, clipR);
@@ -332,6 +348,18 @@ struct DrawableCross : public DrawableItem
         p -= startPos;
         return p.x() * p.x() + p.y() * p.y() < distance * distance;
     }
+    QPolygonF ToPolygonF() override
+    {
+        QPolygonF res;
+        QPointF dist(length / sqrt(2), length / sqrt(2));
+
+        res.append(startPos-dist);
+        res.append(startPos+dist);
+        res.append(startPos);
+        res.append(startPos+QPointF(dist.x(), -dist.y()) );
+        res.append(startPos+QPointF(-dist.x(), dist.y()) );
+        return res;
+    }
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableCross& di);  // call AFTER header is read in
@@ -353,12 +381,12 @@ struct DrawableDot : public DrawableItem
         qreal d = penWidth / 2.0 + 1.0;
         return QRectF(startPos - QPointF(d, d), QSize(2*d, 2*d) ); 
     }
-    void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR = QRectF()) override;
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
     {
         p -= startPos;
         return p.x() * p.x() + p.y() * p.y() < distance * distance;
     }
+    // QPolygonF ToPolygonF()  use parent's
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableDot& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableDot& di);  // call AFTER header is read in
@@ -416,6 +444,13 @@ struct DrawableEllipse : public DrawableItem
                 (distP2 <= distQ2 + distance * distance);
     }
     virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    QPolygonF ToPolygonF() override
+    {
+        QPainterPath myPath;
+        myPath.addEllipse(rect);
+        return myPath.toFillPolygon();
+    }
+
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableEllipse& di);  // call AFTER header is read in
@@ -454,6 +489,13 @@ struct DrawableLine : public DrawableItem
         return __IsLineNearToPoint(startPos, endPoint, p, distance);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    QPolygonF ToPolygonF() override
+    {
+        QPolygonF poly;
+        poly << startPos << endPoint;
+        return poly;
+    }
+
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableLine& di);  // call AFTER header is read in
@@ -516,6 +558,13 @@ struct DrawableRectangle : public DrawableItem
                 );
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    QPolygonF ToPolygonF() override
+    {
+        QPainterPath myPath;
+        myPath.addRect(rect);
+        return myPath.toFillPolygon();
+    }
+
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableRectangle& di);  // call AFTER header is read in
@@ -554,6 +603,7 @@ struct DrawableScreenShot : public DrawableItem
         return Area().contains(p);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
+    // QPolygonF ToPolygonF()  - default
 };
 
 QDataStream& operator<<(QDataStream& ofs, const  DrawableScreenShot& di);
@@ -567,7 +617,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
     QPolygonF points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
 
     // DEBUG
-    bool bSmoothDebug = false;
+    bool bSmoothDebug = true;
     // end DEBUG
 
     DrawableScribble() : DrawableItem()
@@ -618,6 +668,11 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
         return false;
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    QPolygonF ToPolygonF() override
+    {
+        return points;
+    }
+
 };
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableScribble& di);
@@ -671,6 +726,7 @@ struct DrawableText : public DrawableItem
         return false; // ???
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    // QPolygonF ToPolygonF()  - default
 };
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableText& di);

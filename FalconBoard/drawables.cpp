@@ -124,39 +124,68 @@ DrawableItem& DrawableItem::operator=(const DrawableItem& other)
 	return *this;
 }
 // add eraser strokes cut up to as many parts as required
-void DrawableItem::AddEraserStroke(int eraserWidth, const QPolygonF& stroke)
+// the area of the Drawable, which already contains the 2 x (half pen width +1) width 
+// and height extension is extended further by the 
+// half width of the eraser pen, therefore th eraser strokes need not be adjusted
+// when intersections are examined
+int DrawableItem::AddEraserStroke(int eraserWidth, const QPolygonF& stroke)
 {
 	EraserData erdata;
-	erdata.eraserPenWidth = eraserWidth;
-	qreal pw2 = penWidth / 2.0,
-		e2 = eraserWidth / 2.0;
-	pw2 += e2;
+	erdata.eraserPenWidth = eraserWidth;  	// common for all strokes
+	qreal e2 = eraserWidth / 2.0 + 1;
+		  
+	QPolygonF mypoly = ToPolygonF();
 
-	QRectF rect = Area().adjusted(-pw2, -pw2, pw2, pw2),
-		erect;	// eraser pen width sized rectangle
+	QRectF rect = Area().adjusted(-e2, -e2, e2, e2),
+		   erect = stroke.boundingRect();
 
-	EraserData tmp;
+	if (rect.contains(erect) || (stroke.size() == 1 && rect.intersects(erect) ) )	// if full eraser stroke is inside
+	{
+		erdata.eraserStroke = stroke;
+		erasers.push_back(erdata);
+		return 1;
+	}
+	// find continouos parts of stroke that intersects extended area
+	// and add them to erasers
+	int countOfStrokes = 0;		
+
 	// cut up eraser strokes to sections inside 'rect'
 		// skip those outside
-	bool inside = true;
-	for (int i = 0; i < stroke.size(); ++i)
+	QPointF prevP, x = stroke[0];		// previous point on stroke curve
+	bool inside = rect.contains(prevP), 
+		 prevInside;
+	int ix = 1;		// index in stroke for next point
+	for (; ix < stroke.size(); ++ix)
 	{
-		QPointF x = stroke.at(i);
-		erect = QRect(x.x() - e2, x.y() - e2, eraserWidth, eraserWidth);
-
-		if (rect.intersects(erect))
-			erdata.eraserStroke << x;
-		else
+		prevP = x;
+		prevInside = inside;
+		x = stroke.at(ix);
+		inside = rect.contains(x);				// possibilities:
+		if ((!prevInside && inside) ||			//   prevP outside and x inside   => add prevP
+			(prevInside && inside))				//   prevP inside and x inside    => add prevP
+			erdata.eraserStroke << prevP;
+		else if (prevInside && !inside)
+			erdata.eraserStroke << prevP << x;	//   prevP inside and x outside   => add prevP AND add x!
+		else									//   prevP outside and x outside  => drop prevP maybe start new stroke
 		{
-			if (!erdata.eraserStroke.isEmpty())	// end of previous eraser section inside?
+			if (!erdata.eraserStroke.isEmpty())
 			{
 				erasers.push_back(erdata);
 				erdata.eraserStroke.clear();
+				++countOfStrokes;
 			}
 		}
 	}
+	// last point was not added
+	if (!(prevInside && !inside))
+		erdata.eraserStroke << x;
+
 	if (!erdata.eraserStroke.isEmpty())
+	{
 		erasers.push_back(erdata);
+		++countOfStrokes;
+	}
+	return countOfStrokes;
 }
 
 void DrawableItem::RemoveLastEraserStroke(EraserData* andStoreHere)
@@ -174,10 +203,11 @@ void DrawableItem::RemoveLastEraserStroke(EraserData* andStoreHere)
 void DrawableItem::Translate(QPointF dr, qreal minY)	// where translating topLeft is enough
 {
 	if (startPos.y() > minY)
+	{
 		startPos += dr;
-	for (auto e : erasers)
-		for (auto& es : e.eraserStroke)
-			es += dr;
+		for (auto &e : erasers)
+			e.eraserStroke.translate(dr);
+	}
 }
 void DrawableItem::Rotate(MyRotation rot, QRectF insideThisRectangle, qreal alpha)
 {
@@ -236,18 +266,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 // DrawableDot
 //=====================================
 
-void DrawableDot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
-{
-	if (drawStarted)
-	{
-		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea));
-		QPointF pt = startPos - topLeftOfVisibleArea;
-		painter->drawPoint(pt);
-	}
-	else
-		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
-}
-
+// handled by DrawableItem:
+// void DrawableDot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) 
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableDot& di)
 {
@@ -329,11 +349,8 @@ void DrawableEllipse::Translate(QPointF dr, qreal minY)
 {
 	if (rect.top() > minY)
 	{
-		startPos += dr;
+		DrawableItem::Translate(dr, minY);
 		rect.moveTo(rect.topLeft() + dr);
-		for (auto e : erasers)
-			for (auto& es : e.eraserStroke)
-				es += dr;
 	}
 }
 
@@ -408,12 +425,9 @@ void DrawableLine::Translate(QPointF dr, qreal minY)
 {
 	if (startPos.y() > minY)
 	{
-		startPos += dr;
+		DrawableItem::Translate(dr, minY);
 		endPoint += dr;
 	}
-	for (auto e : erasers)
-		for (auto& es : e.eraserStroke)
-			es += dr;
 }
 
 void DrawableLine::Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha)
@@ -473,11 +487,8 @@ void DrawableRectangle::Translate(QPointF dr, qreal minY)             // only if
 {
 	if (rect.top() > minY)
 	{
-		startPos += dr;
+		DrawableItem::Translate(dr, minY);
 		rect.moveTo(rect.topLeft() + dr);
-		for (auto e : erasers)
-			for (auto& es : e.eraserStroke)
-				es += dr;
 	}
 }
 
@@ -685,9 +696,9 @@ void DrawableScribble::Translate(QPointF dr, qreal  minY)
 	if (Area().y() < minY || !isVisible)
 		return;
 
-	startPos += dr;
-	for (int i = 0; i < points.size(); ++i)
-		points[i] = points[i] + dr;
+	DrawableItem::Translate(dr, minY);
+	points.translate(dr);
+
 }
 
 void DrawableScribble::Rotate(MyRotation rot, QRectF encRect, qreal alpha)	// rotate around the center of encRect

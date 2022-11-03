@@ -63,6 +63,8 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 
 	ui.setupUi(this);
 
+    historyList.SetupClipBoard();
+
     if (!QDir(FBSettings::homePath).exists())
         QDir(FBSettings::homePath).mkdir(FBSettings::homePath);
 

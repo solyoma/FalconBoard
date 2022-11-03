@@ -281,10 +281,32 @@ struct HistorySetTransparencyForAllScreenshotsItems : HistoryItem
     int undoBase = -1;            // top of pHist's screenShotImageList before this function was called
     QColor transparentColor;
     qreal fuzzyness = 0.0;
+    
     HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness);
     int Undo() override;
     int Redo() override;
 };
+
+
+//--------------------------------------------
+//      HistoryEraserStrokeItem
+//--------------------------------------------
+
+struct HistoryEraserStrokeItem : HistoryItem
+{
+    int eraserPenWidth=0;       
+    QPolygonF   eraserStroke;
+    DrawableIndexVector affectedIndexList;   // these images were re-created with transparent color set
+    IntVector subStrokesForAffected;         // number of strokes added to the it-th item on affectedIndexList
+
+    HistoryEraserStrokeItem(History* pHist, DrawableItem& dri);
+    HistoryEraserStrokeItem(const HistoryEraserStrokeItem &o);
+    HistoryEraserStrokeItem& operator=(const HistoryEraserStrokeItem& o);
+
+    int Undo() override;
+    int Redo() override;
+};
+
 
 
 // ******************************************************
@@ -485,6 +507,7 @@ public:
     HistoryItem* AddClearVisibleScreen();
     HistoryItem* AddClearDown();
     HistoryItem* AddDrawableItem(DrawableItem& dri);
+    HistoryItem* AddEraserItem(DrawableItem& dri);  // add to all scribbles which it intersects
     HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _driSelectedDrawables a
     HistoryItem* AddPastedItems(QPointF topLeft, Sprite *pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
     HistoryItem* AddRecolor(FalconPenKind pk);
@@ -525,14 +548,20 @@ public:
 class HistoryList : public std::vector<History*>
 {
     friend class History;
-    QClipboard* _pClipBoard;
+    QClipboard* _pClipBoard = nullptr;
     QUuid _copyGUID;
     DrawableList _copiedItems;          // from actual History's driSelectedDrawables 
     QRectF _copiedRect;                 // bounding rectangle for copied items used for paste operation
     int _actualHistoryIndex = -1;
 
 public:
-    HistoryList() { _pClipBoard = QApplication::clipboard(); }
+    HistoryList() {}
+
+    void SetupClipBoard()   // setup before use! needed, because _historyList is created before QApplication
+    { 
+        _pClipBoard = QApplication::clipboard(); 
+    }
+
         // called to initialize pointers to  data in 'DrawArea'
     const DrawableList& CopiedItems() const { return _copiedItems;  }
     QRectF const CopiedRect() const { return _copiedRect; }

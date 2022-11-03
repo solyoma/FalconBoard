@@ -114,9 +114,6 @@
     <ClInclude Include="myevent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pdraw.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="quadtree.h">
       <Filter>Header Files</Filter>
     </ClInclude>

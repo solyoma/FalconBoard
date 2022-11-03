@@ -609,6 +609,59 @@ int HistorySetTransparencyForAllScreenshotsItems::Undo()
 	return 1;
 }
 
+
+
+HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& dri) : eraserPenWidth(dri.penWidth), eraserStroke(dri.ToPolygonF()), HistoryItem(pHist)
+{
+	pHist->GetDrawablesInside(dri.Area(), affectedIndexList);
+	// not all drawables inside dri's area are really affected by 
+	// the eraser strokes (or rectangle, or ellipse
+	if (affectedIndexList.isEmpty())				// will not be used or saved in callers!
+		return;
+	Redo();
+}
+
+HistoryEraserStrokeItem::HistoryEraserStrokeItem(const HistoryEraserStrokeItem& o)  
+	: eraserPenWidth(o.eraserPenWidth), eraserStroke(o.eraserStroke), affectedIndexList(o.affectedIndexList),subStrokesForAffected(o.subStrokesForAffected), HistoryItem(o)
+{
+
+}
+
+HistoryEraserStrokeItem& HistoryEraserStrokeItem::operator=(const HistoryEraserStrokeItem& o)
+{
+	(HistoryItem&)(*this) = (HistoryItem&)o;
+	eraserPenWidth = o.eraserPenWidth; 
+	eraserStroke = o.eraserStroke; 
+	affectedIndexList = o.affectedIndexList; 
+	subStrokesForAffected = o.subStrokesForAffected;
+	return *this;
+}
+
+int HistoryEraserStrokeItem::Undo()
+{
+	for (int i = 0; i < affectedIndexList.size(); ++i)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(affectedIndexList.at(i) );
+		for (int j = 0; j < subStrokesForAffected[i]; ++j)
+			pdrwi->RemoveLastEraserStroke();
+	}
+	subStrokesForAffected.clear();
+	return 1;
+}
+
+int HistoryEraserStrokeItem::Redo()
+{
+	int nStrokes;
+	for (auto ix : affectedIndexList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(ix);
+		nStrokes = pdrwi->AddEraserStroke(eraserPenWidth, eraserStroke); // it may add more than one stroke to given DrawableItem
+		subStrokesForAffected << nStrokes;
+	}
+	return 1;
+}
+
+
 //********************************** History class ****************************
 History::History(HistoryList* parent) noexcept: _parent(parent) 
 { 
@@ -1005,6 +1058,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 				ifs >> x >> y;
 				dScrb.Add(x, y);
 			}
+			dScrb.startPos = dScrb.Area().topLeft();
 
 			if (dScrb.points.size() == 2 && dScrb.points[0] == dScrb.points[1])	// then its a Dot
 			{
@@ -1091,7 +1145,7 @@ HistoryItem* History::AddDrawableItem(DrawableItem& itm)
 {				                                            
 	if (itm.dtType == DrawableType::dtLine)		  // then delete previous item if it was a DrawableDot
 	{										      // that started this line
-		int n = _items.size()-1;
+		int n = _items.size() - 1;
 		HistoryItem* pitem = n < 0 ? nullptr : _items[n];
 		if (pitem && pitem->type == HistEvent::heDrawable)
 		{
@@ -1108,9 +1162,23 @@ HistoryItem* History::AddDrawableItem(DrawableItem& itm)
 			}
 		}
 	}
-	HistoryDrawableItem* p = new HistoryDrawableItem(this, itm);
-	return _AddItem(p);		 // may be after an undo, so
+	if (itm.PenKind() == penEraser)
+		return AddEraserItem(itm);
+	else
+		return _AddItem( new HistoryDrawableItem(this, itm) );
+	// may be after an undo, so
 }							 // delete all items after the last visible one (items[lastItem].scribbleIndex)
+
+HistoryItem* History::AddEraserItem(DrawableItem& era)
+{	
+	HistoryEraserStrokeItem* phe = new HistoryEraserStrokeItem(this, era);
+	if (phe->affectedIndexList.isEmpty())
+	{
+		delete phe;
+		return nullptr;
+	}
+	return _AddItem(phe);
+}
 
 
 /*========================================================
@@ -1327,12 +1395,14 @@ void History::AddToSelection(int index)
 {
 	if (index < 0)
 		index = _items.size() - 1;
+
 	const HistoryDrawableItem* pitem = (HistoryDrawableItem*)_items.at(index);
-	DrawableItem* pdri = _drawables[pitem->indexOfDrawable];
 	int /*DrawableItemIndex*/ drix;
 	drix = pitem->indexOfDrawable;
 	_driSelectedDrawables.push_back(drix);
-	_selectionRect = _selectionRect.united(pitem->Area());
+
+	DrawableItem* pdri = _drawables[drix];
+	_selectionRect = _selectionRect.united(pdri->Area());
 
 }
 
@@ -1497,8 +1567,11 @@ void History::CopySelected(Sprite* sprite)
 		for (auto ix : _driSelectedDrawables)  // absolute drawable item indices of visible items selected
 		{
 			DrawableItem* pdri = _drawables[ix];
+			QPointF copyTopLeft = _selectionRect.topLeft();
+			if (sprite)
+				copyTopLeft -= QPointF(sprite->margin, sprite->margin);
 
-			copiedItems.CopyDrawable(*pdri, _selectionRect.topLeft());	// shift coordinates to be relative to top left of selection
+			copiedItems.CopyDrawable(*pdri, copyTopLeft);	// shift coordinates to be relative to top left of selection
 		}
 		_parent->_copiedRect = _selectionRect.translated(-_selectionRect.topLeft());
 

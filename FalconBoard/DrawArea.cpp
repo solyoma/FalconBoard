@@ -636,7 +636,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 				_rubberRect = r.adjusted(-adjustment, -adjustment, adjustment, adjustment);
 				_rubberBand->setGeometry(_rubberRect.toRect());
-				/*HistoryItem *pscrbl =*/ (void)_history->AddDrawableItem(_lastRectangleItem);
+				 (void)_history->AddDrawableItem(_lastRectangleItem);
 				_history->AddToSelection();
 			}
 			else if (key == Qt::Key_C && !bCopy)   // draw ellipse
@@ -655,7 +655,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_firstPointC = _lastPointC = _lastEllipseItem.GetLastDrawnPoint();
 
 
-				HistoryItem* pscrbl = _history->AddDrawableItem(_lastEllipseItem);
+				(void) _history->AddDrawableItem(_lastEllipseItem);
 				_history->AddToSelection();
 			}
 			else if (key == Qt::Key_X && !bCut)   // mark center with cross
@@ -1141,24 +1141,25 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				//DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
 				if (_DrawFreehandLineTo(event->pos))
 					_lastScribbleItem.Add(_lastPointC + _topLeft, true);		// add and smooth
+				DrawableItem* pdrwi = &_lastScribbleItem;
+
 				if (_lastScribbleItem.points.size() == 2)
 				{
 					if (_lastScribbleItem.points.at(0) == _lastScribbleItem.points.at(1))
 					{
 						(DrawableItem&)_lastDotItem = (DrawableItem&)_lastScribbleItem;
 						_lastDotItem.dtType = DrawableType::dtDot;
-						_history->AddDrawableItem(_lastDotItem);
+						pdrwi = &_lastDotItem;
 					}
 					else	// DrawableLine
 					{
 						(DrawableItem&)_lastLineItem = (DrawableItem&)_lastScribbleItem;
 						_lastLineItem.dtType = DrawableType::dtLine;
 						_lastLineItem.endPoint = _lastScribbleItem.points[1];
-						_history->AddDrawableItem(_lastLineItem);
+						pdrwi = &_lastLineItem;
 					}
 				}
-				else
-					_history->AddDrawableItem(_lastScribbleItem);
+				_history->AddDrawableItem(*pdrwi);
 // DEBUG
 				//std::ofstream alma;
 				//alma.open("_lastScribbleItem.csv");
@@ -2570,11 +2571,12 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	pSprite->image = QImage(pSprite->rect.width(), pSprite->rect.height(), QImage::Format_ARGB32);
 	pSprite->image.fill(Qt::transparent);     // transparent
 
-	QPainter *painter = _GetPainter(&pSprite->image);
 	// save color and line width
 	FalconPenKind pk = _actPenKind;
 	int pw = _actPenWidth;
 	bool em = _erasemode;
+	_erasemode = false;
+	QPainter *painter = _GetPainter(&pSprite->image);
 
 	int ix, siz = pSprite->drawables.Size();
 	DrawableItem* pdrwi;
@@ -2665,8 +2667,9 @@ void DrawArea::_PasteSprite()
 	QRectF updateRect = ps->rect.translated(ps->topLeft).toRect();    // original rectangle
 	update(updateRect.toRect());
 	_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-	_rubberRect = updateRect;
-	_rubberBand->setGeometry(updateRect.toRect());
+	int m = ps->margin;
+	_rubberRect = updateRect.adjusted(m,m,-m,-m);
+	_rubberBand->setGeometry(_rubberRect.toRect());
 	_rubberBand->show();
 	delete ps;
 
