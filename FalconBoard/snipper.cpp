@@ -6,14 +6,11 @@ Snipper::Snipper(QWidget* parent) : QLabel(parent, Qt::FramelessWindowHint)
 	setWindowModality(Qt::ApplicationModal);
 }
 
-void Snipper::mousePressEvent(QMouseEvent* mevent)
+void Snipper::_Pressed(QPoint pos, Qt::MouseButton button)
 {
-	if (_tabletInput)
-		return;
-
-	if( (mevent->button() == Qt::LeftButton)/* || (mevent->button() == Qt::RightButton) */)
+	if( (button == Qt::LeftButton)/* || (mevent->button() == Qt::RightButton) */)
 	{
-		_rubber_origin = mevent->pos();
+		_rubber_origin = pos;
 		if (!_rubberBand)
 			_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
 		_rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
@@ -21,35 +18,48 @@ void Snipper::mousePressEvent(QMouseEvent* mevent)
 	}
 }
 
+void Snipper::_Moved(QPoint pos)
+{
+	if (_rubberBand)
+		_rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
+}
+
+void Snipper::_Released(QPoint pos)
+{
+	if (_rubberBand)
+	{
+		_rubberBand->hide();
+		QRect rect;
+		if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
+			rect = _rubberBand->geometry();
+		//		event->accept();
+		delete _rubberBand;
+		_rubberBand = nullptr;
+		if(rect.isValid())
+			emit SnipperReady(rect);
+	}
+}
+
+void Snipper::mousePressEvent(QMouseEvent* mevent)
+{
+	if (_tabletInput)
+		return;
+	_Pressed(mevent->pos(), mevent->button());
+}
+
 void Snipper::mouseMoveEvent(QMouseEvent* event)
 {
 	if (_tabletInput)
 		return;
+	_Moved(event->pos());
 
-	QPoint pos = event->pos();
-
-	if (_rubberBand)
-		_rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
 }
 
 void Snipper::mouseReleaseEvent(QMouseEvent* event)
 {
 	if (_tabletInput)
 		return;
-
-	if (_rubberBand)
-	{
-		_rubberBand->hide();
-		QRect rect;
-		if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
-		{
-			rect = _rubberBand->geometry();
-		}
-//		event->accept();
-		delete _rubberBand;
-		_rubberBand = nullptr;
-		emit SnipperReady(rect);
-	}
+	_Released(event->pos());
 }
 
 void Snipper::keyPressEvent(QKeyEvent* event)
@@ -68,35 +78,15 @@ void Snipper::tabletEvent(QTabletEvent* event)
 	{
 		case QEvent::TabletPress:
 			_tabletInput = true;
-			_rubber_origin = event->pos();
-			if (!_rubberBand)
-				_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-			_rubberBand->setGeometry(QRect(_rubber_origin, QSize()));
-			_rubberBand->show();
+			_Pressed(event->pos(), Qt::LeftButton);
 			event->accept();
 			break;
 		case QEvent::TabletMove:
-			pos = event->pos();
-
-			if (_rubberBand)
-				_rubberBand->setGeometry(QRect(_rubber_origin, pos).normalized()); // means: top < bottom, left < right
+			_Moved(event->pos());
 			event->accept();
 			break;
 		case QEvent::TabletRelease:
-			if (_rubberBand)
-			{
-				_rubberBand->hide();
-				QRect rect;
-				if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
-				{
-					rect = _rubberBand->geometry();
-				}
-				delete _rubberBand;
-				_rubberBand = nullptr;
-				_tabletInput = false;
-				event->accept();
-				emit SnipperReady(rect);
-			}
+			_Released(event->pos());
 			break;
 		default:
 			break;

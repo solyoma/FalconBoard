@@ -349,17 +349,18 @@ void DrawArea::AddScreenShotImage(QPixmap& animage)
 	if (y < 0) y = 0;
 	bimg.startPos = QPointF(x, y) + _topLeft;
 	bimg.image = animage;
-	_history->AddDrawableItem(bimg);
+	HistoryItem *phi = _history->AddDrawableItem(bimg);
 
 #if !defined _VIEWER
-	int drix = _history->SelectTopmostImageUnder(QPointF(-1, -1));    // latest image
+	int drix = ((HistoryDrawableItem*)phi)->indexOfDrawable;    // latest image
 	if (drix >= 0)
 	{
 		delete _rubberBand;
 		_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-		_rubberBand->setGeometry((*_history)[drix]->GetDrawable()->Area().translated(-_topLeft).toRect() );
+		_rubberBand->setGeometry(_history->Drawable(drix)->Area().translated(-_topLeft).toRect() );
 		_rubberRect = _rubberBand->geometry();  // _history->BoundingRect().translated(-_topLeft);
 		_rubberBand->show();
+		_history->AddToSelection(drix);
 	}
 #endif
 
@@ -637,7 +638,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_rubberRect = r.adjusted(-adjustment, -adjustment, adjustment, adjustment);
 				_rubberBand->setGeometry(_rubberRect.toRect());
 				 (void)_history->AddDrawableItem(_lastRectangleItem);
-				_history->AddToSelection();
+				 if(!_erasemode)
+					_history->AddToSelection();
 			}
 			else if (key == Qt::Key_C && !bCopy)   // draw ellipse
 			{
@@ -656,7 +658,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 
 				(void) _history->AddDrawableItem(_lastEllipseItem);
-				_history->AddToSelection();
+				 if(!_erasemode)
+					_history->AddToSelection();
 			}
 			else if (key == Qt::Key_X && !bCut)   // mark center with cross
 			{
@@ -672,7 +675,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				delete painter;
 
 				(void) _history->AddDrawableItem(_lastDotItem);
-				_history->AddToSelection(-1);
+				 if(!_erasemode)
+					_history->AddToSelection(-1);
 				update();
 			}
 			else if (bRemove)			   // delete rubberband for any keypress except pure modifiers  or space bar
@@ -1134,13 +1138,11 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 		}
 		else
 		{
-#endif
 			if (!_spaceBarDown)
 			{
-#ifndef _VIEWER
 				//DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
 				if (_DrawFreehandLineTo(event->pos))
-					_lastScribbleItem.Add(_lastPointC + _topLeft, true);		// add and smooth
+					_lastScribbleItem.Add(_lastPointC + _topLeft, false);		// add but do not smooth last point
 				DrawableItem* pdrwi = &_lastScribbleItem;
 
 				if (_lastScribbleItem.points.size() == 2)
@@ -1171,9 +1173,9 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 
 				emit CanUndo(_history->CanUndo());
 				emit CanRedo(_history->CanRedo());
-#endif
 			}
 			else
+#endif
 				_RestoreCursor();
 #ifndef _VIEWER
 		}
@@ -1309,7 +1311,8 @@ void DrawArea::paintEvent(QPaintEvent* event)
 		while (pimg)                                            // image layer
 		{
 			QRectF intersectRect = pimg->AreaOnCanvas(_clippingRect);      // absolute
-			painter.drawPixmap(intersectRect.translated(-_topLeft), pimg->Image(), intersectRect.translated(-pimg->startPos));
+			pimg->Draw(&painter, _topLeft, intersectRect);
+						//painter.drawPixmap(intersectRect.translated(-_topLeft), pimg->Image(), intersectRect.translated(-pimg->startPos));
 			pimg = _history->NextVisibleScreenShot();
 		}
 	}
@@ -1317,6 +1320,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
 	_DrawPageGuides(painter);
 
 	// _pActCanvas layer: the scribbles
+	painter.setClipRect(dirtyRect);
 	painter.drawImage(dirtyRect, *_pActCanvas, dirtyRect);          // canvas layer
 
 // sprite layer
@@ -2197,7 +2201,9 @@ void DrawArea::SetCursor(DrawCursorShape cs)
 	case csOHand: setCursor(Qt::OpenHandCursor); break;
 	case csCHand: setCursor(Qt::ClosedHandCursor); break;
 	case csPen:   setCursor(penCursors[_actPenKind]); break;
-	case csEraser: setCursor(penCursors[penEraser]); _erasemode = true; break;
+#ifndef _VIEWER
+	case csEraser: setCursor(penCursors[penEraser]); _erasemode = true; HideRubberBand(true); break;
+#endif
 	default:break;
 	}
 }
@@ -2589,19 +2595,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 
 		pdrwi = pSprite->drawables[ix];
 		DrawableScreenShot* pSs = (DrawableScreenShot*)pdrwi;
-		tr = QRectF(pSs->startPos, pSprite->rect.size());
-		sr = pSs->Image().rect();
-
-		if (sr.width() > tr.width())
-			sr.setWidth(tr.width());
-		if (sr.height() > tr.height())
-			sr.setHeight(tr.height());
-		if (sr.width() < tr.width())
-			tr.setWidth(sr.width());
-		if (tr.height() < sr.height())
-			tr.setHeight(sr.height());
-
-		painter->drawPixmap(tr, pSs->Image(), sr);
+		pSs->Draw(painter, QPointF(0, 0), pSprite->rect);
 	}
 	for (; ix < siz; ++ix )	// then the other Drawables
 	{

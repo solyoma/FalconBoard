@@ -539,6 +539,7 @@ public:
 
     const QRectF BoundingRect() const { return _selectionRect; }
     const DrawableIndexVector& Selected() const { return _driSelectedDrawables;  }
+
 };
 
             //--------------------------------------------

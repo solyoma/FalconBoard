@@ -134,10 +134,8 @@ int DrawableItem::AddEraserStroke(int eraserWidth, const QPolygonF& stroke)
 	erdata.eraserPenWidth = eraserWidth;  	// common for all strokes
 	qreal e2 = eraserWidth / 2.0 + 1;
 		  
-	QPolygonF mypoly = ToPolygonF();
-
 	QRectF rect = Area().adjusted(-e2, -e2, e2, e2),
-		   erect = stroke.boundingRect();
+		   erect = stroke.size() > 1 ? stroke.boundingRect() : QRectF(stroke.at(0).x()-eraserWidth/2.0+1, stroke.at(0).y() - eraserWidth / 2.0 + 1, eraserWidth,eraserWidth);
 
 	if (rect.contains(erect) || (stroke.size() == 1 && rect.intersects(erect) ) )	// if full eraser stroke is inside
 	{

@@ -250,7 +250,7 @@ struct DrawableItem : public DrawablePen
      * TASK: Function to override in all subclass
      * PARAMS:  painter              - existing painter
      *          topLeftOfVisibleArea - document relative coordinates of visible part
-     *          clipR                - clipping rectangle used for eraser
+     *          clipR                - document relative clipping rectangle used for eraser
      * GLOBALS: drawStarted
      * RETURNS: none
      * REMARKS: - each Draw functions must follow the same structure:
@@ -288,11 +288,13 @@ struct DrawableItem : public DrawablePen
 
         if (erasers.size())                 // then paint object first then erasers on separate pixmap 
         {                                   // and copy the pixmap to the visible area
-            QRectF area = Area();           // includes half of pen width
+            QRectF area = Area();           // includes half of pen width (none for screenshots)
             QPixmap pxm(area.size().toSize());
             pxm.fill(Qt::transparent);
             QPainter myPainter(&pxm); 
-            QPointF tl = area.topLeft() - QPointF(penWidth, penWidth) / 2.0;
+            QPointF tl = area.topLeft();
+            if(dtType != DrawableType::dtScreenShot)
+                tl -= QPointF(penWidth, penWidth) / 2.0;
             Draw(&myPainter, tl);     // calls painter of subclass, 
                                             // which must check 'drawStarted' and 
                                             // must not call this function if it is set
@@ -305,7 +307,10 @@ struct DrawableItem : public DrawablePen
             {
                 QPen pen( QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
                 myPainter.setPen(pen);
-                myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
+                if (er.eraserStroke.size() == 1)
+                    myPainter.drawPoint(er.eraserStroke.at(0)-tl);
+                else
+                    myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
             }
             painter->drawPixmap(tl - topLeftOfVisibleArea, pxm);
             // DEBUG

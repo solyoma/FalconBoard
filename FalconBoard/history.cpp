@@ -380,15 +380,18 @@ QRectF HistoryPasteItemTop::Area() const
 //--------------------------------------------------- 
 // HistoryReColorItem
 //---------------------------------------------------
-HistoryReColorItem::HistoryReColorItem(History* pHist, DrawableIndexVector& selectedList, FalconPenKind pk) :
-	HistoryItem(pHist), selectedList(selectedList), pk(pk)
+HistoryReColorItem::HistoryReColorItem(History* pHist, DrawableIndexVector& listOfSelected, FalconPenKind pk) :
+	HistoryItem(pHist), selectedList(listOfSelected), pk(pk)
 {
 	type = HistEvent::heRecolor;
-
-	for (auto drix : selectedList)
+	int siz = selectedList.size() - 1;
+	for (int ix = siz; ix >= 0; --ix)
 	{
-		DrawableItem* pdrwi = pHist->Drawable(drix);
-		boundingRectangle = boundingRectangle.united(pdrwi->Area());
+		DrawableItem* pdrwi = pHist->Drawable(selectedList[ix]);
+		if (pdrwi->dtType != DrawableType::dtScreenShot)
+			boundingRectangle = boundingRectangle.united(pdrwi->Area());
+		else
+			selectedList.remove(ix);
 	}
 	Redo();		// get original colors and set new color tp pk
 }
@@ -1263,6 +1266,11 @@ HistoryItem* History::AddRecolor(FalconPenKind pk)
 		return nullptr;          // do not add an empty list
 
 	HistoryReColorItem* p = new HistoryReColorItem(this, _driSelectedDrawables, pk);
+	if (p->selectedList.isEmpty())
+	{
+		delete p;
+		return nullptr;
+	}
 	return _AddItem(p);
 }
 
@@ -1371,11 +1379,12 @@ HistoryItem* History::Redo()   // returns item to redone
 
 	while (count--)
 	{
-		phi = _redoList[actItem--];	// here again
+		phi = _redoList[actItem--];
 
 		_items.push_back(phi);
 		_redoList.pop_back();
 		phi->Redo();
+
 	}
 
 	_modified = true;
