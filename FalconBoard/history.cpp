@@ -999,6 +999,7 @@ int History::_LoadV2(QDataStream&ifs, bool force)
 			default: break;
 		}
 		(void)AddDrawableItem(*pdrwh); // this will add the drawable to the list and sets its zOrder too
+		di.erasers.clear();
 	}
 	return _readCount = n;
 }

@@ -227,6 +227,10 @@ struct DrawableItem : public DrawablePen
     DrawableItem() = default;
     DrawableItem(DrawableType dt, QPointF startPos, int zOrder = -1, FalconPenKind penKind=penBlack, qreal penWidth=1.0) : dtType(dt), startPos(startPos), zOrder(zOrder), DrawablePen(penKind, penWidth){}
     DrawableItem(const DrawableItem& other) { *this = other; }
+    virtual ~DrawableItem()
+    {
+        erasers.clear();
+    }
     DrawableItem& operator=(const DrawableItem& other);
 
     int AddEraserStroke(int eraserWidth, const QPolygonF &eraserStroke);  // returns # of sub-strokes added

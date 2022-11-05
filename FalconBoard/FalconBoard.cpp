@@ -579,8 +579,10 @@ void FalconBoard::_CloseTab(int index)
 #endif
     _pTabs->removeTab(index);
     if (!cnt)
-    _drawArea->HideRubberBand(true);
+    {
+        _drawArea->HideRubberBand(true);
         _AddNewTab(QString(), false);
+    }
     _drawArea->SwitchToHistory(_nLastTab, !cnt);
 }
 
