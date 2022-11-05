@@ -170,6 +170,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 		_currentHistoryIndex = -1;
 		return true;
 	}
+
 	if (index >= HistoryListSize())
 		return false;
 	if (index != _currentHistoryIndex)
@@ -360,7 +361,7 @@ void DrawArea::AddScreenShotImage(QPixmap& animage)
 		_rubberBand->setGeometry(_history->Drawable(drix)->Area().translated(-_topLeft).toRect() );
 		_rubberRect = _rubberBand->geometry();  // _history->BoundingRect().translated(-_topLeft);
 		_rubberBand->show();
-		_history->AddToSelection(drix);
+		_history->AddToSelection(drix, true);
 	}
 #endif
 
@@ -639,7 +640,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_rubberBand->setGeometry(_rubberRect.toRect());
 				 (void)_history->AddDrawableItem(_lastRectangleItem);
 				 if(!_erasemode)
-					_history->AddToSelection();
+					_history->AddToSelection(-1);
 			}
 			else if (key == Qt::Key_C && !bCopy)   // draw ellipse
 			{
@@ -659,7 +660,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 				(void) _history->AddDrawableItem(_lastEllipseItem);
 				 if(!_erasemode)
-					_history->AddToSelection();
+					_history->AddToSelection(-1);
 			}
 			else if (key == Qt::Key_X && !bCut)   // mark center with cross
 			{
@@ -1053,7 +1054,7 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 	else
 		// no rubber band
 #endif
-				// mouse  or pen                                           pen
+				// mouse  or pen                                     pen
 		if (((event->buttons & Qt::LeftButton) && _scribbling) || _pendown)
 		{
 			static QPointF lastpos;
@@ -1162,6 +1163,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 					}
 				}
 				_history->AddDrawableItem(*pdrwi);
+				update();
 // DEBUG
 				//std::ofstream alma;
 				//alma.open("_lastScribbleItem.csv");
@@ -1185,7 +1187,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 		_drawStarted = false;
 	}
 #ifndef _VIEWER
-	else if (_rubberBand)
+	else if (_rubberBand)		// comes here when Ctrl + MyButtonPressed is followed by MyButtonrelease
 	{
 		// DEBUG
 		//#if defined _DEBUG
@@ -1766,8 +1768,9 @@ bool DrawArea::_DrawFreehandLineTo(QPointF endPointC)
 
 /*========================================================
  * TASK:    Draw line from '_lastPointC' to 'endPointC'
+ *			onto _pActCanvas
  * PARAMS:  endpointC : canvas relative coordinate
- * GLOBALS:
+ * GLOBALS:	_pActCanvas
  * RETURNS: if the line was drawn and you must save _lastPointC
  *          false otherwise
  * REMARKS: - save _lastPointC after calling this function
@@ -1779,6 +1782,7 @@ bool DrawArea::_DrawFreehandLineTo(QPointF endPointC)
  *          - when _shiftKeyDown
  *              does not draw the point until a direction
  *                  was established
+ *			- changes will apear on the screen only in drawEvent
  *-------------------------------------------------------*/
 void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative 
 {

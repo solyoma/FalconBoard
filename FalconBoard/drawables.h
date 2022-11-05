@@ -84,63 +84,70 @@ QuadArea AreaForQRect(QRectF rect);
 
 static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'point'
 {
-#define SQR(x)  (x)*(x)
-#define DIST2(a,b) SQR((a).x() - (b).x()) + SQR((a).y() - (b).y())
+#define SQR(x)  ((x)*(x))
+#define DIST2(a,b) (SQR((a).x() - (b).x()) + SQR((a).y() - (b).y()))
+    // simple checks:
+    if (DIST2(p1, ccenter) > r && DIST2(p2, ccenter) > r && DIST2(p1,p2) < 2*r)
+        return false;
+
     // first transform coord system origin to center of circle 
     p1 -= ccenter;
     p2 -= ccenter;
     // then solve the equations for a line given by p1 and p2 to intersect a circle w. radius r
     qreal dx = p2.x() - p1.x(),
         dy = p2.y() - p1.y(),
-        dr = dx * dx + dy * dy,
+        dr2 = SQR(dx) + SQR(dy),
         D = p1.x() * p2.y() - p2.x() * p1.y(),
-        discr = SQR(r) * SQR(dr) - SQR(D),
-        pdr2 = 1 / SQR(dr);
+        discr = SQR(r) * dr2 - SQR(D),
+        pdr2 = 1 / dr2;
 
+    const qreal eps = 1e-3;
     if (discr < 0)   // then the line does not intersect the circle
         return false;
-    else
-    {
-        const qreal eps = 1e-3;
-        if (discr < eps)  // floating point, no abs. 0 test
-        {                       // tangent line. Check tangent point.
-            qreal xm = (D * dy) * pdr2,
-                ym = -(D * dx) * pdr2;
-            return (SQR(xm) + SQR(ym) <= SQR(r));
-        }
-        else    // one or two intersections with the line, but is there any for the line section?
-        {
-            if (SQR(p1.x()) + SQR(p1.y()) <= SQR(r) || SQR(p1.x()) + SQR(p1.y()) <= SQR(r))
-                return true;    // at least one of the endpoints inside circle
+	else if (discr < eps)  // floating point, no abs. 0 test
+	{                       // tangent line. Check tangent point.
+		qreal xm = (D * dy) * pdr2,
+			ym = -(D * dx) * pdr2;
+		return (SQR(xm) + SQR(ym) <= SQR(r));
+	}
+	else    // one or two intersections with the line, but is there any for the line section?
+	{
+        
+        if (SQR(p1.x()) + SQR(p1.y()) <= SQR(r) || SQR(p2.x()) + SQR(p2.y()) <= SQR(r))
+            return true;    // at least one of the endpoints is inside the circle
 
-            // not so easy... Get intersection points ip1,ip2
-            qreal sqrt_discr = sqrt(discr),
-                xm1 = (D * dy) * pdr2,
-                xm2 = (dx * sqrt_discr * (dy < 0 ? -1 : 1)) * pdr2,
-                ym1 = -(D * dx) * pdr2,
-                ym2 = abs(dy) * sqrt_discr * pdr2;
-            // the two intersection points are:
-            QPointF ip1 = QPointF(xm1 + xm2, ym1 + ym2),
+        // not so easy... Get intersection points ip1,ip2
+        qreal sqrt_discr = sqrt(discr),
+            xm1 = (D * dy) * pdr2,
+            xm2 = (dx * sqrt_discr * (dy < 0 ? -1 : 1)) * pdr2,
+            ym1 = -(D * dx) * pdr2,
+            ym2 = abs(dy) * sqrt_discr * pdr2;
+        // the two intersection points are:
+        QPointF ip1 = QPointF(xm1 + xm2, ym1 + ym2),
                 ip2 = QPointF(xm1 - xm2, ym1 - ym2);
-            // these 4 points are on the same line (or less than 'eps' distance from it)
-            // The order of points on the line must be:
-            if (p1.x() > p2.x())
+
+        // here neither of the end points is inside the circle and
+        // the 4 points are on the same line (or less than 'eps' distance from it)
+        // If the points are ordered by their x or y coordinates
+        // for intersection the order of points on the line must be 
+        // p1 -> ip1 -> ip2 -> p2         
+        if(abs(p2.y() - p1.y()) < eps)      // vertical line
+        {
+            // order points by y coordinate
+            if (p1.y() > p2.y())
                 std::swap<QPointF>(p1, p2);
-            if (ip1.x() > ip2.x())
+            if (ip1.y() > ip2.y())
                 std::swap<QPointF>(ip1, ip2);
 
-            // now p1x() <= p2x() and ip1.x() <= ip2.x()
-            // when order along the line is p1, ip1, pip2 p2 then the line section
-            // intersects the circle
-
-            // check horizontal line
-            if (abs(p2.y() - p1.y()) < eps)
-                return p1.x() <= ip1.x() && ip2.x() <= p2.x();
-            //// check vertical line
-            //if (abs(p2.x() - p1.x()) < eps)
-            return (p1.y() <= ip1.y() && ip2.y() <= p2.y()) ||
-                (p1.y() >= ip1.y() && ip2.y() >= p2.y());
+            return  (p1.y() <= ip1.y() && ip2.y() <= p2.y());
         }
+        // non-vertical line: order points by x coordinate
+        if (p1.x() > p2.x())
+            std::swap<QPointF>(p1, p2);
+        if (ip1.x() > ip2.x())
+            std::swap<QPointF>(ip1, ip2);
+
+        return p1.x() <= ip1.x() && ip2.x() <= p2.x();
     }
 #undef SQR
 #undef DIST2
@@ -198,7 +205,8 @@ struct DrawableItem : public DrawablePen
     static bool drawStarted;
 
     DrawableType dtType = DrawableType::dtNone;
-    QPointF startPos;       // relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
+    QPointF startPos;       // position of first point relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
+                            // DOES NOT always correspond to top left of area!
     qreal angle = 0.0;      // rotate by this in degree
     int   zOrder = 0;                                    // not saved. Drawables are saved from lowest zOrder to highest zOrder
     bool  isVisible = true;                              // not saved
@@ -233,7 +241,11 @@ struct DrawableItem : public DrawablePen
         return poly;
 	}
     virtual bool IsFilled() const { return false; }
-    virtual bool PointIsNear(QPointF p, qreal distance) const { return false; }// true if the point is near the circumference or for filled ellpse: inside it
+    virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is near the lines or for filled items: inside it
+    { 
+        p -= startPos;
+        return p.x() * p.x() + p.y() * p.y() < distance * distance;
+    }
 
     virtual QRectF Area() const { return QRectF();  }
     virtual bool Intersects(QRectF rect) const
@@ -348,11 +360,7 @@ struct DrawableCross : public DrawableItem
         return QRectF(startPos - QPointF(d, d), QSize(2*d, 2*d) ); 
     }
     void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
-    {
-        p -= startPos;
-        return p.x() * p.x() + p.y() * p.y() < distance * distance;
-    }
+    // in base class bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
     QPolygonF ToPolygonF() override
     {
         QPolygonF res;
@@ -386,12 +394,7 @@ struct DrawableDot : public DrawableItem
         qreal d = penWidth / 2.0 + 1.0;
         return QRectF(startPos - QPointF(d, d), QSize(2*d, 2*d) ); 
     }
-    bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
-    {
-        p -= startPos;
-        return p.x() * p.x() + p.y() * p.y() < distance * distance;
-    }
-    // QPolygonF ToPolygonF()  use parent's
+    // in base class bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableDot& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableDot& di);  // call AFTER header is read in
@@ -479,9 +482,9 @@ struct DrawableLine : public DrawableItem
     DrawableLine& operator=(const DrawableLine&& ol);
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
     void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha = 0.0) override;    // alpha used only for 'rotAlpha'
-    QRectF Area() const override// includes half od pen width+1 pixel
+    QRectF Area() const override// includes half of pen width+1 pixel
     {
-        QRectF rect = QRectF(startPos, QSize(qAbs( (endPoint - startPos).x()), qAbs((endPoint - startPos).y())) );
+        QRectF rect = QRectF(startPos, QSize((endPoint - startPos).x(), (endPoint - startPos).y()) ).normalized();
         qreal d = penWidth / 2.0 + 1.0;
         return rect.adjusted(-d, -d, d, d);
     }
@@ -538,29 +541,20 @@ struct DrawableRectangle : public DrawableItem
 
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled rectangle: inside it
     {                                                           // the two axes are parallel to x,y
-        bool b = (p.x() >= rect.x() - distance) && (p.y() <= rect.right() + distance) &&
-            (p.y() >= rect.y() - distance) && (p.y() <= rect.bottom() + distance);
-
-        if (b)
-            return b;
-
         if (isFilled)
             return rect.contains(p);
-
-        return ( 
-                 (
-                     (p.x() >= rect.left() -  distance && p.x() <= rect.left() +  distance) ||
-                     (p.x() >= rect.right() - distance && p.x() <= rect.right() + distance) 
-                 ) && 
-                     (p.y() >= rect.top() -   distance && p.y() <= rect.bottom() +distance)
-               ) || 
-               (
-                (
-                    (p.y() >= rect.top() - distance && p.y() <= rect.top() + distance) ||
-                    (p.y() >= rect.bottom() - distance && p.y() <= rect.bottom() + distance)
-                    ) &&
-                (p.x() >= rect.left() - distance && p.x() <= rect.right() + distance)
-                );
+        // when both x and y distance is too large
+        bool bDistanceTooLarge = (               // x distance
+            (p.x() < rect.left() - distance) ||                                        
+            (p.x() > rect.right() + distance) ||
+            ((p.x() > rect.left() + distance) && (p.x() < rect.right() - distance) )
+                                  ) &&          
+                                  (              // y distance
+            (p.y() < rect.top() - distance) ||
+            (p.y() > rect.bottom() + distance) ||
+            ((p.y() > rect.top() + distance) && (p.y() < rect.bottom() - distance) )
+                                  );
+        return !bDistanceTooLarge;
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
     QPolygonF ToPolygonF() override
@@ -1019,7 +1013,7 @@ public:
         }
     }
 
-    int Count(const QuadArea& area = QuadArea())
+    int Count(const QuadArea& area = QuadArea())  // count of visible items
     {
         return _pQTree->Count(area);
     }
@@ -1214,23 +1208,27 @@ public:
             }
         };
 
-        int siz = _items.size();
+        int dist = 50; // generous sized area
+        QRectF r(point - QPointF(dist, dist), QSizeF(2 * dist, 2 * dist));
+        IntVector iv1 = ListOfItemIndicesInRect(r);
+
+        int siz = iv1.size();
         if (type == DrawableType::dtNone)
         {
             for (int i = 0; i < siz; ++i)
             {
-                auto pdrw = (*this)[i];
-                addIfNear(pdrw, i);
+                auto pdrw = (*this)[ iv1.at(i) ];
+                addIfNear(pdrw, iv1[i]);
             }
         }
         else
         {
             for (int i = 0; i < siz; ++i)
             {
-                auto pdrw = (*this)[i];
+                auto pdrw = (*this)[ iv1.at(i) ];
 
                 if (pdrw->dtType == type)
-                    addIfNear(pdrw, i);
+                    addIfNear(pdrw, iv1[i]);
             }
         }
         return rect;

@@ -524,7 +524,7 @@ public:
 
     int GetDrawablesInside(QRectF rect, IntVector& hv);
 
-    void AddToSelection(int index=-1);
+    void AddToSelection(int drawableIndex, bool clearSelections = false);
     QRectF SelectDrawablesUnder(QPointF& p, bool addToPrevious);      // selects clicked (if any) into _driSelectedDrawables, and clears right and left items list
     int /*DrawableItemIndex*/ SelectTopmostImageUnder(QPointF p);
     int CollectDrawablesInside(QRectF rect);

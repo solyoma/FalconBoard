@@ -541,6 +541,9 @@ int FalconBoard::_AddNewTab(QString fname, bool loadIt, bool force) // and new h
     if (_pTabs->count() == MAX_NUMBER_OF_TABS)
         return -1;
 
+#ifndef _VIEWER
+    _drawArea->HideRubberBand(true);
+#endif
     // check if it is already loaded
     int n;
     if (!force && (n = _drawArea->SameFileAlreadyUsed(fname))>=0) // force: used only for new document
@@ -571,8 +574,12 @@ void FalconBoard::_CloseTab(int index)
 
     _AddToRecentList(_drawArea->HistoryName());
     int cnt = _drawArea->RemoveHistory(index);
+#ifndef _VIEWER
+    _drawArea->HideRubberBand(true);
+#endif
     _pTabs->removeTab(index);
     if (!cnt)
+    _drawArea->HideRubberBand(true);
         _AddNewTab(QString(), false);
     _drawArea->SwitchToHistory(_nLastTab, !cnt);
 }

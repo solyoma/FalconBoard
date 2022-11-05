@@ -783,9 +783,6 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 	if (!p)
 		return nullptr;
 
-	// _driSelectedDrawables.clear();	// no valid selection after new item
-	// _selectionRect = QRectF();
-
 	_items.push_back(p);
 		  // no undo after new item added
 	for(auto a: _redoList)
@@ -795,11 +792,6 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 			break;
 		}
 	_redoList.clear();	
-	//if (p->Type() == dtScreenShot)
-	//{
-	//	HistoryDrawableItem* phi = reinterpret_cast<HistoryDrawableItem*>(p);
-	//	_screenShotImageList[phi->which].itemIndex = _items.size() - 1;		// always the last element
-	//}
 
 	_modified = true;
 
@@ -1018,6 +1010,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 
 	DrawableItem dh, * pdrwh;
 	DrawableDot dDot;
+	DrawableLine dLin;
 	DrawableRectangle dRct;
 	DrawableScribble dScrb;
 	DrawableScreenShot dsImg;
@@ -1061,15 +1054,23 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 				ifs >> x >> y;
 				dScrb.Add(x, y);
 			}
-			dScrb.startPos = dScrb.Area().topLeft();
+			dScrb.startPos = dScrb.points[0];
 
-			if (dScrb.points.size() == 2 && dScrb.points[0] == dScrb.points[1])	// then its a Dot
+			if (dScrb.points.size() == 2)
 			{
-				dDot.penWidth = dScrb.penWidth;
-				dDot.SetPenKind(dScrb.PenKind());
-				//dDot.penColor = dScrb.penColor;
-				dDot.startPos = dScrb.points[0];
-				pdrwh = &dDot;
+				if (dScrb.points[0] == dScrb.points[1])	// then its a Dot
+				{
+					(DrawableItem&)dDot = (DrawableItem&)dScrb;
+					dDot.dtType = DrawableType::dtDot;
+					pdrwh = &dDot;
+				}
+				else
+				{
+					(DrawableItem&)dLin = (DrawableItem&)dScrb;
+					dLin.dtType = DrawableType::dtLine;
+					dLin.endPoint = dScrb.points[1];
+					pdrwh = &dLin;
+				}
 			}
 			else
 			{
@@ -1083,10 +1084,10 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 				};
 				if (isRectangle(dScrb.points))
 				{
+					(DrawableItem&)dRct = (DrawableItem&)dScrb;
+					dRct.dtType = DrawableType::dtRectangle;
 					pdrwh = &dRct;
-					*pdrwh = (DrawableItem&)dScrb;
-					dRct.rect = QRectF(dScrb.points[0], QSizeF(dScrb.points[1].x() - dScrb.points[0].x(), dScrb.points[2].y() - dScrb.points[1].y()));
-					//dRct.SetPenColor();
+					dRct.rect = dScrb.points.boundingRect();
 				}
 			}
 			// patch for older versions:
@@ -1395,24 +1396,28 @@ HistoryItem* History::Redo()   // returns item to redone
 
 /*========================================================
  * TASK:	add index-th drawable used in _items to selected list
- * PARAMS:	index: in _items or -1 If -1 uses last drawn item added
+ * PARAMS:	drix: index of drawable in _drawables, or -1
+ *					for the last visible drawable added
  * GLOBALS:
  * RETURNS:
  * REMARKS: -
  *-------------------------------------------------------*/
-void History::AddToSelection(int index)
+void History::AddToSelection(int drix, bool clearSelections)
 {
-	if (index < 0)
-		index = _items.size() - 1;
+	if (clearSelections)
+	{
+		_driSelectedDrawables.clear();
+		_selectionRect = QRectF();
+	}
 
-	const HistoryDrawableItem* pitem = (HistoryDrawableItem*)_items.at(index);
-	int /*DrawableItemIndex*/ drix;
-	drix = pitem->indexOfDrawable;
+	if (drix < 0)
+		drix = _drawables.Size() - 1;
+	while (drix >= 0 && !_drawables[drix]->isVisible)
+		--drix;
+
 	_driSelectedDrawables.push_back(drix);
-
 	DrawableItem* pdri = _drawables[drix];
 	_selectionRect = _selectionRect.united(pdri->Area());
-
 }
 
 /*========================================================
