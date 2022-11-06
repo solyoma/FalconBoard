@@ -1,5 +1,5 @@
 # ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png) FalconBoard
-Last modified: July 10. 2022
+Last modified: Nov. 6. 2022
 
 FalconBoard is a cross platform open source 
 whiteboard / blackboard application with unique features that makes it 
@@ -13,9 +13,10 @@ saved drawings, but cannot modify them or create PDFs.
 ## Screenshots:
 ![falconBoard-dark-mode](https://user-images.githubusercontent.com/37068759/121942239-8d803700-cd50-11eb-8493-e239f46e7da7.jpg)
 ![falconBoard-light-mode](https://user-images.githubusercontent.com/37068759/121942173-79d4d080-cd50-11eb-8ffe-dd9b99eed039.jpg)
-## Features (Version 1.1) : 
+## Features (Version 2.0) : 
 
    -  Works under Windows and Linux, and (I hope) on Macs too.
+      did not try to compile it to Android or iOs
    -  interface languages are US English and Hungarian, selectable from the 
       program
    -  Usable with the mouse and with a Wacom graphics tablet. 
@@ -25,25 +26,27 @@ saved drawings, but cannot modify them or create PDFs.
    -  Freehand drawing with five different colored pens. Colors depend on
       interface modes (light/dark): black/white, red, green, blue/lighter blue, 
       yellow/magenta.
-   -  Draw straight lines which may be exactly horizontal or vertical.
-   -  Draw rectangles, ellipses or circles
+   -  Draw straight lines which may also be exactly horizontal or vertical.
+   -  Draw empty or filled rectangles, ellipses or circles
    -  Widths of each pens and the Eraser are adjustable separately.
    -  Unlimited Undo/Redo during a single session.
    -  "Unlimited" scrolling from top of "paper" by the keyboard 
       (Left, Right, Up, Down, PgUp,PgDown, Home, End, 
        alone or together with Ctrl for faster movement), with the mouse or
        pen on Wacom graphics tablet.
+   -  Keyboard shortcuts to most functions (See key F1 - Help).
+   -  Export the whole document into a PDF file. 
    -  Mark a rectangular area with the right button on mouse or tablet. 
-        If the Shift key is kept down during drawing the selection will
+        If the Shift key is kept down during selection the selection will
         be a square.
         If the area contained any complete drawings or screenshots then 
         the selection will constrict around those.
-		If the Alt key is pressed before letting the mouse button up the 
-		selection will not constrict to any elements inside it.
-		If The Alt key is kept pressed during selection the selection will
-		expand from the original start position and will not constrict
-		when the button is released. This way you can draw concentric
-		circles or rectangles.
+	 -  Press the Alt key before letting the mouse button up makes the 
+		    selection not constrict to any elements inside it.
+	 - If The Alt key is kept pressed during selection the selection will
+		    expand from the original start position and will not constrict
+		    when the button is released. This way you can draw concentric
+		    circles or rectangles.
    -  While a selection is active
         - insert vertical space by pressing F5. Height of the space is the 
             height of the selection
@@ -56,27 +59,28 @@ saved drawings, but cannot modify them or create PDFs.
             - click inside the area and hold to move the marked items around,
               on the screen release the button to paste it to that position.
             - delete drawings completely inside selection area with the Del 
-			  or BackSpace keys.
+			        or BackSpace keys.
             - lines completely under the marked area can be re-colored by
-			  clicking on the pen color buttons or pressing 1..5.
+			        clicking on the pen color buttons or pressing 1..5.
+            - change the line widths of drawings inside the selection with the
+              right (]) and left ([) bracket keys
         - if the selected area is empty you can:
               delete empty space from the right or from below with the Del key. 
         - copy / cut marked area and paste it into any open drawings at at any 
           position, even into new documents
-   -  Keyboard shortcuts to most functions (See key F1 - Help).
    -  Optional saving and loading sessions, option to automatic save of data
       and background image on exit.
    -  Print the whole document or a range of it. (Qt 15 does not make it possible
       to print just the current page or a list of pages.)
-   -  Even documents created in a dark mode can be printed as light mode ones to
-      save paint.
-   -  Export the whole document into a PDF file. 
+      (Even documents created in a dark mode can be printed as light mode ones to
+      save paint.)
    -  You may set a static background image: all you draw are on a different layer above
         the background.
    -  Take a screenshot with F4 from any rectangular area of the desktop and
       paste it into the middle of the screen to show or connotate. (After paste
-      you may move it around like any drawings.) Ctrl+Click on a screenshot to
-      mark it. You may select a color to make portion of the screenshot transparent.
+      you may move it around like any drawings.)  You may select a color to make 
+      portion of the screenshot transparent.
+      Ctrl+Click on a screenshot to mark it.
   -   Draw straight horizontal or vertical lines :press the left mouse button or 
         press the pen to the tablet THEN press and hold the Shift key and start
         drawing).
@@ -87,8 +91,8 @@ saved drawings, but cannot modify them or create PDFs.
   Completely open source (see Copyright)
         I used some icons [from PikaJian's Whitepad project](https://github.com/PikaJian)
         but no code was used from that project.
-		The QuadTree code is taken from [PVigier](https://github.com/pvigier/Quadtree)
-  Written in C++ with Qt (multi platform).
+		    The QuadTree code is taken from [PVigier](https://github.com/pvigier/Quadtree)
+        Written in C++ with Qt (multi platform).
   Both Visual Studio project files and a QtDesigner project files are included.
   
 *Compilation*:
@@ -102,9 +106,9 @@ saved drawings, but cannot modify them or create PDFs.
   - On Linux use the .pro files provided. 
 
 *Installation*:
-  No installation necessary. Copy the executable (and if you don't yet have them the Qt 
+  No installation necessary. Copy the executable (and if you don't yet have them, the Qt 
 	and Microsoft redistributables) into any folder. State of the programs are saved into *.ini files. On windows these are inside the
-    user's AppData\Local\FalconBoard folder, on linux under the hidden .falconboard folder inside the user's home directory.
+    user's *AppData\Local\FalconBoard* folder, on linux under the hidden *.falconBoard* folder inside the user's home directory.
 
 *Uninstalling*:    
     Delete the folder containing the program and optionally delete the configuration directories described above.
@@ -119,5 +123,5 @@ saved drawings, but cannot modify them or create PDFs.
   and you are ready to go.
   
   If you have downloaded the ZIP and there were only sub-version changes 
-  (like from 1.1.x to 1.1.y) you only need the new executables. 
+  (like from 1.1.x to 1.1.y , but now for 2.0 also) you only need the new executables. 
   Unpack them into the same folder where the previous release is.
