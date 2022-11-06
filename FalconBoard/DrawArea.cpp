@@ -373,9 +373,9 @@ void DrawArea::AddScreenShotImage(QPixmap& animage)
 /*========================================================
  * TASK:    check history if it is modified
  * PARAMS:  fromIndex - start checking at this index, except
- *              when it is -1: then use '_currentHistoryIndex'
- *          any - if true check all histories until the
- *              first modified is found
+ *						when it is -1: then use '_currentHistoryIndex'
+ *          any		  -	if true check all histories until the
+ *						first modified is found this case
  * GLOBALS: _currentHistoryIndex
  * RETURNS: if any == false: history index + 1 if modified or 0
  *                 == true : the index +1 of the first modified
@@ -868,29 +868,29 @@ void DrawArea::tabletEvent(QTabletEvent* event)
 
 	switch (event->type())
 	{
-	case QEvent::TabletPress:
-		MyButtonPressEvent(pe);
-		event->accept();
-		break;
+		case QEvent::TabletPress:
+			MyButtonPressEvent(pe);
+			event->accept();
+			break;
 
-	case QEvent::TabletMove:
+		case QEvent::TabletMove:
 #ifndef Q_OS_IOS
-		//        if (event->device() == QTabletEvent::RotationStylus)
-		//            updateCursor(event);
+			//        if (event->device() == QTabletEvent::RotationStylus)
+			//            updateCursor(event);
 #endif
-		MyMoveEvent(pe);
-		event->accept();
-		break;
+			MyMoveEvent(pe);
+			event->accept();
+			break;
 
-	case QEvent::TabletRelease:
-		MyButtonReleaseEvent(pe);
-		emit PointerTypeChange(QTabletEvent::Cursor);
-		event->accept();
-		break;
+		case QEvent::TabletRelease:
+			MyButtonReleaseEvent(pe);
+			emit PointerTypeChange(QTabletEvent::Cursor);
+			event->accept();
+			break;
 
-	default:
-		event->ignore();
-		break;
+		default:
+			event->ignore();
+			break;
 	}
 }
 
@@ -2206,7 +2206,10 @@ void DrawArea::SetCursor(DrawCursorShape cs)
 	case csCHand: setCursor(Qt::ClosedHandCursor); break;
 	case csPen:   setCursor(penCursors[_actPenKind]); break;
 #ifndef _VIEWER
-	case csEraser: setCursor(penCursors[penEraser]); _erasemode = true; HideRubberBand(true); break;
+	case csEraser: setCursor(penCursors[penEraser]); 
+		_erasemode = true; 
+		HideRubberBand(true); 
+		break;
 #endif
 	default:break;
 	}

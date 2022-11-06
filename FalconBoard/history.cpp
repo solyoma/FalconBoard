@@ -1001,6 +1001,9 @@ int History::_LoadV2(QDataStream&ifs, bool force)
 		(void)AddDrawableItem(*pdrwh); // this will add the drawable to the list and sets its zOrder too
 		di.erasers.clear();
 	}
+
+	_loadedName = _fileName;
+
 	return _readCount = n;
 }
 
@@ -1113,7 +1116,6 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 		(void)AddDrawableItem(*pdrwh);	// this will add the drawable to the list and sets its zOrder too
 	}
 	_modified = false;
-	_inLoad = false;
 
 	_loadedName = _fileName;
 

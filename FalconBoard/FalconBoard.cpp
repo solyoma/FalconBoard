@@ -579,10 +579,8 @@ void FalconBoard::_CloseTab(int index)
 #endif
     _pTabs->removeTab(index);
     if (!cnt)
-    {
-        _drawArea->HideRubberBand(true);
         _AddNewTab(QString(), false);
-    }
+
     _drawArea->SwitchToHistory(_nLastTab, !cnt);
 }
 
@@ -650,7 +648,7 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
     else 
         _SaveFile(saveName);             // sets _saveResult
 
-    _drawArea->SwitchToHistory(_nLastTab, false);
+    _drawArea->SwitchToHistory(_nLastTab, true);
     return _saveResult;
 }
 
@@ -1659,7 +1657,7 @@ void FalconBoard::on_action_Eraser_triggered()
     _SetPenWidth(_actPen = penEraser);
     _drawArea->SetCursor(csEraser);
     _SelectPenForAction(ui.action_Eraser);
-    SlotForFocus();
+	ui.centralWidget->setFocus();
 }
 
 void FalconBoard::on_actionRotateLeft_triggered()
@@ -1874,15 +1872,18 @@ void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sen
             {
                 pk = _actPen;           // save for restoring
                 isPenEraser = true;
-                on_action_Eraser_triggered();
+                _eraserOn = true;
+                _SetPenWidth(_actPen = penEraser);
+                _SetCursor(csEraser);
             }
             break;
         default:
             if (isPenEraser)
             {
-                pk = _actPen;
-                _SetCursor(csPen);
                 _SetPenKind(pk);
+                _SetCursor(csPen);
+                _SetPenWidth(pk);
+                _eraserOn = false;
                 isPenEraser = false;
             }
             break;
