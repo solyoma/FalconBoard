@@ -14,10 +14,11 @@ struct History; // forward declaration it contains the 'DrawableList' common for
 
 struct HistoryItem      // base class
 {
-    History* pHist=nullptr;
+    History* pHist;
     HistEvent type;
+    DrawableList* pDrawables = nullptr;         // to pHist's _drawables
 
-    HistoryItem(History* pHist, HistEvent typ=heNone) : pHist(pHist), type(typ) {}
+    HistoryItem(History* pHist, HistEvent typ = HistEvent::heNone);
     virtual ~HistoryItem() {}
 
     virtual int ZOrder() const { return 0; }

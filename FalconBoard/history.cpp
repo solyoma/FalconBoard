@@ -1081,7 +1081,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 	while (!ifs.atEnd())
 	{
 		ifs >> n;	// HistEvent				
-		if ((HistEvent(n) == heScreenShot))
+		if ((HistEventV1(n) == HistEventV1::heScreenShot))
 		{
 			int x, y, zo;
 			ifs >> dsImg.zOrder >> x >> y;
@@ -1113,7 +1113,13 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 			qint32 x, y;
 			dScrb.Reset();
 
-		di.type = (HistEvent)n;
+			ifs >> n;
+			while (n--)
+			{
+				ifs >> x >> y;
+				dScrb.Add(x, y);
+			}
+			dScrb.startPos = dScrb.points[0];
 
 			if (dScrb.points.size() == 2)
 			{
@@ -1572,113 +1578,13 @@ int History::SelectTopmostImageUnder(QPointF p)
  *			  its pen width sized area intersects the
  *			  area around 'p' 
  *------------------------------------------------------------*/
-QRect History::SelectScribblesFor(QPoint& p, bool addToPrevious)
+QRectF History::SelectDrawablesUnder(QPointF& p, bool addToPrevious)
 {
-	int cnt = 0;
-	int ii;
-	IntVector iv;
+	DrawableIndexVector iv;
+	QRectF result;
+	result = _drawables.ItemsUnder(p, iv);
 
-	int w = 3;	// +-
-	int pw;			// pen width
-
-	QRect rp = QRect(p, QSize(1, 1)).adjusted(-w, -w, w, w),
-		r;
-	QRect result;
-
-	ScribbleItem* pscr;
-	ScribbleSubType typ;
-
-	auto SQUARE = [](int a)->float { return a * a; };
-
-	auto isNearToLine = [&](ScribbleItem* pscr, int i) -> bool
-	{
-		float x1 = pscr->points[i].x(), x2 = pscr->points[i + 1].x(),
-			  y1 = pscr->points[i].y(), y2 = pscr->points[i + 1].y(),
-			  x0 = p.x(), y0 = p.y();
-//		if (y1 > y2) std::swap(y1, y2);
-
-		float d = 0;
-
-		if (x1 == x2 && y1 == y2)	// point
-			d = sqrt(qAbs(x0 - x1) * qAbs(x0 - x1) + qAbs(y0 - y1) * qAbs(y0 - y1));
-		else if (x1 == x2)	// vertical line
-		{
-			if (y1 > y0 || y0 > y2)
-				return false;
-			d = qAbs(x0 - x1);
-		}
-		else if (y1 == y2)
-		{
-			if (x1 > x0 || x0 > x2)
-				return false;
-			d = qAbs(y0 - y1);
-		}
-		else
-		{
-			if ( (y1 < y2 && (y1 > y0 || y0 > y2)) || 
-				 (y2 < y1 && (y2 > y0 || y0 > y1)) || 
-				 (x1 < x2 && (x1 > x0 || x0 > x2)) || 
-				 (x2 < x1 && (x2 > x0 || x0 > x1)) )
-						return false;
-
-			d = qAbs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1)) / sqrt(SQUARE(x2 - x1) + SQUARE(y2 - y1));
-		}
-		return (int)d < pscr->penWidth + w;
-	};
-
-	auto addToIv = [&](ScribbleItem* pscr, int i)
-	{
-		++cnt;
-		ii = i;
-		iv.push_back(ii);
-		result = result.united(pscr->bndRect);
-	};
-
-	for (int i = 0; i < _items.size(); ++i)
-	{
-		if (_items[i]->type == heScribble)
-		{
-			pscr = _items[i]->GetVisibleScribble();
-			if (pscr)
-			{
-				typ = pscr->SubType();
-				if (pscr && pscr->bndRect.contains(p))
-				{
-					pw = (pscr->penWidth + 1) / 2;
-					if (typ != sstScribble)	//line or quadrangle
-					{
-						for (int j = 0; j < pscr->points.size() - 1; ++j)
-							if (isNearToLine(pscr, j))
-								addToIv(pscr, i);
-					}
-					else		// ordinary scribble
-					{
-						for (int j = 0; j < pscr->points.size(); ++j)
-						{
-							r = QRect(pscr->points[j], QSize(1, 1)).adjusted(-pw, -pw, pw, pw);
-							if (r.intersects(rp))
-							{
-								addToIv(pscr, i);
-								break;	// no need to check more points
-							}
-							else if (j < pscr->points.size() - 1)	// possibly consecutive points in a scribble were too far away from each other
-							{										// if so then consider it a line and see if we are near to it
-								if (SQUARE(pscr->points[j].x() - pscr->points[j + 1].x()) + SQUARE(pscr->points[j].y() - pscr->points[j + 1].y()) > SQUARE(pscr->penWidth))
-								{
-									if (isNearToLine(pscr, j))
-									{
-										addToIv(pscr, i);
-										break;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	if (cnt)
+	if (iv.size())
 	{
 		if (!addToPrevious)
 		{

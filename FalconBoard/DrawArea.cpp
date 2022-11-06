@@ -1003,22 +1003,30 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 						// because tablet events frequency is large
 
 #ifndef _VIEWER
-	if (_rubberBand && _spaceBarDown && (event->buttons & Qt::LeftButton))
+	if (_rubberBand)
 	{
-		if (event->fromPen)
+		QPointF epos = event->pos;
+		if (epos.x() < 0)
+			epos.setX(0);
+		if (epos.y() < 0)
+			epos.setY(0);
+		
+		if (_spaceBarDown && (event->buttons & Qt::LeftButton))
 		{
-			++counter;
-			if (counter >= REFRESH_LIMIT)
+			if (event->fromPen)
 			{
-				counter = 0;
-				_Redraw();
-				_lastPointC = event->pos;
+				++counter;
+				if (counter >= REFRESH_LIMIT)
+				{
+					counter = 0;
+					_Redraw();
+					_lastPointC = epos;
+				}
 			}
-		}
-		QPoint  dr = (event->pos - _lastPointC);   // displacement vector
-		if (!dr.manhattanLength())
-			return;
-		_ShiftOrigin(-dr);
+			QPointF  dr = (epos - _lastPointC);   // displacement vector
+			if (!dr.manhattanLength())
+				return;
+			_ShiftOrigin(-dr);
 
 			if (!event->fromPen)    // else already redrawn
 			{
@@ -1037,18 +1045,18 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 			if (event->mods.testFlag(Qt::ShiftModifier))        // constrain rubberband to a square
 				epos.setX(_rubberBand->geometry().x() + (epos.y() - _rubberBand->geometry().y()));
 
-		QPoint origin = _rubber_origin;	// we may modify this because of Alt modifier
-		QPoint delta;
-		if (event->mods.testFlag(Qt::AltModifier))	// then the rubberband goes outward from origin
-		{
-			delta = epos - _rubber_origin;	// some coordinate may be negative
-			origin -= delta;
-		}
+			QPointF origin = _rubber_origin;	// we may modify this because of Alt modifier
+			QPointF delta;
+			if (event->mods.testFlag(Qt::AltModifier))	// then the rubberband goes outward from origin
+			{
+				delta = epos - _rubber_origin;	// some coordinate may be negative
+				origin -= delta;
+			}
 			// DEBUG
 			//qDebug("epos:(%d,%d), delta:(%d, %d), origin:(%d,%d), rubber0: (%d,%d)",
 			//	epos.x(), epos.y(), delta.x(), delta.y(), origin.x(), origin.y(),
 			//	_rubber_origin.x(), _rubber_origin.y());
-		_rubberBand->setGeometry(QRect(origin, epos).normalized()); // means: top < bottom, left < right
+			_rubberBand->setGeometry(QRectF(origin, epos).normalized().toRect()); // means: top < bottom, left < right
 
 	// DEBUG
 	//#if defined _DEBUG
@@ -2124,94 +2132,6 @@ QPainter *DrawArea::_GetPainter(QImage *pCanvas)
 	painter->setClipRect(rect);
 	return painter;
 }
-
-/*=============================================================
- * TASK:	draws a filled, or unfilled polygon
- * PARAMS:
- * GLOBALS:
- * RETURNS:
- * REMARKS:	must be separate from _PaintPath as paths need 
- *			not be closed
- *------------------------------------------------------------*/
-void DrawArea::_PaintPolygon(QPolygon& myPolygon, bool filled, QPainter* pPainter)
-{
-	bool emode = _erasemode;
-	if (_actPenKind == penEraser)
-		_erasemode = true;
-
-	QPainter *painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
-	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
-	pen.setWidth(_actPenWidth);
-	painter->setPen(pen);
-	painter->setCompositionMode(_erasemode ? QPainter::CompositionMode_Clear : QPainter::CompositionMode_Source);
-
-	if (filled)
-	{
-		painter->setBrush(drawColors[_actPenKind]);
-		painter->drawPolygon(myPolygon);
-	}
-	else if(myPolygon.size() == 2 && myPolygon[0]==myPolygon[1])
-	{
-		QPoint pt = myPolygon[0];
-		painter->setPen(pen);
-		painter->drawPoint(pt);
-
-	}
-	else
-	{
-		QPainterPath path;
-		path.addPolygon(myPolygon);
-		painter->drawPath(path);
-	}
-	if(!pPainter)
-		delete painter;
-	_erasemode = emode;
-};
-
-/*=============================================================
- * TASK:	draws a filled (=closed) path, or any oyjer
- * PARAMS:	myPath - path to paint. it may contain a single point
- *			filled - only used for closed paths: fill it?
- *			pPainter - external painter or nullptr
- * GLOBALS:_actPenKind, _actPenWidth
- * RETURNS:
- * REMARKS:	must be separate from _PaintPolygon as paths need 
- *			not be closed
- *------------------------------------------------------------*/
-void DrawArea::_PaintPath(QPainterPath& myPath, bool filled, QPainter *pPainter)
-{
-	bool emode = _erasemode;
-	if (_actPenKind == penEraser)
-		_erasemode = true;
-
-	QPainter* painter = pPainter ? pPainter : _GetPainter(_pActCanvas);
-	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
-	pen.setWidth(_actPenWidth);
-	painter->setPen(pen);
-
-	painter->setCompositionMode(_erasemode ? QPainter::CompositionMode_Clear : QPainter::CompositionMode_Source);
-
-	if (filled)
-	{
-		painter->setBrush(drawColors[_actPenKind]);
-		painter->drawPolygon(myPath.toFillPolygon());
-	}
-	else
-	{
-		QPolygon poly = myPath.toFillPolygon().toPolygon();
-		if (poly.size() > 2 || poly[0] != poly[1])
-			painter->drawPath(myPath);
-		else
-		{
-			QPoint pt = poly[0];
-			painter->drawPoint(pt);
-		}
-	}
-	if (!pPainter)
-		delete painter;
-	_erasemode = emode;
-};
-
 
 /*========================================================
  * TASK:    plots visible 'Drawable's onto _pActCanvas
