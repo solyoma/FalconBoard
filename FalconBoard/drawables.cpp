@@ -653,6 +653,8 @@ QPointF DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use 
 	{
 		smoother.Reset();
 		points.clear();
+		if (p == QPoint(-1, -1))
+			return p;
 	}
 
 	if (smoothed && bSmoothDebug)
@@ -680,8 +682,7 @@ void DrawableScribble::Add(int x, int y, bool smoothed, bool reset)
 
 void DrawableScribble::Reset()
 {
-	Add(QPoint(), false, true);
-	points.clear();
+	Add(QPoint(-1,-1), false, true);	// clear 'points' and reset smoother
 }
 
 bool DrawableScribble::Intersects(const QRectF& arect) const

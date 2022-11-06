@@ -1017,7 +1017,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 	DrawableScreenShot dsImg;
 
 // z order counters are reset
-	int i = 0, n;
+	int n;
 	while (!ifs.atEnd())
 	{
 		ifs >> n;	// HistEvent				
@@ -1042,6 +1042,10 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 			qint32 n;
 			ifs >> n; dScrb.zOrder = n;
 			ifs >> n; dScrb.SetPenKind( (FalconPenKind)(n & ~128));
+			// DEBUG
+			//if (dScrb.PenKind() == penEraser)
+			//	i = i;
+			// end DEBUG
 			// dScrb.SetPenColor();	// from penKind
 			bool filled = n & 128;
 			ifs >> n; dScrb.penWidth = n;
@@ -1087,17 +1091,17 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 				{
 					(DrawableItem&)dRct = (DrawableItem&)dScrb;
 					dRct.dtType = DrawableType::dtRectangle;
-					pdrwh = &dRct;
 					dRct.rect = dScrb.points.boundingRect();
+					pdrwh = &dRct;
 				}
 			}
 			// patch for older versions:
 			if (version < 0x56010108)
 			{
-				if (dScrb.PenKind()== penEraser)
-					dScrb.SetPenKind(penYellow);
-				else if (dScrb.PenKind()== penYellow)
-					dScrb.SetPenKind( penEraser);
+				if (pdrwh->PenKind()== penEraser)
+					pdrwh->SetPenKind(penYellow);
+				else if (pdrwh->PenKind()== penYellow)
+					pdrwh->SetPenKind( penEraser);
 			}
 			// end patch
 			if (ifs.status() != QDataStream::Ok)
@@ -1107,15 +1111,13 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 			}
 		}
 		(void)AddDrawableItem(*pdrwh);	// this will add the drawable to the list and sets its zOrder too
-
-		++i;
 	}
 	_modified = false;
 	_inLoad = false;
 
 	_loadedName = _fileName;
 
-	return  _readCount = i ;
+	return  _readCount = _items.size();
 }
 
 //--------------------- Add Items ------------------------------------------
