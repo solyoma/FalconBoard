@@ -540,14 +540,15 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 			bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
 				bCut = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
-							((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
+				((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
 				bCopy = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
-							_mods.testFlag(Qt::ControlModifier),
+				_mods.testFlag(Qt::ControlModifier),
+				bBracketKey = (key == Qt::Key_BracketLeft || key == Qt::Key_BracketRight),
 				bRemove = (bDelete | bCopy | bCut | bPaste) ||
-					(key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
-						key != Qt::Key_Space && key != Qt::Key_Up && key != Qt::Key_Down && key != Qt::Key_Left && 
-						key != Qt::Key_Right && key != Qt::Key_PageUp && key != Qt::Key_PageDown),
-				bCollected = false,
+					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
+					 key != Qt::Key_Space && key != Qt::Key_Up && key != Qt::Key_Down && key != Qt::Key_Left &&
+					 key != Qt::Key_Right && key != Qt::Key_PageUp && key != Qt::Key_PageDown),
+				bCollected = _history->SelectedSize(),
 				bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5),
 
 				bRotate = (key == Qt::Key_0 ||  // rotate right by 90 degrees
@@ -556,10 +557,23 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					key == Qt::Key_H ||  // flip horizontally
 					(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
 					);
+			if (bCollected && bBracketKey)
+			{
+				if (key == Qt::Key_BracketLeft) // decrease pen width for all drawables inside selection by 1
+				{
+					_history->AddPenWidthChange(-1);
+					_Redraw();
+				}
+				else if (key == Qt::Key_BracketRight) // increase pen width for all drawables inside selection by 1
+				{
+					_history->AddPenWidthChange(1);
+					_Redraw();
+				}
+			}
 
 			if (bDelete || bCopy || bRecolor || bRotate)
 			{
-				if ((bCollected = _history->SelectedSize()) && !bDelete && !bRotate)
+				if (bCollected && !bDelete && !bRotate)
 				{
 					_history->CopySelected();
 					_itemsCopied = true;        // never remove selected list

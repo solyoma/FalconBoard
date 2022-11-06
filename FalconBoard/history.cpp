@@ -613,6 +613,7 @@ int HistorySetTransparencyForAllScreenshotsItems::Undo()
 }
 
 
+//****************** HistoryEraserStrokeItem ****************
 
 HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& dri) : eraserPenWidth(dri.penWidth), eraserStroke(dri.ToPolygonF()), HistoryItem(pHist)
 {
@@ -627,7 +628,9 @@ HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& d
 HistoryEraserStrokeItem::HistoryEraserStrokeItem(const HistoryEraserStrokeItem& o)  
 	: eraserPenWidth(o.eraserPenWidth), eraserStroke(o.eraserStroke), affectedIndexList(o.affectedIndexList),subStrokesForAffected(o.subStrokesForAffected), HistoryItem(o)
 {
-
+	if (affectedIndexList.isEmpty())				// will not be used or saved in callers!
+		return;
+	Redo();
 }
 
 HistoryEraserStrokeItem& HistoryEraserStrokeItem::operator=(const HistoryEraserStrokeItem& o)
@@ -663,6 +666,60 @@ int HistoryEraserStrokeItem::Redo()
 	}
 	return 1;
 }
+
+//****************** HistoryPenWidthChangeItem ****************
+
+HistoryPenWidthChangeItem::HistoryPenWidthChangeItem(History* pHist, qreal changeWidthBy) :
+	dw(changeWidthBy), HistoryItem(pHist, HistEvent::hePenWidthChange)
+{
+	affectedIndexList = pHist->Selected();
+	if (affectedIndexList.isEmpty())				// will not be used or saved in callers!
+		return;
+	Redo();
+}
+
+HistoryPenWidthChangeItem::HistoryPenWidthChangeItem(const HistoryPenWidthChangeItem &o) :
+	affectedIndexList(o.affectedIndexList), dw(o.dw), HistoryItem(o)
+{
+	if (affectedIndexList.isEmpty())				// will not be used or saved in callers!
+		return;
+	Redo();
+}
+
+HistoryPenWidthChangeItem& HistoryPenWidthChangeItem::operator=(const HistoryPenWidthChangeItem& o)
+{
+	(HistoryItem&)(*this) = (HistoryItem&)o;
+	affectedIndexList = o.affectedIndexList; 
+	dw = o.dw;
+	return *this;
+}
+int HistoryPenWidthChangeItem::Undo()
+{
+	for (auto ix : affectedIndexList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(ix);
+		if (pdrwi && pdrwi->penWidth < 999)
+		{
+			if ((pdrwi->penWidth -= dw) < 0)
+				pdrwi->penWidth = 0;
+		}
+	}
+	return 1;
+}
+int HistoryPenWidthChangeItem::Redo()
+{
+	for (auto ix : affectedIndexList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(ix);
+		if (pdrwi && pdrwi->penWidth < 999)
+		{
+			if ((pdrwi->penWidth += dw) < 0)
+				pdrwi->penWidth = 0;
+		}
+	}
+	return 1;
+}
+
 
 
 //********************************** History class ****************************
@@ -1312,6 +1369,11 @@ HistoryItem* History::AddScreenShotTransparencyToLoadedItems(QColor trColor, qre
 	return _AddItem(psta);
 }
 
+HistoryItem* History::AddPenWidthChange(int increment)
+{
+	HistoryPenWidthChangeItem* ppwch = new HistoryPenWidthChangeItem(this, increment);
+	return _AddItem(ppwch);
+}
 
 //********************************************************************* History ***********************************
 

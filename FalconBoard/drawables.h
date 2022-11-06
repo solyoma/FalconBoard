@@ -40,10 +40,11 @@ enum class HistEvent {
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
     heItemsPastedBottom,// list of draw events added first drawn item is at index 'drawableItem'
-    heItemsPastedTop    // list of draw events added first drawn item is at index 'drawableItem'
+    heItemsPastedTop,    // list of draw events added first drawn item is at index 'drawableItem'
                         // last one is at index 'lastScribbleIndex'
                         // Undo: set _indexLastScribbleItem to that given in previous history item
                         // Redo: set _indexLastScribbleItem to 'lastScribbleIndex'
+    hePenWidthChange        // change pen widths for all drawables selected
                 };
 
 enum class DrawableType {

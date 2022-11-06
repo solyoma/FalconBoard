@@ -121,6 +121,11 @@ struct HistoryDeleteItems : public HistoryItem
     HistoryDeleteItems(HistoryDeleteItems&& other) noexcept;
     HistoryDeleteItems& operator=(const HistoryDeleteItems&& other) noexcept;
 };
+
+            //--------------------------------------------
+            //      HistoryRemoveSpaceItem
+            //--------------------------------------------
+
 //--------------------------------------------
 // remove an empty rectangular region 
 //  before creating this item collect all items to
@@ -149,17 +154,13 @@ struct HistoryRemoveSpaceItem : public HistoryItem // using _selectedRect
     HistoryRemoveSpaceItem& operator=(HistoryRemoveSpaceItem&& other) noexcept;
 };
 
-            //--------------------------------------------
-            //      HistoryPasteItemBottom
-            //--------------------------------------------
-
 //--------------------------------------------
 // When pasting items into _items from bottom up 
 //   'HistoryPasteItemBottom' item (its absolute index is in  
 //          HistoryPasteItemTop::indexOfBottomItem
 //   'HistoryScribbleItems' items athat were pasted
 //   'HistoryPasteItemTop' item
-struct HistoryPasteItemBottom : HistoryItem
+struct HistoryPasteItemBottom : public HistoryItem
 {
     int index;          // in pHist
     int count;          // of items pasted above this item
@@ -178,7 +179,7 @@ struct HistoryPasteItemBottom : HistoryItem
             //      HistoryPasteItemTop
             //--------------------------------------------
 
-struct HistoryPasteItemTop : HistoryItem
+struct HistoryPasteItemTop : public HistoryItem
 {
     int indexOfBottomItem;      // abs. index of 'HistoryPastItemBottom' item
     int count;                  // of items pasted  
@@ -217,7 +218,7 @@ struct HistoryPasteItemTop : HistoryItem
             //      HistoryRecolorItem
             //--------------------------------------------
 
-struct HistoryReColorItem : HistoryItem
+struct HistoryReColorItem : public HistoryItem
 {
     DrawableIndexVector selectedList;     // indices to drawable elements in '*pHist'
     QVector<FalconPenKind> penKindList;   // colors for elements in selectedList
@@ -238,7 +239,7 @@ struct HistoryReColorItem : HistoryItem
             //      HistoryInsertVertSpace
             //--------------------------------------------
 
-struct HistoryInsertVertSpace : HistoryItem
+struct HistoryInsertVertSpace : public HistoryItem
 {
     int y = 0, heightInPixels = 0;
 
@@ -255,7 +256,7 @@ struct HistoryInsertVertSpace : HistoryItem
             //--------------------------------------------
 
 //--------------------------------------------
-struct HistoryRotationItem : HistoryItem
+struct HistoryRotationItem : public HistoryItem
 {
     MyRotation rot;
     bool flipH = false;
@@ -275,7 +276,7 @@ struct HistoryRotationItem : HistoryItem
             //      HistorySetTransparencyForAllScreenshotsItems
             //--------------------------------------------
 
-struct HistorySetTransparencyForAllScreenshotsItems : HistoryItem
+struct HistorySetTransparencyForAllScreenshotsItems : public HistoryItem
 {
     DrawableIndexVector affectedIndexList;   // these images were re-created with transparent color set
     int undoBase = -1;            // top of pHist's screenShotImageList before this function was called
@@ -288,11 +289,11 @@ struct HistorySetTransparencyForAllScreenshotsItems : HistoryItem
 };
 
 
-//--------------------------------------------
-//      HistoryEraserStrokeItem
-//--------------------------------------------
+            //--------------------------------------------
+            //      HistoryEraserStrokeItem
+            //--------------------------------------------
 
-struct HistoryEraserStrokeItem : HistoryItem
+struct HistoryEraserStrokeItem : public HistoryItem
 {
     int eraserPenWidth=0;       
     QPolygonF   eraserStroke;
@@ -307,6 +308,20 @@ struct HistoryEraserStrokeItem : HistoryItem
     int Redo() override;
 };
 
+            //--------------------------------------------
+            //      HistoryPenWidthChangeItem
+            //--------------------------------------------
+
+struct HistoryPenWidthChangeItem : public HistoryItem
+{
+    DrawableIndexVector affectedIndexList;
+    qreal dw;          // pen width change
+    HistoryPenWidthChangeItem(History* pHist, qreal changeWidthBy);
+    HistoryPenWidthChangeItem(const HistoryPenWidthChangeItem& o);
+    HistoryPenWidthChangeItem& operator=(const HistoryPenWidthChangeItem& o);
+    int Undo() override;
+    int Redo() override;
+};
 
 
 // ******************************************************
@@ -515,6 +530,7 @@ public:
     HistoryItem* AddRotationItem(MyRotation rot);
     HistoryItem* AddRemoveSpaceItem(QRectF &rect);
     HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
+    HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
     // --------------------- drawing -----------------------------------
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void InserVertSpace(int y, int heightInPixels);
