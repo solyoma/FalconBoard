@@ -14,7 +14,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "history.h"    // struct ScribbleItem
+#include "history.h"    // struct DrawableScribble
 
 // TODO: drawing with delay (for playback of session)
 inline void SleepFor(std::chrono::milliseconds mseconds)

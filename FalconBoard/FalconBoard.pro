@@ -13,31 +13,33 @@ UI_DIR += ./Debug/Ui
 RCC_DIR += ./Debug/rcc
 win32:RC_FILE = FalconBoard.rc
 HEADERS += ./common.h \
-	./DrawArea.h \
-	./FalconBoard.h \
-	./helpdialog.h \
-	./history.h \
-	./myevent.h \
-	./myprinter.h \
-	./pagesetup.h \
-	./pdraw.h \
-	./printprogress.h \
+	./drawables.h \
+    ./DrawArea.h \
+    ./FalconBoard.h \
+    ./helpdialog.h \
+    ./history.h \
+    ./myevent.h \
+    ./myprinter.h \
+    ./pagesetup.h \
+    ./printprogress.h \
 	./quadtree.h \
-	./screenshotTransparency.h \
-	./snipper.h
-SOURCES += ./DrawArea.cpp \
-	./FalconBoard.cpp \
-	./history.cpp \
-	./main.cpp \
-	./myprinter.cpp \
-	./pagesetup.cpp \
-	./screenshotTransparency.cpp \
-	./snipper.cpp
+    ./screenshotTransparency.h \
+	./smoother.h \
+    ./snipper.h
+SOURCES += ./drawables.cpp \
+    ./DrawArea.cpp \
+    ./FalconBoard.cpp \
+    ./history.cpp \
+    ./main.cpp \
+    ./myprinter.cpp \
+    ./pagesetup.cpp \
+    ./screenshotTransparency.cpp \
+    ./snipper.cpp
 FORMS += ./FalconBoard.ui \
 	./helpdialog.ui \
-	./pagesetup.ui \
-	./printprogress.ui \
-	./screenshotTransparency.ui
+    ./pagesetup.ui \
+    ./printprogress.ui \
+    ./screenshotTransparency.ui
 RESOURCES += FalconBoard.qrc
 INCLUDEPATH += .
 QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter

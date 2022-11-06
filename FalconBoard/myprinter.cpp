@@ -217,7 +217,7 @@ struct PageNum2
 static struct SortedPageNumbers
 {
     QVector<PageNum2> pgns;
-    QRect screenPageRect;
+    QRectF screenPageRect;
 
     const PageNum2& operator[](int ix) const { return pgns[ix]; }
     int Size() const { return pgns.size(); }
@@ -230,7 +230,7 @@ static struct SortedPageNumbers
         auto it = std::lower_bound(pgns.begin(), pgns.end(), pgn);
         return it - pgns.begin();
     }
-    void Init(QRect screenRect)
+    void Init(QRectF screenRect)
     {
         Clear();
         screenPageRect = screenRect; 
@@ -252,27 +252,27 @@ static struct SortedPageNumbers
                 yindices.insert(ix, pgn.yindices[0]);
         }
     }
-    PageNum2 &PageForPoint(const QPoint& p, int Yindex, PageNum2 &pgn)
-    {
-        pgn.yindices[0] = Yindex;
+    //PageNum2 &PageForPoint(const QPointF& p, int Yindex, PageNum2 &pgn)
+    //{
+    //    pgn.yindices[0] = Yindex;
 
-        pgn.ny = p.y() / screenPageRect.height();
-        pgn.nx = p.x() / screenPageRect.width();
-        return pgn;
-    };
+    //    pgn.ny = p.y() / screenPageRect.height();
+    //    pgn.nx = p.x() / screenPageRect.width();
+    //    return pgn;
+    //};
 
-    void AddPoints(HistoryItem* phi, int Yindex, PageNum2 &pgn) // to 'pgns'
-    {
-        ScribbleItem* pscrbl;
+    //void AddPoints(HistoryItem* phi, int Yindex, PageNum2 &pgn) // to 'pgns'
+    //{
+    //    DrawableItem* pDrwbl;
 
-        pscrbl = phi->GetVisibleScribble(0);    // only one element for scribble / printable
-        Insert(PageForPoint(pscrbl->points[0], Yindex, pgn));
-        // TODO when the line segment between 2 consecutive points goes through more than one page
-        //          example: horizontal, vertical line, circle, etc *********
+    //    pDrwbl = phi->GetDrawable(true);    // only one element for scribble / printable
+    //    Insert(PageForPoint(pDrwbl->points[0], Yindex, pgn));
+    //    // TODO when the line segment between 2 consecutive points goes through more than one page
+    //    //          example: horizontal, vertical line, circle, etc *********
 
-        for (int i = 1; i < pscrbl->points.size(); ++i)
-            Insert(PageForPoint(pscrbl->points[i], Yindex, pgn) );
-    }
+    //    for (int i = 1; i < pDrwbl->points.size(); ++i)
+    //        Insert(PageForPoint(pDrwbl->points[i], Yindex, pgn) );
+    //}
 
 } sortedPageNumbers;
 
@@ -294,8 +294,8 @@ bool MyPrinter::_AllocateResources()
         return false;
     }
 
-    _pImagePainter =  new QPainter(_pPageImage);      // always print on this then to the printer
-    _pScribblePainter =      new QPainter(_pItemImage);           // always print on this then to the printer
+    _pImagePainter    =  new QPainter(_pPageImage);      // always print on this then to the printer
+    _pDrawablePainter =  new QPainter(_pItemImage);      // always print on this then to the printer
 
     _pPrintPainter = new QPainter;                   
                                                     // using begin() instead of constructor makes possible
@@ -310,7 +310,7 @@ bool MyPrinter::_FreeResources()
 {
     DELETEPTR(_pDlg);
     DELETEPTR(_pImagePainter);
-    DELETEPTR(_pScribblePainter);
+    DELETEPTR(_pDrawablePainter);
     DELETEPTR(_pItemImage);
     DELETEPTR(_pPageImage);
     DELETEPTR(_pProgress);
@@ -333,30 +333,30 @@ bool MyPrinter::_FreeResources()
  *------------------------------------------------------------*/
 int MyPrinter::_CalcPages()
 {
-    sortedPageNumbers.Init( QRect(0, 0, _data.screenPageWidth, _data.screenPageHeight) );
+    sortedPageNumbers.Init( QRectF(0, 0, _data.screenPageWidth, _data.screenPageHeight) );
 
-    int nSize = _pHist->CountOfScribble();
+    int nSize = _pHist->CountOfVisible();
 
     // for each scribble determine pages it apperas on and prepare
     // a list of pages ordered first by y then by x page indices
     HistoryItem* phi;
     PageNum2 pgn;
 
-    QSize usedArea = _pHist->UsedArea();
+    QSizeF usedArea = _pHist->UsedArea();
     int maxY = usedArea.height();
     int maxX;   // on a _data.ScreenPageHeight high band
     int ny = 0;     // page y index
 
     for (int y = 0; y < maxY; y += _data.screenPageHeight, ++ny)
     {
-        maxX = _pHist->RightMostInBand(QRect(0, y, usedArea.width(), _data.screenPageHeight));
+        maxX = _pHist->RightMostInBand(QRectF(0, y, usedArea.width(), _data.screenPageHeight));
         pgn.clear();
         pgn.ny = ny;
 
         for (pgn.nx = 0; pgn.nx * _data.screenPageWidth < maxX; ++pgn.nx)
         {
-            QRect rect(pgn.nx * _data.screenPageWidth, pgn.ny * _data.screenPageHeight, _data.screenPageWidth, _data.screenPageHeight);
-            pgn.yindices = _pHist->GetItemIndexesInRect(rect);
+            QRectF rect(pgn.nx * _data.screenPageWidth, pgn.ny * _data.screenPageHeight, _data.screenPageWidth, _data.screenPageHeight);
+            _pHist->GetDrawablesInside(rect, pgn.yindices);
             sortedPageNumbers.Insert(pgn);
         }
     }
@@ -364,7 +364,7 @@ int MyPrinter::_CalcPages()
     // add pages to linear page list
     _pages.clear();
     Page pg;
-    pg.screenArea = QRect(_data.topLeftActPage.x(), _data.topLeftActPage.y(), _data.screenPageWidth, _data.screenPageHeight);
+    pg.screenArea = QRectF(_data.topLeftActPage.x(), _data.topLeftActPage.y(), _data.screenPageWidth, _data.screenPageHeight);
 
     for (int i = 0; i < sortedPageNumbers.Size(); ++i)
     {
@@ -415,7 +415,7 @@ QPrintDialog* MyPrinter::_DoPrintDialog()
     return nullptr;
 }
 
-int MyPrinter::_PageForPoint(const QPoint p)
+int MyPrinter::_PageForPoint(const QPointF p)
 {
     for (int i = 0; i < _pages.size(); ++i)
         if (_pages[i].screenArea.contains(p))
@@ -439,13 +439,13 @@ bool MyPrinter::_PrintItem(int yi)
     HistoryItem * phi = _pHist->Item(yi);
     if(phi->IsImage())
     {                               // paint over background layer
-        ScreenShotImage* psi = phi->GetScreenShotImage();
-        QPoint dp = -_actPage.screenArea.topLeft();
-        QRect imgRect = phi->Area().translated(dp),   // actual screen relative coordinates for whole image
+        DrawableScreenShot* psi = dynamic_cast<DrawableScreenShot*>(phi->GetDrawable(true) );
+        QPointF dp = -_actPage.screenArea.topLeft();
+        QRectF imgRect = phi->Area().translated(dp),   // actual screen relative coordinates for whole image
             visibleRect = imgRect.intersected(_actPage.screenArea.translated(dp)); // screen relative coordinates of part of image rectangle on this page
 
         dp = visibleRect.topLeft() - imgRect.topLeft();
-        QRect srcRect = QRect(dp,  visibleRect.size());
+        QRectF srcRect = QRectF(dp,  visibleRect.size());
         Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
 		if (_data.flags & pfDontPrintImages)    // print placeholder
         {
@@ -453,42 +453,16 @@ bool MyPrinter::_PrintItem(int yi)
             _pImagePainter->drawRect(imgRect);  // part may be outside of page
         }
         else
-            _pImagePainter->drawPixmap(visibleRect, psi->image, srcRect);
+            _pImagePainter->drawPixmap(visibleRect, psi->Image(), srcRect);
     }
-    else if (phi->type == heScribble || phi->type == heEraser)
+    else if (phi->Type() == DrawableType::dtScribble)
     {             // paint over transparent layer
-        ScribbleItem* pscrbl = phi->GetVisibleScribble(0);
-        FalconPenKind pk = pscrbl->penKind;
-        int pw = pscrbl->penWidth;
-        bool erasemode = pscrbl->type == heEraser ? true : false;
+        DrawableItem* pDrwbl = phi->GetDrawable(true);    // dot, ellipse, rectangle, scribble, text
+        FalconPenKind pk = pDrwbl->PenKind();
+        int pw = pDrwbl->penWidth;
 
+        pDrwbl->Draw(_pDrawablePainter, _actPage.screenArea.topLeft());
 
-        auto ShiftIntoPage = [&](QPoint pt)
-        {
-            return pt - _actPage.screenArea.topLeft();
-        };
-        QPoint actP = ShiftIntoPage(pscrbl->points[0]),
-                nextP = actP + QPoint(1, 1);
-
-        _pScribblePainter->setPen(QPen(drawColors[pk], pw, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        if (erasemode)
-            _pScribblePainter->setCompositionMode(QPainter::CompositionMode_Clear);
-        else
-            _pScribblePainter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-        _pScribblePainter->setRenderHint(QPainter::Antialiasing);
-
-        if(pscrbl->points.size() == 1)
-            _pScribblePainter->drawPoint(actP);
-        else
-            for (int i = 1; i < pscrbl->points.size(); ++i)
-            {
-                nextP = ShiftIntoPage(pscrbl->points[i]);
-                if(nextP == actP)
-                    _pScribblePainter->drawPoint(nextP);
-                else
-                    _pScribblePainter->drawLine(actP, nextP);
-                actP = nextP;
-            }
     }
 
     return false;
@@ -512,7 +486,7 @@ void MyPrinter::_PrintGrid()
     
     int w = _data.screenPageWidth, 
         h = _data.screenPageHeight;
-    _pImagePainter->drawRect(QRect(0,0,w, h));
+    _pImagePainter->drawRect(QRectF(0,0,w, h));
 
     for (; y <= h; y += dy)
         _pImagePainter->drawLine(0, y, w, y);    
@@ -557,7 +531,7 @@ void MyPrinter::_PreparePage(int which)
             QApplication::processEvents();
         }
     }
-    _pImagePainter->drawImage(QPoint(0,0), *_pItemImage);   // all items to pPageImage at top of images
+    _pImagePainter->drawImage(QPointF(0,0), *_pItemImage);   // all items to pPageImage at top of images
     drawColors.SetDarkMode(b);
 
 }

@@ -68,6 +68,9 @@
     <ClCompile Include="..\FalconBoard\pagesetup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\FalconBoard\drawables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="..\FalconBoard\DrawArea.h">
@@ -103,6 +106,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\FalconBoard\quadtree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\FalconBoard\drawables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

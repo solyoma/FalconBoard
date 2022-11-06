@@ -16,6 +16,10 @@ class Snipper : public QLabel
 	QPoint   _rubber_origin;
 	bool _tabletInput = false;
 
+	void _Pressed(QPoint pos, Qt::MouseButton button);
+	void _Moved(QPoint pos);
+	void _Released(QPoint pos);
+
 protected:
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;

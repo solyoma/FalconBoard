@@ -103,6 +103,7 @@
     <QtUic Include="..\FalconBoard\printprogress.ui" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\FalconBoard\drawables.cpp" />
     <ClCompile Include="..\FalconBoard\DrawArea.cpp" />
     <ClCompile Include="..\FalconBoard\history.cpp" />
     <ClCompile Include="..\FalconBoard\main.cpp" />
@@ -115,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\FalconBoard\common.h" />
+    <ClInclude Include="..\FalconBoard\drawables.h" />
     <ClInclude Include="..\FalconBoard\quadtree.h" />
     <QtMoc Include="..\FalconBoard\helpdialog.h" />
     <ClInclude Include="..\FalconBoard\history.h" />

@@ -4,63 +4,63 @@
 <context>
     <name>DrawArea</name>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="267"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="264"/>
         <source>&apos;%1&apos;
 Invalid file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="269"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="266"/>
         <source>File
 &apos;%1&apos;
  not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="271"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="268"/>
         <source>File read problem. %1 records read. Please save the file to correct this error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1950"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1953"/>
         <source>FalconBoard - Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="1999"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1950"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2002"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1953"/>
         <source>Can&apos;t find printer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2008"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1956"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1959"/>
         <source>FalconBoard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2005"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1956"/>
         <source>Print error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2008"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="1959"/>
         <source>Print cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2649"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2533"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2654"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2538"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -68,133 +68,133 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="416"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="427"/>
         <source>%1...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="461"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="472"/>
         <source>Pen Width:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="474"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="486"/>
         <source>Grid size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="605"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="623"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="954"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="986"/>
         <source>C&amp;lear list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1117"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1151"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1124"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1158"/>
         <source>Do you want to limit the editable area horizontally to the screen width?
  You may change this any time in Options/Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1259"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1293"/>
         <source>Load Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1261"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1295"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1294"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1332"/>
         <source>FalconBoard - Go to Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1294"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1332"/>
         <source>Page:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1432"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1470"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1434"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1472"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1196"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1202"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1346"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1230"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1236"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1384"/>
         <source>FalconBoard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1197"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1231"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1203"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1237"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1346"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1384"/>
         <source>Please restart the program to change the language!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1379"/>
         <location filename="../FalconBoard/FalconBoard.cpp" line="1417"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1455"/>
         <source>Save As</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1380"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1418"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1395"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1433"/>
         <source>Open Background Image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1419"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1457"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1431"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1469"/>
         <source>About FalconBoard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1433"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1471"/>
         <source>&lt;p&gt;Version </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1529"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1573"/>
         <source>falconBoard - Grid spacing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1530"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1574"/>
         <source>Spacing in pixels:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -811,132 +811,132 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="24"/>
-        <location filename="../FalconBoard/helpdialog.ui" line="57"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="60"/>
         <source>Drawing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="70"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="73"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Press and hold the left mouse button while moving the mouse or use a graphics pen&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="86"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="89"/>
         <source>Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="105"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="108"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click/tap on the colored icons or press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; or &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; on the keyboard&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="121"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="124"/>
         <source>Eraser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="140"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="143"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click / tap on the Eraser icon or press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;E&lt;/span&gt; on the keyboard. to select the eraser, then use yopur mouse or pen like drawing.&lt;/p&gt;&lt;p&gt;If your pen has an eraser on it use that. In that case there is no need to select the eraser tool previously.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="156"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="159"/>
         <source>Pen size</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="169"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="172"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Each pen has an associated size. This can be set using the &lt;span style=&quot; font-style:italic;&quot;&gt;Pen width&lt;/span&gt; field or by pressing the keys &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;]&lt;/span&gt; and &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;[&lt;/span&gt; on the keyboard.&lt;br/&gt;This program uses rounded pens only, so the end of strokes will always be rounded.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="185"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="188"/>
         <source>Lines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="198"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="201"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;You can draw horizontal and vertical straight lines by &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;first&lt;/span&gt;pressing the &lt;span style=&quot; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; or touching with the pen &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;then&lt;/span&gt; pressing and holding a &lt;span style=&quot; font-style:italic;&quot;&gt;Shift &lt;/span&gt;key on the keyboard and start drawing in the required direction: up, down, left or right.&lt;/p&gt;&lt;p&gt;You can also draw straight lines in any direction from the last drawn point by &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;first &lt;/span&gt;pressing and holding a &lt;span style=&quot; font-style:italic;&quot;&gt;Shift  &lt;/span&gt;key on the keyboard &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;then&lt;/span&gt; clicking with the left mouse button or with the pen.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="326"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="313"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Move &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;paper&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; (document) &lt;/span&gt;with the mouse or pen while holding down the spacebar, or&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Move paper &lt;/span&gt;with arrow keys &lt;span style=&quot; font-weight:600;&quot;&gt;Up/Down/Left/Right&lt;/span&gt; in small steps, or in larger steps if you holding down &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt; /&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;br/&gt;&lt;/span&gt;and half of screen height with &lt;span style=&quot; font-weight:600;&quot;&gt;Page Up/Page Down&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To left side of paper&lt;/span&gt; Home&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To right side of paper&lt;/span&gt; End&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To start of paper&lt;/span&gt; Ctrl+Home&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To End of paper&lt;/span&gt; Ctrl+End&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="214"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="332"/>
+        <source>Keybord shortcuts - no active selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/helpdialog.ui" line="344"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Show this help&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 - &lt;/span&gt;Select Pen color, &lt;span style=&quot; font-weight:600;&quot;&gt;E - &lt;/span&gt;Select Eraser&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt; - Put a cross at the actual cursor position&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Brace keys &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;][&lt;/span&gt;)  - increase / decrease pen size&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; - Clear whole document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N - &lt;/span&gt;Create new document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O - &lt;/span&gt;Open document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; - Print document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4&lt;/span&gt; - Take a snapshot of the screen behind FalconBoard&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/helpdialog.ui" line="217"/>
         <source>Rectangles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="227"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="230"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To Draw a rectangle or a square select a rectangular region and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;R&lt;/span&gt;. The rectangle will be drawn with the actual pen.&lt;/p&gt;&lt;p&gt;If the selection would be too close around existing strokes (see &lt;span style=&quot; font-style:italic;&quot;&gt;Selections&lt;/span&gt; in this help) then a small margin is left around them&lt;br/&gt;before drawing the rectangle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="243"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="246"/>
         <source>Ellipses</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="250"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="253"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To draw an ellipse or a circle select a rectangular area and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;C&lt;/span&gt; on the keyboard.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="266"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;The Eraser tool is just a fancy name for a pen whose color just hides every existing strokes behind it.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;This means that when moving drawings around you must be careful to select not only the visible, but the invisible lines, that are hidden by the eraser, too,&lt;br/&gt;otherwise &amp;quot;erased&amp;quot; part of the penstrokes may become visible. This is s problem when printing too as empty pages will be printed when only eraser stroke sextend &lt;br/&gt;to them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;To help you deal with this problem press Ctrl/Command D to display eraser lines so you can check. Press Ctrl/Command+D again to hide them.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;If you &lt;span style=&quot; font-style:italic;&quot;&gt;Delete&lt;/span&gt; strokes, instead of using the eraser tool, however, no such problem may occur. (See tab &apos;Selection&apos;)&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="290"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="277"/>
         <source>Keyboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="314"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="301"/>
         <source>Movement keys</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="345"/>
-        <source>Keybord shortcuts</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="357"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Show this help&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 &lt;/span&gt;Select Pen color, &lt;span style=&quot; font-weight:600;&quot;&gt;E &lt;/span&gt;Select Eraser&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Brace keys &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;][&lt;/span&gt;) increase / decrease pen size&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; Clear whole document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N &lt;/span&gt;Create new document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O &lt;/span&gt;Open document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; Print document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4&lt;/span&gt; Take a snapshot of the screen behind FalconBoard&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="373"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="360"/>
         <source>Keyboard shortcuts with an active selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="385"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Recolor &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;0, 8, 9, H, V&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Rotate or flip &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;0 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection right by 90 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;8 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection by 180 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;9 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection left by 90 degrees&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;H &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip horizontal&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip vertical&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins, Ctrl+C&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Copy selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X, Shift+Del&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Cut selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Delete selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Draw a rectangle around the selected area leaving a small margin around the selected strokes. Press &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl+R &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;if you don&apos;t want the margin, &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift+R&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; for solid rectangle&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Draw an ellipse (or circle) inside the selected area, &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift+C&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; for solid ellipse^circle..&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X key &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Mark the center of a rectangular selection with intersecting lines&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;. (Dot)&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Key Mark the center of a rectangular selection with a single point&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Move&lt;/span&gt; selected drawings with holding down the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Left &lt;/span&gt;button, or move a copy by holding down &lt;span style=&quot; font-weight:600;&quot;&gt;Alt/Option&lt;/span&gt; and pressing and holding the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Left&lt;/span&gt; button or using the pen. &lt;br/&gt;Copy selection with &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt;), Cut selection with &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt; (&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt;) Paste by selecting an area at destination then use &lt;span style=&quot; font-weight:600;&quot;&gt;Ctr&lt;/span&gt;l+&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;V&lt;/span&gt;).&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert vertical space from top of selected area (Moves all drawings down below the top of this selection)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Removes selected strokes or, when there are no strokes or images inside the selection area, removes that space&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC &lt;/span&gt;Hide&lt;span style=&quot; font-style:italic;&quot;&gt; the selection&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <location filename="../FalconBoard/helpdialog.ui" line="372"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Recolor &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;0, 8, 9, H, V&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate or flip &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;0 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection right by 90 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;8 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection by 180 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;9 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection left by 90 degrees&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;H - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip horizontal&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;V - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip vertical&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins, Ctrl+C&lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt;)&lt;span style=&quot; font-weight:600;&quot;&gt;- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Copy selected items &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt;)&lt;span style=&quot; font-weight:600;&quot;&gt;, Shift+Del- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Cut selected items&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+V (Command+V) - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert copied / cut items at the draw cursor position&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Delete selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R key- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Draw a rectangle around the selected area leaving a small margin around the selected items. &lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Press &lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+R &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;if you don&apos;t want the margin, &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Shift+R&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; for a solid rectangle&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C key- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Draw an ellipse (or circle) inside the selected area,&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Shift+C- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;for solid ellipse (also for circles).&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X key - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Mark the center of a rectangular selection with intersecting lines&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;. (Dot)Key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Mark the center of a rectangular selection with a single point&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert vertical space from top of selected area (Moves all drawings down below the top of this selection)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Removes selected items or, when there are no items inside the selection area, removes empty space&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC &lt;/span&gt;Hide&lt;span style=&quot; font-style:italic;&quot;&gt; the selection&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="409"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="396"/>
         <source>Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="418"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection&lt;br/&gt;&lt;/span&gt;&lt;br/&gt;Press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;right mouse (pen) button&lt;/span&gt; or press and hold &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; /Command+ &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; and move the mouse (pen) around. Release the mouse or pen button when finished. &lt;/p&gt;&lt;p&gt;When you release the button the selection shrinks to enclose completely selected strokes (including or excluding eraser lines, depending on the initial manual selection!). If you don&apos;t want the selection to shrink (for instance making a rectangle around a region) press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Alt/Option&lt;/span&gt; on the keyboard before releasing the mouse or pen button.&lt;/p&gt;&lt;p&gt;To get a square selection (for drawing squares or circles instead of rectangles or ellipses) press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift &lt;/span&gt;key during selection. If you hold the &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Alt/Option&lt;/span&gt; key down then the selection expands from the starting point. So you may draw concentric circles or rectangles.&lt;/p&gt;&lt;p&gt;Area selection will select each and every strokes completely inside the selection area. If you want to select just some strokes, use the method described below.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To select a screenshot or pen strokes&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Press and hold &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;/&lt;span style=&quot; font-weight:600;&quot;&gt;Command &lt;/span&gt;and click on the screenshot image or on a pen stroke. The topmost screenshot or all strokes below the pen will be selected.&lt;br/&gt;More than one stroke can be selected if you hold down the both the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl/Command&lt;/span&gt; and a &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift&lt;/span&gt; key together and clicking an all strokes you want to select.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection during a screenshot (F4) key&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;Press and holdthe left mouse button while dragging the mouse. When the button is released the selected area will be copied into the dokument below the pen strokes and becomes selected, redy to move around with the mouse.&lt;/p&gt;&lt;p&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; to remove the selection or to return without a screen shot taken..&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <location filename="../FalconBoard/helpdialog.ui" line="405"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection&lt;br/&gt;&lt;/span&gt;&lt;br/&gt;Press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;right mouse (pen) button&lt;/span&gt; or press and hold &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; /Command+ &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;left mouse button&lt;/span&gt; and move the mouse (pen) around. Release the mouse or pen button when finished. &lt;/p&gt;&lt;p&gt;When you release the button the selection shrinks to enclose completely selected strokes. If you don&apos;t want the selection to shrink (for instance making a rectangle around a region) press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Alt/Option&lt;/span&gt; on the keyboard before releasing the mouse or pen button.&lt;/p&gt;&lt;p&gt;To get a square selection (for drawing squares or circles instead of rectangles or ellipses) press and hold the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift &lt;/span&gt;key during selection. If you hold the &lt;span style=&quot; font-weight:600; text-decoration: underline;&quot;&gt;Alt/Option&lt;/span&gt; key down then the selection expands from the starting point. So you may draw concentric circles or rectangles.&lt;/p&gt;&lt;p&gt;Area selection will select each and every strokes completely inside the selection area. If you want to select just some strokes, use the method described below.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;To select a screenshot or pen strokes&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Press and hold &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;/&lt;span style=&quot; font-weight:600;&quot;&gt;Command &lt;/span&gt;and click on the screenshot image or on a pen stroke. The topmost screenshot or all strokes below the pen will be selected.&lt;br/&gt;More than one stroke can be selected if you hold down the both the &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Ctrl/Command&lt;/span&gt; and a &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift&lt;/span&gt; key together and clicking an all strokes you want to select.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Area selection during a screenshot (F4) key&lt;br/&gt;&lt;br/&gt;&lt;/span&gt;Press and hold the left mouse button while dragging the mouse. When the button is released the selected area will be copied into the dokument below the pen strokes and becomes selected, redy to move around with the mouse.&lt;/p&gt;&lt;p&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; to remove the selection or to return without a screen shot taken.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="468"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="418"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Move&lt;/span&gt; selected drawings with holding down the &lt;span style=&quot; font-weight:600;&quot;&gt;Left&lt;/span&gt; button, or &lt;span style=&quot; font-weight:600;&quot;&gt;move a copy&lt;/span&gt; by holding down &lt;span style=&quot; font-weight:600;&quot;&gt;Alt/Option&lt;/span&gt; and pressing and holding the &lt;span style=&quot; font-weight:600;&quot;&gt;Left button&lt;/span&gt; or using the pen. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/helpdialog.ui" line="462"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Drawing commands only work in the full program. In a Viewer these are not working!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="491"/>
+        <location filename="../FalconBoard/helpdialog.ui" line="485"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1352,7 +1352,7 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="566"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="583"/>
         <source>Save Visi&amp;ble As...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1368,52 +1368,52 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../FalconBoard/common.h" line="208"/>
+        <location filename="../FalconBoard/common.h" line="173"/>
         <source>Blac&amp;k</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="209"/>
+        <location filename="../FalconBoard/common.h" line="174"/>
         <source>&amp;Red</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="210"/>
+        <location filename="../FalconBoard/common.h" line="175"/>
         <source>&amp;Green</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="211"/>
+        <location filename="../FalconBoard/common.h" line="176"/>
         <source>&amp;Blue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="212"/>
+        <location filename="../FalconBoard/common.h" line="177"/>
         <source>&amp;Purple</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="212"/>
+        <location filename="../FalconBoard/common.h" line="177"/>
         <source>&amp;Yellow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.h" line="214"/>
+        <location filename="../FalconBoard/common.h" line="179"/>
         <source>&amp;Eraser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="1407"/>
+        <location filename="../FalconBoard/history.cpp" line="890"/>
         <source>Nothing to save</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/myprinter.cpp" line="644"/>
+        <location filename="../FalconBoard/myprinter.cpp" line="618"/>
         <source>falconBoard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/myprinter.cpp" line="644"/>
+        <location filename="../FalconBoard/myprinter.cpp" line="618"/>
         <source>This option is not yet implemented</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1423,7 +1423,7 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="17"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="62"/>
         <source>Untitled</source>
         <translation type="unfinished"></translation>
     </message>

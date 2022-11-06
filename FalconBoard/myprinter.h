@@ -3,10 +3,10 @@
 #define _PRINTING_H
 
 #include <QString>
-#include <QRect>
+#include <QRectF>
 #include <QSize>
 #include <QVector>
-#include <QRect>
+#include <QRectF>
 #include <QPrintDialog>
 #include <QPainter>
 #include <QColor>
@@ -29,7 +29,7 @@ class MyPrinterData
         // the areas below are the ones we print to. During printing all margins are 0
         // and reflect page orientation
     QRectF _printAreaInInches;           // full print (not screen) page in inches
-    QRect  _printAreaInDots;             // full print (not screen) page in dots
+    QRectF  _printAreaInDots;             // full print (not screen) page in dots
     int _dpi = 300;
 
 
@@ -53,7 +53,7 @@ class MyPrinterData
 public:
     enum Unit {mpdInch, mpdDots};
 
-    QPoint topLeftActPage;          // set in DrawAre before printing
+    QPointF topLeftActPage;          // set in DrawAre before printing
     QString directory;               // empty or ends with '/'
     QString* pdir = nullptr;         // points to either 'directory' or for PDF to caller
 
@@ -83,7 +83,7 @@ public:
     {
         return _printAreaInInches;
     }
-    QRect PrintAreaInDots() const
+    QRectF PrintAreaInDots() const
     {
         return _printAreaInDots;
     }
@@ -112,22 +112,22 @@ public:
 
     int HMargin(Unit u=mpdInch) const { return u==mpdDots ? _hMargin * _dpi : _hMargin; }
     int VMargin(Unit u=mpdInch) const { return u==mpdDots ? _vMargin * _dpi : _vMargin;}
-    QPoint Margins(bool gutterToo, Unit u = mpdInch) const 
+    QPointF Margins(bool gutterToo, Unit u = mpdInch) const 
     { 
-        QPoint qpConv = u == mpdDots ? QPoint(_vMargin * _dpi, _hMargin * _dpi) : QPoint(_vMargin, _hMargin);
+        QPointF qpConv = u == mpdDots ? QPointF(_vMargin * _dpi, _hMargin * _dpi) : QPointF(_vMargin, _hMargin);
         if (gutterToo)
             qpConv.setX(GutterM(u) + qpConv.x());
         return qpConv; 
     };
     int GutterM(Unit u=mpdInch) const { return u == mpdDots ? _gutterMargin * _dpi : _gutterMargin; }
 
-    QRect PrintPrintAreaInDots(bool useMargins, bool useGutter)
+    QRectF PrintPrintAreaInDots(bool useMargins, bool useGutter)
     {
-        QRect r = PrintAreaInDots();
+        QRectF r = PrintAreaInDots();
         if (useMargins)
         {
-            QPoint pm = Margins(useGutter, mpdDots);
-            r = QRect(r.topLeft() + pm, QSize(r.width() - 2 * pm.x(),r.height()-2 * pm.y()));
+            QPointF pm = Margins(useGutter, mpdDots);
+            r = QRectF(r.topLeft() + pm, QSize(r.width() - 2 * pm.x(),r.height()-2 * pm.y()));
         }
         return r;
     }
@@ -156,7 +156,7 @@ private:
     struct Page
     {
         int pageNumber;
-        QRect screenArea;        // absolute screen area for page set from _data.topLeftActPage, screenWidth and _data.printArea
+        QRectF screenArea;        // absolute screen area for page set from _data.topLeftActPage, screenWidth and _data.printArea
         YIndexVector yindices;   // of scribbles to print on this page (ordered by y, z-order [screenshots:0, other:1] then x)
         bool operator==(const struct Page& other) { return pageNumber == other.pageNumber; }
     };
@@ -165,7 +165,7 @@ private:
 
     // temporary
     Page _actPage;
-    QPainter *_pScribblePainter,  // paints to _pItemImage
+    QPainter *_pDrawablePainter,  // paints to _pItemImage
              *_pImagePainter,     // paints on _pPageImage
              *_pPrintPainter;
     StatusCode _status = rsInvalidPrinter;
@@ -193,7 +193,7 @@ private:
     bool _Print(int from=1, int to=0x70000000);   // pages
     bool _Print(IntVector& pages);             // list of pages
     QPrintDialog* _DoPrintDialog();   // if 'Print' pressed recalculates page data () else returns nullptr
-    int _PageForPoint(const QPoint p);
+    int _PageForPoint(const QPointF p);
 
     StatusCode _GetPdfPrinter();    // when pdf printing
     StatusCode _GetPrinterParameters();    // set screenwidth and printer name into prdata first from printer name, false: no such printer

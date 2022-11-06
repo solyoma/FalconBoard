@@ -63,6 +63,8 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 
 	ui.setupUi(this);
 
+    historyList.SetupClipBoard();
+
     if (!QDir(FBSettings::homePath).exists())
         QDir(FBSettings::homePath).mkdir(FBSettings::homePath);
 
@@ -144,7 +146,7 @@ void FalconBoard::RestoreState()
         qs = s->value("version", "0").toString();       // (immediate toInt() looses digits)
         long ver = qs.toInt(0, 0);                                   // format Major.mInor.Sub
 
-        if ((ver & 0xFFFFFF00) != (nVersion & 0xFFFFFF00))        // sub version number not used
+        if ((ver & 0xFFFFFF00) != (MAGIC_VERSION & 0xFFFFFF00))        // sub version number not used
         {
             QFile::remove(qsSettingsName);
             _AddNewTab();
@@ -177,7 +179,7 @@ void FalconBoard::RestoreState()
     
     data.flags = s->value("pflags", 0).toInt();		        // bit 0: print background image, bit 1: white background
     data.SetMargins(s->value("pdfmlr", 1.0).toFloat(), s->value("pdfmtb", 1.0).toFloat(), s->value("pdfgut", 0.0).toFloat(), false);
-    int resi = s->value("resi", 0).toInt();
+    int resi = s->value("resi", 6).toInt(); // 1920 x 1080
     if (s->value("useri",true).toBool() )
         data.screenPageWidth = myScreenSizes[resi].w;
     else
@@ -311,7 +313,7 @@ void FalconBoard::SaveState()
 	s->setValue("geometry", saveGeometry());
 	s->setValue("windowState", saveState());
     QString qsVersion("0x%1");
-    qsVersion = qsVersion.arg(nVersion, 8, 16, QLatin1Char('0') );
+    qsVersion = qsVersion.arg(MAGIC_VERSION, 8, 16, QLatin1Char('0') );
 	s->setValue("version", qsVersion);
     if (_actLanguage < 0)
         s->remove("lang");
@@ -539,6 +541,9 @@ int FalconBoard::_AddNewTab(QString fname, bool loadIt, bool force) // and new h
     if (_pTabs->count() == MAX_NUMBER_OF_TABS)
         return -1;
 
+#ifndef _VIEWER
+    _drawArea->HideRubberBand(true);
+#endif
     // check if it is already loaded
     int n;
     if (!force && (n = _drawArea->SameFileAlreadyUsed(fname))>=0) // force: used only for new document
@@ -569,9 +574,13 @@ void FalconBoard::_CloseTab(int index)
 
     _AddToRecentList(_drawArea->HistoryName());
     int cnt = _drawArea->RemoveHistory(index);
+#ifndef _VIEWER
+    _drawArea->HideRubberBand(true);
+#endif
     _pTabs->removeTab(index);
     if (!cnt)
         _AddNewTab(QString(), false);
+
     _drawArea->SwitchToHistory(_nLastTab, !cnt);
 }
 
@@ -639,7 +648,7 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
     else 
         _SaveFile(saveName);             // sets _saveResult
 
-    _drawArea->SwitchToHistory(_nLastTab, false);
+    _drawArea->SwitchToHistory(_nLastTab, true);
     return _saveResult;
 }
 
@@ -1516,6 +1525,7 @@ void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
 void FalconBoard::SlotForTabCloseRequested(int index)
 {
 #ifndef _VIEWER
+    _drawArea->HideRubberBand(true);
     if (!_drawArea->IsModified(index) || _SaveIfYouWant(index, true)!= srCancelled)
     {
 #endif
@@ -1647,7 +1657,7 @@ void FalconBoard::on_action_Eraser_triggered()
     _SetPenWidth(_actPen = penEraser);
     _drawArea->SetCursor(csEraser);
     _SelectPenForAction(ui.action_Eraser);
-    SlotForFocus();
+	ui.centralWidget->setFocus();
 }
 
 void FalconBoard::on_actionRotateLeft_triggered()
@@ -1862,15 +1872,18 @@ void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sen
             {
                 pk = _actPen;           // save for restoring
                 isPenEraser = true;
-                on_action_Eraser_triggered();
+                _eraserOn = true;
+                _SetPenWidth(_actPen = penEraser);
+                _SetCursor(csEraser);
             }
             break;
         default:
             if (isPenEraser)
             {
-                pk = _actPen;
-                _SetCursor(csPen);
                 _SetPenKind(pk);
+                _SetCursor(csPen);
+                _SetPenWidth(pk);
+                _eraserOn = false;
                 isPenEraser = false;
             }
             break;
