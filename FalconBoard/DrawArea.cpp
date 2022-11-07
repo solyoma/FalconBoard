@@ -1026,7 +1026,8 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 			QPointF  dr = (epos - _lastPointC);   // displacement vector
 			if (!dr.manhattanLength())
 				return;
-			_ShiftOrigin(-dr);
+			dr = -dr;
+			_ShiftOrigin(dr);
 
 			if (!event->fromPen)    // else already redrawn
 			{
@@ -1112,7 +1113,8 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 							_Redraw();
 						}
 					}
-					_ShiftOrigin(-dr);
+					dr = -dr;
+					_ShiftOrigin(dr);
 					if (!event->fromPen)
 						_Redraw();
 
@@ -1354,7 +1356,10 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 	int h = height();
 	int w = width();
 	if (_limited && _topLeft.x() + w > _prdata.screenPageWidth)
-		_ShiftOrigin(QPointF((_topLeft.x() + w - _prdata.screenPageWidth), 0));
+	{
+		QPointF dr = QPointF((_topLeft.x() + w - _prdata.screenPageWidth), 0);
+		_ShiftOrigin(dr);
+	}
 
 	_SetCanvasAndClippingRect();
 
@@ -2267,8 +2272,9 @@ void DrawArea::_SetOrigin(QPointF o)
  * RETURNS:
  * REMARKS: - delta.x() > 0 - move viewport right
  *          - delta.y() > 0 - move viewport down
+ *			- delta is modified
  *-------------------------------------------------------*/
-void DrawArea::_ShiftOrigin(QPointF delta)
+void DrawArea::_ShiftOrigin(QPointF &delta)
 {
 	QPointF o = _topLeft;       // origin of screen top left relative to "paper"
 
@@ -2389,10 +2395,14 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
 	if (delta.x() > 0 && _limited && delta.x() + width() >= _prdata.screenPageWidth)
 		delta.setX(_prdata.screenPageWidth - width());
 
+	if ((_topLeft + delta).x() < 0)
+		delta .setX(-_topLeft.x());
+	if ((_topLeft + delta).y() < 0)
+		delta .setY(-_topLeft.y());
+
 	if (delta.isNull())
 		return;      // nothing to do
 
-#if 1
 	int dx = qAbs(delta.x()), dy = qAbs(delta.y());
 	if (/*smooth && */ (dx <= _prdata.screenPageWidth / 10) && (dy <= _screenHeight / 10))
 	{                      // use smooth transform only for up/down/left/right never for pgUp, etc
@@ -2416,55 +2426,6 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
 		update();
 
 	}
-#else 
-	QPointF pt0 = _topLeft;
-	_ShiftOrigin(delta);
-	delta = _topLeft - pt0;
-	if (smooth)
-	{
-		std::swap(_pActCanvas, _pOtherCanvas);
-		_pActCanvas->fill(Qt::transparent);     // transparent
-		QPainter painter(_pActCanvas);
-		QRectF rectSrc, rectDst,                    // canvas relatice coordinates
-			rectRe;                              // _topLeft relative  
-		int w = width(),
-			h = height();
-		rectSrc = _canvasRect.translated(-_topLeft - delta);  // relative to viewport
-		rectSrc.adjust(0, 0, -qAbs(delta.x()), -qAbs(delta.y()));
-		rectDst = rectSrc;
-		rectDst.moveTo(0, 0);
-
-		painter.drawImage(rectDst, *_pOtherCanvas, rectSrc);   // move area
-		// then plot newly visible areas
-
-
-		// then plot newly visible areas
-		if (delta.x() == 0.0)
-		{
-			if (delta.y() > 0)      // viewport up
-				rectRe = QRectF(0, 0, w, delta.y());
-			else                    // viewport down
-				rectRe = QRectF(0, h + delta.y(), w, -delta.y());
-		}
-		else    // delta.y() is 0.0
-		{
-			if (delta.x() > 0)      // viewport left
-				rectRe = QRectF(w - delta.x(), 0, delta.x(), h);
-			else                    // viewport right
-				rectRe = QRectF(0, 0, -delta.x(), h);
-		}
-
-		//        _ShiftOrigin(delta);
-
-		rectRe.translate(_topLeft);
-		_clippingRect = rectRe;
-		_history->SetClippingRect(rectRe);
-		_Redraw(false);
-		update();
-		_clippingRect = _canvasRect;
-		_history->SetClippingRect(_canvasRect);
-	}
-#endif
 	else
 	{
 		_ShiftOrigin(delta);
