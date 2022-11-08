@@ -7,6 +7,7 @@
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
+	a.setAttribute(Qt::AA_SynthesizeMouseForUnhandledTouchEvents);
 	a.setWindowIcon(QIcon(":/FalconBoard/Resources/falconboard.png"));
 
 	FalconBoard::screenSize = a.screens()[0]->size();
