@@ -81,7 +81,8 @@ QRectF QuadAreaToArea(const QuadArea& qarea);
 QuadArea AreaForItem(const int& i);
 bool IsItemsEqual(const int& i1, const int& i2);
 QuadArea AreaForQRect(QRectF rect);
-
+qreal RotationAlpha(MyRotation rot, qreal alpha = 0.0);
+bool RotateRect(MyRotation rot, QRectF &rect, qreal alphaInDegrees = 0.0);   // bounding rectangle: false: cant't rotate
 
 static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'point'
 {
@@ -201,7 +202,7 @@ public:
             //----------------------------------------------------
             // ------------------- Drawable Header -------------
             //----------------------------------------------------
-struct DrawableItem : public DrawablePen                               
+struct DrawableItem : public DrawablePen
 {
     static bool drawStarted;
 
@@ -226,7 +227,7 @@ struct DrawableItem : public DrawablePen
 
 
     DrawableItem() = default;
-    DrawableItem(DrawableType dt, QPointF startPos, int zOrder = -1, FalconPenKind penKind=penBlack, qreal penWidth=1.0) : dtType(dt), startPos(startPos), zOrder(zOrder), DrawablePen(penKind, penWidth){}
+    DrawableItem(DrawableType dt, QPointF startPos, int zOrder = -1, FalconPenKind penKind = penBlack, qreal penWidth = 1.0) : dtType(dt), startPos(startPos), zOrder(zOrder), DrawablePen(penKind, penWidth) {}
     DrawableItem(const DrawableItem& other) { *this = other; }
     virtual ~DrawableItem()
     {
@@ -234,35 +235,37 @@ struct DrawableItem : public DrawablePen
     }
     DrawableItem& operator=(const DrawableItem& other);
 
-    int AddEraserStroke(int eraserWidth, const QPolygonF &eraserStroke);  // returns # of sub-strokes added
+    int AddEraserStroke(int eraserWidth, const QPolygonF& eraserStroke);  // returns # of sub-strokes added
     virtual void RemoveLastEraserStroke(EraserData* andStoreHere = nullptr);
 
     bool IsVisible() const { return isVisible; }
     bool IsImage() const { return dtType == DrawableType::dtScreenShot; }
-    virtual QPolygonF ToPolygonF() 
-	{
-		QPolygonF poly; 
-        poly << startPos; 
+    virtual QPolygonF ToPolygonF() const
+    {
+        QPolygonF poly;
+        poly << startPos;
         return poly;
-	}
+    }
     virtual bool IsFilled() const { return false; }
     virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is near the lines or for filled items: inside it
-    { 
+    {
         p -= startPos;
         return p.x() * p.x() + p.y() * p.y() < distance * distance;
     }
 
-    virtual QRectF Area() const { return QRectF();  }
+    virtual QRectF Area() const { return QRectF(); }
     virtual bool Intersects(QRectF rect) const
     {
         return Area().intersects(rect);
     }
     virtual QPointF GetLastDrawnPoint() const
-    { 
-        return startPos; 
+    {
+        return startPos;
     }
     virtual void Translate(QPointF dr, qreal minY);            // only if not deleted and top is > minY. Override this only for scribbles
-    virtual void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0);    // alpha used only for 'rotAlpha'
+
+    bool CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha = 0.0);
+    virtual void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha = 0.0);    // alpha used only for 'rotAlpha'
     /*=============================================================
      * TASK: Function to override in all subclass
      * PARAMS:  painter              - existing painter
@@ -277,8 +280,8 @@ struct DrawableItem : public DrawablePen
      *              the function that called it then draws the eraser strokes
      *              inside the clipping rectangle
      *------------------------------------------------------------*/
-    virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF())   
-    {    
+    virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF())
+    {
         if (drawStarted)
         {
             // draw normally using 'painter',clipR (if valid) and 'topLeftOfVisibleArea'
@@ -287,7 +290,7 @@ struct DrawableItem : public DrawablePen
             painter->drawPoint(pt);
             // this example draws a single point (good for DrawableDot)
         }
-        else 
+        else
             DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
     }
     /*=============================================================
@@ -308,9 +311,9 @@ struct DrawableItem : public DrawablePen
             QRectF area = Area();           // includes half of pen width (none for screenshots)
             QPixmap pxm(area.size().toSize());
             pxm.fill(Qt::transparent);
-            QPainter myPainter(&pxm); 
+            QPainter myPainter(&pxm);
             QPointF tl = area.topLeft();
-            if(dtType != DrawableType::dtScreenShot)
+            if (dtType != DrawableType::dtScreenShot)
                 tl -= QPointF(penWidth, penWidth) / 2.0;
             Draw(&myPainter, tl);     // calls painter of subclass, 
                                             // which must check 'drawStarted' and 
@@ -322,10 +325,10 @@ struct DrawableItem : public DrawablePen
 
             for (auto er : erasers)
             {
-                QPen pen( QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
+                QPen pen(QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
                 myPainter.setPen(pen);
                 if (er.eraserStroke.size() == 1)
-                    myPainter.drawPoint(er.eraserStroke.at(0)-tl);
+                    myPainter.drawPoint(er.eraserStroke.at(0) - tl);
                 else
                     myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
             }
@@ -339,7 +342,10 @@ struct DrawableItem : public DrawablePen
 
         drawStarted = false;
     }
- };
+protected:
+    void _RotateErasers(MyRotation rot, QRectF inThisrectangle, qreal alpha = 0.0);    // alpha used only for 'rotAlpha'
+    QPointF _RotateCommon(MyRotation rot, QRectF inThisrectangle, qreal &alpha); // returns center point of inThisRectangle
+};
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di);
 QDataStream& operator>>(QDataStream& ifs, DrawableItem& di);
@@ -358,7 +364,7 @@ struct DrawableCross : public DrawableItem
     DrawableCross(QPointF pos, qreal len, int zorder, FalconPenKind penKind, qreal penWidth);
     DrawableCross(const DrawableCross& o) = default;
     ~DrawableCross() = default;
-    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
     QRectF Area() const override    // includes half of pen width+1 pixel
     { 
         qreal d = (length + penWidth) / sqrt(2.0);
@@ -366,7 +372,7 @@ struct DrawableCross : public DrawableItem
     }
     void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR = QRectF()) override;
     // in base class bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
-    QPolygonF ToPolygonF() override
+    QPolygonF ToPolygonF() const override
     {
         QPolygonF res;
         QPointF dist(length / sqrt(2), length / sqrt(2));
@@ -407,9 +413,11 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableDot& di);  // call AFTER
             //----------------------------------------------------
             // ------------------- Drawable Ellipse -------------
             //----------------------------------------------------
+
 struct DrawableEllipse : public DrawableItem
 {
     QRectF rect;
+    qreal angle = 0.0;          // angle if rotated by an angle and not just 90,180,270, etc
     bool isFilled=false;        // wheather closed polygon (ellipse or rectangle) is filled
 
     DrawableEllipse() : DrawableItem()
@@ -424,7 +432,7 @@ struct DrawableEllipse : public DrawableItem
     DrawableEllipse &operator=(DrawableEllipse&& o) noexcept;
 
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
     QRectF Area() const override // includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -457,13 +465,12 @@ struct DrawableEllipse : public DrawableItem
                 (distP2 <= distQ2 + distance * distance);
     }
     virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    QPolygonF ToPolygonF() override
+    QPolygonF ToPolygonF() const override
     {
         QPainterPath myPath;
         myPath.addEllipse(rect);
         return myPath.toFillPolygon();
     }
-
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableEllipse& di);  // call AFTER header is read in
@@ -486,7 +493,7 @@ struct DrawableLine : public DrawableItem
     DrawableLine& operator=(const DrawableLine& ol);
     DrawableLine& operator=(const DrawableLine&& ol);
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha = 0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha = 0.0) override;    // alpha used only for 'rotAlpha'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
         QRectF rect = QRectF(startPos, QSize((endPoint - startPos).x(), (endPoint - startPos).y()) ).normalized();
@@ -502,7 +509,7 @@ struct DrawableLine : public DrawableItem
         return __IsLineNearToPoint(startPos, endPoint, p, distance);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    QPolygonF ToPolygonF() override
+    QPolygonF ToPolygonF() const override
     {
         QPolygonF poly;
         poly << startPos << endPoint;
@@ -520,7 +527,8 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableLine& di);  // call AFTE
 struct DrawableRectangle : public DrawableItem
 {
     QRectF rect;
-    bool isFilled=false;            // wheather closed polynom (ellipse or rectangle) is filled
+    qreal angle = 0.0;          // angle if rotated by an angle and not just 90,180,270, etc
+    bool isFilled=false;           // wheather closed polynom (ellipse or rectangle) is filled
 
     DrawableRectangle() : DrawableItem()
     {
@@ -533,7 +541,7 @@ struct DrawableRectangle : public DrawableItem
     DrawableRectangle& operator=(DrawableRectangle&& di) noexcept;
 
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
     QRectF Area() const override// includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -562,7 +570,7 @@ struct DrawableRectangle : public DrawableItem
         return !bDistanceTooLarge;
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    QPolygonF ToPolygonF() override
+    QPolygonF ToPolygonF() const override
     {
         QPainterPath myPath;
         myPath.addRect(rect);
@@ -601,7 +609,7 @@ struct DrawableScreenShot : public DrawableItem
     // result: relative to image
     // isNull() true when no intersection with canvasRect
     QRectF AreaOnCanvas(const QRectF& canvasRect) const;
-    void Rotate(MyRotation rot, QRectF encRect, qreal alpha = 0.0);    // only used for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &encRect, qreal alpha = 0.0);    // only used for 'rotAlpha'
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is near the circumference or for filled ellpse: inside it
     {
         return Area().contains(p);
@@ -653,7 +661,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 
 
     void Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
     QRectF Area() const override // includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -672,7 +680,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
         return false;
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    QPolygonF ToPolygonF() override
+    QPolygonF ToPolygonF() const override
     {
         return points;
     }
@@ -961,6 +969,13 @@ public:
     }
 
     DrawableItemList* Items() { return &_items; }
+
+    bool CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha)
+    {
+        return RotateRect(rot, enclosingRectangle, alpha);
+    }
+
+
 
     void ResetZorder()
     {
@@ -1318,7 +1333,7 @@ public:
         (*this)[index]->Translate(dr, minY);
 
     }
-    void RotateDrawable(int index, MyRotation rot, QRectF inThisrectangle, qreal alpha = 0.0)    // alpha used only for 'rotAlpha'
+    void RotateDrawable(int index, MyRotation rot, QRectF &inThisrectangle, qreal alpha = 0.0)    // alpha used only for 'rotAlpha'
     {
         (*this)[index]->Rotate(rot, inThisrectangle, alpha);
     }

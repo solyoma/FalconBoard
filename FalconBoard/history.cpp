@@ -544,8 +544,8 @@ int HistoryRotationItem::Undo()
 			break;
 	}
 	for (auto dri : driSelectedDrawables)
-		(*pHist)[dri]->Rotate(rotation, encRect, alpha);
-	SwapWH(encRect);
+		pHist->Rotate(dri, rotation, encRect, alpha);
+	RotateRect(rot, encRect, alpha);
 
 	return 1;
 }
@@ -553,9 +553,8 @@ int HistoryRotationItem::Undo()
 int HistoryRotationItem::Redo()
 {
 	for (auto n : driSelectedDrawables)
-		(*pHist)[n]->Rotate(rot, encRect, rAlpha);
-	if (rot != rotFlipH && rot != rotFlipV)
-		SwapWH(encRect);
+		pHist->Rotate(n, rot, encRect, rAlpha);
+	RotateRect(rot, encRect, rAlpha);
 	return 0;
 }
 
@@ -1343,11 +1342,14 @@ HistoryItem* History::AddInsertVertSpace(int y, int heightInPixels)
 	return _AddItem(phi);
 }
 
-HistoryItem* History::AddRotationItem(MyRotation rot)
-{
-	if (!_driSelectedDrawables.size())
-		return nullptr;          // do not add an empty list
-	HistoryRotationItem* phss = new HistoryRotationItem(this, rot, _selectionRect, _driSelectedDrawables);
+HistoryItem* History::AddRotationItem(MyRotation rot, qreal alpha)
+{									   // only called when rotation was possible, no need to check here
+	if (!_driSelectedDrawables.size() )
+		return nullptr;          // do not add an empty list or a non rotatable region
+
+	HistoryRotationItem* phss = new HistoryRotationItem(this, rot, _selectionRect, _driSelectedDrawables, alpha);
+	if (phss)
+		_selectionRect = phss->encRect;
 	return _AddItem(phss);
 }
 
@@ -1372,6 +1374,11 @@ HistoryItem* History::AddScreenShotTransparencyToLoadedItems(QColor trColor, qre
 HistoryItem* History::AddPenWidthChange(int increment)
 {
 	HistoryPenWidthChangeItem* ppwch = new HistoryPenWidthChangeItem(this, increment);
+	if (ppwch && !_selectionRect.isNull())
+	{
+		qreal d = increment / 2.0;
+		_selectionRect.adjust(-d, -d, d, d);
+	}
 	return _AddItem(ppwch);
 }
 
@@ -1381,6 +1388,11 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 {
 	if (forItem)
 		forItem->Rotate(withRotation, _selectionRect);
+}
+
+void History::Rotate(int index, MyRotation rot, QRectF insideThisRect, qreal rAlpha)
+{
+	_drawables[index]->Rotate(rot, insideThisRect, rAlpha);
 }
 
 void History::InserVertSpace(int y, int heightInPixels)
@@ -1504,7 +1516,7 @@ void History::AddToSelection(int drix, bool clearSelections)
  *				are in '_driSelectedDrawables'. In that case
  *				it is equal to 'rect'
  *-------------------------------------------------------*/
-int History::CollectDrawablesInside(QRectF rect) // only 
+int History::CollectDrawablesInside(QRectF rect, bool doNotShrinkSelectionRectangle) // only 
 {
 	_ClearSelectLists();
 	_selectionRect = QRectF();     // minimum size of selection document (0,0) relative!
@@ -1537,7 +1549,7 @@ int History::CollectDrawablesInside(QRectF rect) // only
 			else
 				_driSelectedDrawablesAtRight.push_back(ix);
 		}
-		if (_driSelectedDrawables.isEmpty())		// save for removing empty space
+		if (doNotShrinkSelectionRectangle || _driSelectedDrawables.isEmpty())		// save for removing empty space
 			_selectionRect = rect;
 	}
 	return _driSelectedDrawables.size();

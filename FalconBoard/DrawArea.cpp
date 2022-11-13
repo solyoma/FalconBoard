@@ -419,7 +419,7 @@ bool DrawArea::RecolorSelected(int key)
 	if (!_rubberBand)
 		return false;
 	if (!_history->SelectedSize())
-		_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
+		_history->CollectDrawablesInside(_rubberRect.translated(_topLeft), true);
 
 	FalconPenKind pk = PenKindFromKey(key);
 	HistoryItem* phi = _history->AddRecolor(pk);
@@ -559,14 +559,30 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					);
 			if (bCollected && bBracketKey)
 			{
+				const qreal D = 0.5;
 				if (key == Qt::Key_BracketLeft) // decrease pen width for all drawables inside selection by 1
 				{
-					_history->AddPenWidthChange(-1);
+					if (_rubberRect.width() > 1 && _rubberRect.height() > 1)
+					{		   // delta		x	 y	   w	 h
+						_rubberRect.adjust(D, D, -D, -D);
+						_rubberBand->setGeometry(_rubberRect.toRect());
+						_history->AddPenWidthChange(-1);
+						_ShowCoordinates(_lastCursorPos);
+					}
 					_Redraw();
 				}
 				else if (key == Qt::Key_BracketRight) // increase pen width for all drawables inside selection by 1
 				{
-					_history->AddPenWidthChange(1);
+					QRectF r = _rubberRect;
+					// delta   x	 y	   w	 h
+					r.adjust(-D, -D, D, D);
+					if (r.left() > 0 && r.top() > 0)
+					{
+						_rubberRect = r;
+						_rubberBand->setGeometry(_rubberRect.toRect());
+						_history->AddPenWidthChange(1);
+						_ShowCoordinates(_lastCursorPos);
+					}
 					_Redraw();
 				}
 			}
@@ -616,18 +632,21 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 			else if (bRotate && bCollected)
 			{
-				MyRotation rot = rotNone;
+				MyRotation rot;
 				switch (key)
 				{
-				case Qt::Key_0:rot = rotL90; break;
-				case Qt::Key_8: rot = rot180; break;
-				case Qt::Key_9: rot = rotR90; break;
-				case Qt::Key_H: rot = rotFlipH; break;
-				case Qt::Key_V: rot = rotFlipV; break;
+					case Qt::Key_0: rot = rotL90; break;
+					case Qt::Key_8: rot = rot180; break;
+					case Qt::Key_9: rot = rotR90; break;
+					case Qt::Key_H: rot = rotFlipH; break;
+					case Qt::Key_V: rot = rotFlipV; break;
+					default: rot = rotNone; break;
 				}
-				if (rot != rotNone)
+				if( RotateRect(rot, _rubberRect) && _history->AddRotationItem(rot) )
 				{
-					_history->AddRotationItem(rot);
+					;
+					_rubberBand->setGeometry(_rubberRect.toRect());
+
 					_Redraw();
 				}
 			}
@@ -1213,8 +1232,9 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 		if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
 		{
 			_rubberRect = _rubberBand->geometry();
-			_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
-			if (_history->SelectedSize() && !event->mods.testFlag(Qt::AltModifier))
+			bool doNotShrinkSelectionRectangle = event->mods.testFlag(Qt::AltModifier);
+			_history->CollectDrawablesInside(_rubberRect.translated(_topLeft), doNotShrinkSelectionRectangle);
+			if (_history->SelectedSize() && !doNotShrinkSelectionRectangle)
 			{
 				_rubberBand->setGeometry(_history->BoundingRect().translated(-_topLeft).toRect());
 				_rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
@@ -2512,6 +2532,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	if (_rubberBand)
 	{
 		QRectF r = _rubberBand->geometry();
+		r.translate(_topLeft);
 		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9")).
 			arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
 			arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());

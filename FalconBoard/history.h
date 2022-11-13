@@ -527,12 +527,13 @@ public:
     HistoryItem* AddPastedItems(QPointF topLeft, Sprite *pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
     HistoryItem* AddRecolor(FalconPenKind pk);
     HistoryItem* AddInsertVertSpace(int y, int heightInPixels);       // height < 0: delete space
-    HistoryItem* AddRotationItem(MyRotation rot);
+    HistoryItem* AddRotationItem(MyRotation rot, qreal alpha=0.0);
     HistoryItem* AddRemoveSpaceItem(QRectF &rect);
     HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
     HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
     // --------------------- drawing -----------------------------------
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
+    void Rotate(int drawableIndex, MyRotation withRotation, QRectF insideThisRect, qreal rAlpha);
     void InserVertSpace(int y, int heightInPixels);
 
     HistoryItem* Undo();        // returns top item after undo or nullptr
@@ -543,13 +544,14 @@ public:
     void AddToSelection(int drawableIndex, bool clearSelections = false);
     QRectF SelectDrawablesUnder(QPointF& p, bool addToPrevious);      // selects clicked (if any) into _driSelectedDrawables, and clears right and left items list
     int /*DrawableItemIndex*/ SelectTopmostImageUnder(QPointF p);
-    int CollectDrawablesInside(QRectF rect);
+    int CollectDrawablesInside(QRectF rect, bool doNotShrinkSelectionRectangle);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
     void SetSelectionRect(QRectF& rect)
     {
         _selectionRect = rect;
     }
+    QRectF SelectionRect() const { return _selectionRect; }
 
     void CollectPasted(const QRectF &rect);   // if items pasted copies them into '_driSelectedDrawables'
 
