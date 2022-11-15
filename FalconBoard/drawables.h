@@ -74,6 +74,9 @@ enum MyLayer {
                 mlySprite                   // layer for sprites (moveable images)
              };
 
+#if !defined _VIEWER && defined _DEBUG
+extern bool isDebugMode;
+#endif
             //----------------------------------------------------
             // ------------------- helpers -------------
             //----------------------------------------------------
@@ -82,7 +85,7 @@ QuadArea AreaForItem(const int& i);
 bool IsItemsEqual(const int& i1, const int& i2);
 QuadArea AreaForQRect(QRectF rect);
 qreal RotationAlpha(MyRotation rot, qreal alpha = 0.0);
-bool RotateRect(MyRotation rot, QRectF &rect, qreal alphaInDegrees = 0.0);   // bounding rectangle: false: cant't rotate
+bool RotateRect(MyRotation rot, QRectF &rect, QRectF inThisRect, qreal alphaInDegrees = 0.0);   // bounding rectangle: false: cant't rotate
 
 static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'point'
 {
@@ -185,7 +188,7 @@ public:
         QColor penColor = drawColors[_penKind];
         return penColor; 
     }
-    FalconPenKind PenKind() const { return _penKind; }
+    constexpr FalconPenKind PenKind() const { return _penKind; }
     void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR = QRectF(), QColor brushColor = QColor())
     {
         QPen pen(QPen(PenColor(), penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin) );
@@ -264,7 +267,7 @@ struct DrawableItem : public DrawablePen
     }
     virtual void Translate(QPointF dr, qreal minY);            // only if not deleted and top is > minY. Override this only for scribbles
 
-    bool CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha = 0.0);
+    inline bool CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha = 0.0);
     virtual void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha = 0.0);    // alpha used only for 'rotAlpha'
     /*=============================================================
      * TASK: Function to override in all subclass
@@ -313,15 +316,22 @@ struct DrawableItem : public DrawablePen
             pxm.fill(Qt::transparent);
             QPainter myPainter(&pxm);
             QPointF tl = area.topLeft();
-            if (dtType != DrawableType::dtScreenShot)
-                tl -= QPointF(penWidth, penWidth) / 2.0;
+            //if (dtType != DrawableType::dtScreenShot)
+            //    tl -= QPointF(penWidth, penWidth) / 2.0;
             Draw(&myPainter, tl);     // calls painter of subclass, 
                                             // which must check 'drawStarted' and 
                                             // must not call this function if it is set
                                             // clipRect is not important as the pixmap is exactly the right size
             // and now the erasers
-            myPainter.setCompositionMode(QPainter::CompositionMode_Clear);
-            myPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
+#if !defined _VIEWER && defined _DEBUG
+            if (!isDebugMode)
+            {
+#endif
+                myPainter.setCompositionMode(QPainter::CompositionMode_Clear);
+                myPainter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
+#if !defined _VIEWER && defined _DEBUG
+            }
+#endif
 
             for (auto er : erasers)
             {
@@ -418,7 +428,7 @@ struct DrawableEllipse : public DrawableItem
 {
     QRectF rect;
     qreal angle = 0.0;          // angle if rotated by an angle and not just 90,180,270, etc
-    bool isFilled=false;        // wheather closed polygon (ellipse or rectangle) is filled
+    bool isFilled=false;        // whether closed polygon (ellipse or rectangle) is filled
 
     DrawableEllipse() : DrawableItem()
     {
@@ -972,7 +982,7 @@ public:
 
     bool CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha)
     {
-        return RotateRect(rot, enclosingRectangle, alpha);
+        return RotateRect(rot, enclosingRectangle, enclosingRectangle, alpha);
     }
 
 

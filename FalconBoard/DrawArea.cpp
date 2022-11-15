@@ -500,6 +500,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 	if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::AltModifier)))
 	{                           // toggle debug mode
 		_debugmode = !_debugmode;
+		isDebugMode = _debugmode;	// isDebugMode is a global in drawables.cpp
 		redraw = true;
 	}
 	if(redraw)
@@ -642,7 +643,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					case Qt::Key_V: rot = rotFlipV; break;
 					default: rot = rotNone; break;
 				}
-				if( RotateRect(rot, _rubberRect) && _history->AddRotationItem(rot) )
+				if( RotateRect(rot, _rubberRect, _rubberRect) && _history->AddRotationItem(rot) )
 				{
 					;
 					_rubberBand->setGeometry(_rubberRect.toRect());

@@ -3,6 +3,12 @@
 #include "history.h"
 #include "smoother.h"
 
+#if !defined _VIEWER && defined _DEBUG
+	bool isDebugMode = false;
+#endif
+
+
+
 QRectF QuadAreaToArea(const QuadArea& qarea)
 {
 	QRectF area = QRectF(qarea.Left(), qarea.Top(), qarea.Right(), qarea.Bottom());
@@ -64,28 +70,34 @@ qreal RotationAlpha(MyRotation rot, qreal alpha)
  * REMARKS: - this rectangle is not inside any other 
  *				rectangle 
  *------------------------------------------------------------*/
-bool RotateRect(MyRotation rot, QRectF &rect, qreal alphaInDegrees)
+bool RotateRect(MyRotation rot, QRectF &rect, QRectF inThisRect, qreal alphaInDegrees)
 {
 	if (rot == rotFlipH || rot == rotFlipV || rot == rot180)
 		return true;
 	else
 	{
-		QRectF r = rect;
-		if(rot != rotAlpha)
-			alphaInDegrees = RotationAlpha(rot);
-		QPointF c = r.center();
+		alphaInDegrees = RotationAlpha(rot, alphaInDegrees);
+		QPointF c = inThisRect.center();
 
-		r = r.translated(-c);
 		QTransform tr;
 		tr.rotate(alphaInDegrees);
-		r = tr.map(r).boundingRect();
-		r = r.translated(c);
+
+		auto __RotR = [&](QRectF& r)
+		{
+			r = r.translated(-c);
+			r = tr.map(r).boundingRect();
+			r = r.translated(c);
+		};
+
+		QRectF r = inThisRect;
+		__RotR(r);
 		if (r.top() < 0 || r.left() < 0)
 		{
 			QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
 			return false;
 		}
-		rect = r;
+
+		__RotR(rect);
 		return true;
 	}
 }
@@ -279,7 +291,7 @@ void DrawableItem::_RotateErasers(MyRotation rot, QRectF inThisrectangle, qreal 
 	tr.rotate(alpha); // common for all 
 	QPointF c = inThisrectangle.center();
 
-	for (auto er : erasers)
+	for (auto &er : erasers)
 	{
 		er.eraserStroke.translate(-c);
 		if (rot == rotFlipH)
@@ -300,7 +312,7 @@ void DrawableItem::_RotateErasers(MyRotation rot, QRectF inThisrectangle, qreal 
 }
 bool DrawableItem::CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha)
 {
-	return RotateRect(rot, enclosingRectangle, alpha);
+	return RotateRect(rot, enclosingRectangle, enclosingRectangle, alpha);
 }
 
 /*=============================================================
@@ -809,28 +821,32 @@ QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
 	return Area().intersected(canvasRect);
 }
 
-void DrawableScreenShot::Rotate(MyRotation rot, QRectF &encRect, qreal alpha)
+void DrawableScreenShot::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)
 {
+	QRectF rect = Area();
+	alpha = RotationAlpha(rot, alpha);
+	if (!RotateRect(rot, rect, inThisRectangle, alpha))
+		return;
+	startPos = rect.topLeft();
+	QPointF c = inThisRectangle.center();
+	_RotateErasers(rot, inThisRectangle, alpha);
+
 	QTransform transform;
+	transform.rotate(alpha);
 	QImage img;
-	bool fliph = false, flipv = true;	// defaullt flip orientations
+	bool fliph = false, flipv = true;	// default flip orientations
 	switch (rot)
 	{
-		case rotR90: transform.rotate(270); image = image.transformed(transform, Qt::SmoothTransformation); break;
-		case rotL90: transform.rotate(90);  image = image.transformed(transform, Qt::SmoothTransformation); break;
-		case rot180: transform.rotate(180); image = image.transformed(transform, Qt::SmoothTransformation); break;
 		case rotFlipH:
 			fliph = true;
-			flipv = false;		// NO break here!										// CHECK IF WORKING!
+			flipv = false;		// NO break here!
 		case rotFlipV:
 			img = image.toImage();
 			img = img.mirrored(fliph, flipv);
 			image = image.fromImage(img);
 			break;
-		case rotAlpha:
-			transform.rotate(alpha); image = image.transformed(transform, Qt::SmoothTransformation);
-			break;
 		default:
+			image = image.transformed(transform, Qt::SmoothTransformation);
 			break;
 	}
 }

@@ -154,8 +154,14 @@ int  HistoryDeleteItems::Undo()	  // reveal items
 }
 int  HistoryDeleteItems::Redo()	// hide items
 {
+	if (deletedList.isEmpty())	// then delete all items
+	{
+		for (int i = 0; i < pDrawables->Size(); ++i)
+			deletedList.push_back(i);
+	}
+
 	for (auto drix : deletedList)
-		pDrawables->SetVisibility(drix, false);
+			pDrawables->SetVisibility(drix, false);
 	return 0;
 }
 
@@ -545,7 +551,7 @@ int HistoryRotationItem::Undo()
 	}
 	for (auto dri : driSelectedDrawables)
 		pHist->Rotate(dri, rotation, encRect, alpha);
-	RotateRect(rot, encRect, alpha);
+	RotateRect(rot, encRect, encRect, alpha);
 
 	return 1;
 }
@@ -554,7 +560,7 @@ int HistoryRotationItem::Redo()
 {
 	for (auto n : driSelectedDrawables)
 		pHist->Rotate(n, rot, encRect, rAlpha);
-	RotateRect(rot, encRect, rAlpha);
+	RotateRect(rot, encRect, encRect, rAlpha);
 	return 0;
 }
 
