@@ -496,7 +496,7 @@ struct DrawableLine : public DrawableItem
     {
         dtType = DrawableType::dtLine;
     }
-    DrawableLine(QPointF startPos, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);
+    DrawableLine(QPointF startPos, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth);
     DrawableLine(const DrawableLine& ol);
     DrawableLine(DrawableLine&& ol);
     ~DrawableLine() {}
@@ -538,7 +538,7 @@ struct DrawableRectangle : public DrawableItem
 {
     QRectF rect;
     qreal angle = 0.0;          // angle if rotated by an angle and not just 90,180,270, etc
-    bool isFilled=false;           // wheather closed polynom (ellipse or rectangle) is filled
+    bool isFilled=false;        // whether closed polygon and it is filled
 
     DrawableRectangle() : DrawableItem()
     {
@@ -637,6 +637,7 @@ QDataStream& operator>>(QDataStream& ifs,        DrawableScreenShot& di);       
 struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbleItem
 {                   
     QPolygonF points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
+    bool isFilled = false;    // used when this is a closed polygon (created from not n * pi/4) rotated ellipse or rectangle
 
     // DEBUG
     bool bSmoothDebug = true;

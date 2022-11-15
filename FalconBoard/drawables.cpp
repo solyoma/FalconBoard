@@ -599,7 +599,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER h
 //=====================================
 
 
-DrawableLine::DrawableLine(QPointF startPos, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
+DrawableLine::DrawableLine(QPointF startPos, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth) : 
 	endPoint(endPoint), DrawableItem(DrawableType::dtLine, startPos, zOrder, penKind, penWidth)
 {
 
@@ -1103,10 +1103,13 @@ void DrawableScribble::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, con
 {
 	if (drawStarted)
 	{
-		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea));
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), isFilled ? PenColor() : QColor());
 		// draw normally using 'painter' and 'topLeftOfVisibleArea'
 		QPolygonF pol = points.translated(-topLeftOfVisibleArea);
-		painter->drawPolyline(pol);
+		if (isFilled)						// then originally this was an ellipse or rectangle that was rotated by not (90 degrees x n)
+			painter->drawPolygon(points);
+		else
+			painter->drawPolyline(pol);
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
