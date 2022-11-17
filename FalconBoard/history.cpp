@@ -1726,6 +1726,15 @@ Sprite::Sprite(History* ph, const QRectF& rectf, const DrawableIndexVector &dri)
 	rect = rectf;	// set in CopySelected() so must overwrite it here
 }
 
+Sprite::Sprite(History* ph, const QRectF& copiedRect, const DrawableList& lstDri)
+{
+	drawables = lstDri;
+	rect = copiedRect;
+	itemsDeleted = false;
+	for (int i = 0; i < drawables.Size(); ++i)
+		driSelectedDrawables.push_back(i);
+}
+
 Sprite::Sprite(History* ph) : pHist(ph)
 {
 	ph->CopySelected(this);
@@ -1766,7 +1775,7 @@ void HistoryList::CopyToClipboard()
 	_pClipBoard->setMimeData(mimeData);
 }
 
-void HistoryList::PasteFromClipboard()
+void HistoryList::GetFromClipboard()
 {
 	const QMimeData* pMime = _pClipBoard->mimeData();
 	
@@ -1804,7 +1813,7 @@ void HistoryList::PasteFromClipboard()
 		while (cnt--)
 		{
 			data >> dri.dtType;	
-			data >> dri;			// this must be called aftetr type was read
+			data >> dri;			// this must be called after type was read
 			_copiedItems.AddDrawable(&dri);
 		}
 	}

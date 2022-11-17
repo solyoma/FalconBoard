@@ -263,8 +263,8 @@ struct HistoryRotationItem : public HistoryItem
     bool flipV = false;
     float rAlpha = 0.0;
     DrawableIndexVector driSelectedDrawables;
-    QRectF encRect;         // encompassing rectangle: all items inside
-
+    QRectF encRect;         // encompassing rectangle: before rotation all items are inside this
+                            // after rotation they are usually not 
     HistoryRotationItem(History* pHist, MyRotation rotation, QRectF rect, DrawableIndexVector selList, float alpha=0.0);
     HistoryRotationItem(const HistoryRotationItem& other);
     HistoryRotationItem& operator=(const HistoryRotationItem& other);
@@ -337,7 +337,8 @@ class History;
 struct Sprite
 {
     Sprite(History* ph);
-    Sprite(History* ph, const QRectF &rect, const DrawableIndexVector &dri);
+    Sprite(History* ph, const QRectF &copiedRect, const DrawableIndexVector &dri);
+    Sprite(History* ph, const QRectF &copiedRect, const DrawableList &lstDri);
 
     const int margin = 1; // pixel
 
@@ -484,8 +485,10 @@ public:
     int CountOfVisible(); // visible 
     int CountButScreenShots();
     int SelectedSize() const { return _driSelectedDrawables.size(); }
-    DrawableIndexVector& SelectedItemsList() { return _driSelectedDrawables; }
-
+    DrawableIndexVector& SelectedItemsList() 
+    { 
+        return _driSelectedDrawables; 
+    }
 
     QString Name() const 
     { 
@@ -553,7 +556,7 @@ public:
     }
     QRectF SelectionRect() const { return _selectionRect; }
 
-    void CollectPasted(const QRectF &rect);   // if items pasted copies them into '_driSelectedDrawables'
+    void CollectPasted(const QRectF &rect);   // if items pasted copies their drawable indices into '_driSelectedDrawables'
 
     const QRectF BoundingRect() const { return _selectionRect; }
     const DrawableIndexVector& Selected() const { return _driSelectedDrawables;  }
@@ -596,7 +599,7 @@ public:
     }
 
     void CopyToClipboard();    // uses _pCopiedItems and _pCopiedImages so these must be setup first
-    void PasteFromClipboard(); // only if the clipboard data is not the same as data in memory gets data from clipboard
+    void GetFromClipboard(); // only if the clipboard data is not the same as data in memory gets data from clipboard
 };
 
 QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness = 0.0, Qt::MaskMode mode = Qt::MaskInColor);

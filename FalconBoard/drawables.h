@@ -426,8 +426,8 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableDot& di);  // call AFTER
 
 struct DrawableEllipse : public DrawableItem
 {
-    QRectF rect;
-    qreal angle = 0.0;          // angle if rotated by an angle and not just 90,180,270, etc
+    QRectF rect;                // determines the two axes and the center of the ellipse
+    qreal angle = 0.0;          // angle if rotated by an angle which is not a multiple of 90 degrees and not a flip
     bool isFilled=false;        // whether closed polygon (ellipse or rectangle) is filled
 
     DrawableEllipse() : DrawableItem()
@@ -446,18 +446,28 @@ struct DrawableEllipse : public DrawableItem
     QRectF Area() const override // includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
-        return rect.adjusted(-d,-d,d,d); 
+        return _rotatedRect.adjusted(-d,-d,d,d); 
     }
     QPointF GetLastDrawnPoint() const override
     {
-        return  startPos + QPointF(rect.width(), rect.height() / 2.0);
+        return  startPos + QPointF(_rotatedRect.width(), _rotatedRect.height() / 2.0);
     }
 
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellipse: inside it
     {
         QPointF center = rect.center();
-        // transform center to origin and point with it
-        p = p - center;         // point P(xp,yp)
+        // first rotate point by -angle if ellipse is rotated using rotAlpha
+        // into the original (unrotated) ellipse based coord system
+        if (_rot == rotAlpha)
+        {
+            QTransform tr;
+            tr.rotate(-angle);
+
+            p = tr.map(p - center);
+        }
+        else   // transform center to origin and point with it
+            p = p - center;         // point P(xp,yp)
+        // then check transformed point
 
         qreal a = rect.width() / 2.0, b = rect.height() / 2,    // major and minor axes of ellipse
             a2 = a * a, b2 = b * b,                             // their squares
@@ -481,6 +491,9 @@ struct DrawableEllipse : public DrawableItem
         myPath.addEllipse(rect);
         return myPath.toFillPolygon();
     }
+private:
+    MyRotation _rot  = rotNone;
+    QRectF _rotatedRect;         // used for Area(), same as 'rect' unless rotated
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableEllipse& di);  // call AFTER header is read in
@@ -650,6 +663,12 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
     DrawableScribble(FalconPenKind penKind, qreal penWidth, int zorder) noexcept;
     DrawableScribble(const DrawableScribble& di);
     DrawableScribble(DrawableScribble&& di) noexcept;
+    /* one possibility to rotate all with arbitrary angle is to create a scribble from them
+    DrawableScribble(const DrawableCross& o);
+    DrawableScribble(const DrawableEllipse& o);
+    DrawableScribble(const DrawableRectangle& o);
+    DrawableScribble(const DrawableText& o);
+    */
     DrawableScribble& operator=(const DrawableScribble& di);
 
     DrawableScribble& operator=(DrawableScribble&& di)  noexcept;

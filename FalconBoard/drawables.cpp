@@ -330,7 +330,7 @@ QPointF DrawableItem::_RotateCommon(MyRotation rot, QRectF inThisRectangle, qrea
 	if(!CanRotate(rot, inThisRectangle, alpha))
 		return QPointF(-1,-1);
 
-	alpha = RotationAlpha(rot, alpha);
+	angle = alpha = RotationAlpha(rot, alpha);
 	QPointF c = inThisRectangle.center();
 	if(!erasers.isEmpty())
 		_RotateErasers(rot, inThisRectangle, alpha);
@@ -498,7 +498,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableCross& di)	  // call AFTER hea
 //=====================================
 // DrawableEllipse
 //=====================================
-DrawableEllipse::DrawableEllipse(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtEllipse, rect.topLeft(), zOrder, penKind, penWidth) {}
+DrawableEllipse::DrawableEllipse(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
+		rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtEllipse, rect.topLeft(), zOrder, penKind, penWidth), _rotatedRect(rect) {}
 DrawableEllipse::DrawableEllipse(const DrawableEllipse& o) { *this = o; }
 DrawableEllipse::DrawableEllipse(DrawableEllipse&& o) noexcept { *this = o; }
 DrawableEllipse& DrawableEllipse::operator=(const DrawableEllipse& di)
@@ -507,6 +508,8 @@ DrawableEllipse& DrawableEllipse::operator=(const DrawableEllipse& di)
 
 	isFilled = di.isFilled;
 	rect = di.rect;
+	_rot = di._rot;
+	_rotatedRect = di._rotatedRect;
 	return *this;
 }
 
@@ -516,15 +519,18 @@ DrawableEllipse& DrawableEllipse::operator=(DrawableEllipse&& di) noexcept
 
 	isFilled = di.isFilled;
 	rect = di.rect;
+	_rot = di._rot;
+	_rotatedRect = di._rotatedRect;
 	return *this;
 }
 
 void DrawableEllipse::Translate(QPointF dr, qreal minY)
 {
-	if (rect.top() > minY)
+	if (_rotatedRect.top() > minY)
 	{
 		DrawableItem::Translate(dr, minY);
 		rect.moveTo(rect.topLeft() + dr);
+		_rotatedRect.moveTo(_rotatedRect.topLeft() + dr);
 	}
 }
 
@@ -533,11 +539,11 @@ void DrawableEllipse::Translate(QPointF dr, qreal minY)
  * PARAMS:	rot - rotation Do not use 'rotAlpha' here
  *			inThisRectangle - rotate around the center of this
  *			rectangle
- *			alpha - must not be used
+ *			alpha - only used for rotAlpha (non a multiple of 90 deg. and not a flip)
  * GLOBALS:
  * RETURNS: nothing, ellipse is rotated by a multiple of 90 degrees
- * REMARKS: - to rotate an ellipse by an angle 'alpha'
- *				create a new DrawableScribble from this and rotate that
+ * REMARKS: - 'rect' may be translated and flipped, but never rotated.
+ *			- when rot == rotAlpha then Draw() must rotate the ellipse
  *------------------------------------------------------------*/
 void DrawableEllipse::Rotate(MyRotation rot, QRectF& inThisRectangle, qreal alpha)
 {
@@ -545,38 +551,80 @@ void DrawableEllipse::Rotate(MyRotation rot, QRectF& inThisRectangle, qreal alph
 	if (c.x() < 0)
 		return;
 
+	_rot = rot;
+	auto __flipRect = [&](QRectF& arect)
+	{
+		if (rot == rotFlipH)
+		{
+			qreal w = arect.width();
+			arect.setX(-arect.right());	// top left is replaced by original top right
+			arect.setWidth(w);
+		}
+		else if (rot == rotFlipV)
+		{
+			qreal h = arect.height();
+			arect.setY(-arect.bottom());
+			arect.setHeight(h);
+		}
+	};
+
+	auto __rotRect = [&](QRectF &rect)
+	{
+		qreal a = _rotatedRect.right(), b = _rotatedRect.top(),
+			s = sin(alpha), c=cos(alpha), x0, y0;
+#define S(a) (a)*(a)
+		a = S(a); b = S(b);
+#undef S
+		// ???
+	};
+
 	rect.translate(-c);
-	if (rot == rotFlipH)
+	_rotatedRect.translate(-c);
+
+	if (rot == rotFlipH || rot == rotFlipV)
 	{
-		qreal w = rect.width();
-		rect.setX(-rect.right());	// top left is replaced by original top right
-		rect.setWidth(w);
-	}
-	else if (rot == rotFlipV)
-	{
-		qreal h = rect.height();
-		rect.setY(-rect.bottom());
-		rect.setHeight(h);
+		__flipRect(rect);
+		__flipRect(_rotatedRect);
 	}
 	else
 	{
 		QTransform tr;
 		tr.rotate(alpha);
-		rect = tr.map(rect).boundingRect();
+		_rotatedRect = tr.map(_rotatedRect).boundingRect();
+		if(_rot != rotAlpha)
+			rect = tr.map(rect).boundingRect();
 	}
+
 	rect.translate(c);
-	startPos = rect.topLeft();
+	_rotatedRect.translate(c);
+
+	startPos = _rotatedRect.topLeft();
 }
 
-void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)    // example: you must override this using this same structure
+void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
 {
 	if (drawStarted)
 	{
 		QColor c;
 		if (isFilled)
 			c = PenColor();
-		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
-		painter->drawEllipse(rect.translated(-topLeftOfVisibleArea));
+		if (_rot == rotAlpha )  // rotation is arbitrary and not a multiple of 90 degrees and not a flip
+		{								  // '_rotatedRect' already rotated
+			QRectF r = rect;	// original rectangle: draw ellipse here
+			QPixmap pm(_rotatedRect.size().toSize());
+			pm.fill(Qt::transparent);
+			r.translate(-topLeftOfVisibleArea);
+			QPainter pp(&pm);
+			SetPainterPenAndBrush(&pp, QRectF(0,0, _rotatedRect.width(), _rotatedRect.height()), c);
+			pp.rotate(angle);
+			pp.drawEllipse(r);
+			painter->drawPixmap(QRect(QPoint(0, 0), pm.size()), pm);
+		}
+		else
+		{
+			SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
+			painter->drawEllipse(rect.translated(-topLeftOfVisibleArea));
+		}
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);

@@ -510,6 +510,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 	if (!_scribbling && !_pendown && key == Qt::Key_Space && !event->isAutoRepeat())
 	{
 		_spaceBarDown = true;
+		_SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
 		QWidget::keyPressEvent(event);
 	}
 	else // if (event->spontaneous())
@@ -555,6 +556,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				bRotate = (key == Qt::Key_0 ||  // rotate right by 90 degrees
 					key == Qt::Key_8 ||  // rotate by 180 degrees
 					key == Qt::Key_9 ||  // rotate left by 90 degrees
+					key == Qt::Key_7 ||  // rotate left by 45 degrees
 					key == Qt::Key_H ||  // flip horizontally
 					(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
 					);
@@ -634,16 +636,18 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			else if (bRotate && bCollected)
 			{
 				MyRotation rot;
+				qreal alpha = 0.0;
 				switch (key)
 				{
 					case Qt::Key_0: rot = rotL90; break;
 					case Qt::Key_8: rot = rot180; break;
 					case Qt::Key_9: rot = rotR90; break;
+					case Qt::Key_7: rot = rotAlpha; alpha = 45.0;  break;	  		// DEBUG
 					case Qt::Key_H: rot = rotFlipH; break;
 					case Qt::Key_V: rot = rotFlipV; break;
 					default: rot = rotNone; break;
 				}
-				if( RotateRect(rot, _rubberRect, _rubberRect) && _history->AddRotationItem(rot) )
+				if( RotateRect(rot, _rubberRect, _rubberRect, alpha) && _history->AddRotationItem(rot, alpha) )
 				{
 					;
 					_rubberBand->setGeometry(_rubberRect.toRect());
@@ -724,11 +728,11 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 #ifndef _VIEWER
 			if (bPaste)         // paste as sprite
 			{
-				historyList.PasteFromClipboard();
+				historyList.GetFromClipboard();
 
-				if (!historyList.CopiedItems().Size())    // anything to paste?
+				if (historyList.CopiedItems().Size())    // anything to paste?
 				{
-					_pSprite = _SpriteFromLists();
+					_pSprite = _SpriteFromCollectedDrawables(_lastCursorPos);
 					_PasteSprite();
 					_Redraw();
 				}
@@ -799,10 +803,11 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 	{
 		if (!event->isAutoRepeat())
 		{
+			if (_spaceBarDown)
+				_RestoreCursor();
 			_spaceBarDown = false;
 			if (_scribbling || _pendown)
 			{
-				_RestoreCursor();
 				QWidget::keyReleaseEvent(event);
 				return;
 			}
@@ -957,8 +962,6 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 #endif
 		if (event->pressure != 0.0 && event->button == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
 		{
-			if (_spaceBarDown)
-				_SaveCursorAndReplaceItWith(Qt::ClosedHandCursor);
 
 			if (event->fromPen)
 			{
@@ -1212,9 +1215,9 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				emit CanUndo(_history->CanUndo());
 				emit CanRedo(_history->CanRedo());
 			}
-			else
+//			else
 #endif
-				_RestoreCursor();
+//				_RestoreCursor();
 #ifndef _VIEWER
 		}
 #endif 
@@ -2632,6 +2635,13 @@ Sprite* DrawArea::_SpriteFromLists()
 {
 	Sprite* pSprite = new Sprite(_history, historyList.CopiedRect(), _history->SelectedItemsList() );
 	return _PrepareSprite(pSprite, _lastCursorPos, historyList.CopiedRect().translated(_lastCursorPos), false, true);
+}
+
+Sprite* DrawArea::_SpriteFromCollectedDrawables(QPointF tl)
+{
+	Sprite *pSprite = new Sprite(_history, historyList.CopiedRect(), historyList.CopiedItems());
+	pSprite->topLeft = tl;
+	return pSprite;
 }
 
 void DrawArea::_MoveSprite(QPointF dr)
