@@ -419,7 +419,7 @@ bool DrawArea::RecolorSelected(int key)
 	if (!_rubberBand)
 		return false;
 	if (!_history->SelectedSize())
-		_history->CollectDrawablesInside(_rubberRect.translated(_topLeft), true);
+		_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
 
 	FalconPenKind pk = PenKindFromKey(key);
 	HistoryItem* phi = _history->AddRecolor(pk);
@@ -589,15 +589,21 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_Redraw();
 				}
 			}
-
-			if (bDelete || bCopy || bRecolor || bRotate)
+			// DELETE if
+			//if (bDelete || bCopy || bRecolor || bRotate)
+			//{
+			//	if (bCollected && !bDelete && !bRotate)
+			//	{
+			//		_history->CopySelected();
+			//		_itemsCopied = true;        // never remove selected list
+			//	}
+			//}
+			if ( (bCopy || bRecolor) && bCollected && !bDelete && !bRotate )
 			{
-				if (bCollected && !bDelete && !bRotate)
-				{
-					_history->CopySelected();
-					_itemsCopied = true;        // never remove selected list
-				}
+				_history->CopySelected();
+				_itemsCopied = true;        // never remove selected list
 			}
+
 			// if !bCollected then history's _selectedList is empty, but the rubberRect is set into _selectionRect
 			if ((bCut || bDelete) && bCollected)
 			{
@@ -605,7 +611,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				HideRubberBand(true);
 				_Redraw();
 			}
-			else if (bDelete && !bCollected)     // delete empty area
+			else if (bDelete && !bCollected)     // delete area marked by the rubber band
 			{
 				QRectF rect = _rubberRect.translated(_topLeft);
 				if (_history->AddRemoveSpaceItem(rect))     // there was something (not delete below the last item)
@@ -639,59 +645,78 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				qreal alpha = 0.0;
 				switch (key)
 				{
-					case Qt::Key_0: rot = rotL90; break;
-					case Qt::Key_8: rot = rot180; break;
-					case Qt::Key_9: rot = rotR90; break;
-					case Qt::Key_7: rot = rotAlpha; alpha = 45.0;  break;	  		// DEBUG
-					case Qt::Key_H: rot = rotFlipH; break;
-					case Qt::Key_V: rot = rotFlipV; break;
-					default: rot = rotNone; break;
+					case Qt::Key_0: rot = MyRotation::rotR90; break;
+					case Qt::Key_8: rot = MyRotation::rot180; break;
+					case Qt::Key_9: rot = MyRotation::rotL90; break;
+					case Qt::Key_7: rot = -30.0;  break;	  		// DEBUG
+					case Qt::Key_H: rot = MyRotation::rotFlipH; break;
+					case Qt::Key_V: rot = MyRotation::rotFlipV; break;
+					default: rot = MyRotation::rotNone; break;
 				}
-				if( RotateRect(rot, _rubberRect, _rubberRect, alpha) && _history->AddRotationItem(rot, alpha) )
+				QRectF rr = _rubberRect;
+				if(_history->AddRotationItem(rot) ) // using History::_SelectionRect (== _rubberRect)
 				{
-					;
+					_rubberRect = _history->SelectionRect();
 					_rubberBand->setGeometry(_rubberRect.toRect());
 
 					_Redraw();
 				}
 			}
-			else if (key == Qt::Key_R)    // draw rectangle with margin or w,o, margin with Ctrl or filled with Shift
-			{
-				_actPenWidth = _penWidth;
+			else if (key == Qt::Key_R)    // draw rectangle around (at the outside) of selection
+			{							  // if CTrl+R was pressed add an inside margin, when Shift+R pressed fill the inside
+				_actPenWidth = _penWidth; // adjust the selection. never draw a rectangle partially or fully outside "paper"
 
-				// when any drawables is selected draw the rectangle around them 
+				// when any drawables is selected draw the rectangle around them, otherwise the outer edge of the rectangle should be inside the marked area 
 				// leaving _actPenWidth/2+1 pixel margins on each sides
 				qreal adjustment = ((qreal)_actPenWidth + 1) / 2 + 1;
+				qreal sizeDelta=0.0;
 
-				qreal margin = !_mods.testFlag(Qt::ControlModifier) && _history->SelectedSize() ?   adjustment : 0;
-				QRectF r = _rubberRect.adjusted(-margin, -margin,margin,margin);	// will also resizes _rubberRect
+				bool bCtrlPlusAltDown = _mods.testFlag(Qt::ControlModifier) && !_mods.testFlag(Qt::AltModifier);
+				if (!_history->SelectedSize() && !bCtrlPlusAltDown )		// nothing inside selected area or Ctrl+Alt was pressed to keep marked area as
+					sizeDelta = -adjustment;	// rectangle inside area
+				else
+					sizeDelta = adjustment;		// rectangle outside area
 
-				_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
+				sizeDelta += (bCtrlPlusAltDown ? adjustment : 0);
+				QRectF r = _rubberRect;
+				if(sizeDelta >= 0)
+					r.adjust(-sizeDelta, -sizeDelta, sizeDelta, sizeDelta);
+				if (r.left() < 0 || r.top() < 0)
+					QMessageBox::warning(this, FB_WARNING, tr("With this pen width drawing would be outside of \"paper\""));
+				else
+				{
+					if(sizeDelta < 0)	// no shrinking or rubberBand, bu tshrink rectangle
+						r.adjust(-sizeDelta, -sizeDelta, sizeDelta, sizeDelta);
+					else
+						_rubberRect = r; //  .adjust(-margin, -margin, margin, margin);	// will also resizes _rubberRect
 
-				QPainter* painter = _GetPainter(_pActCanvas);
-				_lastRectangleItem.Draw(painter, _topLeft);
-				delete painter;
+					_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
 
-				_firstPointC = _lastPointC = _lastRectangleItem.GetLastDrawnPoint();
+					QPainter* painter = _GetPainter(_pActCanvas);
+					_lastRectangleItem.Draw(painter, _topLeft);
+					delete painter;
+					update(_rubberRect.toRect());
 
-				_rubberRect = r.adjusted(-adjustment, -adjustment, adjustment, adjustment);
-				_rubberBand->setGeometry(_rubberRect.toRect());
-				 (void)_history->AddDrawableItem(_lastRectangleItem);
-				 if(!_erasemode)
-					_history->AddToSelection(-1);
+					_firstPointC = _lastPointC = _lastRectangleItem.GetLastDrawnPoint();
+
+					//				_rubberRect = r.adjusted(-adjustment, -adjustment, adjustment, adjustment);
+					_rubberBand->setGeometry(_rubberRect.toRect());
+					(void)_history->AddDrawableItem(_lastRectangleItem);
+					if (!_erasemode)
+						_history->AddToSelection(-1);
+				}
 			}
 			else if (key == Qt::Key_C && !bCopy)   // draw ellipse
 			{
 				_actPenWidth = _penWidth;
-				qreal adjustment = ((qreal)_actPenWidth + 1) / 2 + 1;
-				_lastEllipseItem = DrawableEllipse(_rubberRect.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
+				qreal adjustment = -((qreal)_actPenWidth + 1) / 2 + 1;	// inside area
+				QRectF r = _rubberRect.adjusted(-adjustment, -adjustment, adjustment, adjustment);
+				_lastEllipseItem = DrawableEllipse(r.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
 				
 				QPainter* painter = _GetPainter(_pActCanvas);
 				_lastEllipseItem.Draw(painter, _topLeft);
 				delete painter;
-
-				_rubberRect = _rubberRect.adjusted(-adjustment, -adjustment, adjustment, adjustment);
-				_rubberBand->setGeometry(_rubberRect.toRect());
+				update(_rubberRect.toRect());
 
 				_firstPointC = _lastPointC = _lastEllipseItem.GetLastDrawnPoint();
 
@@ -960,9 +985,9 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 	}
 	else
 #endif
+		_startDrawingPos = event->pos;     // used for checking sprite paste
 		if (event->pressure != 0.0 && event->button == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
 		{
-
 			if (event->fromPen)
 			{
 				_pendown = true;
@@ -1071,7 +1096,7 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 
 			QPointF origin = _rubber_origin;	// we may modify this because of Alt modifier
 			QPointF delta;
-			if (event->mods.testFlag(Qt::AltModifier))	// then the rubberband goes outward from origin
+			if (event->mods.testFlag(Qt::AltModifier) && ( (event->buttons & Qt::LeftButton) || (!(event->buttons & Qt::LeftButton) && event->mods.testFlag(Qt::ControlModifier))) )	// then the rubberband goes outward from origin
 			{
 				delta = epos - _rubber_origin;	// some coordinate may be negative
 				origin -= delta;
@@ -1173,7 +1198,11 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 #ifndef _VIEWER
 		if (_pSprite)
 		{
+			bool del = _pSprite->itemsDeleted;
 			_PasteSprite();
+			if (event->pos == _startDrawingPos && del)	// nothing happend restore previous data
+				_history->Undo();	// restore deleted items and because _rubberBand remains we must re select previous
+									// drawables
 			_Redraw();
 		}
 		else
@@ -1237,7 +1266,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 		{
 			_rubberRect = _rubberBand->geometry();
 			bool doNotShrinkSelectionRectangle = event->mods.testFlag(Qt::AltModifier);
-			_history->CollectDrawablesInside(_rubberRect.translated(_topLeft), doNotShrinkSelectionRectangle);
+			_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
 			if (_history->SelectedSize() && !doNotShrinkSelectionRectangle)
 			{
 				_rubberBand->setGeometry(_history->BoundingRect().translated(-_topLeft).toRect());
@@ -1566,7 +1595,7 @@ void DrawArea::_ScrollTimerSlot()
 
 /*=============================================================
  * TASK:    sets up scroll direction and timer if the position
- *          is near to a widget edge when there is a sprite
+ *          of the mouse is near to a widget edge and scribing or when there is a sprite
  * PARAMS:  pos: position
  * GLOBALS: _pSprite, _limited, _prdata.screenPageWidth, _screenHeight
  *          _pTimer, _topLeft,_limited
@@ -1575,7 +1604,7 @@ void DrawArea::_ScrollTimerSlot()
  *------------------------------------------------------------*/
 DrawArea::_ScrollDirection DrawArea::_AutoScrollDirection(QPointF pos)
 {
-	if (!_pSprite)
+	if( (!_scribbling  && !_pSprite) || _spaceBarDown)// if (!_pSprite)
 	{
 		_RemoveScrollTimer();
 		return _scrollDir = _ScrollDirection::scrollNone;
@@ -1994,16 +2023,16 @@ bool DrawArea::_NoPrintProblems()
 	switch (_printer->Status())
 	{
 	case MyPrinter::rsAllocationError:
-		QMessageBox::critical(this, tr("FalconBoard - Error"), tr("Can't Allocate Resources\nNot enough memory?"));
+		QMessageBox::critical(this, FB_ERROR, tr("Can't Allocate Resources\nNot enough memory?"));
 		break;
 	case MyPrinter::rsInvalidPrinter:
-		QMessageBox::critical(this, tr("FalconBoard - Error"), tr("Can't find printer"));
+		QMessageBox::critical(this, FB_ERROR, tr("Can't find printer"));
 		break;
 	case MyPrinter::rsPrintError:
-		QMessageBox::warning(this, tr("FalconBoard - Warning"), tr("Print error"));
+		QMessageBox::warning(this, FB_WARNING, tr("Print error"));
 		break;
 	case MyPrinter::rsCancelled:
-		QMessageBox::warning(this, tr("FalconBoard - Warning"), tr("Print cancelled"));
+		QMessageBox::warning(this, FB_WARNING, tr("Print cancelled"));
 		break;
 	default:
 		res = true;

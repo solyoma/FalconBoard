@@ -258,7 +258,8 @@ private:
     bool    _bPageSetupUsed = false;
     bool    _openPDFInViewerAfterPrint = false;
 
-    QPointF _actMousePos;   // set in mouse/tablet events
+    QPointF _startDrawingPos, // where the mouse cursor or pen was at start of drawing
+            _actMousePos;   // set in mouse/tablet events
 
 
     std::chrono::milliseconds _msecs = 10ms;   // when delayed playback

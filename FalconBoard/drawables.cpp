@@ -41,26 +41,28 @@ QuadArea AreaForQRect(QRectF rect)
 	return QuadArea(rect.x(), rect.y(), rect.width(), rect.height());
 }
 
-qreal RotationAlpha(MyRotation rot, qreal alpha)
-{
-	switch (rot)
-	{
-		case rotAlpha:
-			break;
-		case rotL90: alpha = 90; break;	// top left -> bottom left
-		case rotR90: alpha = -90; break;
-		case rot180: alpha = 180; break;
-		default:
-			break;
-	}
-	return alpha;
-}
+//??? qreal RotationAlpha(MyRotation::Type rot, qreal alpha, qreal *angle=nullptr)
+//??? {
+//??? 	switch (rot)
+//??? 	{
+//??? 		case MyRotation::rotAngle:
+//??? 			break;
+//??? 		case MyRotation::rotL90: alpha = 90; break;	// top left -> bottom left
+//??? 		case MyRotation::rotR90: alpha = -90; break;
+//??? 		case MyRotation::rot180: alpha = 180; break;
+//??? 		default:
+//??? 			break;
+//??? 	}
+//??? 	if(angle && rot != MyRotation::rotFlipH && rot != MyRotation::rotFlipV)
+//??? 		*angle = fmod(alpha + *angle, 360);
+//??? 	return alpha;
+//??? }
 
 /*=============================================================
- * TASK:   Rotate a rectangle
+ * TASK:   Rotate an enclosing rectangle
  * PARAMS:	rot - rotation kind
  *			rect - rectangle to rotate input and output
- *			alphaInDegrees - in degrees, meaningful only with 'rot == rotAlpha'
+ *			alphaInDegrees - in degrees, meaningful only with 'rot == MyRotation::rotAngle'
  *					otherwise 0
  * GLOBALS:
  * RETURNS: if rotation is allowed (i.e. no point of rotated
@@ -70,37 +72,37 @@ qreal RotationAlpha(MyRotation rot, qreal alpha)
  * REMARKS: - this rectangle is not inside any other 
  *				rectangle 
  *------------------------------------------------------------*/
-bool RotateRect(MyRotation rot, QRectF &rect, QRectF inThisRect, qreal alphaInDegrees)
-{
-	if (rot == rotFlipH || rot == rotFlipV || rot == rot180)
-		return true;
-	else
-	{
-		alphaInDegrees = RotationAlpha(rot, alphaInDegrees);
-		QPointF c = inThisRect.center();
-
-		QTransform tr;
-		tr.rotate(alphaInDegrees);
-
-		auto __RotR = [&](QRectF& r)
-		{
-			r = r.translated(-c);
-			r = tr.map(r).boundingRect();
-			r = r.translated(c);
-		};
-
-		QRectF r = inThisRect;
-		__RotR(r);
-		if (r.top() < 0 || r.left() < 0)
-		{
-			QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
-			return false;
-		}
-
-		__RotR(rect);
-		return true;
-	}
-}
+//??? bool RotateRect(MyRotation::Type rot, QRectF &rect, QRectF inThisRect, qreal alphaInDegrees)
+//??? {
+//??? 	if (rot == MyRotation::rotFlipH || rot == MyRotation::rotFlipV || rot == MyRotation::rot180)
+//??? 		return true;
+//??? 	else
+//??? 	{
+//??? 		alphaInDegrees = RotationAlpha(rot, alphaInDegrees, nullptr);
+//??? 		QPointF c = inThisRect.center();
+//??? 
+//??? 		QTransform tr;
+//??? 		tr.rotate(alphaInDegrees);
+//??? 
+//??? 		auto __RotR = [&](QRectF& r)
+//??? 		{
+//??? 			r = r.translated(-c);
+//??? 			r = tr.map(r).boundingRect();
+//??? 			r = r.translated(c);
+//??? 		};
+//??? 
+//??? 		QRectF r = inThisRect;
+//??? 		__RotR(r);
+//??? 		if (r.top() < 0 || r.left() < 0)
+//??? 		{
+//??? 			QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
+//??? 			return false;
+//??? 		}
+//??? 
+//??? 		__RotR(rect);
+//??? 		return true;
+//??? 	}
+//??? }
 
 
 /*=============================================================
@@ -184,7 +186,7 @@ DrawableItem& DrawableItem::operator=(const DrawableItem& other)
 	dtType = other.dtType;
 	startPos = other.startPos;
 	zOrder = other.zOrder;
-	angle = other.angle;
+	rot = other.rot;
 	isVisible = other.isVisible;
 	erasers = other.erasers;
 
@@ -279,90 +281,44 @@ void DrawableItem::Translate(QPointF dr, qreal minY)	// where translating topLef
  * TASK:	rotates eraser strokes
  * PARAMS:	rot - what kind
  *			inThisRectangle - original (not rotated) bounding rectangle
- *			alpha - for 'rotAlpha' rotational angle in degrees
+ *			alpha - for 'MyRotation::rotAngle' rotational angle in degrees
  * GLOBALS:
  * RETURNS:	nothing + erasers rotated
  * REMARKS: - only call this if rotation is allowed!
  *------------------------------------------------------------*/
-void DrawableItem::_RotateErasers(MyRotation rot, QRectF inThisrectangle, qreal alpha)
+void DrawableItem::_RotateErasers(QRectF inThisRectangle, MyRotation *pRot)
 {
-	QTransform tr;
-	alpha = RotationAlpha(rot, alpha);
-	tr.rotate(alpha); // common for all 
-	QPointF c = inThisrectangle.center();
-
+	if (!pRot)
+		pRot = &rot;
 	for (auto &er : erasers)
-	{
-		er.eraserStroke.translate(-c);
-		if (rot == rotFlipH)
-		{
-			for (auto& pt : er.eraserStroke)
-				pt.setX(-pt.x());
-		}
-		else if (rot == rotFlipV)
-		{
-			for (auto& pt : er.eraserStroke)
-				pt.setY(-pt.y());
-		}
-		else
-			er.eraserStroke = tr.map(er.eraserStroke);
-
-		er.eraserStroke.translate(c);
-	}
-}
-bool DrawableItem::CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha)
-{
-	return RotateRect(rot, enclosingRectangle, enclosingRectangle, alpha);
+		pRot->RotatePoly(er.eraserStroke,inThisRectangle, er.eraserPenWidth, true);
 }
 
 /*=============================================================
  * TASK:	common for all rotations
- * PARAMS:	rot - what kind
+ * PARAMS:	rot - rotation to be performed to possible already rotates data
  *			inThisRectangle - original (not rotated) bounding rectangle
- *			alpha - for 'rotAlpha' rotational angle in degrees
  * GLOBALS:
  * RETURNS: if rotation allowed the center point of 'inThisRectangle'
  *			else QPointF(-1,-1)
- * REMARKS: - inThisRectangle and alpha may be modified
+ * REMARKS: - does not modify 'rot' because this rotation is additional
+ *			to any pervious rotation
  *------------------------------------------------------------*/
-QPointF DrawableItem::_RotateCommon(MyRotation rot, QRectF inThisRectangle, qreal& alpha)
+QPointF DrawableItem::_RotateCommon(MyRotation rotTmp, QRectF inThisRectangle)
 {
-	if(!CanRotate(rot, inThisRectangle, alpha))
+	QRectF rect = inThisRectangle;
+	if(!rotTmp.RotateRect(rect, inThisRectangle))
 		return QPointF(-1,-1);
 
-	angle = alpha = RotationAlpha(rot, alpha);
-	QPointF c = inThisRectangle.center();
 	if(!erasers.isEmpty())
-		_RotateErasers(rot, inThisRectangle, alpha);
-	return c;
+		_RotateErasers(inThisRectangle, &rotTmp);
+	return  inThisRectangle.center();
 }
 
-void DrawableItem::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)
+void DrawableItem::Rotate(MyRotation arot, QRectF &inThisRectangle)
 {
-	QPointF c = _RotateCommon(rot, inThisRectangle, alpha);
-	if (c.x() < 0)
-		return;
-
-	QPointF s = startPos - c;
-
-	if (rot == rotFlipH)
-	{
-		s.setX(-s.x());
-	}
-	else if (rot == rotFlipV)
-	{
-		s.setY(-s.y());
-	}
-	else
-	{
-		QTransform tr;
-		tr.rotate(alpha);
-		s = tr.map(s);
-	}
-	s = s + c;
-	if (s.x() < 0 || s.y() < 0)	// can't rotate
-		return;
-	startPos = s;
+	arot.RotateSinglePoint(startPos, inThisRectangle);	// may show warning and not change startPos
+	rot.AddRotation(arot);
 }
 
 // drawables MUST be saved in increasing zOrder, so no need to save the zOrder
@@ -370,7 +326,7 @@ void DrawableItem::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 {
-	ofs << (int)di.dtType << di.startPos << (int)di.PenKind() /*<< di.PenColor()*/ << di.penWidth << di.angle;
+	ofs << (int)di.dtType << di.startPos << (int)di.PenKind() /*<< di.PenColor()*/ << di.penWidth << di.rot.angle;
 	ofs << di.erasers.size();
 	for (auto e : di.erasers)
 	{
@@ -399,7 +355,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 	ifs >> di.startPos;
 	ifs >> n;
 	di.SetPenKind((FalconPenKind)n);
-	ifs /*>> di.penColor*/ >> di.penWidth >> di.angle;
+	ifs /*>> di.penColor*/ >> di.penWidth >> di.rot.angle;
+	di.rot.rotType = MyRotation::TypeForAngle(di.rot.angle);
 	ifs >> n;
 	while (n--)
 	{
@@ -441,31 +398,20 @@ DrawableCross::DrawableCross(QPointF pos, qreal len, int zOrder, FalconPenKind p
 //	return *this;
 //}
 
-void DrawableCross::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)
+void DrawableCross::Rotate(MyRotation arot, QRectF &inThisRectangle)
 {
-	QPointF c = _RotateCommon(rot, inThisRectangle, alpha);
+	if (!arot.IsRotation())
+		return;
+
+	QPointF c = _RotateCommon(arot, inThisRectangle);
 	if (c.x() < 0)
 		return;
 
-	QPointF s = startPos - c;
-	if (rot == rotFlipH)
-	{
-		s.setX(-s.x());
-	}
-	else if (rot == rotFlipV)
-	{
-		s.setY(-s.y());
-	}
-	else
-	{
-		QTransform tr;
-		tr.rotate(alpha);
-		s = tr.map(s);
-	}
-	s = s + c;
-	if (s.x() < 0 || s.y() < 0)	// can't rotate
-		return;
-	startPos = s;
+	QPolygonF poly; 
+	poly << startPos;
+	arot.RotatePoly(poly,inThisRectangle, penWidth, true);
+	startPos = poly[0];
+	(void)rot.ResultsInNoRotation(arot, true);
 }
 
 void DrawableCross::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
@@ -508,7 +454,8 @@ DrawableEllipse& DrawableEllipse::operator=(const DrawableEllipse& di)
 
 	isFilled = di.isFilled;
 	rect = di.rect;
-	_rot = di._rot;
+	rot = di.rot;
+	_points = di._points;
 	_rotatedRect = di._rotatedRect;
 	return *this;
 }
@@ -519,7 +466,7 @@ DrawableEllipse& DrawableEllipse::operator=(DrawableEllipse&& di) noexcept
 
 	isFilled = di.isFilled;
 	rect = di.rect;
-	_rot = di._rot;
+	rot = di.rot;
 	_rotatedRect = di._rotatedRect;
 	return *this;
 }
@@ -536,69 +483,45 @@ void DrawableEllipse::Translate(QPointF dr, qreal minY)
 
 /*=============================================================
  * TASK:	rotates ellipse in a rectangle
- * PARAMS:	rot - rotation Do not use 'rotAlpha' here
+ * PARAMS:	arot - rotation to performe
  *			inThisRectangle - rotate around the center of this
  *			rectangle
- *			alpha - only used for rotAlpha (non a multiple of 90 deg. and not a flip)
  * GLOBALS:
  * RETURNS: nothing, ellipse is rotated by a multiple of 90 degrees
- * REMARKS: - 'rect' may be translated and flipped, but never rotated.
- *			- when rot == rotAlpha then Draw() must rotate the ellipse
+ * REMARKS: - When rotated by a degree of integer times 90
+ *			  only the rectangle is rotated
+ *			- all other angles use the _points array
  *------------------------------------------------------------*/
-void DrawableEllipse::Rotate(MyRotation rot, QRectF& inThisRectangle, qreal alpha)
+void DrawableEllipse::Rotate(MyRotation arot, QRectF& inThisRectangle)
 {
-	QPointF c = _RotateCommon(rot, inThisRectangle, alpha);
-	if (c.x() < 0)
+	QPointF c = _RotateCommon(arot, inThisRectangle);
+	if (c.x() < 0)	// can't  rotate
 		return;
 
-	_rot = rot;
-	auto __flipRect = [&](QRectF& arect)
+	if (!arot.IsRotation() || (arot.IsSimpleRotation() && rot.IsSimpleRotation()))
 	{
-		if (rot == rotFlipH)
-		{
-			qreal w = arect.width();
-			arect.setX(-arect.right());	// top left is replaced by original top right
-			arect.setWidth(w);
-		}
-		else if (rot == rotFlipV)
-		{
-			qreal h = arect.height();
-			arect.setY(-arect.bottom());
-			arect.setHeight(h);
-		}
-	};
-
-	auto __rotRect = [&](QRectF &rect)
-	{
-		qreal a = _rotatedRect.right(), b = _rotatedRect.top(),
-			s = sin(alpha), c=cos(alpha), x0, y0;
-#define S(a) (a)*(a)
-		a = S(a); b = S(b);
-#undef S
-		// ???
-	};
-
-	rect.translate(-c);
-	_rotatedRect.translate(-c);
-
-	if (rot == rotFlipH || rot == rotFlipV)
-	{
-		__flipRect(rect);
-		__flipRect(_rotatedRect);
+		arot.RotateRect(_rotatedRect, inThisRectangle, true);
 	}
 	else
 	{
-		QTransform tr;
-		tr.rotate(alpha);
-		_rotatedRect = tr.map(_rotatedRect).boundingRect();
-		if(_rot != rotAlpha)
-			rect = tr.map(rect).boundingRect();
+		if (_points.isEmpty())
+			_ToPolygonF();
+		arot.RotatePoly(_points, inThisRectangle, penWidth, true);
+		_rotatedRect = _points.boundingRect();
 	}
 
-	rect.translate(c);
-	_rotatedRect.translate(c);
-
+	rot.AddRotation(arot);
 	startPos = _rotatedRect.topLeft();
+
+	if (rot.IsSimpleRotation())	// then set is as the new base state
+	{
+		_points.clear();
+		if (abs(rot.angle) == 90)
+			rect = rect.transposed();
+		rect.moveTo(startPos);
+		_rotatedRect = rect;		// remove any cumulated rounding errors
+		rot = 0.0;					// new base
+	}
 }
 
 void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
@@ -608,23 +531,11 @@ void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, cons
 		QColor c;
 		if (isFilled)
 			c = PenColor();
-		if (_rot == rotAlpha )  // rotation is arbitrary and not a multiple of 90 degrees and not a flip
-		{								  // '_rotatedRect' already rotated
-			QRectF r = rect;	// original rectangle: draw ellipse here
-			QPixmap pm(_rotatedRect.size().toSize());
-			pm.fill(Qt::transparent);
-			r.translate(-topLeftOfVisibleArea);
-			QPainter pp(&pm);
-			SetPainterPenAndBrush(&pp, QRectF(0,0, _rotatedRect.width(), _rotatedRect.height()), c);
-			pp.rotate(angle);
-			pp.drawEllipse(r);
-			painter->drawPixmap(QRect(QPoint(0, 0), pm.size()), pm);
-		}
-		else
-		{
-			SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
-			painter->drawEllipse(rect.translated(-topLeftOfVisibleArea));
-		}
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
+		if (rot.IsSimpleRotation())
+			painter->drawEllipse(_rotatedRect.translated(-topLeftOfVisibleArea));
+		else   // rotation is arbitrary and not a multiple of 90 degrees and not a flip
+			painter->drawPolygon(_points); // '_points' and '_rotatedRect' already rotated
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
@@ -640,10 +551,17 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di) // topmost
 QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER header is read in
 {
 	ifs >> di.rect >> di.isFilled;
+	// eliipse always stored as having axes parallel to the coord axes
+	// but even when not we must set the _rotatedRectangle in it
+	MyRotation arot = di.rot;
+	di.rot = MyRotation();		// no rotation, clear
+	QRectF rect = di.Area();
+	di.Rotate(di.rot, rect);
+
 	return ifs;
 }
 //=====================================
-// DrawableScribble
+// DrawableLine
 //=====================================
 
 
@@ -688,9 +606,12 @@ void DrawableLine::Translate(QPointF dr, qreal minY)
 	}
 }
 
-void DrawableLine::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)
+void DrawableLine::Rotate(MyRotation arot, QRectF &inThisRectangle)
 {
-	QPointF c = _RotateCommon(rot, inThisRectangle, alpha);
+	if (!arot.IsRotation())
+		return;
+
+	QPointF c = _RotateCommon(arot, inThisRectangle);
 	if (c.x() < 0)
 		return;
 	QPointF s, e;
@@ -698,12 +619,12 @@ void DrawableLine::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)
 	s = startPos; s -= c;
 	e = endPoint; e -= c;
 
-	if (rot == rotFlipH)
+	if (arot.rotType == MyRotation::rotFlipH)
 	{
 		s.setX(-s.x());
 		e.setX(-e.x());
 	}
-	else if (rot == rotFlipV)
+	else if (arot.rotType == MyRotation::rotFlipV)
 	{
 		s.setY(-s.y());
 		e.setY(-e.y());
@@ -713,13 +634,14 @@ void DrawableLine::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)
 		QLineF line(s, e);
 
 		QTransform tr;
-		tr.rotate(alpha);
+		tr.rotate(arot.angle);
 		line = tr.map(line);
 		s = line.p1();
 		e = line.p2();
 	}
 	startPos =s + c;
 	endPoint =e + c;
+	rot.AddRotation(arot);
 }
 
 void DrawableLine::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
@@ -751,7 +673,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER hea
 // DrawableRectangle
 //=====================================
 DrawableRectangle::DrawableRectangle(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
-	rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtRectangle, rect.topLeft(), zOrder, penKind, penWidth) {}
+	rect(rect), _rotatedRect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtRectangle, rect.topLeft(), zOrder, penKind, penWidth) {}
 DrawableRectangle::DrawableRectangle(const DrawableRectangle& di) { *this = di; }
 DrawableRectangle& DrawableRectangle::operator=(const DrawableRectangle& di)
 {
@@ -759,6 +681,8 @@ DrawableRectangle& DrawableRectangle::operator=(const DrawableRectangle& di)
 
 	isFilled = di.isFilled;
 	rect = di.rect;
+	_rotatedRect = di._rotatedRect;
+	_points = di._points;
 	return *this;
 }
 
@@ -768,21 +692,24 @@ DrawableRectangle& DrawableRectangle::operator=(DrawableRectangle&& di)  noexcep
 
 	isFilled = di.isFilled;
 	rect = di.rect;
+	_rotatedRect = di._rotatedRect;
+	_points = di._points;
 	return *this;
 }
 
 void DrawableRectangle::Translate(QPointF dr, qreal minY)             // only if not deleted and top is > minY
 {
-	if (rect.top() > minY)
+	if (_rotatedRect.top() > minY)
 	{
 		DrawableItem::Translate(dr, minY);
+		_rotatedRect.moveTo(_rotatedRect.topLeft() + dr);
 		rect.moveTo(rect.topLeft() + dr);
 	}
 }
 
 /*=============================================================
  * TASK:	rotates this rectangle in an enclosing rectangle
- * PARAMS:	rot - rotation Do not use 'rotAlpha' here
+ * PARAMS:	rot - rotation Do not use 'MyRotation::rotAngle' here
  *			inThisRectangle - rotate around the center of this
  *			rectangle
  *			alpha - must not be used
@@ -791,33 +718,36 @@ void DrawableRectangle::Translate(QPointF dr, qreal minY)             // only if
  * REMARKS: - to rotate an ellipse by an angle 'alpha'
  *				create a new DrawableScribble from this and rotate that
  *------------------------------------------------------------*/
-void DrawableRectangle::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)     // alpha used only for 'rotAlpha'
+void DrawableRectangle::Rotate(MyRotation arot, QRectF &inThisRectangle)     // alpha used only for 'MyRotation::rotAngle'
 {
-	QPointF c = _RotateCommon(rot, inThisRectangle, alpha);
-	if (c.x() < 0)
+	QPointF c = _RotateCommon(arot, inThisRectangle);
+	if (c.x() < 0)	// can't  rotate
 		return;
 
-	rect.translate(-c);
-	if (rot == rotFlipH)
+	if (!arot.IsRotation() || (arot.IsSimpleRotation() && rot.IsSimpleRotation()) )
 	{
-		qreal w = rect.width();
-		rect.setX(-rect.right());	// top left is replaced by original top right
-		rect.setWidth(w);
-	}
-	else if (rot == rotFlipV)
-	{
-		qreal h = rect.height();
-		rect.setY(-rect.bottom());
-		rect.setHeight(h);
+		arot.RotateRect(_rotatedRect, inThisRectangle, true);
 	}
 	else
 	{
-		QTransform tr;
-		tr.rotate(alpha);
-		rect = tr.map(rect).boundingRect();
+		if (_points.isEmpty())
+			_ToPolygonF();
+		arot.RotatePoly(_points, inThisRectangle, penWidth, true);
+		_rotatedRect = _points.boundingRect();
 	}
-	rect.translate(c);
-	startPos = rect.topLeft();
+
+	rot.AddRotation(arot);
+	startPos = _rotatedRect.topLeft();
+
+	if (rot.IsSimpleRotation())
+	{
+		_points.clear();
+		if (abs(rot.angle) == 90)
+			rect = rect.transposed();
+		rect.moveTo(startPos);
+		_rotatedRect = rect;		// remove any rounding errors
+		rot = 0.0;
+	}
 }
 
 
@@ -829,7 +759,10 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 		if (isFilled)
 			c = PenColor();
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
-		painter->drawRect(rect.translated(-topLeftOfVisibleArea));
+		if(rot.IsSimpleRotation())
+			painter->drawRect(_rotatedRect.translated(-topLeftOfVisibleArea));
+		else   // rotation is arbitrary and not a multiple of 90 degrees and not a flip
+			painter->drawPolygon(_points); // '_points' and '_rotatedRect' already rotated
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
@@ -844,6 +777,12 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di) // Drawab
 QDataStream& operator>>(QDataStream& ifs, DrawableRectangle& di)		  // call AFTER header is read in
 {
 	ifs >> di.rect >> di.isFilled;
+	// rectangle always stored as having axes parallel to the coord axes
+	// but even when not we must set the _rotatedRectangle in it
+	MyRotation arot = di.rot;
+	di.rot = MyRotation();		// no rotation, clear
+	QRectF rect = di.Area();
+	di.Rotate(di.rot, rect);
 	return ifs;
 }
 
@@ -861,7 +800,7 @@ void DrawableScreenShot::AddImage(QPixmap& animage)
 
 QRectF DrawableScreenShot::Area() const
 {
-	return QRectF(startPos, image.size());
+	return QRectF(startPos, Image().size());
 }
 
 QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
@@ -869,33 +808,46 @@ QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
 	return Area().intersected(canvasRect);
 }
 
-void DrawableScreenShot::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)
+void DrawableScreenShot::Rotate(MyRotation arot, QRectF &inThisRectangle)
 {
-	QRectF rect = Area();
-	alpha = RotationAlpha(rot, alpha);
-	if (!RotateRect(rot, rect, inThisRectangle, alpha))
+	QPointF c;
+	if (!arot.IsRotation() || (c = _RotateCommon(arot, inThisRectangle)).x() < 0)
+	{
+		_rotatedImage = QPixmap();
 		return;
+	}
+
+	QRectF rect = Area();
+	arot.RotateRect(rect, inThisRectangle, false);
+
 	startPos = rect.topLeft();
-	QPointF c = inThisRectangle.center();
-	_RotateErasers(rot, inThisRectangle, alpha);
 
 	QTransform transform;
-	transform.rotate(alpha);
+	transform.rotate(arot.angle);
 	QImage img;
 	bool fliph = false, flipv = true;	// default flip orientations
-	switch (rot)
+	if (rot.ResultsInNoRotation(arot, true))
 	{
-		case rotFlipH:
-			fliph = true;
-			flipv = false;		// NO break here!
-		case rotFlipV:
-			img = image.toImage();
-			img = img.mirrored(fliph, flipv);
-			image = image.fromImage(img);
-			break;
-		default:
-			image = image.transformed(transform, Qt::SmoothTransformation);
-			break;
+		rect = QRectF(startPos, image.size());
+		_rotatedImage = QPixmap();
+	}
+	else
+	{
+		switch (rot.rotType)
+		{
+			case MyRotation::rotFlipH:
+				fliph = true;
+				flipv = false;		// NO break here!
+			case MyRotation::rotFlipV:
+				img = image.toImage();
+				img = img.mirrored(fliph, flipv);
+				_rotatedImage = image.fromImage(img);
+				break;
+			default:
+				_rotatedImage = image.transformed(transform, Qt::SmoothTransformation);
+				break;
+		}
+		rot.AddRotation(arot);
 	}
 }
 
@@ -922,6 +874,14 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableScreenShot& bimg) // Dra
 QDataStream& operator>>(QDataStream& ifs, DrawableScreenShot& bimg)	  // call AFTER header is read in
 {
 	ifs >> bimg.image;
+	if (abs(bimg.rot.angle) < eps)
+		bimg.rot.rotType = MyRotation::rotNone;
+
+	MyRotation arot = bimg.rot;
+	bimg.rot = MyRotation();
+	QRectF rect = bimg.Area();
+	bimg.Rotate(arot, rect);
+
 	return ifs;
 }
 
@@ -969,10 +929,15 @@ bool DrawableScribble::IsExtension(const QPointF& p, const QPointF& p1, const QP
 	QPointF vp = p - p1,  // not (0, 0)
 		vpp = p1 - p2;
 
+	// DEBUG
+//	bool eq =(EqZero(vpp.y() * vp.x() - vp.y() * vpp.x()) && ((!EqZero(vp.x() - vpp.x()) && vp.x() * vpp.x() > 0) || (!EqZero(vp.y() - vpp.y()) && vp.y() * vpp.y() > 0)));
+	// end DEBUG
+
 	// the two vectors point in the same direction when vpp.y()/vpp.x() == vp.y()/vp.x()
 	// and both delta has the same sign. (turning back is not an extension)
 	// i.e to avoid checking for zeros in divison: 
-	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && ((vp.x() != vpp.x() && vp.x() * vpp.x() > 0) || (vp.y() != vpp.y() && vp.y() * vpp.y() > 0));
+//	return (vpp.y() * vp.x() == vp.y() * vpp.x()) && ((vp.x() != vpp.x() && vp.x() * vpp.x() > 0) || (vp.y() != vpp.y() && vp.y() * vpp.y() > 0));
+	return (EqZero(vpp.y() * vp.x() - vp.y() * vpp.x()) && ((!EqZero(vp.x() - vpp.x()) && vp.x() * vpp.x() > 0) || (!EqZero(vp.y() - vpp.y()) && vp.y() * vpp.y() > 0)) );
 }
 
 QPointF DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use smoothed = true when drawing by hand
@@ -980,14 +945,13 @@ QPointF DrawableScribble::Add(QPointF p, bool smoothed, bool reset)	// only use 
 	static Smoother<QPointF, qreal, 200> smoother;					// Use reset when new drawing starts
 	if (reset)
 	{
-		smoother.Reset();
 		points.clear();
 		if (p == QPoint(-1, -1))
 			return p;
 	}
 
 	if (smoothed && bSmoothDebug)
-		p = smoother.AddPoint(p);
+		p = smoother.AddPoint(p, points);
 
 	int n = points.size() - 1;
 
@@ -1029,33 +993,19 @@ void DrawableScribble::Translate(QPointF dr, qreal  minY)
 
 }
 
-void DrawableScribble::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alpha)	// rotate around the center of encRect
+void DrawableScribble::Rotate(MyRotation arot, QRectF &inThisRectangle)	// rotate around the center of 'inThisRectangle'
 {
+	if (!arot.IsRotation())
+		return;
+
 #if 1
-	QPointF c = _RotateCommon(rot, inThisRectangle, alpha);
+	QPointF c = _RotateCommon(arot, inThisRectangle);
 	if (c.x() < 0)
 		return;
 
-	points.translate(-c);
+	arot.RotatePoly(points, inThisRectangle, penWidth);
+	rot.AddRotation(arot);
 
-	if (rot == rotFlipH)
-	{
-		for (auto& pt : points)
-			pt.setX(-pt.x());
-	}
-	else if (rot == rotFlipV)
-	{
-		for (auto& pt : points)
-			pt.setY(-pt.y());
-	}
-	else
-	{
-		QTransform tr;
-		tr.rotate(alpha);
-		points = tr.map(points);
-	}
-
-	points.translate(c);
 #else
 	int erx = encRect.x(), ery = encRect.y(),
 		erw = encRect.width(),
@@ -1068,9 +1018,9 @@ void DrawableScribble::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alp
 
 // if h >= w d+ = erh else d+ = erw
 // if h >= w d- = erw else d- = erh
-// if rotR90  -> x' = erx + ery + (d+) - y,	y' = ery - erx + x
-// if rotL90  -> x' = erx - ery + y,		y' = erx + ery + (d-) - x
-// rot180     -> x' = 2*erx + erw - x,		y' = 2*ery + erh - y
+// if MyRotation::rotR90  -> x' = erx + ery + (d+) - y,	y' = ery - erx + x
+// if MyRotation::rotL90  -> x' = erx - ery + y,		y' = erx + ery + (d-) - x
+// MyRotation::rot180     -> x' = 2*erx + erw - x,		y' = 2*ery + erh - y
 
 	int x, y, d;
 	int A = erx + ery,
@@ -1110,17 +1060,17 @@ void DrawableScribble::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alp
 
 	switch (rot)
 	{
-		case rotR90:
+		case MyRotation::rotR90:
 			for (QPointF& p : points)
 				RotR90(p);
 			RotRectR90(bndRect);
 			break;
-		case rotL90:
+		case MyRotation::rotL90:
 			for (QPointF& p : points)
 				RotL90(p);
 			RotRectL90(bndRect);
 			break;
-		case rot180:
+		case MyRotation::rot180:
 			for (QPointF& p : points)
 			{
 				x = 2 * erx + erw - p.x();
@@ -1128,12 +1078,12 @@ void DrawableScribble::Rotate(MyRotation rot, QRectF &inThisRectangle, qreal alp
 				p.setX(x), p.setY(y);
 			}
 			break;
-		case rotFlipH:
+		case MyRotation::rotFlipH:
 			for (QPointF& p : points)
 				p.setX(erw + 2 * erx - p.x());
 			bndRect = QRectF(erw + 2 * erx - rx - rw, ry, rw, rh);		  // new item x: original top righ (rx + rw)
 			break;
-		case rotFlipV:
+		case MyRotation::rotFlipV:
 			for (QPointF& p : points)
 				p.setY(erh - p.y() + 2 * ery);
 			bndRect = QRectF(rx, erh + 2 * ery - ry - rh, rw, rh);		  // new item x: original bottom left (ry + rh)
@@ -1280,4 +1230,9 @@ void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-i
 	}
 
 	_pQTree->Resize(_pQTree->Area());
+}
+//*******************************************
+void MyRotation::CantRotateWarning()
+{
+		QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
 }

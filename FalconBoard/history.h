@@ -19,6 +19,7 @@ struct HistoryItem      // base class
     DrawableList* pDrawables = nullptr;         // to pHist's _drawables
 
     HistoryItem(History* pHist, HistEvent typ = HistEvent::heNone);
+    HistoryItem(const HistoryItem &other);
     virtual ~HistoryItem() {}
 
     virtual int ZOrder() const { return 0; }
@@ -33,7 +34,7 @@ struct HistoryItem      // base class
 
     virtual bool Translatable() const { return false;  }
     virtual void Translate(QPointF p, int minY) { } // translates if top is >= minY
-    virtual void Rotate(MyRotation rot, QRectF encRect, float alpha=0.0) { ; }      // rotation or flip
+    virtual void Rotate(MyRotation rot, QRectF encRect) { ; }      // rotation or flip
     virtual int Size() const { return 0; }         // size of stored scribbles or erases
     virtual void SetVisibility(bool visible) { }
 
@@ -87,7 +88,7 @@ struct HistoryDrawableItem : public HistoryItem
 
     bool Translatable() const override { return _Drawable()->isVisible; }
     void Translate(QPointF p, int minY) override; // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF encRect, float alpha=0.0) override;
+    void Rotate(MyRotation rot, QRectF encRect) override;
     // no new undo/redo needed
     bool IsImage() const override { return _Drawable()->dtType == DrawableType::dtScreenShot ? true: false; }
     void Draw(QPainter* painter, QPointF& topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override
@@ -108,7 +109,6 @@ private:
             //      HistoryDeleteItems
             //--------------------------------------------
 
-
 //--------------------------------------------
 struct HistoryDeleteItems : public HistoryItem
 {
@@ -127,27 +127,45 @@ struct HistoryDeleteItems : public HistoryItem
             //--------------------------------------------
 
 //--------------------------------------------
-// remove an empty rectangular region 
-//  before creating this item collect all items to
-//  the left and right of this rectangle into two
-//  lists: 'left' and 'right' then
+// remove a rectangular region (RR)
+//  There may be items whose area overlaps or fully
+//  inside the horizontal band (HB) determined by the top 
+//  and bottom of this region or overlaps or fully inside
+//  this rectangle.
 // 
-//  if 'right' is not empty moves them to the left
-//      by the width of the rectangle
-//  if 'right' is empty and 'left' is not do nothing
-//  if both 'right' and 'left' are empty
-//      move all items below the rectangle up by the
-//      height of the rectangle
+// 1. no item's area overlaps this HB 
+//      => move all items which are below HB 
+//          up by the height of RR
+// 2.  no items inside this HB, but there are overlaps
+//      => find lowest y coordinate for overlapping items and
+//          change the height of RR just above it then apply 1.
+// 3.  no items overlap or inside RR, and none overlaps HB partially, 
+//          but there are items to the right of RR inside HB
+//      => move items at the right to the left by the width of RR
+//          and store their indices for undo
+// 4.  no item overlaps or inside RR, but there are items inside
+//          and overlapping HB
+//      =>  find lowest y coordinate for overlapping items and
+//          change the height of RR and HB just above it then
+//          apply 3.
+// 5.   there are items overlapping or inside HB but only at
+//          left of RR
+//      => do nothing (maybe warn)
+// 
 struct HistoryRemoveSpaceItem : public HistoryItem // using _selectedRect
 {
-    DrawableIndexVector modifiedList; // elements to be moved horizontally (elements on the right)
-                                  // if empty move all below y up
-    int delta;              // translate with this amount left OR up
-    int y;                  // topmost coordinate to remove space from
+    DrawableIndexVector lstItemsRight;  // items to be moved horizontally (elements on the right)
+                                        // if empty move all below y up
+    //??? DrawableIndexVector lstPartial;     // items above HB but partially overlapping it
+    //                                    // usid in UNDO: do not move items on this list
+    QRectF rr;                          // RR and determines HB
+                  // translate by rr.width() to the left (lstItemsRight) not empty
+                  // OR up by rr.height() when lstItemsRight is empty
+                  // topmost coordinate to remove space from is rr.bottom()
 
     int Undo() override;
     int Redo() override;
-    HistoryRemoveSpaceItem(History* pHist, DrawableIndexVector&toModify, int distance, int y);
+    HistoryRemoveSpaceItem(History* pHist, DrawableIndexVector&toModify, QRectF rr);
     HistoryRemoveSpaceItem(const HistoryRemoveSpaceItem& other);
     HistoryRemoveSpaceItem& operator=(const HistoryRemoveSpaceItem& other);
     HistoryRemoveSpaceItem(HistoryRemoveSpaceItem&& other) noexcept;
@@ -205,7 +223,7 @@ struct HistoryPasteItemTop : public HistoryItem
     void SetVisibility(bool visible) override; // for all elements 
     bool Translatable() const override { return IsVisible(); }
     void Translate(QPointF p, int minY) override;    // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF encRect, float alpha=0.0) override;
+    void Rotate(MyRotation rot, QRectF encRect) override;
 
     QPointF TopLeft() const override { return boundingRect.topLeft(); }
     QRectF Area() const override;
@@ -259,13 +277,10 @@ struct HistoryInsertVertSpace : public HistoryItem
 struct HistoryRotationItem : public HistoryItem
 {
     MyRotation rot;
-    bool flipH = false;
-    bool flipV = false;
-    float rAlpha = 0.0;
     DrawableIndexVector driSelectedDrawables;
     QRectF encRect;         // encompassing rectangle: before rotation all items are inside this
                             // after rotation they are usually not 
-    HistoryRotationItem(History* pHist, MyRotation rotation, QRectF rect, DrawableIndexVector selList, float alpha=0.0);
+    HistoryRotationItem(History* pHist, MyRotation rotation, QRectF rect, DrawableIndexVector selList);
     HistoryRotationItem(const HistoryRotationItem& other);
     HistoryRotationItem& operator=(const HistoryRotationItem& other);
     int Undo() override;
@@ -530,13 +545,13 @@ public:
     HistoryItem* AddPastedItems(QPointF topLeft, Sprite *pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
     HistoryItem* AddRecolor(FalconPenKind pk);
     HistoryItem* AddInsertVertSpace(int y, int heightInPixels);       // height < 0: delete space
-    HistoryItem* AddRotationItem(MyRotation rot, qreal alpha=0.0);
+    HistoryItem* AddRotationItem(MyRotation rot);
     HistoryItem* AddRemoveSpaceItem(QRectF &rect);
     HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
     HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
     // --------------------- drawing -----------------------------------
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
-    void Rotate(int drawableIndex, MyRotation withRotation, QRectF insideThisRect, qreal rAlpha);
+    void Rotate(int drawableIndex, MyRotation withRotation, QRectF insideThisRect);
     void InserVertSpace(int y, int heightInPixels);
 
     HistoryItem* Undo();        // returns top item after undo or nullptr
@@ -547,7 +562,7 @@ public:
     void AddToSelection(int drawableIndex, bool clearSelections = false);
     QRectF SelectDrawablesUnder(QPointF& p, bool addToPrevious);      // selects clicked (if any) into _driSelectedDrawables, and clears right and left items list
     int /*DrawableItemIndex*/ SelectTopmostImageUnder(QPointF p);
-    int CollectDrawablesInside(QRectF rect, bool doNotShrinkSelectionRectangle);
+    int CollectDrawablesInside(QRectF rect);
     void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
                                                              // do the same with images
     void SetSelectionRect(QRectF& rect)
@@ -557,6 +572,7 @@ public:
     QRectF SelectionRect() const { return _selectionRect; }
 
     void CollectPasted(const QRectF &rect);   // if items pasted copies their drawable indices into '_driSelectedDrawables'
+    void CollectDeleted(HistoryDeleteItems* phd);   // used when a sprite paste is undone
 
     const QRectF BoundingRect() const { return _selectionRect; }
     const DrawableIndexVector& Selected() const { return _driSelectedDrawables;  }

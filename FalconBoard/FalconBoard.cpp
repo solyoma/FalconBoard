@@ -16,9 +16,13 @@ QSize FalconBoard::screenSize;
 
 QString UNTITLED;                               // stored here, defined in  common.h
 
-    // these two must be stored somewhere
+    // these must be stored somewhere I store them here
 QString FBSettings::homePath;
 QSettings* FBSettings::_ps = nullptr;
+
+QString FB_WARNING = QMainWindow::tr("falconBoard - Warning"),
+        FB_ERROR   = QMainWindow::tr("falconBoard - Error");
+
 
 
 int nUntitledOrder = 1;
@@ -797,12 +801,14 @@ void FalconBoard::_SetResetChangedMark(int index)
 {   
     if(index < 0)
         index = _pTabs->currentIndex();
-    constexpr QChar mark = QChar(0x2757);    // red exclamation point
     QString text = _pTabs->tabText(index);
-    if (text.right(1) == mark)
-        text.remove(mark, Qt::CaseInsensitive);
+    int n = text.length() - 1;
+
+    if (text[n] == CHANGE_MARKER_CHAR)
+        text.remove(--n, 2);
+
     if (_drawArea->IsModified(index))
-        text = text + QChar(0x2757);
+        text = text + QChar(' ') + CHANGE_MARKER_CHAR;
     _pTabs->setTabText(index, text);
 }
 
@@ -820,7 +826,7 @@ void FalconBoard::_SetTabText(int index, QString fname)
     _pTabs->setTabToolTip(index, fname);
     QString text = _FileNameToTabText(fname);
     if (_drawArea->IsModified(index))
-        text = text + QChar(0x2757);
+        text = text + QChar(' ') + CHANGE_MARKER_CHAR;
     _pTabs->setTabText(index, text);
 }
 
@@ -1234,13 +1240,13 @@ void FalconBoard::_LoadFiles(QStringList names)
         int nLimit = MAX_NUMBER_OF_TABS - (_pTabs->count() - (IsOverwritable() ? 1 : 0));
         if (_pTabs->count() == MAX_NUMBER_OF_TABS)
         {
-            QMessageBox::warning(this, tr("FalconBoard - Warning"),
+            QMessageBox::warning(this, FB_WARNING,
                                        tr("Maximum number of files reached, no new files can be loaded."));
             return;
         }
         else if (_pTabs->count() + names.size() > MAX_NUMBER_OF_TABS)
         {
-            QMessageBox::warning(this, tr("FalconBoard - Warning"),
+            QMessageBox::warning(this, FB_WARNING,
                 QString(tr("Possibly too many files! \nOnly the first %1 valid, and not already loaded files will be loaded.").arg(nLimit)));
             return;
         }
@@ -1388,7 +1394,7 @@ void FalconBoard::_sa_actionLanguage_triggered(int which)
     // TODO: language change w.o. restart
     if (which != _actLanguage)
     {
-        QMessageBox::warning(this, tr("FalconBoard - Warning"), QString(tr("Please restart the program to change the language!")).arg(which));
+        QMessageBox::warning(this, FB_WARNING, QString(tr("Please restart the program to change the language!")).arg(which));
         _actLanguage = which;
     }
 }
@@ -1418,6 +1424,10 @@ void FalconBoard::on_actionSave_triggered()
 void FalconBoard::on_actionSaveAs_triggered() // current tab
 {
     QString fname = _pTabs->tabText(_pTabs->currentIndex());//    _drawArea->HistoryName(UNTITLED);
+    int n = fname.length() - 1;
+    if (fname.at(1) == CHANGE_MARKER_CHAR)
+        fname.remove(--n, 2);
+
     //if (fname.isEmpty())
     //    fname = _NextUntitledName();
     QString initialPath = _lastDir + fname; 

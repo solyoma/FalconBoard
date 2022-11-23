@@ -103,28 +103,40 @@ class Smoother
     {
         double alpha;
         T _prevAver;
-        int _useCnt = 0;
     public:
         Exponenter()
         {
             alpha = wwidth / 1000.0;
         }
-        void Reset()
+        T Average(T& newData, QVector<T>&points)
         {
-            _useCnt = 0;
-        }
-        T Average(T& newData)
-        {
-            if (_useCnt < 5)    // so a dot, a 2 point line or a 4 points rectangle does not get smoothed
-            {
-                ++_useCnt;
-                return _prevAver = newData;
-            }
+            int n = points.size(); // may be less than 5 (e.g. horizontal line), but never more
+            if (n < 5)    // so a dot, a 2 point line or a 4 points rectangle does not get smoothed
+                _prevAver = newData;
             else
             {
-                T tmp = _prevAver;
-                _prevAver = alpha * newData + (1 - alpha) * tmp;
-                return _prevAver;
+                // DEBUG
+                //if (points.size() == 10)
+                //{
+                //    qDebug("_______________________");
+                //    int n = -1;
+                //    for (auto pt : points)
+                //        qDebug("%d. (%6.2f, %6.2f)", ++n, pt.x(), pt.y());
+                //}
+                // end DEBUG
+
+                _prevAver = alpha * newData + (1 - alpha) * _prevAver;
+            }
+            return _prevAver;
+        }
+        void SmoothUnsmoothed(QVector<T>& points) // first 4 points smoothed (how to do it backwards?)
+        {
+            int n = points.size(); 
+            if (n > 4)
+            {
+                for (int i = 1; i < 5; ++i)
+                    points[i] = alpha * points[i] + (1 - alpha) * points[i - 1];
+                points[i-1]=(points[i]*)
             }
         }
     };
@@ -133,15 +145,10 @@ class Smoother
 public:
     Smoother()  {}
     ~Smoother() {}
-    T AddPoint(T p) // returns smoothed point when Fifo is full
+    T AddPoint(T p, QVector<T> &pOrigD) // returns smoothed point when Fifo is full
     {               // else the average of all points
-        return _averager.Average(p);
+        return _averager.Average(p, pOrigD);
     }
-    void Reset() 
-    { 
-        _averager.Reset();
-    }
-
 };
 
 #endif

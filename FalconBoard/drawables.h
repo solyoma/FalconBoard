@@ -32,19 +32,21 @@ enum class HistEvent {
     heNone,
     heDrawable,             // these can be saved on disk, when they are visible
         // these are not saved
-    heRecolor,         // save old color, set new color
-    heItemsDeleted,         // store the list of items deleted in this event
-    heSpaceDeleted,         // empty space is deleted
-    heVertSpace,            // insert vertical space
-    heClearCanvas,          // visible image erased
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
+    heClearCanvas,          // visible image erased
+    heEraserStroke,         // eraser stroke added
+    heItemsDeleted,         // store the list of items deleted in this event
     heItemsPastedBottom,// list of draw events added first drawn item is at index 'drawableItem'
     heItemsPastedTop,    // list of draw events added first drawn item is at index 'drawableItem'
                         // last one is at index 'lastScribbleIndex'
                         // Undo: set _indexLastScribbleItem to that given in previous history item
                         // Redo: set _indexLastScribbleItem to 'lastScribbleIndex'
-    hePenWidthChange        // change pen widths for all drawables selected
+    heRecolor,              // save old color, set new color
+    heRotation,             // items rotated
+    hePenWidthChange,        // change pen widths for all drawables selected
+    heSpaceDeleted,         // empty space is deleted
+    heVertSpace,            // insert vertical space
                 };
 
 enum class DrawableType {
@@ -63,10 +65,6 @@ enum ScribbleSubType { sstScribble,     // any number
                        sstLine,         // only two points
                        sstQuadrangle     // 4 points, where the last and first are equal
                      };    
-enum MyRotation { rotNone, 
-                  rotR90, rotL90, rot180, rotFlipH, rotFlipV,     // these leave the top left corner in place
-                  rotAlpha                                        // alpha: around the center of the bounding box, increases counterclockwise
-                };
 enum MyLayer { 
                 mlyBackgroundImage,         // lowest layer: background image
                 mlyScreenShot,              // screenshot layer: may write over it
@@ -84,8 +82,8 @@ QRectF QuadAreaToArea(const QuadArea& qarea);
 QuadArea AreaForItem(const int& i);
 bool IsItemsEqual(const int& i1, const int& i2);
 QuadArea AreaForQRect(QRectF rect);
-qreal RotationAlpha(MyRotation rot, qreal alpha = 0.0);
-bool RotateRect(MyRotation rot, QRectF &rect, QRectF inThisRect, qreal alphaInDegrees = 0.0);   // bounding rectangle: false: cant't rotate
+//??? qreal RotationAlpha(MyRotation::Type rot);
+//??? bool RotateRect(MyRotation::Type rot, QRectF &rect, QRectF inThisRect, qreal alphaInDegrees = 0.0);   // bounding rectangle: false: cant't rotate
 
 static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'point'
 {
@@ -106,10 +104,9 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
         discr = SQR(r) * dr2 - SQR(D),
         pdr2 = 1 / dr2;
 
-    const qreal eps = 1e-3;
     if (discr < 0)   // then the line does not intersect the circle
         return false;
-	else if (discr < eps)  // floating point, no abs. 0 test
+	else if (EqZero(discr) )  // floating point, no abs. 0 test
 	{                       // tangent line. Check tangent point.
 		qreal xm = (D * dy) * pdr2,
 			ym = -(D * dx) * pdr2;
@@ -136,7 +133,7 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
         // If the points are ordered by their x or y coordinates
         // for intersection the order of points on the line must be 
         // p1 -> ip1 -> ip2 -> p2         
-        if(abs(p2.y() - p1.y()) < eps)      // vertical line
+        if(EqZero(abs(p2.y() - p1.y()) ) )      // vertical line
         {
             // order points by y coordinate
             if (p1.y() > p2.y())
@@ -158,10 +155,287 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
 #undef DIST2
 };
 
+            //----------------------------------------------------
+            // ------------------- MyRotation::Type -------------
+            //----------------------------------------------------
+struct MyRotation
+{
+    enum Type {
+        rotNone,
+        rotR90, rotL90, rot180, rotFlipH, rotFlipV,     // these leave the top left corner in place
+        rotAngle                                        // alpha: around the center of the bounding box, increases counterclockwise
+    };
+    Type rotType = rotNone; // only used for testing and for flips In all other cases alpha is enough
+    qreal angle = 0.0;      // (in degrees) rotate by this (absolute for ellipse and rectangle) relative to prev. state to others
 
+    constexpr MyRotation& operator=(Type typ)
+    {
+        rotType = typ;
+        angle = AngleForType(typ);
+        return *this;
+    }
+    constexpr MyRotation& operator=(qreal anAngle)
+    {
+        angle = anAngle;
+        rotType = TypeForAngle(anAngle);
+        return *this;
+    }
+
+    static constexpr qreal AngleForType(Type myrot)
+    {
+        qreal alpha = 0.0;
+        switch (myrot)
+        {
+            case rotAngle:
+                break;
+            case rotL90: alpha = -90; break;	// top left -> bottom left
+            case rotR90: alpha =  90; break;
+            case rot180: alpha = 180; break;
+            default:                        // for no rotation and flips
+                break;
+        }
+        return alpha;
+    }
+    static constexpr Type TypeForAngle(qreal angle)
+    {
+        if (!angle)
+            return rotNone;
+        if (angle == 90.0)
+            return rotR90;
+        if (angle == -90.0 || angle == 270.0)
+            return rotL90;
+        if (angle == -180.0 || angle == 180.0)
+            return rot180;
+        return rotAngle;
+    }
+    static constexpr inline bool IsRotation(Type rotType)
+    {
+        return (rotType != rotFlipH && rotType != rotFlipV); // rotNone is rotatiof of angle = 0
+
+    }
+    inline constexpr bool IsRotation()
+    {
+        return IsRotation(rotType);
+    }
+    static qreal AddAngles(qreal angle1, qreal angle2)
+    {
+        if (abs(angle2) > eps)
+        {
+            angle1 += angle2;
+            angle1 = fmod(angle1, 360);
+            if (abs(angle1) < eps)               // then set rotation to 0
+                angle1 = 0.0;
+        }
+        return angle1;
+    }
+    static constexpr Type AddTypes (Type t1, Type t2)    // t2 comes later and must not be rotNone
+    {
+        if (!IsRotation(t1) && !IsRotation(t2))
+        {
+            if (t1 == t2)
+                return rotNone;
+        }
+        return t2;
+    }
+    constexpr void NormalizeRotation()  // abs(angle) < 360.0
+    {
+        if (!IsRotation())
+        {
+            angle = 0.0;
+            return;
+        }
+
+        if ((angle > 0 && angle < eps) || (angle < 0 && -angle < eps))
+        {
+            angle = 0.0;
+            rotType = rotNone;
+        }
+        else if (angle == 90.0)
+            rotType = rotR90;
+        else if (angle == 180.0 || angle == -180.0)
+        {
+            angle = 180.0;
+            rotType = rot180;
+        }
+        else if (angle == -90 || angle == 270)
+        {
+            angle = -90;
+            rotType = rotL90;
+        }
+        else
+            rotType = rotAngle;
+    }
+    static MyRotation AddRotations(MyRotation rot1, MyRotation rot2)
+    {
+        if (rot2.IsRotation())
+        {
+            rot1.angle = AddAngles(rot1.angle, rot2.angle);
+            rot1.NormalizeRotation();
+        }
+        else
+        {
+            rot1.rotType = AddTypes(rot1.rotType, rot2.rotType);
+            if (!rot1.IsRotation())
+                rot1.angle = 0.0;   // type is already rotNone
+        }
+        return rot1;
+    }
+    static bool IsSimpleRotation(qreal anAngle)
+    {
+        return abs(fmod(anAngle, 90.0)) < eps;
+    }
+
+    bool IsSimpleRotation() 
+    { 
+        return IsRotation() && IsSimpleRotation(angle); 
+    }
+
+    constexpr void InvertRotation()
+    {
+        angle = -angle;
+    }
+    bool ResultsInNoRotation(MyRotation &arot, bool markIfNoRotation = false)    // returns true if it is a no-rotation state
+    {
+        if( !AddRotations(*this, arot).IsRotation())
+        {
+            if (markIfNoRotation)
+            {
+                angle = 0;
+                rotType = rotNone;
+            }
+            return true;
+        }
+        return false;
+    }
+    MyRotation AddRotation(MyRotation rot2)
+    {
+        *this = AddRotations(*this, rot2);
+        return *this;
+    }
+    bool RotateRect(QRectF& rect, QRectF inThisRect, bool noCheck = false)  // assumes outer edge of rectangle is inside inThisRect
+    {
+        QPointF c = inThisRect.center();
+        if (!IsRotation() || rotType == rot180)
+        {
+            QRectF r = rect;
+            r = r.translated(-c);
+            switch (rotType)
+            {
+                case rotFlipH: 
+                {
+                    qreal w = r.width();
+                    r.setX(-r.right());	// top left is replaced by original top right
+                    r.setWidth(w);
+                }
+                break;
+                case rotFlipV:
+                {
+                    qreal h = r.height();
+                    r.setY(-r.bottom());
+                    r.setHeight(h);
+                }
+                break;
+                default:
+                    break;
+            }
+            r = r.translated(c);
+            bool b = r.left() >= 0 && r.top() >= 0;
+            if (b)
+                rect = r;
+            return noCheck || b;
+        }
+        else 
+        {
+
+            QTransform tr;
+            tr.rotate(angle);
+
+            auto __RotR = [&](QRectF& r)
+            {
+                r = r.translated(-c);
+                r = tr.map(r).boundingRect();
+                r = r.translated(c);
+            };
+
+            if (!noCheck)
+            {
+                QRectF r = inThisRect;
+                __RotR(r);
+
+                if (r.top() < 0 || r.left() < 0)
+                {
+                    CantRotateWarning();
+                    return false;
+                }
+            }
+            __RotR(rect);
+            return true;
+        }
+    }
+    bool RotatePoly(QPolygonF& points, QRectF inThisRect, qreal lineWidth, bool noCheck = false)
+    {
+        qreal w = lineWidth / 2;
+        QRectF bndRect = points.boundingRect().adjusted(-w,-w,w,w);
+        if (noCheck || RotateRect(bndRect, inThisRect)) // must or could rotate
+        {
+            QPointF c = inThisRect.center();
+            points.translate(-c);
+
+            if (rotType == rotFlipH)
+            {
+                for (auto& pt : points)
+                    pt.setX(-pt.x());
+            }
+            else if (rotType == rotFlipV)
+            {
+                for (auto& pt : points)
+                    pt.setY(-pt.y());
+            }
+            else
+            {
+                QTransform tr;
+                tr.rotate(angle);
+                points = tr.map(points);
+            }
+            points.translate(c);
+
+            return true;
+        }
+        return false;
+    }
+    bool RotateSinglePoint(QPointF &pt, QRectF inThisRect, bool noCheck = false)
+    {
+        QPointF p = pt, c = inThisRect.center();
+        p -= c;
+        if (rotType == MyRotation::rotFlipH)
+        {
+            p.setX(-p.x());
+        }
+        else if (rotType == MyRotation::rotFlipV)
+        {
+            p.setY(-p.y());
+        }
+        else
+        {
+            QTransform tr;
+            tr.rotate(angle);
+            p = tr.map(p);
+        }
+        p = p + c;
+        if (p.x() < 0 || p.y() < 0)	// can't rotate
+        {
+            CantRotateWarning();
+            return false;
+        }
+        pt = p;
+        return true;
+    }
+    void CantRotateWarning();
+};
             //----------------------------------------------------
             // ------------------- Drawable Pen -------------
             //----------------------------------------------------
+
 
 class DrawablePen
 {
@@ -212,8 +486,8 @@ struct DrawableItem : public DrawablePen
     DrawableType dtType = DrawableType::dtNone;
     QPointF startPos;       // position of first point relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
                             // DOES NOT always correspond to top left of area!
-    qreal angle = 0.0;      // rotate by this in degree
-    int   zOrder = 0;                                    // not saved. Drawables are saved from lowest zOrder to highest zOrder
+    MyRotation rot;         // used to store the actual state of the rotations and check if rotation is possible
+    int   zOrder = -1;      // not saved. Drawables are saved from lowest zOrder to highest zOrder
     bool  isVisible = true;                              // not saved
     // eraser strokes for a drawables. Oonly those parts of the eraser stroke that intersects the bounding rectangle of the
     // drawable plus an eraser pen width/2 wide margin are saved here. When drawing the drawable eraser strokes are
@@ -243,12 +517,6 @@ struct DrawableItem : public DrawablePen
 
     bool IsVisible() const { return isVisible; }
     bool IsImage() const { return dtType == DrawableType::dtScreenShot; }
-    virtual QPolygonF ToPolygonF() const
-    {
-        QPolygonF poly;
-        poly << startPos;
-        return poly;
-    }
     virtual bool IsFilled() const { return false; }
     virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is near the lines or for filled items: inside it
     {
@@ -267,8 +535,7 @@ struct DrawableItem : public DrawablePen
     }
     virtual void Translate(QPointF dr, qreal minY);            // only if not deleted and top is > minY. Override this only for scribbles
 
-    inline bool CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha = 0.0);
-    virtual void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha = 0.0);    // alpha used only for 'rotAlpha'
+    virtual void Rotate(MyRotation rot, QRectF &inThisrectangle);    // alpha used only for 'rotAngle'
     /*=============================================================
      * TASK: Function to override in all subclass
      * PARAMS:  painter              - existing painter
@@ -353,8 +620,8 @@ struct DrawableItem : public DrawablePen
         drawStarted = false;
     }
 protected:
-    void _RotateErasers(MyRotation rot, QRectF inThisrectangle, qreal alpha = 0.0);    // alpha used only for 'rotAlpha'
-    QPointF _RotateCommon(MyRotation rot, QRectF inThisrectangle, qreal &alpha); // returns center point of inThisRectangle
+    void _RotateErasers(QRectF inThisrectangle,MyRotation *prot=nullptr);    // with rotation in rot
+    QPointF _RotateCommon(MyRotation rot, QRectF inThisRectangle); // returns center point of inThisRectangle or QPoint(-1,-1) if rotation is not possible
 };
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di);
@@ -374,7 +641,8 @@ struct DrawableCross : public DrawableItem
     DrawableCross(QPointF pos, qreal len, int zorder, FalconPenKind penKind, qreal penWidth);
     DrawableCross(const DrawableCross& o) = default;
     ~DrawableCross() = default;
-    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
+    virtual MyRotation::Type RotationType() { return MyRotation::rotNone;  /* yet */ }
     QRectF Area() const override    // includes half of pen width+1 pixel
     { 
         qreal d = (length + penWidth) / sqrt(2.0);
@@ -382,18 +650,6 @@ struct DrawableCross : public DrawableItem
     }
     void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR = QRectF()) override;
     // in base class bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
-    QPolygonF ToPolygonF() const override
-    {
-        QPolygonF res;
-        QPointF dist(length / sqrt(2), length / sqrt(2));
-
-        res.append(startPos-dist);
-        res.append(startPos+dist);
-        res.append(startPos);
-        res.append(startPos+QPointF(dist.x(), -dist.y()) );
-        res.append(startPos+QPointF(-dist.x(), dist.y()) );
-        return res;
-    }
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableCross& di);  // call AFTER header is read in
@@ -427,7 +683,6 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableDot& di);  // call AFTER
 struct DrawableEllipse : public DrawableItem
 {
     QRectF rect;                // determines the two axes and the center of the ellipse
-    qreal angle = 0.0;          // angle if rotated by an angle which is not a multiple of 90 degrees and not a flip
     bool isFilled=false;        // whether closed polygon (ellipse or rectangle) is filled
 
     DrawableEllipse() : DrawableItem()
@@ -442,7 +697,7 @@ struct DrawableEllipse : public DrawableItem
     DrawableEllipse &operator=(DrawableEllipse&& o) noexcept;
 
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override // includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -456,12 +711,12 @@ struct DrawableEllipse : public DrawableItem
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellipse: inside it
     {
         QPointF center = rect.center();
-        // first rotate point by -angle if ellipse is rotated using rotAlpha
+        // first rotate point by -angle if ellipse is rotated using rotAngle
         // into the original (unrotated) ellipse based coord system
-        if (_rot == rotAlpha)
+        if (rot.rotType == MyRotation::rotAngle)
         {
             QTransform tr;
-            tr.rotate(-angle);
+            tr.rotate(-rot.angle);
 
             p = tr.map(p - center);
         }
@@ -485,15 +740,17 @@ struct DrawableEllipse : public DrawableItem
                 (distP2 <= distQ2 + distance * distance);
     }
     virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    QPolygonF ToPolygonF() const override
+private:
+    QPolygonF _points;       // used when rotated by not an angle not a multiple of 90 degrees or not a flip
+    QRectF _rotatedRect;         // used for Area(), same as 'rect' unless rotated
+
+    void _ToPolygonF()
     {
         QPainterPath myPath;
         myPath.addEllipse(rect);
-        return myPath.toFillPolygon();
+        _points = myPath.toFillPolygon();
+        _rotatedRect = _points.boundingRect();
     }
-private:
-    MyRotation _rot  = rotNone;
-    QRectF _rotatedRect;         // used for Area(), same as 'rect' unless rotated
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableEllipse& di);  // call AFTER header is read in
@@ -516,7 +773,7 @@ struct DrawableLine : public DrawableItem
     DrawableLine& operator=(const DrawableLine& ol);
     DrawableLine& operator=(const DrawableLine&& ol);
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha = 0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
         QRectF rect = QRectF(startPos, QSize((endPoint - startPos).x(), (endPoint - startPos).y()) ).normalized();
@@ -532,13 +789,6 @@ struct DrawableLine : public DrawableItem
         return __IsLineNearToPoint(startPos, endPoint, p, distance);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    QPolygonF ToPolygonF() const override
-    {
-        QPolygonF poly;
-        poly << startPos << endPoint;
-        return poly;
-    }
-
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableLine& di);  // call AFTER header is read in
@@ -564,11 +814,11 @@ struct DrawableRectangle : public DrawableItem
     DrawableRectangle& operator=(DrawableRectangle&& di) noexcept;
 
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
-    QRectF Area() const override// includes half od pen width+1 pixel
+    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
+    QRectF Area() const override// includes half of pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
-        return rect.adjusted(-d, -d, d, d);
+        return _rotatedRect.adjusted(-d, -d, d, d);
     }
     QPointF GetLastDrawnPoint() const override
     {
@@ -593,13 +843,15 @@ struct DrawableRectangle : public DrawableItem
         return !bDistanceTooLarge;
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    QPolygonF ToPolygonF() const override
+private:
+    QRectF _rotatedRect;         // used for Area(), same as 'rect' unless rotated
+    QPolygonF _points;
+    void _ToPolygonF()
     {
         QPainterPath myPath;
         myPath.addRect(rect);
-        return myPath.toFillPolygon();
+        _points = myPath.toFillPolygon();
     }
-
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableRectangle& di);  // call AFTER header is read in
@@ -625,20 +877,23 @@ struct DrawableScreenShot : public DrawableItem
 
     void AddImage(QPixmap& image);
 
-    const QPixmap& Image() const { return image; }
+    const QPixmap& Image() const { return _rotatedImage.isNull() ? image : _rotatedImage; }
 
     QRectF Area() const override;
     // canvasRect relative to paper (0,0)
     // result: relative to image
     // isNull() true when no intersection with canvasRect
     QRectF AreaOnCanvas(const QRectF& canvasRect) const;
-    void Rotate(MyRotation rot, QRectF &encRect, qreal alpha = 0.0);    // only used for 'rotAlpha'
+
+    void Rotate(MyRotation rot, QRectF &encRect);    // only used for 'rotAngle'
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is near the circumference or for filled ellpse: inside it
     {
         return Area().contains(p);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
     // QPolygonF ToPolygonF()  - default
+private:
+    QPixmap _rotatedImage;
 };
 
 QDataStream& operator<<(QDataStream& ofs, const  DrawableScreenShot& di);
@@ -691,7 +946,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 
 
     void Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
+    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override // includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -710,11 +965,6 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
         return false;
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    QPolygonF ToPolygonF() const override
-    {
-        return points;
-    }
-
 };
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableScribble& di);
@@ -761,7 +1011,7 @@ struct DrawableText : public DrawableItem
     void setFont(QString font) { fontAsString = font; }
 
 //    void Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
-//    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAlpha'
+//    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override { return QRectF();  /* TODO ??? */ }
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is near the circumference or for filled ellpse: inside it
     {
@@ -999,13 +1249,6 @@ public:
     }
 
     DrawableItemList* Items() { return &_items; }
-
-    bool CanRotate(MyRotation rot, QRectF enclosingRectangle, qreal alpha)
-    {
-        return RotateRect(rot, enclosingRectangle, enclosingRectangle, alpha);
-    }
-
-
 
     void ResetZorder()
     {
@@ -1363,9 +1606,9 @@ public:
         (*this)[index]->Translate(dr, minY);
 
     }
-    void RotateDrawable(int index, MyRotation rot, QRectF &inThisrectangle, qreal alpha = 0.0)    // alpha used only for 'rotAlpha'
+    void RotateDrawable(int index, MyRotation rot, QRectF &inThisrectangle)    // alpha used only for 'rotAngle'
     {
-        (*this)[index]->Rotate(rot, inThisrectangle, alpha);
+        (*this)[index]->Rotate(rot, inThisrectangle);
     }
     void VertShiftItemsBelow(int belowY, int deltaY);
 

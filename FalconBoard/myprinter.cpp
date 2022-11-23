@@ -615,7 +615,7 @@ bool MyPrinter::Print()
         }
         else          // selection
         {
-            QMessageBox::warning(nullptr, QObject::tr("falconBoard - Warning"), QObject::tr("This option is not yet implemented"));
+            QMessageBox::warning(nullptr, FB_WARNING, QObject::tr("This option is not yet implemented"));
             _FreeResources();
             return true;
         }

@@ -19,6 +19,10 @@ HistoryList historyList;       // many histories are possible
 
 HistoryItem::HistoryItem(History* pHist, HistEvent typ) : pHist(pHist), type(typ), pDrawables(pHist->Drawables()) {}
 
+HistoryItem::HistoryItem(const HistoryItem& other) : pHist(other.pHist), type(other.type), pDrawables(other.pDrawables)
+{
+}
+
 
 bool HistoryItem::operator<(const HistoryItem& other)
 {
@@ -65,13 +69,13 @@ HistoryDrawableItem::HistoryDrawableItem(History* pHist, DrawableItem* pdri) : H
 	indexOfDrawable = pHist->AddToDrawables(pdri);
 }
 
-HistoryDrawableItem::HistoryDrawableItem(const HistoryDrawableItem& other) : HistoryItem(other.pHist)
+HistoryDrawableItem::HistoryDrawableItem(const HistoryDrawableItem& other) : HistoryItem(other)
 {
-	*this = other;
+	indexOfDrawable = other.indexOfDrawable;
 }
-HistoryDrawableItem::HistoryDrawableItem(HistoryDrawableItem&& other) noexcept : HistoryItem(other.pHist)
+HistoryDrawableItem::HistoryDrawableItem(HistoryDrawableItem&& other) noexcept : HistoryItem(other)
 {
-	*this = other;
+	indexOfDrawable = other.indexOfDrawable;
 }
 
 HistoryDrawableItem::~HistoryDrawableItem()
@@ -139,9 +143,9 @@ void HistoryDrawableItem::Translate(QPointF p, int minY)
 	pDrawables->TranslateDrawable(indexOfDrawable,p, minY);
 }
 
-void HistoryDrawableItem::Rotate(MyRotation rot, QRectF encRect, float alpha)
+void HistoryDrawableItem::Rotate(MyRotation rot, QRectF encRect)
 {
-	pDrawables->RotateDrawable(indexOfDrawable,rot, encRect,alpha);
+	pDrawables->RotateDrawable(indexOfDrawable,rot, encRect);
 }
 
 //--------------------------------------------
@@ -165,7 +169,7 @@ int  HistoryDeleteItems::Redo()	// hide items
 	return 0;
 }
 
-HistoryDeleteItems::HistoryDeleteItems(History* pHist, DrawableIndexVector& selected) : HistoryItem(pHist), deletedList(selected)
+HistoryDeleteItems::HistoryDeleteItems(History* pHist, DrawableIndexVector& selected) : HistoryItem(pHist, HistEvent::heItemsDeleted), deletedList(selected)
 {
 	type = HistEvent::heItemsDeleted;
 	Redo();         // hide them
@@ -200,14 +204,14 @@ HistoryDeleteItems& HistoryDeleteItems::operator=(const HistoryDeleteItems&& oth
  *-------------------------------------------------------*/
 int  HistoryRemoveSpaceItem::Redo()
 {
-	if (modifiedList.isEmpty())	 // vertical movement
+	if (lstItemsRight.isEmpty())	 // vertical movement
 	{
-		pDrawables->VertShiftItemsBelow(y, -delta);	 // -delta < 0 move up
+		pDrawables->VertShiftItemsBelow(rr.bottom(), -rr.height());	 //  < 0 move up
 	}
 	else	// horizontal movement
 	{
-		QPointF dr(-delta, 0);								// move left
-		for (auto index : modifiedList)
+		QPointF dr(-rr.width(), 0);									// move left
+		for (auto index : lstItemsRight)
 			(*pHist)[index]->Translate(dr, -1);
 	}
 	return 0;
@@ -222,48 +226,45 @@ int  HistoryRemoveSpaceItem::Redo()
  *-------------------------------------------------------*/
 int  HistoryRemoveSpaceItem::Undo()
 {
-	if (modifiedList.isEmpty())	 // vertical movement
+	if (lstItemsRight.isEmpty())	 // vertical movement
 	{
-		pDrawables->VertShiftItemsBelow(y - delta, delta);	  //delta > 0 move down
+		pDrawables->VertShiftItemsBelow(rr.top(), rr.height());	 // move down
 	}
 	else	// horizontal movement
 	{
-		QPointF dr(delta, 0);								 // delta >0 -> move right
-		for (auto index : modifiedList)
+		QPointF dr(rr.width(), 0);						 // delta >0 -> move right
+		for (auto index : lstItemsRight)
 			(*pHist)[index]->Translate(dr, -1);
 	}
 	return 1;
 }
 
-HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(History* pHist, DrawableIndexVector& toModify, int distance, int y) :
-	HistoryItem(pHist), modifiedList(toModify), delta(distance), y(y)
+HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(History* pHist, DrawableIndexVector& toModify, QRectF rr) :
+	HistoryItem(pHist, HistEvent::heSpaceDeleted), lstItemsRight(toModify), rr(rr)
 {
-	type = HistEvent::heSpaceDeleted;
 	Redo();
 }
 
-HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(const HistoryRemoveSpaceItem& other) : HistoryItem(other.pHist)
+HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(const HistoryRemoveSpaceItem& other) : HistoryItem(other)
 {
 	*this = other;
 }
 
 HistoryRemoveSpaceItem& HistoryRemoveSpaceItem::operator=(const HistoryRemoveSpaceItem& other)
 {
-	modifiedList = other.modifiedList;
-	y = other.y;
-	delta = other.delta;
+	lstItemsRight = other.lstItemsRight;
+	rr = other.rr;
 	return *this;
 }
-HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(HistoryRemoveSpaceItem&& other)  noexcept : HistoryItem(other.pHist)
+HistoryRemoveSpaceItem::HistoryRemoveSpaceItem(HistoryRemoveSpaceItem&& other)  noexcept : HistoryItem(other)
 {
 	*this = other;
 }
 
 HistoryRemoveSpaceItem& HistoryRemoveSpaceItem::operator=(HistoryRemoveSpaceItem&& other)  noexcept
 {
-	modifiedList = other.modifiedList;
-	y = other.y;
-	delta = other.delta;
+	lstItemsRight = other.lstItemsRight;
+	rr = other.rr;
 	return *this;
 }
 
@@ -275,13 +276,12 @@ HistoryPasteItemBottom::HistoryPasteItemBottom(History* pHist, int index, int co
 }
 
 HistoryPasteItemBottom::HistoryPasteItemBottom(HistoryPasteItemBottom& other) :
-	HistoryItem(other.pHist, HistEvent::heItemsPastedBottom), index(other.index), count(other.count)
+	HistoryItem(other), index(other.index), count(other.count)
 {
 }
 
 HistoryPasteItemBottom& HistoryPasteItemBottom::operator=(const HistoryPasteItemBottom& other)
 {
-	type = HistEvent::heItemsPastedBottom;
 	index = other.index;
 	count = other.count;
 	return *this;
@@ -293,26 +293,23 @@ HistoryPasteItemTop::HistoryPasteItemTop(History* pHist, int index, int count, Q
 {
 }
 
-HistoryPasteItemTop::HistoryPasteItemTop(const HistoryPasteItemTop& other) :
-	HistoryItem(other.pHist)
+HistoryPasteItemTop::HistoryPasteItemTop(const HistoryPasteItemTop& other) : HistoryItem(other)
 {
 	*this = other;
 }
 HistoryPasteItemTop& HistoryPasteItemTop::operator=(const HistoryPasteItemTop& other)
 {
-	type = HistEvent::heItemsPastedTop;
 	indexOfBottomItem = other.indexOfBottomItem;
 	count = other.count;
 	boundingRect = other.boundingRect;
 	return *this;
 }
-HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop&& other)  noexcept : HistoryItem(other.pHist)
+HistoryPasteItemTop::HistoryPasteItemTop(HistoryPasteItemTop&& other)  noexcept : HistoryItem(other)
 {
 	*this = other;
 }
 HistoryPasteItemTop& HistoryPasteItemTop::operator=(HistoryPasteItemTop&& other) noexcept
 {
-	type = HistEvent::heItemsPastedTop;
 	indexOfBottomItem = other.indexOfBottomItem;
 	count = other.count;
 	boundingRect = other.boundingRect;
@@ -322,7 +319,12 @@ HistoryPasteItemTop& HistoryPasteItemTop::operator=(HistoryPasteItemTop&& other)
 int  HistoryPasteItemTop::Undo() // elements are in _items and will be moved to _redoList after this
 {
 	if (moved)	// then the first item above the bottom item is a history delete item
-		(*pHist)[indexOfBottomItem + 1]->Undo();
+	{
+		HistoryDeleteItems* pHDelItems = reinterpret_cast<HistoryDeleteItems*>( (*pHist)[indexOfBottomItem + 1] );
+		if (!pHDelItems->deletedList.isEmpty())	// then set original selections back
+			pHist->CollectDeleted(pHDelItems);
+		pHDelItems->Undo();
+	}
 	return count + moved + 2;	// decrease actual pointer below bottom item
 }
 
@@ -357,7 +359,7 @@ void HistoryPasteItemTop::Translate(QPointF p, int minY)
 		boundingRect.translate(p);
 }
 
-void HistoryPasteItemTop::Rotate(MyRotation rot, QRectF encRect, float alpha)
+void HistoryPasteItemTop::Rotate(MyRotation rot, QRectF encRect)
 {
 	for (int i = 1; i <= count; ++i)
 		(*pHist)[indexOfBottomItem + i]->Rotate(rot, encRect);
@@ -387,9 +389,8 @@ QRectF HistoryPasteItemTop::Area() const
 // HistoryReColorItem
 //---------------------------------------------------
 HistoryReColorItem::HistoryReColorItem(History* pHist, DrawableIndexVector& listOfSelected, FalconPenKind pk) :
-	HistoryItem(pHist), selectedList(listOfSelected), pk(pk)
+	HistoryItem(pHist, HistEvent::heRecolor), selectedList(listOfSelected), pk(pk)
 {
-	type = HistEvent::heRecolor;
 	int siz = selectedList.size() - 1;
 	for (int ix = siz; ix >= 0; --ix)
 	{
@@ -402,15 +403,13 @@ HistoryReColorItem::HistoryReColorItem(History* pHist, DrawableIndexVector& list
 	Redo();		// get original colors and set new color tp pk
 }
 
-HistoryReColorItem::HistoryReColorItem(HistoryReColorItem& other) : HistoryItem(other.pHist)
+HistoryReColorItem::HistoryReColorItem(HistoryReColorItem& other) : HistoryItem(other)
 {
 	*this = other;
 }
 
 HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem& other)
 {
-	type = HistEvent::heRecolor;
-	pHist = other.pHist;
 	selectedList = other.selectedList;
 	penKindList = other.penKindList;
 	pk = other.pk;
@@ -456,19 +455,17 @@ QRectF HistoryReColorItem::Area() const { return boundingRectangle; }
 //---------------------------------------------------
 
 HistoryInsertVertSpace::HistoryInsertVertSpace(History* pHist, int top, int pixelChange) :
-	HistoryItem(pHist), y(top), heightInPixels(pixelChange)
+	HistoryItem(pHist, HistEvent::heVertSpace), y(top), heightInPixels(pixelChange)
 {
-	type = HistEvent::heVertSpace;
 	Redo();
 }
 
-HistoryInsertVertSpace::HistoryInsertVertSpace(const HistoryInsertVertSpace& other) : HistoryItem(other.pHist)
+HistoryInsertVertSpace::HistoryInsertVertSpace(const HistoryInsertVertSpace& other) : HistoryItem(other)
 {
 	*this = other;
 }
 HistoryInsertVertSpace& HistoryInsertVertSpace::operator=(const HistoryInsertVertSpace& other)
 {
-	type = HistEvent::heVertSpace;
 	y = other.y; heightInPixels = other.heightInPixels; pHist = other.pHist;
 	return *this;
 }
@@ -491,28 +488,23 @@ QRectF HistoryInsertVertSpace::Area() const
 
 //---------------------------------------------------------
 
-HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QRectF rect, DrawableIndexVector selList, float alpha) :
-	HistoryItem(pHist), rot(rotation), rAlpha(alpha), driSelectedDrawables(selList), encRect(rect)
+HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QRectF rect, DrawableIndexVector selList) :
+	HistoryItem(pHist, HistEvent::heRotation), rot(rotation), driSelectedDrawables(selList), encRect(rect)
 {
-	encRect = encRect;
 	Redo();
 }
 
 HistoryRotationItem::HistoryRotationItem(const HistoryRotationItem& other) :
-	HistoryItem(other.pHist), rot(other.rot), rAlpha(other.rAlpha), driSelectedDrawables(other.driSelectedDrawables)
+	HistoryItem(other.pHist), rot(other.rot), driSelectedDrawables(other.driSelectedDrawables), encRect(other.encRect)
 {
-	flipV = other.flipV;
-	flipH = other.flipH;
-	encRect = other.encRect;
+	
 }
 
 HistoryRotationItem& HistoryRotationItem::operator=(const HistoryRotationItem& other)
 {
 	pHist = other.pHist;
+	rot = other.rot;
 	driSelectedDrawables = other.driSelectedDrawables;
-	flipV = other.flipV;
-	flipH = other.flipH;
-	rAlpha = other.rAlpha;
 	encRect = other.encRect;
 
 	return *this;
@@ -530,43 +522,35 @@ static void SwapWH(QRectF& r)
 int HistoryRotationItem::Undo()
 {
 	MyRotation rotation = rot;
-	float alpha = rAlpha;
-	switch (rot)
-	{
-		case rotR90:
-			rotation = rotL90;
-			break;
-		case rotL90:
-			rotation = rotR90;
-			break;
-		case rot180:
-		case rotFlipH:
-		case rotFlipV:
-			break;
-		case rotAlpha:
-			alpha = -rAlpha;
-			break;
-		default:
-			break;
-	}
+	rotation.InvertRotation();
+	QRectF area;
+
 	for (auto dri : driSelectedDrawables)
-		pHist->Rotate(dri, rotation, encRect, alpha);
-	RotateRect(rot, encRect, encRect, alpha);
+	{
+		pHist->Rotate(dri, rotation, encRect);
+		area = area.united(pHist->Drawable(dri)->Area());
+	}
+	encRect = area;
 
 	return 1;
 }
 
 int HistoryRotationItem::Redo()
 {
-	for (auto n : driSelectedDrawables)
-		pHist->Rotate(n, rot, encRect, rAlpha);
-	RotateRect(rot, encRect, encRect, rAlpha);
+	QRectF area;
+	for (auto dri : driSelectedDrawables)
+	{
+		pHist->Rotate(dri, rot, encRect);
+		area = area.united(pHist->Drawable(dri)->Area());
+	}
+	encRect = area;
 	return 0;
 }
 
 
 //****************** HistorySetTransparencyForAllScreenshotsItem ****************
-HistorySetTransparencyForAllScreenshotsItems::HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness) : fuzzyness(fuzzyness), transparentColor(transparentColor), HistoryItem(pHist)
+HistorySetTransparencyForAllScreenshotsItems::HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness) : 
+	fuzzyness(fuzzyness), transparentColor(transparentColor), HistoryItem(pHist)
 {
 	Redo();
 }
@@ -620,8 +604,50 @@ int HistorySetTransparencyForAllScreenshotsItems::Undo()
 
 //****************** HistoryEraserStrokeItem ****************
 
-HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& dri) : eraserPenWidth(dri.penWidth), eraserStroke(dri.ToPolygonF()), HistoryItem(pHist)
+HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& dri) : eraserPenWidth(dri.penWidth), HistoryItem(pHist, HistEvent::heEraserStroke)
 {
+	eraserStroke.clear(); // ??
+
+	DrawableCross* pdrC;
+	DrawableEllipse* pdrE;
+	DrawableRectangle* pdrR;
+
+	QPainterPath myPath;
+	switch (dri.dtType)
+	{
+		case DrawableType::dtCross:
+			{
+				QPointF dist;
+				pdrC = (DrawableCross*)&dri;
+				dist = { pdrC->length / sqrt(2), pdrC->length / sqrt(2) };
+				QRectF rect(pdrC->startPos - dist, pdrC->startPos + dist);
+				eraserStroke.append(rect.topLeft());
+				eraserStroke.append(rect.bottomRight());
+				eraserStroke.append(pdrC->startPos);
+				eraserStroke.append(rect.bottomLeft());
+				eraserStroke.append(rect.topRight());
+			}
+			break;
+		case DrawableType::dtDot:
+			eraserStroke.append(dri.startPos);
+			break;
+		case DrawableType::dtEllipse:
+			pdrE = (DrawableEllipse*)&dri;
+			myPath.addEllipse(pdrE->rect);
+			break;
+		case DrawableType::dtLine:
+			eraserStroke.append(((DrawableLine&)dri).startPos);
+			eraserStroke.append(((DrawableLine&)dri).endPoint);
+			break;
+		case DrawableType::dtRectangle:
+			pdrR = (DrawableRectangle*)&dri;
+			myPath.addRect(pdrR->rect);
+			eraserStroke = myPath.toFillPolygon();
+			break;
+		case DrawableType::dtScribble:
+			eraserStroke = ((DrawableScribble&)dri).points;
+			break;
+	}
 	pHist->GetDrawablesInside(dri.Area(), affectedIndexList);
 	// not all drawables inside dri's area are really affected by 
 	// the eraser strokes (or rectangle, or ellipse
@@ -631,7 +657,7 @@ HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& d
 }
 
 HistoryEraserStrokeItem::HistoryEraserStrokeItem(const HistoryEraserStrokeItem& o)  
-	: eraserPenWidth(o.eraserPenWidth), eraserStroke(o.eraserStroke), affectedIndexList(o.affectedIndexList),subStrokesForAffected(o.subStrokesForAffected), HistoryItem(o)
+	:  HistoryItem(o), eraserPenWidth(o.eraserPenWidth), eraserStroke(o.eraserStroke), affectedIndexList(o.affectedIndexList),subStrokesForAffected(o.subStrokesForAffected)
 {
 	if (affectedIndexList.isEmpty())				// will not be used or saved in callers!
 		return;
@@ -1348,12 +1374,12 @@ HistoryItem* History::AddInsertVertSpace(int y, int heightInPixels)
 	return _AddItem(phi);
 }
 
-HistoryItem* History::AddRotationItem(MyRotation rot, qreal alpha)
+HistoryItem* History::AddRotationItem(MyRotation rot)
 {									   // only called when rotation was possible, no need to check here
 	if (!_driSelectedDrawables.size() )
 		return nullptr;          // do not add an empty list or a non rotatable region
 
-	HistoryRotationItem* phss = new HistoryRotationItem(this, rot, _selectionRect, _driSelectedDrawables, alpha);
+	HistoryRotationItem* phss = new HistoryRotationItem(this, rot, _selectionRect, _driSelectedDrawables);
 	if (phss)
 		_selectionRect = phss->encRect;
 	return _AddItem(phss);
@@ -1362,12 +1388,12 @@ HistoryItem* History::AddRotationItem(MyRotation rot, qreal alpha)
 HistoryItem* History::AddRemoveSpaceItem(QRectF& rect)
 {
 	int  nCntRight = _driSelectedDrawablesAtRight.size(),	// both scribbles and screenshots
-		nCntLeft = _driSelectedDrawablesAtLeft.size();
+		 nCntLeft = _driSelectedDrawablesAtLeft.size();
 
-	if ((!nCntRight && nCntLeft))
+	if ((!nCntRight && nCntLeft))	// can't remove space from just the left
 		return nullptr;
 
-	HistoryRemoveSpaceItem* phrs = new HistoryRemoveSpaceItem(this, _driSelectedDrawablesAtRight, nCntRight ? rect.width() : rect.height(), rect.bottom());
+	HistoryRemoveSpaceItem* phrs = new HistoryRemoveSpaceItem(this, _driSelectedDrawablesAtRight, rect);
 	return _AddItem(phrs);
 }
 
@@ -1396,9 +1422,9 @@ void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 		forItem->Rotate(withRotation, _selectionRect);
 }
 
-void History::Rotate(int index, MyRotation rot, QRectF insideThisRect, qreal rAlpha)
+void History::Rotate(int index, MyRotation rot, QRectF insideThisRect)
 {
-	_drawables[index]->Rotate(rot, insideThisRect, rAlpha);
+	_drawables[index]->Rotate(rot, insideThisRect);
 }
 
 void History::InserVertSpace(int y, int heightInPixels)
@@ -1506,15 +1532,17 @@ void History::AddToSelection(int drix, bool clearSelections)
 }
 
 /*========================================================
- * TASK:   collects indices for drawable items in _drawables'
+ * TASK:   collects indices for drawable items (in '_drawables')
  *			that are completely inside a rectangular area
  *				into '_driSelectedDrawables',
  *			that are at the right&left of 'rect' into
  *				'_driSelectedDrawablesAtRight' and '_driSelectedDrawablesAtLeft'
  *
  * PARAMS:	rect: document (0,0) relative rectangle
- * GLOBALS: _drawables,
- * RETURNS:	size of selected item list + lists filled
+ *			doNotShrinkSelectionRectangle : 
+ * GLOBALS: _drawables,	_selectionRect
+ * RETURNS:	size of selected item list + lists filled +
+ *			_selectionRect shrinked
  * REMARKS: - even pasted items require a single index
  *			- only selects items whose visible elements
  *			  are completely inside 'rect' (pasted items)
@@ -1522,40 +1550,42 @@ void History::AddToSelection(int drix, bool clearSelections)
  *				are in '_driSelectedDrawables'. In that case
  *				it is equal to 'rect'
  *-------------------------------------------------------*/
-int History::CollectDrawablesInside(QRectF rect, bool doNotShrinkSelectionRectangle) // only 
+int History::CollectDrawablesInside(QRectF rect) // only 
 {
 	_ClearSelectLists();
 	_selectionRect = QRectF();     // minimum size of selection document (0,0) relative!
 
-	// first select all items inside a band whose top and bottom are set from 'rect'
-	// but it occupies the whole width of the paper
-	QuadArea area = QuadArea(0, rect.top(), _drawables.Area().Width(), rect.height());
-	DrawableIndexVector iv = _drawables.ListOfItemIndicesInQuadArea(area);
-	for (int i = iv.size()-1; i >= 0; --i)
+	// first select all items inside a horizontal band whose top and bottom are set from 'rect'
+	// but it occupies the whole width of the 'paper'
+	QRectF hb = QRectF(0, rect.top(), _drawables.Area().Width(), rect.height());
+	DrawableIndexVector iv = _drawables.ListOfItemIndicesInRect(hb);
+	for (int i = iv.size()-1; i >= 0; --i)		// purge partial overlaps with HB
 	{
 		int ix = iv[i];
-		if (!rect.contains(_drawables[ix]->Area()))
+		if (!hb.contains(_drawables[ix]->Area()))
 			iv.erase(iv.begin() + i);
 	}
+
 	if (iv.size())
 	{
 		std::sort(iv.begin(), iv.end(), [this](int i, int j) { return _drawables[i]->zOrder < _drawables[j]->zOrder; });
 
-		// then separate these into lists
+		// then separate these into 3 lists
 		for (auto ix : iv)
 		{
 			DrawableItem* pdri = _drawables[ix];
-			if (rect.contains(pdri->Area()))
+			QRectF area = pdri->Area();
+			if (rect.contains(area))
 			{
 				_driSelectedDrawables.push_back(ix);
 				_selectionRect = _selectionRect.united(pdri->Area());
 			}
-			else if (pdri->Area().left() < rect.left())
+			else if (area.left() < rect.left())
 				_driSelectedDrawablesAtLeft.push_back(ix);
 			else
 				_driSelectedDrawablesAtRight.push_back(ix);
 		}
-		if (doNotShrinkSelectionRectangle || _driSelectedDrawables.isEmpty())		// save for removing empty space
+		if (_driSelectedDrawables.isEmpty())		// save for removing empty space
 			_selectionRect = rect;
 	}
 	return _driSelectedDrawables.size();
@@ -1717,6 +1747,12 @@ void History::CollectPasted(const QRectF& rect)
 		_driSelectedDrawables[j] = ((HistoryDrawableItem*)_items[n - m + j])->indexOfDrawable;
 	_selectionRect = rect;
 
+}
+
+void History::CollectDeleted(HistoryDeleteItems* phd)	// use when undoing a paste when the sprite was not moved
+{
+	_driSelectedDrawables.clear();
+	_driSelectedDrawables = phd->deletedList;
 }
 
 // ********************************** Sprite *************
