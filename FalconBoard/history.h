@@ -542,7 +542,7 @@ public:
     HistoryItem* AddDrawableItem(DrawableItem& dri);
     HistoryItem* AddEraserItem(DrawableItem& dri);  // add to all scribbles which it intersects
     HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _driSelectedDrawables a
-    HistoryItem* AddPastedItems(QPointF topLeft, Sprite *pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
+    HistoryItem* AddCopiedItems(QPointF topLeft, Sprite *pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
     HistoryItem* AddRecolor(FalconPenKind pk);
     HistoryItem* AddInsertVertSpace(int y, int heightInPixels);       // height < 0: delete space
     HistoryItem* AddRotationItem(MyRotation rot);

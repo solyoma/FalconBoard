@@ -402,6 +402,7 @@ private:
     Sprite * _SpriteFromCollectedDrawables(QPointF topLeft); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible
     void _MoveSprite(QPointF pt);
     void _PasteSprite();
+    void _AddCopiedItems(QPointF pos, Sprite* pSprite = nullptr);
 
 
     // DEBUG

@@ -1312,7 +1312,7 @@ HistoryItem* History::AddDeleteItems(Sprite* pSprite)
  *				the top and bottom markers even for a single
  *				pasted item
  *-------------------------------------------------------*/
-HistoryItem* History::AddPastedItems(QPointF topLeft, Sprite* pSprite)			   // tricky
+HistoryItem* History::AddCopiedItems(QPointF topLeft, Sprite* pSprite)			   // tricky
 {
 	DrawableList* pCopiedItems = pSprite ? &pSprite->drawables : &_parent->_copiedItems;
 	QRectF* pCopiedRect = pSprite ? &pSprite->rect : &_parent->_copiedRect;
@@ -1338,12 +1338,13 @@ HistoryItem* History::AddPastedItems(QPointF topLeft, Sprite* pSprite)			   // t
 	}
 
 	//----------- add drawables
-	for (auto si : *pCopiedItems->Items())
+	for (DrawableItem *si : *pCopiedItems->Items() )
 	{
-		si->Translate(topLeft, -1);
+		si->Translate(topLeft, -1);	// transforms original item
 		//si->zOrder = -1;	// so it will be on top
 		HistoryDrawableItem* p = new HistoryDrawableItem(this, *si);	   // si's data remains where it was
 		_AddItem(p);
+		si->Translate(-topLeft, -1);	// transform back
 	}
 	// ------------Add Paste top marker item
 	QRectF rect = pCopiedRect->translated(topLeft);
@@ -1764,6 +1765,7 @@ Sprite::Sprite(History* ph, const QRectF& rectf, const DrawableIndexVector &dri)
 
 Sprite::Sprite(History* ph, const QRectF& copiedRect, const DrawableList& lstDri)
 {
+	pHist = ph;
 	drawables = lstDri;
 	rect = copiedRect;
 	itemsDeleted = false;

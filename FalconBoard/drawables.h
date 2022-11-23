@@ -275,7 +275,7 @@ struct MyRotation
         else
         {
             rot1.rotType = AddTypes(rot1.rotType, rot2.rotType);
-            if (!rot1.IsRotation())
+            if (!rot1.IsRotation() && abs(rot1.angle) < eps)          // e..g only flip's for unrotated original
                 rot1.angle = 0.0;   // type is already rotNone
         }
         return rot1;

@@ -400,9 +400,6 @@ DrawableCross::DrawableCross(QPointF pos, qreal len, int zOrder, FalconPenKind p
 
 void DrawableCross::Rotate(MyRotation arot, QRectF &inThisRectangle)
 {
-	if (!arot.IsRotation())
-		return;
-
 	QPointF c = _RotateCommon(arot, inThisRectangle);
 	if (c.x() < 0)
 		return;
@@ -498,7 +495,7 @@ void DrawableEllipse::Rotate(MyRotation arot, QRectF& inThisRectangle)
 	if (c.x() < 0)	// can't  rotate
 		return;
 
-	if (!arot.IsRotation() || (arot.IsSimpleRotation() && rot.IsSimpleRotation()))
+	if ( (!arot.IsRotation() && _points.isEmpty() ) || (arot.IsSimpleRotation() && rot.IsSimpleRotation()))
 	{
 		arot.RotateRect(_rotatedRect, inThisRectangle, true);
 	}
@@ -532,10 +529,10 @@ void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, cons
 		if (isFilled)
 			c = PenColor();
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
-		if (rot.IsSimpleRotation())
+		if (_points.isEmpty())
 			painter->drawEllipse(_rotatedRect.translated(-topLeftOfVisibleArea));
 		else   // rotation is arbitrary and not a multiple of 90 degrees and not a flip
-			painter->drawPolygon(_points); // '_points' and '_rotatedRect' already rotated
+			painter->drawPolygon(_points.translated(-topLeftOfVisibleArea)); // '_points' and '_rotatedRect' already rotated
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
@@ -608,9 +605,6 @@ void DrawableLine::Translate(QPointF dr, qreal minY)
 
 void DrawableLine::Rotate(MyRotation arot, QRectF &inThisRectangle)
 {
-	if (!arot.IsRotation())
-		return;
-
 	QPointF c = _RotateCommon(arot, inThisRectangle);
 	if (c.x() < 0)
 		return;
@@ -724,7 +718,7 @@ void DrawableRectangle::Rotate(MyRotation arot, QRectF &inThisRectangle)     // 
 	if (c.x() < 0)	// can't  rotate
 		return;
 
-	if (!arot.IsRotation() || (arot.IsSimpleRotation() && rot.IsSimpleRotation()) )
+	if ((!arot.IsRotation() && _points.isEmpty()) || (arot.IsSimpleRotation() && rot.IsSimpleRotation()))
 	{
 		arot.RotateRect(_rotatedRect, inThisRectangle, true);
 	}
@@ -759,7 +753,7 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 		if (isFilled)
 			c = PenColor();
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
-		if(rot.IsSimpleRotation())
+		if (_points.isEmpty())
 			painter->drawRect(_rotatedRect.translated(-topLeftOfVisibleArea));
 		else   // rotation is arbitrary and not a multiple of 90 degrees and not a flip
 			painter->drawPolygon(_points); // '_points' and '_rotatedRect' already rotated
@@ -811,7 +805,7 @@ QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
 void DrawableScreenShot::Rotate(MyRotation arot, QRectF &inThisRectangle)
 {
 	QPointF c;
-	if (!arot.IsRotation() || (c = _RotateCommon(arot, inThisRectangle)).x() < 0)
+	if ((c = _RotateCommon(arot, inThisRectangle)).x() < 0)
 	{
 		_rotatedImage = QPixmap();
 		return;
@@ -995,9 +989,6 @@ void DrawableScribble::Translate(QPointF dr, qreal  minY)
 
 void DrawableScribble::Rotate(MyRotation arot, QRectF &inThisRectangle)	// rotate around the center of 'inThisRectangle'
 {
-	if (!arot.IsRotation())
-		return;
-
 #if 1
 	QPointF c = _RotateCommon(arot, inThisRectangle);
 	if (c.x() < 0)

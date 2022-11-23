@@ -516,10 +516,14 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 	else // if (event->spontaneous())
 	{
 #ifndef _VIEWER
+		// key presses for both rubberBand and no rubberBand cituations
 		bool bPaste = // _itemsCopied &&
 			((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
 				(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
-				);
+				),
+			bMovmentKeys = key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left ||
+						 key == Qt::Key_Right || key == Qt::Key_PageUp || key == Qt::Key_PageDown;
+
 
 		// lambda to draw a cross at a given point
 		auto __DrawCross = [&](QPointF p, int halflen) // p rel. to Document top/left
@@ -537,26 +541,26 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			update();
 		};
 
+
 		if (_rubberBand) 
 		{
-
+				// keys when there's a rubber band
 			bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
 				bCut = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
 				((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
 				bCopy = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
-				_mods.testFlag(Qt::ControlModifier),
+													_mods.testFlag(Qt::ControlModifier),
 				bBracketKey = (key == Qt::Key_BracketLeft || key == Qt::Key_BracketRight),
 				bRemove = (bDelete | bCopy | bCut | bPaste) ||
 					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
-					 key != Qt::Key_Space && key != Qt::Key_Up && key != Qt::Key_Down && key != Qt::Key_Left &&
-					 key != Qt::Key_Right && key != Qt::Key_PageUp && key != Qt::Key_PageDown),
+					 key != Qt::Key_Space && !bMovmentKeys),
 				bCollected = _history->SelectedSize(),
 				bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5),
 
 				bRotate = (key == Qt::Key_0 ||  // rotate right by 90 degrees
 					key == Qt::Key_8 ||  // rotate by 180 degrees
 					key == Qt::Key_9 ||  // rotate left by 90 degrees
-					key == Qt::Key_7 ||  // rotate left by 45 degrees
+					key == Qt::Key_7 ||  //??? DEBUG rotate left by 30 degrees
 					key == Qt::Key_H ||  // flip horizontally
 					(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
 					);
@@ -620,20 +624,20 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_Redraw();
 				}
 			}
-			else if (bPaste)
-			{           // _history's copied item list is valid, each item is canvas relative
-						// get offset to top left of encompassing rect of copied items relative to '_topLeft'
-				QPointF dr = _rubberRect.translated(_topLeft).topLeft();
+			//??? else if (bPaste)
+			//??? {           // _history's copied item list is valid, each item is canvas relative
+			//??? 			// get offset to top left of encompassing rect of copied items relative to '_topLeft'
+			//??? 	QPointF dr = _rubberRect.translated(_topLeft).topLeft();
 
-				HistoryItem* phi = _history->AddPastedItems(dr, nullptr);	// no sprite, add
-				if (phi)
-				{
-					_Redraw(); // update();
-					_rubberRect = QRectF(_rubberRect.topLeft(), historyList.CopiedRect().size());
-					_rubberBand->setGeometry(_rubberRect.toRect());
-					_history->CollectPasted(_rubberRect.translated(_topLeft));
-				}
-			}
+			//??? 	HistoryItem* phi = _history->AddCopiedItems(dr, nullptr);	// no sprite, add
+			//??? 	if (phi)
+			//??? 	{
+			//??? 		_Redraw(); // update();
+			//??? 		_rubberRect = QRectF(_rubberRect.topLeft(), historyList.CopiedRect().size());
+			//??? 		_rubberBand->setGeometry(_rubberRect.toRect());
+			//??? 		_history->CollectPasted(_rubberRect.translated(_topLeft));
+			//??? 	}
+			//??? }
 			else if (bRecolor)
 			{
 				RecolorSelected(key);
@@ -751,18 +755,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 		{
 			int stepSize = _mods.testFlag(Qt::ControlModifier) ? LargeStep : (_mods.testFlag(Qt::ShiftModifier) ? SmallStep : NormalStep);
 #ifndef _VIEWER
-			if (bPaste)         // paste as sprite
-			{
-				historyList.GetFromClipboard();
-
-				if (historyList.CopiedItems().Size())    // anything to paste?
-				{
-					_pSprite = _SpriteFromCollectedDrawables(_lastCursorPos);
-					_PasteSprite();
-					_Redraw();
-				}
-			}
-			else if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )
+if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )
 				__DrawCross(_actMousePos, 10);
 			else 
 #endif
@@ -799,6 +792,16 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 #endif
 		}
 #ifndef _VIEWER
+		if (bPaste)         // paste as sprite
+		{
+			historyList.GetFromClipboard();
+
+			if (historyList.CopiedItems().Size())    // anything to paste?
+			{
+				_AddCopiedItems(_lastCursorPos);
+				_Redraw();
+			}
+		}
 		if (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt)
 		{
 			emit CanUndo(_history->CanUndo());
@@ -2700,18 +2703,23 @@ void DrawArea::_PasteSprite()
 {
 	Sprite* ps = _pSprite;
 	_pSprite = nullptr;             // so the next paint event finds no sprite
-	_history->AddPastedItems(ps->topLeft + _topLeft, ps);    // add at window relative position: top left = (0,0)
-	QRectF updateRect = ps->rect.translated(ps->topLeft).toRect();    // original rectangle
-	update(updateRect.toRect());
-	_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-	int m = ps->margin;
-	_rubberRect = updateRect.adjusted(m,m,-m,-m);
-	_rubberBand->setGeometry(_rubberRect.toRect());
-	_rubberBand->show();
+	_AddCopiedItems(ps->topLeft, ps);
 	delete ps;
 
 	if (_history)
 		_history->CollectPasted(_rubberRect.translated(_topLeft));
+
+}
+void DrawArea::_AddCopiedItems(QPointF pos, Sprite* ps)
+{
+	_history->AddCopiedItems(pos + _topLeft, ps);    // add at window relative position: top left = (0,0)
+	QRectF updateRect = ps ? ps->rect.translated(pos) : _history->SelectionRect();    // original rectangle
+	update(updateRect.toRect());
+	_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+	int m = ps ? ps->margin : 0;
+	_rubberRect = updateRect.adjusted(m,m,-m,-m);
+	_rubberBand->setGeometry(_rubberRect.toRect());
+	_rubberBand->show();
 
 	emit CanUndo(_history->CanUndo());
 	emit CanRedo(_history->CanRedo());
