@@ -793,12 +793,13 @@ QDataStream& operator>>(QDataStream& ifs, DrawableRectangle& di)		  // call AFTE
 
 void DrawableScreenShot::AddImage(QPixmap& animage)
 {
-	image = animage;
+	_image = animage;
+	_rotatedArea = QRectF(startPos, _image.size());
 }
 
 QRectF DrawableScreenShot::Area() const
 {
-	return QRectF(startPos, Image().size());
+	return _rotatedArea;
 }
 
 QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
@@ -806,17 +807,23 @@ QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
 	return Area().intersected(canvasRect);
 }
 
+void DrawableScreenShot::Translate(QPointF dr, qreal minY)
+{
+	if (_rotatedArea.top() > minY)
+	{
+		DrawableItem::Translate(dr, minY);
+		_rotatedArea.moveTo(_rotatedArea.topLeft() + dr);
+	}
+}
+
 void DrawableScreenShot::Rotate(MyRotation arot, QRectF &inThisRectangle)
 {
 	QPointF c;
 	if ((c = _RotateCommon(arot, inThisRectangle)).x() < 0)
-	{
-		_rotatedImage = QPixmap();
 		return;
-	}
 
-	QRectF rect = Area();
-	arot.RotateRect(rect, inThisRectangle, false);
+	QRectF rect = _rotatedArea;
+	arot.RotateRect(rect, inThisRectangle, true);
 
 	startPos = rect.topLeft();
 
@@ -824,29 +831,32 @@ void DrawableScreenShot::Rotate(MyRotation arot, QRectF &inThisRectangle)
 	transform.rotate(arot.angle);
 	QImage img;
 	bool fliph = false, flipv = true;	// default flip orientations
-	if (rot.ResultsInNoRotation(arot, true))
+	switch (arot.rotType)
 	{
-		rect = QRectF(startPos, image.size());
-		_rotatedImage = QPixmap();
+		case MyRotation::rotFlipH:
+			fliph = true;
+			flipv = false;		// NO break here! 
+			[[fallthrough]];	// min C++17!
+		case MyRotation::rotFlipV:
+			img = _image.toImage();
+			img = img.mirrored(fliph, flipv);
+			_rotatedImage = _image.fromImage(img);
+			break;
+		default:
+			_rotatedImage = _image.transformed(transform, Qt::SmoothTransformation);
+			rot.RotateRect(_rotatedArea, inThisRectangle, true);
+			rot.AddRotation(arot);
+			if (rot.IsSimpleRotation())
+			{
+				if (abs(rot.angle) < eps)
+				{
+					rot.angle = 0.0;
+					_rotatedImage = QPixmap();	// "delete"
+				}
+			}
+			break;
 	}
-	else
-	{
-		switch (rot.rotType)
-		{
-			case MyRotation::rotFlipH:
-				fliph = true;
-				flipv = false;		// NO break here!
-			case MyRotation::rotFlipV:
-				img = image.toImage();
-				img = img.mirrored(fliph, flipv);
-				_rotatedImage = image.fromImage(img);
-				break;
-			default:
-				_rotatedImage = image.transformed(transform, Qt::SmoothTransformation);
-				break;
-		}
-		rot.AddRotation(arot);
-	}
+	rot.AddRotation(arot);
 }
 
 void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
@@ -854,7 +864,7 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 	if (drawStarted)
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea)); // this painter paints on screenshot layer!
-		painter->drawPixmap(startPos - topLeftOfVisibleArea, Image());
+		painter->drawPixmap(_rotatedArea.topLeft() - topLeftOfVisibleArea, Image());
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
@@ -864,14 +874,16 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 // ---------------------------------------------
 QDataStream& operator<<(QDataStream& ofs, const DrawableScreenShot& bimg) // DrawableItem part already saved
 {
-	ofs << bimg.image;
+	ofs << bimg.Image();
 
 	return ofs;
 }
 
 QDataStream& operator>>(QDataStream& ifs, DrawableScreenShot& bimg)	  // call AFTER header is read in
 {
-	ifs >> bimg.image;
+	QPixmap img;
+	ifs >> img;  
+	bimg.AddImage(img);
 	if (abs(bimg.rot.angle) < eps)
 		bimg.rot.rotType = MyRotation::rotNone;
 
@@ -1227,7 +1239,7 @@ void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-i
 	_pQTree->Resize(_pQTree->Area());
 }
 //*******************************************
-void MyRotation::CantRotateWarning()
+void MyRotation::CantRotateWarning() const
 {
 		QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
 }

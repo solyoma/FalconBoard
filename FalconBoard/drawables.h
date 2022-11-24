@@ -213,7 +213,7 @@ struct MyRotation
         return (rotType != rotFlipH && rotType != rotFlipV); // rotNone is rotatiof of angle = 0
 
     }
-    inline constexpr bool IsRotation()
+    inline constexpr bool IsRotation() const
     {
         return IsRotation(rotType);
     }
@@ -285,7 +285,7 @@ struct MyRotation
         return abs(fmod(anAngle, 90.0)) < eps;
     }
 
-    bool IsSimpleRotation() 
+    bool IsSimpleRotation() const
     { 
         return IsRotation() && IsSimpleRotation(angle); 
     }
@@ -312,7 +312,7 @@ struct MyRotation
         *this = AddRotations(*this, rot2);
         return *this;
     }
-    bool RotateRect(QRectF& rect, QRectF inThisRect, bool noCheck = false)  // assumes outer edge of rectangle is inside inThisRect
+    bool RotateRect(QRectF& rect, QRectF inThisRect, bool noCheck = false) const // assumes outer edge of rectangle is inside inThisRect
     {
         QPointF c = inThisRect.center();
         if (!IsRotation() || rotType == rot180)
@@ -372,7 +372,7 @@ struct MyRotation
             return true;
         }
     }
-    bool RotatePoly(QPolygonF& points, QRectF inThisRect, qreal lineWidth, bool noCheck = false)
+    bool RotatePoly(QPolygonF& points, QRectF inThisRect, qreal lineWidth, bool noCheck = false) const
     {
         qreal w = lineWidth / 2;
         QRectF bndRect = points.boundingRect().adjusted(-w,-w,w,w);
@@ -403,7 +403,7 @@ struct MyRotation
         }
         return false;
     }
-    bool RotateSinglePoint(QPointF &pt, QRectF inThisRect, bool noCheck = false)
+    bool RotateSinglePoint(QPointF &pt, QRectF inThisRect, bool noCheck = false)  const
     {
         QPointF p = pt, c = inThisRect.center();
         p -= c;
@@ -430,7 +430,7 @@ struct MyRotation
         pt = p;
         return true;
     }
-    void CantRotateWarning();
+    void CantRotateWarning() const;
 };
             //----------------------------------------------------
             // ------------------- Drawable Pen -------------
@@ -862,22 +862,24 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableRectangle& di);  // call
  /*-------------------------------------------------------*/
 struct DrawableScreenShot : public DrawableItem
 {
-    QPixmap image;      // screenshot image
-
     DrawableScreenShot() : DrawableItem()
     {
         dtType = DrawableType::dtScreenShot;
     }
-    DrawableScreenShot(const DrawableScreenShot& other) : DrawableItem(other)
+    DrawableScreenShot(const DrawableScreenShot& other) : DrawableItem(other), _image(other._image), _rotatedImage(other._rotatedImage), _rotatedArea(other._rotatedArea)
     {
-        image = other.image;
+    
     }
-    DrawableScreenShot(QPointF topLeft, int zOrder, const QPixmap &image) : DrawableItem(DrawableType::dtScreenShot, topLeft, zOrder), image(image) {}
+    DrawableScreenShot(QPointF topLeft, int zOrder, const QPixmap &image) : DrawableItem(DrawableType::dtScreenShot, topLeft, zOrder), _image(image) 
+    {
+        _rotatedArea = QRectF(startPos, image.size());
+    }
     ~DrawableScreenShot() = default;
 
+    const QPixmap& Image() { return _image; }
     void AddImage(QPixmap& image);
 
-    const QPixmap& Image() const { return _rotatedImage.isNull() ? image : _rotatedImage; }
+    const QPixmap& Image() const { return _rotatedImage.isNull() ? _image : _rotatedImage; }
 
     QRectF Area() const override;
     // canvasRect relative to paper (0,0)
@@ -885,15 +887,21 @@ struct DrawableScreenShot : public DrawableItem
     // isNull() true when no intersection with canvasRect
     QRectF AreaOnCanvas(const QRectF& canvasRect) const;
 
-    void Rotate(MyRotation rot, QRectF &encRect);    // only used for 'rotAngle'
-    bool PointIsNear(QPointF p, qreal distance) const override // true if the point is near the circumference or for filled ellpse: inside it
+    void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
+    void Rotate(MyRotation rot, QRectF &encRect);
+    bool PointIsNear(QPointF p, qreal distance) const override // true if the point is inside the image
     {
-        return Area().contains(p);
+        if(rot.IsRotation() && !rot.IsSimpleRotation() )
+            rot.RotateSinglePoint(p, _rotatedArea, true);
+        return _rotatedArea.contains(p);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
     // QPolygonF ToPolygonF()  - default
 private:
+    QPixmap _image;      // screenshot image
+
     QPixmap _rotatedImage;
+    QRectF _rotatedArea;
 };
 
 QDataStream& operator<<(QDataStream& ofs, const  DrawableScreenShot& di);
