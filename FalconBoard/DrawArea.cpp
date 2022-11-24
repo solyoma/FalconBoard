@@ -521,7 +521,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
 				(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
 				),
-			bMovmentKeys = key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left ||
+			bMovementKeys = key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left ||
 						 key == Qt::Key_Right || key == Qt::Key_PageUp || key == Qt::Key_PageDown;
 
 
@@ -553,7 +553,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				bBracketKey = (key == Qt::Key_BracketLeft || key == Qt::Key_BracketRight),
 				bRemove = (bDelete | bCopy | bCut | bPaste) ||
 					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
-					 key != Qt::Key_Space && !bMovmentKeys),
+					 key != Qt::Key_Space && !bMovementKeys),
 				bCollected = _history->SelectedSize(),
 				bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5),
 
@@ -660,7 +660,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				QRectF rr = _rubberRect;
 				if(_history->AddRotationItem(rot) ) // using History::_SelectionRect (== _rubberRect)
 				{
-					_rubberRect = _history->SelectionRect();
+					_rubberRect = _history->SelectionRect().translated(-_topLeft);
 					_rubberBand->setGeometry(_rubberRect.toRect());
 
 					_Redraw();
@@ -753,41 +753,18 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 		else    // no rubberBand
 #endif
 		{
-			int stepSize = _mods.testFlag(Qt::ControlModifier) ? LargeStep : (_mods.testFlag(Qt::ShiftModifier) ? SmallStep : NormalStep);
 #ifndef _VIEWER
-if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )
+			if (key == Qt::Key_BracketRight)
+				emit IncreaseBrushSize(1);
+			else if (key == Qt::Key_BracketLeft)
+				emit DecreaseBrushSize(1);
+			else if (key == Qt::Key_F4 && _mods.testFlag(Qt::ControlModifier))
+				emit CloseTab(_currentHistoryIndex);
+			else if ((key == Qt::Key_Tab || key == Qt::Key_Backtab) && _mods.testFlag(Qt::ControlModifier))
+				emit TabSwitched(key == Qt::Key_Backtab ? -1 : 1); // Qt: Shit+Tab is Backtab
+			if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )
 				__DrawCross(_actMousePos, 10);
-			else 
-#endif
-				if (key == Qt::Key_PageUp)
-					_PageUp();
-				else  if (key == Qt::Key_PageDown)
-					_PageDown();
-				else  if (key == Qt::Key_Home)
-					_Home(_mods.testFlag(Qt::ControlModifier));
-				else  if (key == Qt::Key_End)
-					_End(_mods.testFlag(Qt::ControlModifier));
-			//            else if (key == Qt::Key_Shift)
-			//				_shiftKeyDown = true;
-
-				else if (key == Qt::Key_Up)
-					_Up(stepSize);
-				else if (key == Qt::Key_Down)
-					_Down(stepSize);
-				else if (key == Qt::Key_Left)
-					_Left(stepSize);
-				else if (key == Qt::Key_Right)
-					_Right(stepSize);
-				else if (key == Qt::Key_BracketRight)
-					emit IncreaseBrushSize(1);
-				else if (key == Qt::Key_BracketLeft)
-					emit DecreaseBrushSize(1);
-				else if (key == Qt::Key_F4 && _mods.testFlag(Qt::ControlModifier))
-					emit CloseTab(_currentHistoryIndex);
-				else if ((key == Qt::Key_Tab || key == Qt::Key_Backtab) && _mods.testFlag(Qt::ControlModifier))
-					emit TabSwitched(key == Qt::Key_Backtab ? -1 : 1); // Qt: Shit+Tab is Backtab
-#ifndef _VIEWER
-				else if (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5)
+			else if (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5)
 					ChangePenColorByKeyboard(key);
 #endif
 		}
@@ -801,6 +778,30 @@ if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )
 				_AddCopiedItems(_lastCursorPos);
 				_Redraw();
 			}
+		}
+		else if (bMovementKeys)
+		{
+			int stepSize = _mods.testFlag(Qt::ControlModifier) ? LargeStep : (_mods.testFlag(Qt::ShiftModifier) ? SmallStep : NormalStep);
+			if (key == Qt::Key_PageUp)
+				_PageUp();
+			else  if (key == Qt::Key_PageDown)
+				_PageDown();
+			else  if (key == Qt::Key_Home)
+				_Home(_mods.testFlag(Qt::ControlModifier));
+			else  if (key == Qt::Key_End)
+				_End(_mods.testFlag(Qt::ControlModifier));
+		//            else if (key == Qt::Key_Shift)
+		//				_shiftKeyDown = true;
+
+			else if (key == Qt::Key_Up)
+				_Up(stepSize);
+			else if (key == Qt::Key_Down)
+				_Down(stepSize);
+			else if (key == Qt::Key_Left)
+				_Left(stepSize);
+			else if (key == Qt::Key_Right)
+				_Right(stepSize);
+			_ReshowRubberBand();
 		}
 		if (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt)
 		{
@@ -1441,6 +1442,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
  * RETURNS:
  * REMARKS: - when the rubberBand is hidden and not deleted,
  *              it can be reshown using _ReshowRubberBand()
+ *			- default: del = false
  *------------------------------------------------------------*/
 void DrawArea::HideRubberBand(bool del)
 {
@@ -2307,7 +2309,7 @@ void DrawArea::SetPageGuidesOn(bool on)
 void DrawArea::_SetOrigin(QPointF o)
 {
 #ifndef _VIEWER
-	HideRubberBand();  // and store _topLeft into _topLeftWhenRubber
+	HideRubberBand();  // but not delete and store _topLeft into _topLeftWhenRubber
 #endif
 	_topLeft = o;
 	_canvasRect.moveTo(_topLeft);
@@ -2705,21 +2707,22 @@ void DrawArea::_PasteSprite()
 	_pSprite = nullptr;             // so the next paint event finds no sprite
 	_AddCopiedItems(ps->topLeft, ps);
 	delete ps;
-
-	if (_history)
-		_history->CollectPasted(_rubberRect.translated(_topLeft));
-
 }
+
+
 void DrawArea::_AddCopiedItems(QPointF pos, Sprite* ps)
 {
 	_history->AddCopiedItems(pos + _topLeft, ps);    // add at window relative position: top left = (0,0)
-	QRectF updateRect = ps ? ps->rect.translated(pos) : _history->SelectionRect();    // original rectangle
+	QRectF selRect = _history->SelectionRect();
+	QRectF updateRect = ps ? ps->rect.translated(pos) : selRect.translated(pos - selRect.topLeft());    // original rectangle
 	update(updateRect.toRect());
 	_rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
 	int m = ps ? ps->margin : 0;
 	_rubberRect = updateRect.adjusted(m,m,-m,-m);
 	_rubberBand->setGeometry(_rubberRect.toRect());
 	_rubberBand->show();
+	if (_history)
+		_history->CollectPasted(_rubberRect.translated(_topLeft));
 
 	emit CanUndo(_history->CanUndo());
 	emit CanRedo(_history->CanRedo());

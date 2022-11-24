@@ -475,6 +475,8 @@ void DrawableEllipse::Translate(QPointF dr, qreal minY)
 		DrawableItem::Translate(dr, minY);
 		rect.moveTo(rect.topLeft() + dr);
 		_rotatedRect.moveTo(_rotatedRect.topLeft() + dr);
+		if (!_points.isEmpty())
+			_points.translate(dr);
 	}
 }
 
@@ -698,6 +700,8 @@ void DrawableRectangle::Translate(QPointF dr, qreal minY)             // only if
 		DrawableItem::Translate(dr, minY);
 		_rotatedRect.moveTo(_rotatedRect.topLeft() + dr);
 		rect.moveTo(rect.topLeft() + dr);
+		if (!_points.isEmpty())
+			_points.translate(dr);
 	}
 }
 
