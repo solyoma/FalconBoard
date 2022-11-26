@@ -1210,24 +1210,6 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 									// drawables
 			_Redraw();
 		}
-	else if (_rubberBand)		// comes here when Ctrl + MyButtonPressed is followed by MyButtonrelease
-	{
-		// DEBUG
-		//#if defined _DEBUG
-		//        qDebug("Button Release: rubberband size:%d,%d", _rubberBand->size().width(), _rubberBand->size().height());
-		//#endif
-		// /DEBUG
-		if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
-		{
-			_rubberRect = _rubberBand->geometry();
-			bool doNotShrinkSelectionRectangle = event->mods.testFlag(Qt::AltModifier);
-			_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
-			if (_history->SelectedSize() && !doNotShrinkSelectionRectangle)
-			{
-				_rubberBand->setGeometry(_history->BoundingRect().translated(-_topLeft).toRect());
-				_rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
-			}
-		}
 		else if (event->mods.testFlag(Qt::ControlModifier))     // Ctrl + click: select image or near scribbles if any
 		{
 			QPointF p = event->pos + _topLeft;
@@ -1247,10 +1229,6 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				_rubberRect = _rubberBand->geometry();      // _history->BoundingRect().translated(-_topLeft);
 			}
 		}
-		else
-			HideRubberBand(true);
-		event->accept();
-	}
 		else
 		{
 			if (!_spaceBarDown)
@@ -1296,10 +1274,32 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 #ifndef _VIEWER
 		}
 #endif 
+	}
+	else if (_rubberBand)		// comes here when Ctrl + MyButtonPressed is followed by MyButtonrelease
+	{
+		// DEBUG
+		//#if defined _DEBUG
+		//        qDebug("Button Release: rubberband size:%d,%d", _rubberBand->size().width(), _rubberBand->size().height());
+		//#endif
+		// /DEBUG
+		if (_rubberBand->geometry().width() > 10 && _rubberBand->geometry().height() > 10)
+		{
+			_rubberRect = _rubberBand->geometry();
+			bool doNotShrinkSelectionRectangle = event->mods.testFlag(Qt::AltModifier) && !event->mods.testFlag(Qt::ControlModifier);
+			_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
+			if (_history->SelectedSize() && !doNotShrinkSelectionRectangle)
+			{
+				_rubberBand->setGeometry(_history->BoundingRect().translated(-_topLeft).toRect());
+				_rubberRect = _rubberBand->geometry(); // _history->BoundingRect().translated(-_topLeft);
+			}
+		}
+		else
+			HideRubberBand(true);
+		event->accept();
+	}
 		_scribbling = false;
 		_pendown = false;
 		_drawStarted = false;
-	}
 #ifndef _VIEWER
 #endif
 	_allowMouse = _allowPen = true;

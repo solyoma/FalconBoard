@@ -840,11 +840,12 @@ void DrawableScreenShot::Rotate(MyRotation arot, QRectF &inThisRectangle)
 		case MyRotation::rotFlipV:
 			img = _image.toImage();
 			img = img.mirrored(fliph, flipv);
-			_rotatedImage = _image.fromImage(img);
+			_rotatedImage = QPixmap::fromImage(img);
+			rot.AddRotation(arot);
 			break;
 		default:
 			_rotatedImage = _image.transformed(transform, Qt::SmoothTransformation);
-			rot.RotateRect(_rotatedArea, inThisRectangle, true);
+			arot.RotateRect(_rotatedArea, inThisRectangle, true);
 			rot.AddRotation(arot);
 			if (rot.IsSimpleRotation())
 			{
@@ -856,7 +857,6 @@ void DrawableScreenShot::Rotate(MyRotation arot, QRectF &inThisRectangle)
 			}
 			break;
 	}
-	rot.AddRotation(arot);
 }
 
 void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
