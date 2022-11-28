@@ -499,6 +499,8 @@ public:
         painter->setPen(pen);
         if (brushColor.isValid())
             painter->setBrush(QBrush(brushColor));
+        else
+            painter->setBrush(QBrush());
         // painter's default compositionmode is CompositionMode_SourceOver
         // painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
@@ -643,8 +645,8 @@ struct DrawableItem : public DrawablePen
             }
             painter->drawImage(tl - topLeftOfVisibleArea, pxm);
             //painter->drawPixmap(tl - topLeftOfVisibleArea, pxm);
-            // DEBUG
-            // pxm.save("pxm.png", "png");
+            //??? DEBUG
+            //pxm.save("pxm.png", "png");
             // end DEBUG
         }
         else                                // no erasers: just paint normally
