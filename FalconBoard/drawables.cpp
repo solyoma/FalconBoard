@@ -788,10 +788,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableRectangle& di)		  // call AFTE
 // DrawableScreenShot
 //=====================================
 
-//-------------------------------------------------------------
-
-
-void DrawableScreenShot::AddImage(QPixmap& animage)
+void DrawableScreenShot::SetImage(QPixmap& animage)
 {
 	_image = animage;
 	_rotatedArea = QRectF(startPos, _image.size());
@@ -799,7 +796,7 @@ void DrawableScreenShot::AddImage(QPixmap& animage)
 
 QRectF DrawableScreenShot::Area() const
 {
-	return _rotatedArea;
+	return _rotatedArea.boundingRect();
 }
 
 QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
@@ -809,10 +806,11 @@ QRectF DrawableScreenShot::AreaOnCanvas(const QRectF& canvasRect) const
 
 void DrawableScreenShot::Translate(QPointF dr, qreal minY)
 {
-	if (_rotatedArea.top() > minY)
+	QRectF r = _rotatedArea.boundingRect();
+	if (r.top() > minY)
 	{
-		DrawableItem::Translate(dr, minY);
-		_rotatedArea.moveTo(_rotatedArea.topLeft() + dr);
+		DrawableItem::Translate(dr, minY);	// translates startPos
+		_rotatedArea.translate(dr);
 	}
 }
 
@@ -822,41 +820,23 @@ void DrawableScreenShot::Rotate(MyRotation arot, QRectF &inThisRectangle)
 	if ((c = _RotateCommon(arot, inThisRectangle)).x() < 0)
 		return;
 
-	QRectF rect = _rotatedArea;
-	arot.RotateRect(rect, inThisRectangle, true);
+	arot.RotatePoly(_rotatedArea, inThisRectangle, 0, true);
 
-	startPos = rect.topLeft();
+	startPos = _rotatedArea.boundingRect().topLeft();
 
-	QTransform transform;
-	transform.rotate(arot.angle);
-	QImage img;
-	bool fliph = false, flipv = true;	// default flip orientations
-	switch (arot.rotType)
+	rot.AddRotation(arot);
+//	if (_rotatedImage.isNull())
+	_rotatedImage = _image;
+	rot.RotatePixmap(_rotatedImage, inThisRectangle, true);
+	if (rot.IsSimpleRotation())
 	{
-		case MyRotation::rotFlipH:
-			fliph = true;
-			flipv = false;		// NO break here! 
-			[[fallthrough]];	// min C++17!
-		case MyRotation::rotFlipV:
-			img = _image.toImage();
-			img = img.mirrored(fliph, flipv);
-			_rotatedImage = QPixmap::fromImage(img);
-			rot.AddRotation(arot);
-			break;
-		default:
-			_rotatedImage = _image.transformed(transform, Qt::SmoothTransformation);
-			arot.RotateRect(_rotatedArea, inThisRectangle, true);
-			rot.AddRotation(arot);
-			if (rot.IsSimpleRotation())
-			{
-				if (abs(rot.angle) < eps)
-				{
-					rot.angle = 0.0;
-					_rotatedImage = QPixmap();	// "delete"
-				}
-			}
-			break;
+		if (abs(rot.angle) < eps)
+		{
+			rot.angle = 0.0;
+			_rotatedImage = QPixmap();	// "delete"
+		}
 	}
+
 }
 
 void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
@@ -864,7 +844,7 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 	if (drawStarted)
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea)); // this painter paints on screenshot layer!
-		painter->drawPixmap(_rotatedArea.topLeft() - topLeftOfVisibleArea, Image());
+		painter->drawPixmap(startPos - topLeftOfVisibleArea, Image());
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
@@ -883,7 +863,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableScreenShot& bimg)	  // call AF
 {
 	QPixmap img;
 	ifs >> img;  
-	bimg.AddImage(img);
+	bimg.SetImage(img);
 	if (abs(bimg.rot.angle) < eps)
 		bimg.rot.rotType = MyRotation::rotNone;
 
@@ -1239,7 +1219,7 @@ void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-i
 	_pQTree->Resize(_pQTree->Area());
 }
 //*******************************************
-void MyRotation::CantRotateWarning() const
+void MyRotation::_CantRotateWarning() const
 {
 		QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
 }

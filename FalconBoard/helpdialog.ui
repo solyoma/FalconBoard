@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="helpTabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabDrawing">
       <attribute name="title">
@@ -227,7 +227,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To Draw a rectangle or a square select a rectangular region and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;R&lt;/span&gt;. The rectangle will be drawn with the actual pen.&lt;/p&gt;&lt;p&gt;If the selection would be too close around existing strokes (see &lt;span style=&quot; font-style:italic;&quot;&gt;Selections&lt;/span&gt; in this help) then a small margin is left around them&lt;br/&gt;before drawing the rectangle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To Draw a rectangle or a square select a rectangular region and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;R&lt;/span&gt;. The rectangle will be drawn with the actual pen.&lt;br/&gt;Use &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shift+R&lt;/span&gt; for a filled rectangle. (See tab &lt;span style=&quot; font-style:italic;&quot;&gt;Seelctions&lt;/span&gt; for more info!)&lt;/p&gt;&lt;p&gt;If the selection would be too close around existing strokes (see &lt;span style=&quot; font-style:italic;&quot;&gt;Selections&lt;/span&gt; in this help) then a small margin is left around them&lt;br/&gt;before drawing the rectangle.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -250,7 +250,7 @@
           <item row="4" column="1">
            <widget class="QLabel" name="label_15">
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To draw an ellipse or a circle select a rectangular area and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;C&lt;/span&gt; on the keyboard.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To draw an ellipse or a circle with the current pen select a rectangular area and press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;C&lt;/span&gt; for the outline and &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Shit+C&lt;/span&gt; for a solid ellipse.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>

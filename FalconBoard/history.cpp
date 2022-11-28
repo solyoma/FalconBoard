@@ -576,7 +576,7 @@ int HistorySetTransparencyForAllScreenshotsItems::Redo()
 			QPixmap image = pds->Image();
 			QBitmap bm = MyCreateMaskFromColor(image, transparentColor, fuzzyness);
 			image.setMask(bm);
-			pds->AddImage(image);
+			pds->SetImage(image);
 			psi->isVisible = false;			// hide original
 
 			pdrbl->AddDrawable(pds);
@@ -1120,7 +1120,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 
 			QPixmap pxm;
 			ifs >> pxm;
-			dsImg. AddImage(pxm);
+			dsImg. SetImage(pxm);
 			pdrwh = &dsImg;
 		}
 		else

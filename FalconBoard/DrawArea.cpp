@@ -349,7 +349,7 @@ void DrawArea::AddScreenShotImage(QPixmap& animage)
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;
 	bimg.startPos = QPointF(x, y) + _topLeft;
-	bimg.AddImage(animage);
+	bimg.SetImage(animage);
 	HistoryItem *phi = _history->AddDrawableItem(bimg);
 
 #if !defined _VIEWER
@@ -362,6 +362,7 @@ void DrawArea::AddScreenShotImage(QPixmap& animage)
 		_rubberRect = _rubberBand->geometry();  // _history->BoundingRect().translated(-_topLeft);
 		_rubberBand->show();
 		_history->AddToSelection(drix, true);
+		_ShowCoordinates(_lastCursorPos);
 	}
 #endif
 
@@ -522,7 +523,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
 				),
 			bMovementKeys = key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left ||
-						 key == Qt::Key_Right || key == Qt::Key_PageUp || key == Qt::Key_PageDown;
+							key == Qt::Key_Right || key == Qt::Key_PageUp || key == Qt::Key_PageDown ||
+							key == Qt::Key_Home || key == Qt::Key_End;
 
 
 		// lambda to draw a cross at a given point
@@ -664,6 +666,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_rubberBand->setGeometry(_rubberRect.toRect());
 
 					_Redraw();
+					_ShowCoordinates(_lastCursorPos);
 				}
 			}
 			else if (key == Qt::Key_R)    // draw rectangle around (at the outside) of selection
@@ -1189,6 +1192,13 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 		}
 }
 
+/*=============================================================
+ * TASK:	MyButtonreleaseEvent
+ * PARAMS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
 void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 {
 #ifndef _VIEWER
@@ -1219,8 +1229,8 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				int i = _history->SelectTopmostImageUnder(p);
 				if (i >= 0)
 				{
-					_rubberBand->setGeometry((*_history)[i]->Area().translated(-_topLeft).toRect());
-					_rubberRect = _rubberBand->geometry();  // _history->BoundingRect().translated(-_topLeft);
+					_rubberRect = _history->Drawable(i)->Area().translated(-_topLeft);  // _history->BoundingRect().translated(-_topLeft);
+					_rubberBand->setGeometry(_rubberRect.toRect());
 				}
 			}
 			else    // scribbles were selected
@@ -1228,6 +1238,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				_rubberBand->setGeometry(r.translated(-_topLeft).toRect());
 				_rubberRect = _rubberBand->geometry();      // _history->BoundingRect().translated(-_topLeft);
 			}
+			_ShowCoordinates(event->pos);
 		}
 		else
 		{
@@ -1275,6 +1286,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 		}
 #endif 
 	}
+#ifndef _VIEWER
 	else if (_rubberBand)		// comes here when Ctrl + MyButtonPressed is followed by MyButtonrelease
 	{
 		// DEBUG
@@ -1297,11 +1309,10 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 			HideRubberBand(true);
 		event->accept();
 	}
-		_scribbling = false;
-		_pendown = false;
-		_drawStarted = false;
-#ifndef _VIEWER
+	_drawStarted = false;
 #endif
+	_scribbling = false;
+	_pendown = false;
 	_allowMouse = _allowPen = true;
 }
 
@@ -2195,6 +2206,11 @@ QPainter *DrawArea::_GetPainter(QImage *pCanvas)
 	painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 
 	QRectF rect = _clippingRect.translated(-_topLeft); // _pActCanvas relative
+	if (rect.width() > pCanvas->width())
+		rect.setWidth(pCanvas->width());
+	if (rect.height() > pCanvas->height())
+		rect.setHeight(pCanvas->height());
+
 	painter->setClipRect(rect);
 	return painter;
 }
@@ -2647,11 +2663,15 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 		_actPenKind = pdrwi->PenKind();
 		_actPenWidth = pdrwi->penWidth;
 		pdrwi->Draw(painter, QPointF(0,0), pSprite->rect);
+		// DEBUG
+		// pSprite->image.save(QString("I%1-%2.png").arg((int)pdrwi->dtType).arg(ix));
+		// /DEBUG
 	}
 
 	// create border to see the rectangle
 	painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
 	painter->setPen(QPen((_darkMode ? Qt::white : Qt::black), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin));
+	painter->setBrush(QBrush());
 	painter->drawRect(QRectF(QPoint(pSprite->margin/2.0, pSprite->margin / 2.0), pSprite->rect.size()) );
 	//painter->drawLine(0, 0, pSprite->rect.width(), 0);
 	//painter->drawLine(pSprite->rect.width(), 0, pSprite->rect.width(), pSprite->rect.height());
@@ -2724,8 +2744,8 @@ void DrawArea::_AddCopiedItems(QPointF pos, Sprite* ps)
 	_rubberRect = updateRect.adjusted(m,m,-m,-m);
 	_rubberBand->setGeometry(_rubberRect.toRect());
 	_rubberBand->show();
-	if (_history)
-		_history->CollectPasted(_rubberRect.translated(_topLeft));
+	_history->SetSelectionRect(_rubberRect);
+	_history->CollectPasted(_rubberRect.translated(_topLeft));
 
 	emit CanUndo(_history->CanUndo());
 	emit CanRedo(_history->CanRedo());

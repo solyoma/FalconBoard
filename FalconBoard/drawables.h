@@ -168,16 +168,16 @@ struct MyRotation
     Type rotType = rotNone; // only used for testing and for flips In all other cases alpha is enough
     qreal angle = 0.0;      // (in degrees) rotate by this (absolute for ellipse and rectangle) relative to prev. state to others
 
-    constexpr MyRotation& operator=(Type typ)
+    MyRotation& operator=(Type typ)
     {
         rotType = typ;
-        angle = AngleForType(typ);
+        _SetRot(AngleForType(typ));
         return *this;
     }
-    constexpr MyRotation& operator=(qreal anAngle)
+    MyRotation& operator=(qreal anAngle)
     {
-        angle = anAngle;
         rotType = TypeForAngle(anAngle);
+        _SetRot(anAngle);
         return *this;
     }
 
@@ -237,15 +237,11 @@ struct MyRotation
         }
         return t2;
     }
-    constexpr void NormalizeRotation()  // abs(angle) < 360.0
+    void NormalizeRotation()  // abs(angle) < 360.0
     {
         if (!IsRotation())
-        {
             angle = 0.0;
-            return;
-        }
-
-        if ((angle > 0 && angle < eps) || (angle < 0 && -angle < eps))
+        else if ((angle > 0 && angle < eps) || (angle < 0 && -angle < eps))
         {
             angle = 0.0;
             rotType = rotNone;
@@ -264,6 +260,7 @@ struct MyRotation
         }
         else
             rotType = rotAngle;
+        _SetRot(angle);
     }
     static MyRotation AddRotations(MyRotation rot1, MyRotation rot2)
     {
@@ -276,7 +273,7 @@ struct MyRotation
         {
             rot1.rotType = AddTypes(rot1.rotType, rot2.rotType);
             if (!rot1.IsRotation() && abs(rot1.angle) < eps)          // e..g only flip's for unrotated original
-                rot1.angle = 0.0;   // type is already rotNone
+                rot1.NormalizeRotation();  // set angle = 0, type is already rotNone
         }
         return rot1;
     }
@@ -290,9 +287,10 @@ struct MyRotation
         return IsRotation() && IsSimpleRotation(angle); 
     }
 
-    constexpr void InvertRotation()
+    void InvertRotation()
     {
         angle = -angle;
+        NormalizeRotation();
     }
     bool ResultsInNoRotation(MyRotation &arot, bool markIfNoRotation = false)    // returns true if it is a no-rotation state
     {
@@ -301,6 +299,7 @@ struct MyRotation
             if (markIfNoRotation)
             {
                 angle = 0;
+                _tr.rotate(angle);
                 rotType = rotNone;
             }
             return true;
@@ -346,14 +345,10 @@ struct MyRotation
         }
         else 
         {
-
-            QTransform tr;
-            tr.rotate(angle);
-
             auto __RotR = [&](QRectF& r)
             {
                 r = r.translated(-c);
-                r = tr.map(r).boundingRect();
+                r = _tr.map(r).boundingRect();
                 r = r.translated(c);
             };
 
@@ -364,7 +359,7 @@ struct MyRotation
 
                 if (r.top() < 0 || r.left() < 0)
                 {
-                    CantRotateWarning();
+                    _CantRotateWarning();
                     return false;
                 }
             }
@@ -393,9 +388,7 @@ struct MyRotation
             }
             else
             {
-                QTransform tr;
-                tr.rotate(angle);
-                points = tr.map(points);
+                points = _tr.map(points);
             }
             points.translate(c);
 
@@ -417,20 +410,57 @@ struct MyRotation
         }
         else
         {
-            QTransform tr;
-            tr.rotate(angle);
-            p = tr.map(p);
+            p = _tr.map(p);
         }
         p = p + c;
         if (p.x() < 0 || p.y() < 0)	// can't rotate
         {
-            CantRotateWarning();
+            _CantRotateWarning();
             return false;
         }
         pt = p;
         return true;
     }
-    void CantRotateWarning() const;
+    bool RotatePixmap(QPixmap& img, QRectF inThisRect, bool noCheck = false)  const
+    {
+        if (!noCheck)
+        {
+            QRectF r = inThisRect;
+            r = _tr.map(r).boundingRect();
+            if (r.x() < 0 || r.y() < 0)
+            {
+                _CantRotateWarning();
+                return false;
+            }
+        }
+        bool fliph = false, flipv = true;	// default flip orientations
+        QImage image;
+        switch (rotType)
+        {
+            case MyRotation::rotFlipH:
+                fliph = true;
+                flipv = false;		// NO break here! 
+                [[fallthrough]];	// min C++17!
+            case MyRotation::rotFlipV:
+                image = img.toImage();
+                image = image.mirrored(fliph, flipv);
+                img = QPixmap::fromImage(image);
+                break;
+            default:
+                img = img.transformed(_tr, Qt::SmoothTransformation);
+                break;
+        }
+        return true;
+    }
+ private:
+    QTransform _tr;
+    void _CantRotateWarning() const;
+    void _SetRot(qreal alpha)
+    {
+        _tr = QTransform();
+        _tr.rotate(alpha);
+        angle = alpha;
+    }
 };
             //----------------------------------------------------
             // ------------------- Drawable Pen -------------
@@ -469,7 +499,8 @@ public:
         painter->setPen(pen);
         if (brushColor.isValid())
             painter->setBrush(QBrush(brushColor));
-        // painter's default compositionmode is SourceOver
+        // painter's default compositionmode is CompositionMode_SourceOver
+        // painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
         if(clipR.isValid())
             painter->setClipRect(clipR);
@@ -579,7 +610,8 @@ struct DrawableItem : public DrawablePen
         if (erasers.size())                 // then paint object first then erasers on separate pixmap 
         {                                   // and copy the pixmap to the visible area
             QRectF area = Area();           // includes half of pen width (none for screenshots)
-            QPixmap pxm(area.size().toSize());
+            //QPixmap pxm(area.size().toSize());
+            QImage pxm(area.width(), area.height(), QImage::Format_ARGB32);
             pxm.fill(Qt::transparent);
             QPainter myPainter(&pxm);
             QPointF tl = area.topLeft();
@@ -609,7 +641,8 @@ struct DrawableItem : public DrawablePen
                 else
                     myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
             }
-            painter->drawPixmap(tl - topLeftOfVisibleArea, pxm);
+            painter->drawImage(tl - topLeftOfVisibleArea, pxm);
+            //painter->drawPixmap(tl - topLeftOfVisibleArea, pxm);
             // DEBUG
             // pxm.save("pxm.png", "png");
             // end DEBUG
@@ -732,12 +765,12 @@ struct DrawableEllipse : public DrawableItem
         xq2 = a2 * b2 * xp2 / (xp2 * b2 + yp2 * a2);
         yq2 = b2 * (1 - xq2 / a2);
         // square of distances of P and Q from origin
-        qreal distP2 = xp2 + yp2, distQ2 = xq2 + yq2;
-                    // cheating dist(P+distance) is not this
+        qreal distP = sqrt(xp2 + yp2), distQ = sqrt(xq2 + yq2);
+                    
         if (isFilled)
-            return distQ2 <= distP2 + distance * distance;
-        return (distP2 <= distQ2 && distP2 >= distQ2 - distance * distance) ||
-                (distP2 <= distQ2 + distance * distance);
+            return distP <= distQ + distance;
+        return (distP <= distQ && distP >= distQ - distance) ||
+                (distP > distQ && distP < distQ + distance * distance);
     }
     virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
 private:
@@ -876,10 +909,9 @@ struct DrawableScreenShot : public DrawableItem
     }
     ~DrawableScreenShot() = default;
 
-    const QPixmap& Image() { return _image; }
-    void AddImage(QPixmap& image);
-
     const QPixmap& Image() const { return _rotatedImage.isNull() ? _image : _rotatedImage; }
+    void SetImage(QPixmap& image);
+
 
     QRectF Area() const override;
     // canvasRect relative to paper (0,0)
@@ -892,16 +924,15 @@ struct DrawableScreenShot : public DrawableItem
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is inside the image
     {
         if(rot.IsRotation() && !rot.IsSimpleRotation() )
-            rot.RotateSinglePoint(p, _rotatedArea, true);
+            rot.RotateSinglePoint(p, _rotatedArea.boundingRect(), true);
         return _rotatedArea.contains(p);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
     // QPolygonF ToPolygonF()  - default
 private:
     QPixmap _image;      // screenshot image
-
     QPixmap _rotatedImage;
-    QRectF _rotatedArea;
+    QPolygonF _rotatedArea;
 };
 
 QDataStream& operator<<(QDataStream& ofs, const  DrawableScreenShot& di);
@@ -1361,7 +1392,7 @@ public:
     // must redefine this 
     DrawableItem* operator[](int ix) const
     {
-        return  _items.operator[](ix);
+        return  _items[ix];
     }
 
     void SetVisibility(DrawableItemIndex drix, bool visible)
@@ -1370,8 +1401,8 @@ public:
     }
     void SetVisibility(int index, bool visible)
     {                     // _pQTree must not be null
-        if ((*this)[index]->isVisible != visible)    // when it does change
-            (*this)[index]->isVisible = visible;
+        if (_items[index]->isVisible != visible)    // when it does change
+            _items[index]->isVisible = visible;
         if (visible)
             _pQTree->Add(index);
         else
@@ -1518,7 +1549,7 @@ public:
         {
             for (int i = 0; i < siz; ++i)
             {
-                auto pdrw = (*this)[ iv1.at(i) ];
+                auto pdrw = _items[ iv1.at(i) ];
                 addIfNear(pdrw, iv1[i]);
             }
         }
@@ -1526,7 +1557,7 @@ public:
         {
             for (int i = 0; i < siz; ++i)
             {
-                auto pdrw = (*this)[ iv1.at(i) ];
+                auto pdrw = _items[ iv1.at(i) ];
 
                 if (pdrw->dtType == type)
                     addIfNear(pdrw, iv1[i]);
@@ -1539,7 +1570,7 @@ public:
         if (point == QPoint(-1, -1))  // select topmost item
         {
             for (int i = _items.size() - 1; i >= 0; --i)
-                if (_items[i]->dtType == type)
+                if (_items[i]->dtType == type && _items[i]->isVisible)
                     return i;
             return -1;
         }
@@ -1556,9 +1587,9 @@ public:
         {
             for (int i = 0; i < iv.size(); ++i)
             {
-                auto pdrw = (*this)[iv.at(i)];
+                auto pdrw = _items[iv.at(i)];
 
-                if (pdrw->PointIsNear(point, penWidth / 2.0 + 3))
+                if (pdrw->isVisible && pdrw->PointIsNear(point, penWidth / 2.0 + 3))
                     if (pdrw->zOrder > res.zorder)
                     {
                         res.type = pdrw->dtType;
@@ -1573,24 +1604,25 @@ public:
             DrawableItem* pdrw;
             for (i = 0; i < iv.size(); ++i)
             {
-                pdrw = (*this)[iv.at(i)];
-                if (pdrw->dtType == type)
+                pdrw = _items[iv.at(i)];
+                if (pdrw->isVisible && pdrw->dtType == type)
                     break;
             }
 
-            if (i < _items.size())
+            if (i < iv.size())
             {
-                res.index = i;
+                res.index = iv.at(i);
                 res.zorder = pdrw->zOrder;
                 res.type = type;
 
                 for (++i; i < iv.size(); ++i)
                 {
-                    if (pdrw->PointIsNear(point, penWidth / 2.0 + 3))
+                    pdrw = (*this)[iv.at(i)];
+                    if (pdrw->isVisible && pdrw->PointIsNear(point, penWidth / 2.0 + 3))
                     {
                         if (pdrw->zOrder > res.zorder)
                         {
-                            res.index = i;
+                            res.index = iv.at(i);
                             res.zorder = pdrw->zOrder;
                         }
                     }
