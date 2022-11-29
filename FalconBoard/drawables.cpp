@@ -760,7 +760,7 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 		if (_points.isEmpty())
 			painter->drawRect(_rotatedRect.translated(-topLeftOfVisibleArea));
 		else   // rotation is arbitrary and not a multiple of 90 degrees and not a flip
-			painter->drawPolygon(_points); // '_points' and '_rotatedRect' already rotated
+			painter->drawPolygon(_points.translated(-topLeftOfVisibleArea)); // '_points' and '_rotatedRect' already rotated
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
