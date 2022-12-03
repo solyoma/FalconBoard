@@ -139,7 +139,7 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 	_history = historyList[insertAt];
 	if (!name.isEmpty() && loadIt)
 	{
-		int res = _history->Load();
+		int res = _LoadCommon();
 		if(res < 0)
 			return -2;
 	}
@@ -193,7 +193,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 	int res = 1;
 	if (redraw)
 	{
-		res = _history->Load();   // only when it wasn't loaded before
+		res = _LoadCommon();   // only when it wasn't loaded before
 		_SetCanvasAndClippingRect();
 		_Redraw(true);
 #ifndef _VIEWER
@@ -254,12 +254,24 @@ void DrawArea::MoveHistory(int from, int to)
 	_currentHistoryIndex = from;
 }
 
-int DrawArea::Load()
+int DrawArea::_LoadCommon()
 {
-#ifndef _VIEWER
-	HideRubberBand(true);
-#endif
-	int res = _history->Load(); // only loads if names diferent
+	quint32 file_version_loaded=0;	// aasuume old file, no grid data in _history->gridOptions yet
+	int res = _history->Load(file_version_loaded); // only loads if names diferent, if result is 0 readCount = 0
+	if( (file_version_loaded & 0x00FF0000) < 0x020000)	// no grid options from file, set them
+	{
+		_history->gridOptions.gridOn = _bGridOn;
+		_history->gridOptions.fixedGrid = _gridIsFixed;
+		_history->gridOptions.gridSpacing = _nGridSpacingX;
+	}
+	else											// set parameters from history
+	{
+		++_busy;
+		SetGridOn(_history->gridOptions.gridOn, _history->gridOptions.fixedGrid);
+		SlotForGridSpacingChanged(_history->gridOptions.gridSpacing);
+		emit SignalSetGrid(_bGridOn, _gridIsFixed, _nGridSpacingX);
+		--_busy;
+	}
 
 	QString qs = _history->Name(); //  .mid(_history->Name().lastIndexOf('/') + 1);
 	if (!res)
@@ -268,13 +280,23 @@ int DrawArea::Load()
 		QMessageBox::about(this, tr(WindowTitle), QString(tr("File\n'%1'\n not found")).arg(qs));
 	else if (res < 0)    // i.e. < -1
 		QMessageBox::about(this, tr(WindowTitle), QString(tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res - 2));
+
+	return res;
+}
+
+int DrawArea::Load()
+{
+#ifndef _VIEWER
+	HideRubberBand(true);
+#endif
+	int res = _LoadCommon();
 	if (res && res != -1)    // TODO send message if read error
 	{
 		_topLeft = QPointF(0, 0);
 		_Redraw();
 	}
-	emit CanUndo(_history->CanUndo());    // no undo or redo after open file
-	emit CanRedo(_history->CanRedo());
+	emit CanUndo(false);    // no undo or redo after open file
+	emit CanRedo(false);
 	update();
 	return res;
 }
@@ -1973,6 +1995,11 @@ void DrawArea::SlotForPrimaryScreenChanged(QScreen* ps)
 void DrawArea::SlotForGridSpacingChanged(int spacing)
 {
 	_nGridSpacingX = _nGridSpacingY = spacing;
+	if (_busy)
+		return;
+
+	if (_history)
+		_history->gridOptions.gridSpacing = spacing;
 	_Redraw();
 }
 
@@ -2322,8 +2349,15 @@ void DrawArea::SetCursor(DrawCursorShape cs)
 
 void DrawArea::SetGridOn(bool on, bool fixed)
 {
+	if (_busy)
+		return;
 	_gridIsFixed = fixed;
 	_bGridOn = on;
+	if (_history)
+	{
+		_history->gridOptions.fixedGrid = fixed;
+		_history->gridOptions.gridOn = on;
+	}
 	_Redraw();
 }
 

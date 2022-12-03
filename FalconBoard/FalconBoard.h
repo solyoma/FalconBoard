@@ -55,6 +55,7 @@ protected:
 	void dropEvent(QDropEvent* event);
 
 public slots:
+	void SlotToSetGrid(bool on, bool fixed, uint16_t value);
 	void slotGridSpacingChanged(int val);
 	void slotGridSpacingEditingFinished();
 
@@ -172,13 +173,7 @@ private slots:
 private:
 	Ui::FalconBoardClass ui;
 
-	struct FLAG {
-		int b = 0;
-		int operator++() { ++b; return b; }
-		int operator--() { if(b) --b; return b; }
-		operator bool() { return b; }
-	} _busy;
-
+	FLAG _busy;
 	bool _firstShown = false;	// main window was shown first
 
 	QStringList _translations;	// list of *.qm files in resources

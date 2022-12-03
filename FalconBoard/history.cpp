@@ -982,6 +982,7 @@ SaveResult History::Save(QString name)
 	ofs << MAGIC_ID;
 	ofs << MAGIC_VERSION;	// file version
 
+	ofs << (uint16_t)gridOptions;
 
 	QRectF area = QuadAreaToArea(_drawables.Area());
 	DrawableItem* phi = _drawables.FirstVisibleDrawable(area); // first in zOrder
@@ -1022,8 +1023,11 @@ SaveResult History::Save(QString name)
  *			- when 'force' clears data first
  *			- both _fileName and _loadedName can be empty
  *-------------------------------------------------------*/
-int History::Load(bool force)
+int History::Load(quint32& version_loaded, bool force)
 {
+	if (_fileName.isEmpty())
+		return 1;			//  no record loaded, but this is not an error
+
 	if (!force && _fileName == _loadedName)	// already loaded?
 		return _readCount;
 
@@ -1033,19 +1037,19 @@ int History::Load(bool force)
 		return -1;			// File not found
 
 	QDataStream ifs(&f);
-	qint32 id, version;
+	qint32 id;
 	ifs >> id;
 	if (id != MAGIC_ID)
 		return 0;			// read error
-	ifs >> version;		// like 0x56020101 for V 2.1.1
-	if ((version >> 24) != 'V')	// invalid/damaged  file or old version format
+	ifs >> version_loaded;		// like 0x56020101 for V 2.1.1
+	if ((version_loaded >> 24) != 'V')	// invalid/damaged  file or old version format
 		return 0;
 
 	Clear();
 	
 	int res;
-	if ((version & 0x00FF0000) < 0x020000)
-		res = _LoadV1(ifs, version,  force);
+	if ((version_loaded & 0x00FF0000) < 0x020000)
+		res = _LoadV1(ifs, version_loaded,  force);
 	else
 		res = _LoadV2(ifs, force);
 
@@ -1057,7 +1061,10 @@ int History::_LoadV2(QDataStream&ifs, bool force)
 {
 	DrawableItem dh;
 
-	int n = 0;
+	uint16_t u = 0;
+
+	ifs >> u;
+	gridOptions = u;
 
 // z order counters are reset
 	DrawableItem di, * pdrwh;
@@ -1070,6 +1077,7 @@ int History::_LoadV2(QDataStream&ifs, bool force)
 	DrawableText dTxt;
 	DrawableScreenShot dsImg;
 
+	int n = 0;
 	while (!ifs.atEnd())
 	{
 		++n;
@@ -1126,7 +1134,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 		}
 		else
 		{
-			// only screenshots and scribble is possible in a ver 1.0 file
+			// only screenshots and scribble are possible in a ver 1.0 file
 			pdrwh = &dScrb;
 
 			dScrb.dtType = DrawableType::dtScribble;

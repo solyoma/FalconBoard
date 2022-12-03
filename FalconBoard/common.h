@@ -14,8 +14,8 @@
 constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 
 const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
-const qint32 MAGIC_VERSION = 0x56020001; // V 02.00.01      Cf.w. common.h
-const QString sVersion = "2.0.1";
+const qint32 MAGIC_VERSION = 0x56020002; // V 02.00.02
+const QString sVersion = "2.0.2";
 
 const qreal eps = 1e-4;         // for 0 test of double
 inline constexpr qreal EqZero(qreal a) { return qAbs(a) < eps; }
@@ -24,7 +24,7 @@ inline constexpr qreal EqZero(qreal a) { return qAbs(a) < eps; }
 const QChar CHANGE_MARKER_CHAR = QChar(0x26d4);/* no entry traffic sign */
 
 extern QString FB_WARNING,      // ins FalconBoard.cpp
-              FB_ERROR;
+               FB_ERROR;
 
 
 const QString sWindowTitle =
@@ -317,5 +317,13 @@ private:
     static QSettings* _ps;
 
 };
+
+struct FLAG {
+    int b = 0;
+    int operator++() { ++b; return b; }
+    int operator--() { if (b) --b; return b; }
+    operator bool() { return b; }
+};
+
 
 #endif // _COMMON_H

@@ -30,7 +30,7 @@ int nUntitledOrder = 1;
 #ifdef _VIEWER
 void FalconBoard::_RemoveMenus()
 {
-    QList<QAction*> pMenuActions = ui.menuBar->actions();
+    QList<QAction*> pMenuActions = ui.menuBar->actions(); // [0]:file,[1]:Edit,[2]:Delete,[3]:options,[4]:Help
     ui.menuBar->removeAction(pMenuActions[1] ); // edit
     ui.menuBar->removeAction(pMenuActions[2]);  // clear
     ui.actionNew->setVisible(false);
@@ -44,7 +44,9 @@ void FalconBoard::_RemoveMenus()
     ui.actionAutoSaveBackgroundImage->setVisible(false);
     ui.actionApplyTransparencyToLoaded->setVisible(false);
     ui.menuGrid->removeAction(ui.menuGrid->actions()[2]);
-    pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]);
+    pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]); // paper width
+    pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]); // grid
+    pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]); // grid
 
     removeToolBar(ui.mainToolBar);
 }
@@ -94,6 +96,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &FalconBoard::SlotForPointerType);
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &FalconBoard::SlotForRubberBandSelection);
 #endif
+    connect(_drawArea, &DrawArea::SignalSetGrid, this, &FalconBoard::SlotToSetGrid);
     connect(this, &FalconBoard::GridSpacingChanged, _drawArea, &DrawArea::SlotForGridSpacingChanged);
 
     connect(qApp, &QApplication::primaryScreenChanged, _drawArea, &DrawArea::SlotForPrimaryScreenChanged);
@@ -168,7 +171,9 @@ void FalconBoard::RestoreState()
     }
     int n = s->value("grid", 0).toInt();
     ui.actionFixedGrid->setChecked(n & 2);
+#ifndef _VIEWER
     _pChkGridOn->setChecked(n & 1);
+#endif
     _drawArea->SetGridOn(n & 1, n & 2);
     n = s->value("pageG", 0).toInt(0);
     ui.actionShowPageGuides->setChecked(n);
@@ -494,7 +499,7 @@ void FalconBoard::_CreateAndAddActions()
 
     _psbGridSpacing = new QSpinBox();
     _psbGridSpacing->setMinimum(10);
-    _psbGridSpacing->setMaximum(128);
+    _psbGridSpacing->setMaximum(400);
     _psbGridSpacing->setSingleStep(10);
     _psbGridSpacing->setValue(_nGridSpacing);
     rect = _psbGridSpacing->geometry();
@@ -1425,7 +1430,7 @@ void FalconBoard::on_actionSaveAs_triggered() // current tab
 {
     QString fname = _pTabs->tabText(_pTabs->currentIndex());//    _drawArea->HistoryName(UNTITLED);
     int n = fname.length() - 1;
-    if (fname.at(1) == CHANGE_MARKER_CHAR)
+    if (fname.at(n) == CHANGE_MARKER_CHAR)
         fname.remove(--n, 2);
 
     //if (fname.isEmpty())
@@ -1581,6 +1586,8 @@ void FalconBoard::on_actionShowGrid_triggered()
 
 void FalconBoard::on_actionFixedGrid_triggered()
 {
+    if (_busy)
+        return;
     _drawArea->SetGridOn(ui.actionShowGrid->isChecked(), ui.actionFixedGrid->isChecked());
 }
 
@@ -1589,7 +1596,7 @@ void FalconBoard::on_actionGridSize_triggered()
     bool ok;
     int n = QInputDialog::getInt(this, tr("falconBoard - Grid spacing"),
                                          tr("Spacing in pixels:"), _nGridSpacing,
-                                         5, 128, 10, &ok);
+                                         5, 400, 10, &ok);
     if (ok && n != _nGridSpacing)
     {
         _nGridSpacing = n;
@@ -1598,6 +1605,17 @@ void FalconBoard::on_actionGridSize_triggered()
             
 }
 
+void FalconBoard::SlotToSetGrid(bool on, bool fixed, uint16_t value)
+{
+#ifndef _VIEWER
+    ++_busy;
+    _nGridSpacing = value;
+    _psbGridSpacing->setValue(_nGridSpacing);
+    ui.actionShowGrid->setChecked(on);
+    ui.actionFixedGrid->setChecked(fixed);
+    --_busy;
+#endif
+}
 void FalconBoard::slotGridSpacingChanged(int val)
 {
     if (_busy)		// from program

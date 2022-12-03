@@ -75,7 +75,7 @@ public:
             
         if (index >= HistoryListSize())
             return QString();
-        return historyList[index]->Name(); // may be empty!
+        return historyList[index]->Name(); // may be empty and may contain changes flag!
     }
 
     int SameFileAlreadyUsed(QString& name)
@@ -178,6 +178,7 @@ signals:
     void PenKindChange(FalconPenKind pk);
     void CloseTab(int tab);
     void TabSwitched(int direction);
+    void SignalSetGrid(bool on, bool fixed, uint16_t value);
 
 public slots:
     void NewData();
@@ -330,6 +331,7 @@ private:
 
     QRectF   _canvasRect;    // document (0,0) relative rectangle
     QRectF   _clippingRect;  // this too, only draw strokes inside this
+    FLAG _busy;
 
 #ifndef _VIEWER
     enum class _ScrollDirection {scrollNone, scrollUp, scrollDown, scrollLeft,scrollRight };
@@ -347,6 +349,8 @@ private:
                                         // used to re-show rubberband after a scroll
                                         // or during move paper 
     QRectF   _rubberRect;        // used to select histoy items
+
+    int _LoadCommon();
 
     void _InitRubberBand( MyPointerEvent* event);
     void _ReshowRubberBand();

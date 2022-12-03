@@ -7,6 +7,33 @@
 #include "drawables.h"
 
 /*========================================================
+ *  special options to save in file, needed for viewer
+ --------------------------------------------------------*/
+struct GridOptions
+{
+    enum opt { optNone=0x0000, optGridOn = 0x1000, optFixedGrid=0x2000 }; // max grid size is 400 (0x190) px
+    bool gridOn = false;
+    bool fixedGrid = false;
+    uint16_t gridSpacing = 100;      // max 400
+
+    operator uint16_t()
+    {
+        uint16_t u = gridSpacing;
+        if(gridOn)
+            u |= (uint16_t)optGridOn;
+        if (fixedGrid)
+            u |= (uint16_t)optFixedGrid;
+        return u;
+    }
+    void operator=(uint16_t u)
+    {
+        gridOn = (u & (uint16_t)optGridOn);
+        fixedGrid = u & (uint16_t)optFixedGrid;
+        gridSpacing = u & ~((uint16_t)optGridOn | (uint16_t)optFixedGrid);
+    }
+};
+
+/*========================================================
  * One history element
  *-------------------------------------------------------*/
 
@@ -439,6 +466,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     QRectF _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
                                         // when _driSelectedDrawables is empty
 
+
     bool _modified = false;
 
     HistoryItem* _AddItem(HistoryItem* p);
@@ -458,6 +486,8 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _LoadV2(QDataStream &ifs, bool force = false);    // load version 2.X files
 
 public:
+    GridOptions gridOptions;
+
     History(HistoryList* parent) noexcept;
     History(const History& o);
     History(History&& o) noexcept;
@@ -518,7 +548,7 @@ public:
         Clear();
     }
 
-    int Load(bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
+    int Load(quint32& version_loaded, bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
     bool IsModified() const 
     { 
         return _modified & CanUndo(); 
