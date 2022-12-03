@@ -677,6 +677,7 @@ struct DrawableCross : public DrawableItem
     DrawableCross() : DrawableItem()
     {
         dtType = DrawableType::dtCross;
+        _Setup();
     }
     DrawableCross(QPointF pos, qreal len, int zorder, FalconPenKind penKind, qreal penWidth);
     DrawableCross(const DrawableCross& o) = default;
@@ -684,23 +685,13 @@ struct DrawableCross : public DrawableItem
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY. Override this only for scribbles
     void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
     virtual MyRotation::Type RotationType() { return MyRotation::flipNone;  /* yet */ }
-    QRectF Area() const override    // includes half of pen width+1 pixel
-    { 
-        qreal w = penWidth / 2.0;
-        qreal x1 = std::min(_ltrb.x1(), _ltrb.x2()), 
-              y1 = std::min(_ltrb.y1(), _ltrb.y2()),
-              x2 = std::max(_ltrb.x1(), _ltrb.x2()),
-              y2 = std::max(_ltrb.y1(), _ltrb.y2());
-        x1 = Round(std::min(x1, std::min(_lbrt.x1(), _lbrt.x2())), 3);
-        x2 = Round(std::max(x2, std::max(_lbrt.x1(), _lbrt.x2())), 3);
-        y1 = Round(std::min(y1, std::min(_lbrt.y1(), _lbrt.y2())), 3);
-        y2 = Round(std::max(y2, std::max(_lbrt.y1(), _lbrt.y2())), 3);
-        QRectF rect = QRectF(x1-w,y1-w,x2-x1+2*w,y2-y1+2*w); 
-        return rect;
-    }
+    QRectF Area() const override;    // includes half of pen width+1 pixel
     void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR = QRectF()) override;
 private:
     QLineF _ltrb, _lbrt;
+    void _Setup();
+    friend QDataStream& operator>>(QDataStream& ifs, DrawableCross& di);	  // call AFTER header is read in
+
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableCross& di);  // call AFTER header is read in
@@ -937,7 +928,10 @@ struct DrawableScreenShot : public DrawableItem
     }
     ~DrawableScreenShot() = default;
 
-    const QPixmap& Image() const { return _rotatedImage.isNull() ? _image : _rotatedImage; }
+    const QPixmap& Image(bool original=false) const 
+    { 
+        return (original || _rotatedImage.isNull()) ? _image : _rotatedImage; 
+    }
     void SetImage(QPixmap& image);
 
 

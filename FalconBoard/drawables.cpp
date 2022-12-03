@@ -329,7 +329,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 {
 	ofs << (int)di.dtType << di.startPos << (int)di.PenKind() /*<< di.PenColor()*/ << di.penWidth << di.rot;
 	ofs << di.erasers.size();
-	for (auto e : di.erasers)
+	for (auto e : di.erasers)					  // eraser strokes always saved rotated ! do not aply rotation when read$
 	{
 		ofs << e.eraserPenWidth << e.eraserStroke;
 	}
@@ -392,9 +392,22 @@ QDataStream& operator>>(QDataStream& ifs, DrawableDot& di)			  // call AFTER hea
 DrawableCross::DrawableCross(QPointF pos, qreal len, int zOrder, FalconPenKind penKind, qreal penWidth) : 
 		length(len), DrawableItem(DrawableType::dtCross, pos, zOrder, penKind, penWidth) 
 {
-	qreal dlen = length / sqrt(2);
-	_ltrb = QLine(startPos.x() - dlen, startPos.y() - dlen, startPos.x() + dlen, startPos.y() + dlen);
-	_lbrt = QLine(startPos.x() - dlen, startPos.y() + dlen, startPos.x() + dlen, startPos.y() - dlen);
+	_Setup();
+}
+
+QRectF DrawableCross::Area() const    // includes half of pen width+1 pixel
+{
+	qreal w = penWidth / 2.0;
+	qreal x1 = std::min(_ltrb.x1(), _ltrb.x2()),
+		y1 = std::min(_ltrb.y1(), _ltrb.y2()),
+		x2 = std::max(_ltrb.x1(), _ltrb.x2()),
+		y2 = std::max(_ltrb.y1(), _ltrb.y2());
+	x1 = Round(std::min(x1, std::min(_lbrt.x1(), _lbrt.x2())), 3);
+	x2 = Round(std::max(x2, std::max(_lbrt.x1(), _lbrt.x2())), 3);
+	y1 = Round(std::min(y1, std::min(_lbrt.y1(), _lbrt.y2())), 3);
+	y2 = Round(std::max(y2, std::max(_lbrt.y1(), _lbrt.y2())), 3);
+	QRectF rect = QRectF(x1 - w, y1 - w, x2 - x1 + 2 * w, y2 - y1 + 2 * w);
+	return rect;
 }
 
 void DrawableCross::Translate(QPointF dr, qreal minY)
@@ -439,6 +452,12 @@ void DrawableCross::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const 
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
+void DrawableCross::_Setup()
+{
+	qreal dlen = length / sqrt(2);
+	_ltrb = QLine(startPos.x() - dlen, startPos.y() - dlen, startPos.x() + dlen, startPos.y() + dlen);
+	_lbrt = QLine(startPos.x() - dlen, startPos.y() + dlen, startPos.x() + dlen, startPos.y() - dlen);
+}
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di)
 {
@@ -449,6 +468,13 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di)
 QDataStream& operator>>(QDataStream& ifs, DrawableCross& di)	  // call AFTER header is read in
 {
 	ifs >> di.length;
+	di._Setup();
+	if (di.rot.angle || di.rot.flipType != MyRotation::flipNone)
+	{
+		MyRotation aRot = di.rot;
+		di.rot = MyRotation();
+		di.Rotate(aRot, di.startPos);
+	}
 	return ifs;
 }
 
@@ -551,7 +577,7 @@ void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, cons
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di) // topmost 
 {
-	ofs << di.Area() << di.isFilled;
+	ofs << di.rect << di.isFilled;	// always save non-rotated rectangle + rotation +flip
 	return ofs;
 
 }
@@ -563,8 +589,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER h
 	// but even when not we must set the _rotatedRectangle in it
 	MyRotation arot = di.rot;
 	di.rot = MyRotation();		// no rotation, clear
-	QPointF center = di.Area().center();
-	di.Rotate(di.rot, center);
+	QPointF center = di.rect.center();
+	di.Rotate(arot, center);
 
 	return ifs;
 }
@@ -668,6 +694,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di) // DrawableIte
 QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER header is read in
 {
 	ifs >> di.endPoint;
+	di.rot = MyRotation();	// endpoints were rotated before save
 	return ifs;
 }
 
@@ -771,7 +798,7 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di) // DrawableItem part already saved
 {
-	ofs << di.Area() << di.isFilled;
+	ofs << di.rect << di.isFilled;	// always save not rotated rectangle and rotation info
 	return ofs;
 
 }
@@ -782,8 +809,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableRectangle& di)		  // call AFTE
 	// but even when not we must set the _rotatedRectangle in it
 	MyRotation arot = di.rot;
 	di.rot = MyRotation();		// no rotation, clear
-	QPointF center = di.Area().center();
-	di.Rotate(di.rot, center);
+	QPointF center = di.rect.center();
+	di.Rotate(arot, center);
 	return ifs;
 }
 
@@ -855,7 +882,7 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 // ---------------------------------------------
 QDataStream& operator<<(QDataStream& ofs, const DrawableScreenShot& bimg) // DrawableItem part already saved
 {
-	ofs << bimg.Image();
+	ofs << bimg.Image(true);	// original, non rotated image
 
 	return ofs;
 }
@@ -1023,6 +1050,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableScribble& di)	  // call AFTER 
 	di.points.clear();
 
 	ifs >> di.points;
+	di.rot = MyRotation();	// rotated points were stored
 
 	return ifs;
 }
