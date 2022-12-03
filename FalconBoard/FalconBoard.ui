@@ -80,6 +80,21 @@
      <addaction name="action_Blue"/>
      <addaction name="action_Yellow"/>
     </widget>
+    <widget class="QMenu" name="menuRotate">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="title">
+      <string>Transform</string>
+     </property>
+     <addaction name="actionRotate"/>
+     <addaction name="actionRotateLeft"/>
+     <addaction name="actionRotateRight"/>
+     <addaction name="actionRotate180"/>
+     <addaction name="separator"/>
+     <addaction name="actionHFlip"/>
+     <addaction name="actionVFlip"/>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
@@ -93,11 +108,8 @@
     <addaction name="separator"/>
     <addaction name="action_InsertVertSpace"/>
     <addaction name="separator"/>
-    <addaction name="actionRotateLeft"/>
-    <addaction name="actionRotateRight"/>
-    <addaction name="actionRotate180"/>
-    <addaction name="actionHFlip"/>
-    <addaction name="actionVFlip"/>
+    <addaction name="menuRotate"/>
+    <addaction name="actionRepeatRotation"/>
     <addaction name="separator"/>
     <addaction name="actionDrawEllipse"/>
     <addaction name="actionDrawFilledEllipse"/>
@@ -807,6 +819,28 @@
    </property>
    <property name="text">
     <string>'X' to Center point of selection</string>
+   </property>
+  </action>
+  <action name="actionRotate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Rotate...</string>
+   </property>
+   <property name="shortcut">
+    <string>F7</string>
+   </property>
+  </action>
+  <action name="actionRepeatRotation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Repeat rotation</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F7</string>
    </property>
   </action>
  </widget>

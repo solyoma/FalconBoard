@@ -34,7 +34,7 @@ struct HistoryItem      // base class
 
     virtual bool Translatable() const { return false;  }
     virtual void Translate(QPointF p, int minY) { } // translates if top is >= minY
-    virtual void Rotate(MyRotation rot, QRectF encRect) { ; }      // rotation or flip
+    virtual void Rotate(MyRotation rot, QPointF center) { ; }      // rotation or flip
     virtual int Size() const { return 0; }         // size of stored scribbles or erases
     virtual void SetVisibility(bool visible) { }
 
@@ -88,7 +88,7 @@ struct HistoryDrawableItem : public HistoryItem
 
     bool Translatable() const override { return _Drawable()->isVisible; }
     void Translate(QPointF p, int minY) override; // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF encRect) override;
+    void Rotate(MyRotation rot, QPointF center) override;
     // no new undo/redo needed
     bool IsImage() const override { return _Drawable()->dtType == DrawableType::dtScreenShot ? true: false; }
     void Draw(QPainter* painter, QPointF& topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override
@@ -223,7 +223,7 @@ struct HistoryPasteItemTop : public HistoryItem
     void SetVisibility(bool visible) override; // for all elements 
     bool Translatable() const override { return IsVisible(); }
     void Translate(QPointF p, int minY) override;    // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF encRect) override;
+    void Rotate(MyRotation rot, QPointF center) override;
 
     QPointF TopLeft() const override { return boundingRect.topLeft(); }
     QRectF Area() const override;
@@ -280,6 +280,7 @@ struct HistoryRotationItem : public HistoryItem
     DrawableIndexVector driSelectedDrawables;
     QRectF encRect;         // encompassing rectangle: before rotation all items are inside this
                             // after rotation they are usually not 
+    QPointF center;
     HistoryRotationItem(History* pHist, MyRotation rotation, QRectF rect, DrawableIndexVector selList);
     HistoryRotationItem(const HistoryRotationItem& other);
     HistoryRotationItem& operator=(const HistoryRotationItem& other);
@@ -551,7 +552,7 @@ public:
     HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
     // --------------------- drawing -----------------------------------
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
-    void Rotate(int drawableIndex, MyRotation withRotation, QRectF insideThisRect);
+    void Rotate(int drawableIndex, MyRotation withRotation, QPointF center);
     void InserVertSpace(int y, int heightInPixels);
 
     HistoryItem* Undo();        // returns top item after undo or nullptr
@@ -576,7 +577,6 @@ public:
 
     const QRectF BoundingRect() const { return _selectionRect; }
     const DrawableIndexVector& Selected() const { return _driSelectedDrawables;  }
-
 };
 
             //--------------------------------------------
@@ -599,7 +599,6 @@ public:
     { 
         _pClipBoard = QApplication::clipboard(); 
     }
-
         // called to initialize pointers to  data in 'DrawArea'
     const DrawableList& CopiedItems() const { return _copiedItems;  }
     QRectF const CopiedRect() const { return _copiedRect; }

@@ -80,6 +80,9 @@
     <QtMoc Include="helpdialog.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="rotateinput.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="pagesetup.ui">
@@ -98,6 +101,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="helpdialog.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="rotateinput.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

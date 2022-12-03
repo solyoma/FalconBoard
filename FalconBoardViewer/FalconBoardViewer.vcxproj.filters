@@ -45,6 +45,9 @@
     <QtUic Include="..\FalconBoard\helpdialog.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="..\FalconBoard\rotateinput.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\FalconBoard\DrawArea.cpp">
@@ -89,6 +92,9 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="..\FalconBoard\helpdialog.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="..\FalconBoard\rotateinput.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

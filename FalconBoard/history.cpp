@@ -143,9 +143,9 @@ void HistoryDrawableItem::Translate(QPointF p, int minY)
 	pDrawables->TranslateDrawable(indexOfDrawable,p, minY);
 }
 
-void HistoryDrawableItem::Rotate(MyRotation rot, QRectF encRect)
+void HistoryDrawableItem::Rotate(MyRotation rot, QPointF center)
 {
-	pDrawables->RotateDrawable(indexOfDrawable,rot, encRect);
+	pDrawables->RotateDrawable(indexOfDrawable,rot, center);
 }
 
 //--------------------------------------------
@@ -359,10 +359,10 @@ void HistoryPasteItemTop::Translate(QPointF p, int minY)
 		boundingRect.translate(p);
 }
 
-void HistoryPasteItemTop::Rotate(MyRotation rot, QRectF encRect)
+void HistoryPasteItemTop::Rotate(MyRotation rot, QPointF center)
 {
 	for (int i = 1; i <= count; ++i)
-		(*pHist)[indexOfBottomItem + i]->Rotate(rot, encRect);
+		(*pHist)[indexOfBottomItem + i]->Rotate(rot, center);
 }
 
 DrawableItem* HistoryPasteItemTop::GetNthDrawable(int which) const
@@ -522,12 +522,12 @@ static void SwapWH(QRectF& r)
 int HistoryRotationItem::Undo()
 {
 	MyRotation rotation = rot;
-	rotation.InvertRotation();
+	rotation.InvertAngle();
 	QRectF area;
 
 	for (auto dri : driSelectedDrawables)
 	{
-		pHist->Rotate(dri, rotation, encRect);
+		pHist->Rotate(dri, rotation, center);
 		area = area.united(pHist->Drawable(dri)->Area());
 	}
 	encRect = area;
@@ -538,9 +538,10 @@ int HistoryRotationItem::Undo()
 int HistoryRotationItem::Redo()
 {
 	QRectF area;
+	center = encRect.center();
 	for (auto dri : driSelectedDrawables)
 	{
-		pHist->Rotate(dri, rot, encRect);
+		pHist->Rotate(dri, rot, center);
 		area = area.united(pHist->Drawable(dri)->Area());
 	}
 	encRect = area;
@@ -1420,12 +1421,12 @@ HistoryItem* History::AddPenWidthChange(int increment)
 void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 {
 	if (forItem)
-		forItem->Rotate(withRotation, _selectionRect);
+		forItem->Rotate(withRotation, _selectionRect.center());
 }
 
-void History::Rotate(int index, MyRotation rot, QRectF insideThisRect)
+void History::Rotate(int index, MyRotation rot, QPointF center)
 {
-	_drawables[index]->Rotate(rot, insideThisRect);
+	_drawables[index]->Rotate(rot, center);
 }
 
 void History::InserVertSpace(int y, int heightInPixels)

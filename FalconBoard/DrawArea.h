@@ -39,6 +39,7 @@ class DrawArea : public QWidget
     Q_OBJECT
 
 public:
+    qreal userRotationAngle = 0.0;
 
     DrawArea(QWidget* parent = nullptr);
     virtual ~DrawArea()
@@ -214,6 +215,9 @@ protected:
     void MyButtonReleaseEvent(MyPointerEvent* pe);
 
 #ifndef _VIEWER
+
+
+
 private:
     void ChangePenColorByKeyboard(int key);
 #endif
@@ -336,8 +340,6 @@ private:
     void _AddScrollTimer();
     void _RemoveScrollTimer();
     _ScrollDirection _AutoScrollDirection(QPointF pt);    // sets and returns _scrollDir
-
-
 private:
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
     QPointF   _rubber_origin,           // position where we stated to draw the rubber band

@@ -94,6 +94,8 @@ private slots:
 	void on_action_Yellow_triggered();
 	void on_action_Eraser_triggered();
 
+	void on_actionRotate_triggered();
+	void on_actionRepeatRotation_triggered();
 	void on_actionRotateLeft_triggered();
 	void on_actionRotateRight_triggered();
 	void on_actionRotate180_triggered();

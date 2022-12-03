@@ -80,12 +80,14 @@ extern bool isDebugMode;
             //----------------------------------------------------
 QRectF QuadAreaToArea(const QuadArea& qarea);
 QuadArea AreaForItem(const int& i);
+
+qreal Round(qreal number, int dec_digits);
 bool IsItemsEqual(const int& i1, const int& i2);
 QuadArea AreaForQRect(QRectF rect);
 //??? qreal RotationAlpha(MyRotation::Type rot);
-//??? bool RotateRect(MyRotation::Type rot, QRectF &rect, QRectF inThisRect, qreal alphaInDegrees = 0.0);   // bounding rectangle: false: cant't rotate
+//??? bool RotateRect(MyRotation::Type rot, QRectF &rect, QPointF center, qreal alphaInDegrees = 0.0);   // bounding rectangle: false: cant't rotate
 
-static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'point'
+static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'ccenter'
 {
 #define SQR(x)  ((x)*(x))
 #define DIST2(a,b) (SQR((a).x() - (b).x()) + SQR((a).y() - (b).y()))
@@ -158,36 +160,27 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
             //----------------------------------------------------
             // ------------------- MyRotation::Type -------------
             //----------------------------------------------------
+// Rotations and flips are not kommutative. However a flip followed by a rotation
+// with an angle is the same as a rotation of -1 times the anngle followed by the same
+// flip. each flip is its own inverse and two different consecutevie flips are
+// equivalent to a rotation with 180 degrees 
 struct MyRotation
 {
-    enum Type {
-        rotNone,
-        rotR90, rotL90, rot180, rotFlipH, rotFlipV,     // these leave the top left corner in place
-        rotAngle                                        // alpha: around the center of the bounding box, increases counterclockwise
+    enum Type 
+    {
+        flipNone,                    // when there's no flip
+        rotR90, rotL90, rot180,     // only used to set angle, but never used as 'flipType'
+        rotFlipH, rotFlipV         // these leave the top left corner in place
     };
-    Type rotType = rotNone; // only used for testing and for flips In all other cases alpha is enough
-    qreal angle = 0.0;      // (in degrees) rotate by this (absolute for ellipse and rectangle) relative to prev. state to others
 
-    MyRotation& operator=(Type typ)
-    {
-        rotType = typ;
-        _SetRot(AngleForType(typ));
-        return *this;
-    }
-    MyRotation& operator=(qreal anAngle)
-    {
-        rotType = TypeForAngle(anAngle);
-        _SetRot(anAngle);
-        return *this;
-    }
+    qreal angle = 0.0;        // (in degrees) rotate by this (absolute for ellipse and rectangle) relative to prev. state to others
+    Type flipType = flipNone; // after rotated flip by this (may only be a flip or flipNone for no flip)
 
     static constexpr qreal AngleForType(Type myrot)
     {
         qreal alpha = 0.0;
         switch (myrot)
         {
-            case rotAngle:
-                break;
             case rotL90: alpha = -90; break;	// top left -> bottom left
             case rotR90: alpha =  90; break;
             case rot180: alpha = 180; break;
@@ -199,126 +192,117 @@ struct MyRotation
     static constexpr Type TypeForAngle(qreal angle)
     {
         if (!angle)
-            return rotNone;
+            return flipNone;
         if (angle == 90.0)
             return rotR90;
         if (angle == -90.0 || angle == 270.0)
             return rotL90;
         if (angle == -180.0 || angle == 180.0)
             return rot180;
-        return rotAngle;
     }
-    static constexpr inline bool IsRotation(Type rotType)
+    static constexpr inline bool IsFlipType(Type typ)
     {
-        return (rotType != rotFlipH && rotType != rotFlipV); // rotNone is rotatiof of angle = 0
-
+        return typ == flipNone || typ == rotFlipH || typ == rotFlipV;
     }
-    inline constexpr bool IsRotation() const
+    inline constexpr bool IsPureRotation() const
     {
-        return IsRotation(rotType);
+        return flipType == flipNone;
     }
-    static qreal AddAngles(qreal angle1, qreal angle2)
+    inline bool HasSimpleRotation() const
     {
-        if (abs(angle2) > eps)
-        {
-            angle1 += angle2;
-            angle1 = fmod(angle1, 360);
-            if (abs(angle1) < eps)               // then set rotation to 0
-                angle1 = 0.0;
-        }
-        return angle1;
+        return abs(fmod(angle, 90.0)) < eps;
     }
-    static constexpr Type AddTypes (Type t1, Type t2)    // t2 comes later and must not be rotNone
+    inline bool HasNoRotation() const
     {
-        if (!IsRotation(t1) && !IsRotation(t2))
-        {
-            if (t1 == t2)
-                return rotNone;
-        }
-        return t2;
-    }
-    void NormalizeRotation()  // abs(angle) < 360.0
-    {
-        if (!IsRotation())
-            angle = 0.0;
-        else if ((angle > 0 && angle < eps) || (angle < 0 && -angle < eps))
-        {
-            angle = 0.0;
-            rotType = rotNone;
-        }
-        else if (angle == 90.0)
-            rotType = rotR90;
-        else if (angle == 180.0 || angle == -180.0)
-        {
-            angle = 180.0;
-            rotType = rot180;
-        }
-        else if (angle == -90 || angle == 270)
-        {
-            angle = -90;
-            rotType = rotL90;
-        }
-        else
-            rotType = rotAngle;
-        _SetRot(angle);
-    }
-    static MyRotation AddRotations(MyRotation rot1, MyRotation rot2)
-    {
-        if (rot2.IsRotation())
-        {
-            rot1.angle = AddAngles(rot1.angle, rot2.angle);
-            rot1.NormalizeRotation();
-        }
-        else
-        {
-            rot1.rotType = AddTypes(rot1.rotType, rot2.rotType);
-            if (!rot1.IsRotation() && abs(rot1.angle) < eps)          // e..g only flip's for unrotated original
-                rot1.NormalizeRotation();  // set angle = 0, type is already rotNone
-        }
-        return rot1;
-    }
-    static bool IsSimpleRotation(qreal anAngle)
-    {
-        return abs(fmod(anAngle, 90.0)) < eps;
+        return fabs(angle) < eps;
     }
 
-    bool IsSimpleRotation() const
-    { 
-        return IsRotation() && IsSimpleRotation(angle); 
-    }
+    inline void Reset() { angle = 0.0; flipType = flipNone; }
 
-    void InvertRotation()
+    MyRotation& operator=(Type typ) // sets angle and _tr too !
     {
-        angle = -angle;
-        NormalizeRotation();
-    }
-    bool ResultsInNoRotation(MyRotation &arot, bool markIfNoRotation = false)    // returns true if it is a no-rotation state
-    {
-        if( !AddRotations(*this, arot).IsRotation())
-        {
-            if (markIfNoRotation)
-            {
-                angle = 0;
-                _tr.rotate(angle);
-                rotType = rotNone;
-            }
-            return true;
-        }
-        return false;
-    }
-    MyRotation AddRotation(MyRotation rot2)
-    {
-        *this = AddRotations(*this, rot2);
+        _SetRot((angle=AngleForType(typ)));
+        
+        if(IsFlipType(typ))
+            flipType = typ;
         return *this;
     }
-    bool RotateRect(QRectF& rect, QRectF inThisRect, bool noCheck = false) const // assumes outer edge of rectangle is inside inThisRect
+    MyRotation& operator=(qreal anAngle)    // sets flipType and _tr too !
     {
-        QPointF c = inThisRect.center();
-        if (!IsRotation() || rotType == rot180)
+        _SetRot(anAngle);
+        flipType = flipNone;
+        return *this;
+    }
+      // when adding rotations the rotation added is either
+      // a pure rotation by an angle or a pure flip
+      // but never come these together!
+    void AddAngle(qreal anAngle)        // sets _tr too
+    {
+        if (flipType != flipNone)
+            anAngle = -anAngle;         // flip + angle = -angle + flip
+
+        _SetRot(angle + anAngle);
+    }
+
+    void AddType(Type typ)
+    {
+        if (!IsFlipType(typ))   // then rotation
+            _SetRot(angle + AngleForType(typ) );
+        else                    // then flip or no flip
         {
-            QRectF r = rect;
-            r = r.translated(-c);
-            switch (rotType)
+            if (flipType == flipNone)     // none + flip = flip
+                flipType = typ;
+            else if(typ != flipNone)      // flip1 + flip2 =   +0 rotation and flipNone for flip1==flip2
+            {                             //               = +180 rotation and flipnone for flip1 != flip2
+                if(flipType != typ)
+                    _SetRot(angle + 180);
+                flipType = flipNone;
+            }
+        }
+    }
+
+    // (flipNone, angle) = (angle, flipNone)
+    // (  flip, angle)   = (-angle, flip)
+
+    // (angle, flip)     + (aangle, flipNone) = (angle + aangle,  flip)
+    // (angle, flipNone) + (    0,   aflip) = (angle,           aflip)
+    // (angle, flip)     + (    0,   aflip) = (angle + (flip != aflip ? 180:0, flip + aflip)
+    // (angle, flip)     + (aangle,  aflip) = (angle, flipNone) + (flip, aangle) + (0, aflip) = (angle - aangle,  flip + aflip)
+    MyRotation AddRotation(MyRotation arot) 
+    {
+        if (arot.flipType != flipNone)   // then no rotation
+            AddType(arot.flipType);
+        else                             // pure rotation, no flip
+            AddAngle(arot.angle);
+        return *this;
+    }
+    inline void InvertAngle()
+    {
+        _SetRot((angle = -angle));
+    }
+
+    bool ResultsInNoRotation(MyRotation &arot, bool markIfNoRotation = false)    // returns true if it is a no-rotation state
+    {
+        MyRotation tmpRot = *this;
+        tmpRot.AddRotation(arot);
+        return tmpRot.flipType == flipNone && !tmpRot.angle;
+    }
+
+    // in the following rotation functions it is assumed that any rectangle or image has sides parallel to the
+    // coordinate axes. No such assumption is made for point and polygons
+    //--------- order of rotations: first rotate by angle then flip. |angle| <= 180 
+    bool RotateRect(QRectF& rect, QPointF center, bool noCheck = false) const // assumes outer edge of rectangle is inside center
+    {
+        bool result = true;
+        QRectF r = rect;
+        r.translate(-center);
+
+        if(angle)   // angle == 0.0 check is ok
+            r = _tr.map(r).boundingRect();
+
+        if (flipType != flipNone )
+        {
+            switch (flipType)
             {
                 case rotFlipH: 
                 {
@@ -337,95 +321,77 @@ struct MyRotation
                 default:
                     break;
             }
-            r = r.translated(c);
-            bool b = r.left() >= 0 && r.top() >= 0;
-            if (b)
-                rect = r;
-            return noCheck || b;
         }
-        else 
-        {
-            auto __RotR = [&](QRectF& r)
-            {
-                r = r.translated(-c);
-                r = _tr.map(r).boundingRect();
-                r = r.translated(c);
-            };
+        r.translate(center);
 
-            if (!noCheck)
-            {
-                QRectF r = inThisRect;
-                __RotR(r);
-
-                if (r.top() < 0 || r.left() < 0)
-                {
-                    _CantRotateWarning();
-                    return false;
-                }
-            }
-            __RotR(rect);
-            return true;
-        }
-    }
-    bool RotatePoly(QPolygonF& points, QRectF inThisRect, qreal lineWidth, bool noCheck = false) const
-    {
-        qreal w = lineWidth / 2;
-        QRectF bndRect = points.boundingRect().adjusted(-w,-w,w,w);
-        if (noCheck || RotateRect(bndRect, inThisRect)) // must or could rotate
+        if (!noCheck && (r.top() < 0 || r.left() < 0))
         {
-            QPointF c = inThisRect.center();
-            points.translate(-c);
-
-            if (rotType == rotFlipH)
-            {
-                for (auto& pt : points)
-                    pt.setX(-pt.x());
-            }
-            else if (rotType == rotFlipV)
-            {
-                for (auto& pt : points)
-                    pt.setY(-pt.y());
-            }
-            else
-            {
-                points = _tr.map(points);
-            }
-            points.translate(c);
-
-            return true;
-        }
-        return false;
-    }
-    bool RotateSinglePoint(QPointF &pt, QRectF inThisRect, bool noCheck = false)  const
-    {
-        QPointF p = pt, c = inThisRect.center();
-        p -= c;
-        if (rotType == MyRotation::rotFlipH)
-        {
-            p.setX(-p.x());
-        }
-        else if (rotType == MyRotation::rotFlipV)
-        {
-            p.setY(-p.y());
+            _CantRotateWarning();
+            result = false;
         }
         else
         {
-            p = _tr.map(p);
+            rect = r;
+            result = true;
         }
-        p = p + c;
-        if (p.x() < 0 || p.y() < 0)	// can't rotate
+        
+        return result;
+    }
+
+    bool RotatePoly(QPolygonF& points, QPointF center, bool noCheck = false) const
+    {
+        QRectF bndRect = points.boundingRect();
+
+        points.translate(-center);
+        if (!noCheck && !RotateRect(bndRect, center, noCheck)) // must or could rotate
+            return false;
+
+        if(angle)
+            points = _tr.map(points);
+
+        if (flipType == rotFlipH)
+        {
+            for (auto& pt : points)
+                pt.setX(-pt.x());
+        }
+        else if (flipType == rotFlipV)
+        {
+            for (auto& pt : points)
+                pt.setY(-pt.y());
+        }
+        points.translate(center);
+        return true;
+    }
+    bool RotateSinglePoint(QPointF &pt, QPointF center, bool noCheck = false)  const
+    {
+        QPointF p = pt;
+
+        p -= center;
+        p = _tr.map(p);
+        if (flipType == rotFlipH)
+        {
+            p.setX(-p.x());
+        }
+        else if (flipType == rotFlipV)
+        {
+            p.setY(-p.y());
+        }
+        p = p + center;
+
+        if (!noCheck && (p.x() < 0 || p.y() < 0) )
         {
             _CantRotateWarning();
             return false;
         }
+
         pt = p;
         return true;
     }
-    bool RotatePixmap(QPixmap& img, QRectF inThisRect, bool noCheck = false)  const
+    bool RotatePixmap(QPixmap& img, QPointF topLeft, QPointF center, bool noCheck = false)  const
     {
         if (!noCheck)
         {
-            QRectF r = inThisRect;
+            QRectF r = QRectF(topLeft, img.size());
             r = _tr.map(r).boundingRect();
             if (r.x() < 0 || r.y() < 0)
             {
@@ -434,8 +400,11 @@ struct MyRotation
             }
         }
         bool fliph = false, flipv = true;	// default flip orientations
+
+        img = img.transformed(_tr, Qt::SmoothTransformation);   // rotation
+
         QImage image;
-        switch (rotType)
+        switch (flipType)
         {
             case MyRotation::rotFlipH:
                 fliph = true;
@@ -447,21 +416,58 @@ struct MyRotation
                 img = QPixmap::fromImage(image);
                 break;
             default:
-                img = img.transformed(_tr, Qt::SmoothTransformation);
                 break;
         }
         return true;
+    }
+    bool RotateLine(QLineF& line, QPointF center, bool noCheck = false)
+    {
+        QLineF l = line;
+
+        l.translate(-center);
+        l = _tr.map(l);       // always rotation first
+
+        if (flipType == rotFlipH)
+        {
+            l.setP1(QPointF(-l.p1().x(), l.p1().y()) );
+            l.setP2(QPointF(-l.p1().x(), l.p1().y()) );
+        }
+        else if (flipType == rotFlipV)
+        {
+            l.setP1(QPointF(l.p1().x(), -l.p1().y()) );
+            l.setP2(QPointF(l.p1().x(), -l.p1().y()) );
+        }
+        l.translate(center);
+        if(noCheck || (l.p1().x() >= 0 && l.p1().y() >= 0 && l.p2().x() >= 0 && l.p2().y() >= 0) )
+        {
+            line = l;
+            return true;
+        }
+        else
+        {
+            _CantRotateWarning();
+            return false;
+        }
     }
  private:
     QTransform _tr;
     void _CantRotateWarning() const;
     void _SetRot(qreal alpha)
     {
+        alpha = fmod(alpha, 360);   // set alpha into the (-180, 180] range
+        if (alpha > 180.0)
+            alpha -= 180.0;
+        if (fabs(alpha) < eps)
+            alpha = 0.0;
+        angle = alpha;
+
         _tr = QTransform();
         _tr.rotate(alpha);
         angle = alpha;
     }
 };
+QDataStream& operator<<(QDataStream& ofs, const MyRotation& mr);
+QDataStream& operator>>(QDataStream& ifs, MyRotation& mr);
             //----------------------------------------------------
             // ------------------- Drawable Pen -------------
             //----------------------------------------------------
@@ -568,7 +574,7 @@ struct DrawableItem : public DrawablePen
     }
     virtual void Translate(QPointF dr, qreal minY);            // only if not deleted and top is > minY. Override this only for scribbles
 
-    virtual void Rotate(MyRotation rot, QRectF &inThisrectangle);    // alpha used only for 'rotAngle'
+    virtual void Rotate(MyRotation rot, QPointF &center);    // alpha used only for 'rotAngle'
     /*=============================================================
      * TASK: Function to override in all subclass
      * PARAMS:  painter              - existing painter
@@ -655,8 +661,7 @@ struct DrawableItem : public DrawablePen
         drawStarted = false;
     }
 protected:
-    void _RotateErasers(QRectF inThisrectangle,MyRotation *prot=nullptr);    // with rotation in rot
-    QPointF _RotateCommon(MyRotation rot, QRectF inThisRectangle); // returns center point of inThisRectangle or QPoint(-1,-1) if rotation is not possible
+    void _RotateErasers(MyRotation rot, QPointF center); // returns center point of center or QPoint(-1,-1) if rotation is not possible
 };
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di);
@@ -667,7 +672,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di);
             //----------------------------------------------------
 struct DrawableCross : public DrawableItem
 {
-    qreal length=10;                 // total length of lines intersecting at 45 degree
+    qreal length=10;                 // total length of lines intersecting at 90
 
     DrawableCross() : DrawableItem()
     {
@@ -676,15 +681,26 @@ struct DrawableCross : public DrawableItem
     DrawableCross(QPointF pos, qreal len, int zorder, FalconPenKind penKind, qreal penWidth);
     DrawableCross(const DrawableCross& o) = default;
     ~DrawableCross() = default;
-    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
-    virtual MyRotation::Type RotationType() { return MyRotation::rotNone;  /* yet */ }
+    void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY. Override this only for scribbles
+    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
+    virtual MyRotation::Type RotationType() { return MyRotation::flipNone;  /* yet */ }
     QRectF Area() const override    // includes half of pen width+1 pixel
     { 
-        qreal d = (length + penWidth) / sqrt(2.0);
-        return QRectF(startPos - QPointF(d, d), QSize(2*d, 2*d) ); 
+        qreal w = penWidth / 2.0;
+        qreal x1 = std::min(_ltrb.x1(), _ltrb.x2()), 
+              y1 = std::min(_ltrb.y1(), _ltrb.y2()),
+              x2 = std::max(_ltrb.x1(), _ltrb.x2()),
+              y2 = std::max(_ltrb.y1(), _ltrb.y2());
+        x1 = Round(std::min(x1, std::min(_lbrt.x1(), _lbrt.x2())), 3);
+        x2 = Round(std::max(x2, std::max(_lbrt.x1(), _lbrt.x2())), 3);
+        y1 = Round(std::min(y1, std::min(_lbrt.y1(), _lbrt.y2())), 3);
+        y2 = Round(std::max(y2, std::max(_lbrt.y1(), _lbrt.y2())), 3);
+        QRectF rect = QRectF(x1-w,y1-w,x2-x1+2*w,y2-y1+2*w); 
+        return rect;
     }
     void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR = QRectF()) override;
-    // in base class bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
+private:
+    QLineF _ltrb, _lbrt;
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableCross& di);  // call AFTER header is read in
@@ -732,7 +748,7 @@ struct DrawableEllipse : public DrawableItem
     DrawableEllipse &operator=(DrawableEllipse&& o) noexcept;
 
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
+    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override // includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -745,10 +761,14 @@ struct DrawableEllipse : public DrawableItem
 
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellipse: inside it
     {
-        QPointF center = rect.center();
-        // first rotate point by -angle if ellipse is rotated using rotAngle
+        if (!_rotatedRect.contains(p))
+            return false;
+
+        QPointF center = rect.center();     // unrotated / simple rotated ellipse
+        // first, if ellipse is rotated, rotate point by -angle 
         // into the original (unrotated) ellipse based coord system
-        if (rot.rotType == MyRotation::rotAngle)
+        // flips don't matter
+        if (fabs(rot.angle) < eps)
         {
             QTransform tr;
             tr.rotate(-rot.angle);
@@ -808,7 +828,7 @@ struct DrawableLine : public DrawableItem
     DrawableLine& operator=(const DrawableLine& ol);
     DrawableLine& operator=(const DrawableLine&& ol);
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
+    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
         QRectF rect = QRectF(startPos, QSize((endPoint - startPos).x(), (endPoint - startPos).y()) ).normalized();
@@ -849,7 +869,7 @@ struct DrawableRectangle : public DrawableItem
     DrawableRectangle& operator=(DrawableRectangle&& di) noexcept;
 
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
+    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -862,6 +882,12 @@ struct DrawableRectangle : public DrawableItem
 
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled rectangle: inside it
     {                                                           // the two axes are parallel to x,y
+        if (!_rotatedRect.contains(p))
+            return false;
+
+        if(fabs(rot.angle) < eps && !rot.HasSimpleRotation() )
+            rot.RotateSinglePoint(p, _rotatedRect.center(), true);
+
         if (isFilled)
             return rect.contains(p);
         // when both x and y distance is too large
@@ -922,11 +948,11 @@ struct DrawableScreenShot : public DrawableItem
     QRectF AreaOnCanvas(const QRectF& canvasRect) const;
 
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &encRect);
+    void Rotate(MyRotation rot, QPointF &center);
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is inside the image
     {
-        if(rot.IsRotation() && !rot.IsSimpleRotation() )
-            rot.RotateSinglePoint(p, _rotatedArea.boundingRect(), true);
+        if(fabs(rot.angle) < eps && !rot.HasSimpleRotation() )
+            rot.RotateSinglePoint(p, _rotatedArea.boundingRect().center(), true);
         return _rotatedArea.contains(p);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
@@ -987,7 +1013,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 
 
     void Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QRectF &inThisrectangle) override;    // alpha used only for 'rotAngle'
+    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override // includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -1052,7 +1078,7 @@ struct DrawableText : public DrawableItem
     void setFont(QString font) { fontAsString = font; }
 
 //    void Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
-//    void Rotate(MyRotation rot, QRectF inThisrectangle, qreal alpha=0.0) override;    // alpha used only for 'rotAngle'
+//    void Rotate(MyRotation rot, QRectF center, qreal alpha=0.0) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override { return QRectF();  /* TODO ??? */ }
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is near the circumference or for filled ellpse: inside it
     {
@@ -1648,9 +1674,9 @@ public:
         (*this)[index]->Translate(dr, minY);
 
     }
-    void RotateDrawable(int index, MyRotation rot, QRectF &inThisrectangle)    // alpha used only for 'rotAngle'
+    void RotateDrawable(int index, MyRotation rot, QPointF &center)    // alpha used only for 'rotAngle'
     {
-        (*this)[index]->Rotate(rot, inThisrectangle);
+        (*this)[index]->Rotate(rot, center);
     }
     void VertShiftItemsBelow(int belowY, int deltaY);
 

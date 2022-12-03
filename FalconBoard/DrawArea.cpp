@@ -18,6 +18,7 @@
 
 #include <math.h>
 
+#include "rotateinput.h"
 #include "DrawArea.h"
 
 #define DEBUG_LOG(qs) \
@@ -555,14 +556,14 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				bBracketKey = (key == Qt::Key_BracketLeft || key == Qt::Key_BracketRight),
 				bRemove = (bDelete | bCopy | bCut | bPaste) ||
 					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
-					 key != Qt::Key_Space && !bMovementKeys),
+					key != Qt::Key_F7 &&  key != Qt::Key_Space && !bMovementKeys),
 				bCollected = _history->SelectedSize(),
 				bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5),
 
 				bRotate = (key == Qt::Key_0 ||  // rotate right by 90 degrees
 					key == Qt::Key_8 ||  // rotate by 180 degrees
 					key == Qt::Key_9 ||  // rotate left by 90 degrees
-					key == Qt::Key_7 ||  //??? DEBUG rotate left by 30 degrees
+					key == Qt::Key_F7 || // rotate by any degrees or repeat last rotation
 					key == Qt::Key_H ||  // flip horizontally
 					(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
 					);
@@ -651,13 +652,20 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				qreal alpha = 0.0;
 				switch (key)
 				{
-					case Qt::Key_0: rot = MyRotation::rotR90; break;
-					case Qt::Key_8: rot = MyRotation::rot180; break;
-					case Qt::Key_9: rot = MyRotation::rotL90; break;
-					case Qt::Key_7: rot = -30.0;  break;	  		// DEBUG
+					case Qt::Key_0: userRotationAngle =  90; rot = MyRotation::rotR90; break;
+					case Qt::Key_8: userRotationAngle = -90; rot = MyRotation::rot180; break;
+					case Qt::Key_9: userRotationAngle = 180; rot = MyRotation::rotL90; break;
+					case Qt::Key_F7:	if(!_mods.testFlag(Qt::ShiftModifier))
+										{
+											RotateInputDialog *prd = new RotateInputDialog(this, userRotationAngle);
+											prd->exec();
+											delete prd;
+										}  
+										rot = userRotationAngle; 
+									 break;	  	
 					case Qt::Key_H: rot = MyRotation::rotFlipH; break;
 					case Qt::Key_V: rot = MyRotation::rotFlipV; break;
-					default: rot = MyRotation::rotNone; break;
+					default: rot = MyRotation::flipNone; break;
 				}
 				QRectF rr = _rubberRect;
 				if(_history->AddRotationItem(rot) ) // using History::_SelectionRect (== _rubberRect)

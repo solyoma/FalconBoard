@@ -101,6 +101,7 @@
     <QtUic Include="..\FalconBoard\helpdialog.ui" />
     <QtUic Include="..\FalconBoard\pagesetup.ui" />
     <QtUic Include="..\FalconBoard\printprogress.ui" />
+    <QtUic Include="..\FalconBoard\rotateinput.ui" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\FalconBoard\drawables.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="..\FalconBoard\common.h" />
     <ClInclude Include="..\FalconBoard\drawables.h" />
     <ClInclude Include="..\FalconBoard\quadtree.h" />
+    <QtMoc Include="..\FalconBoard\rotateinput.h" />
     <QtMoc Include="..\FalconBoard\helpdialog.h" />
     <ClInclude Include="..\FalconBoard\history.h" />
     <ClInclude Include="..\FalconBoard\myevent.h" />

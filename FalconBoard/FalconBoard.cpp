@@ -1670,6 +1670,16 @@ void FalconBoard::on_action_Eraser_triggered()
 	ui.centralWidget->setFocus();
 }
 
+void FalconBoard::on_actionRotate_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_F7);
+}
+
+void FalconBoard::on_actionRepeatRotation_triggered()
+{
+    _drawArea->SynthesizeKeyEvent(Qt::Key_F7, Qt::ShiftModifier);
+}
+
 void FalconBoard::on_actionRotateLeft_triggered()
 {
     _drawArea->SynthesizeKeyEvent(Qt::Key_0);
@@ -1828,6 +1838,9 @@ void FalconBoard::on_actionApplyTransparencyToLoaded_triggered()
 void FalconBoard::SlotForRubberBandSelection(int on)
 {
     ui.action_InsertVertSpace->setEnabled(on);
+    ui.menuRotate->setEnabled(on);
+    ui.actionRotate->setEnabled(on);
+    ui.actionRepeatRotation->setEnabled(on);
     ui.actionRotateLeft->setEnabled(on);
     ui.actionRotateRight->setEnabled(on);
     ui.actionRotate180->setEnabled(on);
