@@ -350,7 +350,6 @@ private:
                                         // or during move paper 
     QRectF   _rubberRect;        // used to select histoy items
 
-    int _LoadCommon();
 
     void _InitRubberBand( MyPointerEvent* event);
     void _ReshowRubberBand();
@@ -358,6 +357,7 @@ private:
     void _InitiateDrawingIngFromLastPos();   // from _lastPoint
     void _InitiateDrawing(MyPointerEvent* event);
 #endif
+    int _LoadCommon();
     void _ClearCanvas();
 
     void _SetTopLeftFromItem(HistoryItem *phi);   // possibly sets _topLeft. Must _redraw after it
