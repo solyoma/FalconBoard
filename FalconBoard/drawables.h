@@ -84,8 +84,6 @@ QuadArea AreaForItem(const int& i);
 qreal Round(qreal number, int dec_digits);
 bool IsItemsEqual(const int& i1, const int& i2);
 QuadArea AreaForQRect(QRectF rect);
-//??? qreal RotationAlpha(MyRotation::Type rot);
-//??? bool RotateRect(MyRotation::Type rot, QRectF &rect, QPointF center, qreal alphaInDegrees = 0.0);   // bounding rectangle: false: cant't rotate
 
 static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'ccenter'
 {
@@ -652,8 +650,7 @@ struct DrawableItem : public DrawablePen
             }
             painter->drawImage(tl - topLeftOfVisibleArea, pxm);
             //painter->drawPixmap(tl - topLeftOfVisibleArea, pxm);
-            //??? DEBUG
-            //pxm.save("pxm.png", "png");
+                        //pxm.save("pxm.png", "png");
             // end DEBUG
         }
         else                                // no erasers: just paint normally

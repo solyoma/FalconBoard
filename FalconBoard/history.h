@@ -183,8 +183,7 @@ struct HistoryRemoveSpaceItem : public HistoryItem // using _selectedRect
 {
     DrawableIndexVector lstItemsRight;  // items to be moved horizontally (elements on the right)
                                         // if empty move all below y up
-    //??? DrawableIndexVector lstPartial;     // items above HB but partially overlapping it
-    //                                    // usid in UNDO: do not move items on this list
+        //                                    // usid in UNDO: do not move items on this list
     QRectF rr;                          // RR and determines HB
                   // translate by rr.width() to the left (lstItemsRight) not empty
                   // OR up by rr.height() when lstItemsRight is empty

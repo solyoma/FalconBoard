@@ -649,21 +649,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_Redraw();
 				}
 			}
-			//??? else if (bPaste)
-			//??? {           // _history's copied item list is valid, each item is canvas relative
-			//??? 			// get offset to top left of encompassing rect of copied items relative to '_topLeft'
-			//??? 	QPointF dr = _rubberRect.translated(_topLeft).topLeft();
-
-			//??? 	HistoryItem* phi = _history->AddCopiedItems(dr, nullptr);	// no sprite, add
-			//??? 	if (phi)
-			//??? 	{
-			//??? 		_Redraw(); // update();
-			//??? 		_rubberRect = QRectF(_rubberRect.topLeft(), historyList.CopiedRect().size());
-			//??? 		_rubberBand->setGeometry(_rubberRect.toRect());
-			//??? 		_history->CollectPasted(_rubberRect.translated(_topLeft));
-			//??? 	}
-			//??? }
-			else if (bRecolor)
+												
+																														else if (bRecolor)
 			{
 				RecolorSelected(key);
 			}

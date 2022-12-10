@@ -46,22 +46,6 @@ QuadArea AreaForQRect(QRectF rect)
 	return QuadArea(rect.x(), rect.y(), rect.width(), rect.height());
 }
 
-//??? qreal RotationAlpha(MyRotation::Type rot, qreal alpha, qreal *angle=nullptr)
-//??? {
-//??? 	switch (rot)
-//??? 	{
-//??? 		case MyRotation::rotAngle:
-//??? 			break;
-//??? 		case MyRotation::rotL90: alpha = 90; break;	// top left -> bottom left
-//??? 		case MyRotation::rotR90: alpha = -90; break;
-//??? 		case MyRotation::rot180: alpha = 180; break;
-//??? 		default:
-//??? 			break;
-//??? 	}
-//??? 	if(angle && rot != MyRotation::rotFlipH && rot != MyRotation::rotFlipV)
-//??? 		*angle = fmod(alpha + *angle, 360);
-//??? 	return alpha;
-//??? }
 
 /*=============================================================
  * TASK:   Rotate an enclosing rectangle
@@ -77,37 +61,6 @@ QuadArea AreaForQRect(QRectF rect)
  * REMARKS: - this rectangle is not inside any other 
  *				rectangle 
  *------------------------------------------------------------*/
-//??? bool RotateRect(MyRotation::Type rot, QRectF &rect, QPointF center, qreal alphaInDegrees)
-//??? {
-//??? 	if (rot == MyRotation::rotFlipH || rot == MyRotation::rotFlipV || rot == MyRotation::rot180)
-//??? 		return true;
-//??? 	else
-//??? 	{
-//??? 		alphaInDegrees = RotationAlpha(rot, alphaInDegrees, nullptr);
-//??? 		QPointF c = center.center();
-//??? 
-//??? 		QTransform tr;
-//??? 		tr.rotate(alphaInDegrees);
-//??? 
-//??? 		auto __RotR = [&](QRectF& r)
-//??? 		{
-//??? 			r = r.translated(-center);
-//??? 			r = tr.map(r).boundingRect();
-//??? 			r = r.translated(c);
-//??? 		};
-//??? 
-//??? 		QRectF r = center;
-//??? 		__RotR(r);
-//??? 		if (r.top() < 0 || r.left() < 0)
-//??? 		{
-//??? 			QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
-//??? 			return false;
-//??? 		}
-//??? 
-//??? 		__RotR(rect);
-//??? 		return true;
-//??? 	}
-//??? }
 
 
 /*=============================================================
@@ -858,11 +811,7 @@ void DrawableScreenShot::Rotate(MyRotation arot, QPointF &center)
 	_RotateErasers(arot, center);
 
 	arot.RotatePoly(_rotatedArea, center, true);
-
-	//??? startPos = _rotatedArea.boundingRect().center();		startPos is center() 
-
 	rot.AddRotation(arot);
-//???	if (_rotatedImage.isNull())
 	_rotatedImage = _image;
 	rot.RotatePixmap(_rotatedImage, startPos, center, true);
 	if (rot.HasSimpleRotation())
