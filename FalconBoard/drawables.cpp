@@ -332,8 +332,13 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 {
 	ofs << (int)di.dtType << di.startPos << (int)di.PenKind() /*<< di.PenColor()*/ << di.penWidth << di.rot;
 	ofs << di.erasers.size();
-	for (auto e : di.erasers)					  // eraser strokes always saved rotated ! do not aply rotation when read$
-	{
+	MyRotation arot = di.rot;
+	arot.InvertAngle();		// for erasers
+
+	for (auto e : di.erasers)					  // eraser strokes for items that are rotated AFTER read are saved un-rotated
+	{											  // flip is its own inverse, no need to invert it
+		if (di.dtType != DrawableType::dtDot && di.dtType != DrawableType::dtScribble)
+			arot.RotatePoly(e.eraserStroke, di.Area().center(), true);
 		ofs << e.eraserPenWidth << e.eraserStroke;
 	}
 
@@ -360,11 +365,11 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 	ifs >> n;
 	di.SetPenKind((FalconPenKind)n);
 	ifs /*>> di.penColor*/ >> di.penWidth >> di.rot;
-	ifs >> n;
+	ifs >> n;		// number of eraser strokes
 	while (n--)
 	{
 		DrawableItem::EraserData ed;
-		ifs >> ed.eraserPenWidth >> ed.eraserStroke;
+		ifs >> ed.eraserPenWidth >> ed.eraserStroke;	// saved un-rotated when items read are rotated after, no need to rotate them
 		di.erasers.push_back(ed);
 	}
 	// the real (derived class)  data cannot be read here into a DrawableItem
@@ -558,7 +563,7 @@ void DrawableEllipse::Rotate(MyRotation arot, QPointF& center)
 		_rotatedRect = _points.boundingRect();
 	}
 	startPos = _rotatedRect.topLeft();
-	_RotateErasers(rot, center);
+	_RotateErasers(arot, center);	// erasers are stored rotated so only apply last rotation to them
 }
 
 void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
@@ -753,7 +758,7 @@ void DrawableRectangle::Translate(QPointF dr, qreal minY)             // only if
  * REMARKS: - to rotate an ellipse by an angle 'alpha'
  *				create a new DrawableScribble from this and rotate that
  *------------------------------------------------------------*/
-void DrawableRectangle::Rotate(MyRotation arot, QPointF & center)     // alpha used only for 'MyRotation::rotAngle'
+void DrawableRectangle::Rotate(MyRotation arot, QPointF & center)
 {
 	MyRotation tmpr = rot;		// previous rotation
 	QRectF r = rect;			// original rectangle. Modified if rotated by any multiple of 90
@@ -777,7 +782,7 @@ void DrawableRectangle::Rotate(MyRotation arot, QPointF & center)     // alpha u
 		_rotatedRect = _points.boundingRect();
 	}
 	startPos = _rotatedRect.topLeft();
-	_RotateErasers(rot, center);
+	_RotateErasers(arot, center);	// erasers are stored rotated so only apply last rotation to them
 
 }
 
