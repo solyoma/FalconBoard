@@ -664,7 +664,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					case Qt::Key_0: userRotationAngle =  90; rot = MyRotation::rotR90; break;
 					case Qt::Key_8: userRotationAngle = -90; rot = MyRotation::rot180; break;
 					case Qt::Key_9: userRotationAngle = 180; rot = MyRotation::rotL90; break;
-					case Qt::Key_F7:	if(!_mods.testFlag(Qt::ShiftModifier))
+					case Qt::Key_F7:	if(userRotationAngle == 0 || !_mods.testFlag(Qt::ShiftModifier))
 										{
 											RotateInputDialog *prd = new RotateInputDialog(this, userRotationAngle);
 											prd->exec();
