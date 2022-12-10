@@ -187,8 +187,11 @@ QDataStream& operator<<(QDataStream& ofs, const MyRotation& mr)
 QDataStream& operator>>(QDataStream& ifs, MyRotation& mr)
 {
 	byte ch;
-	ifs >> mr.angle >> ch;
-	mr.flipType = (MyRotation::Type)ch;
+	qreal alpha;
+	ifs >> alpha >> ch;
+	mr = alpha;		// sets transformation matrix too and fliptype to flipNone
+	mr.flipType = (MyRotation::Type)ch;	// sets angle to 0.0
+
 	return ifs;
 }
 
