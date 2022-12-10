@@ -913,7 +913,7 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableRectangle& di);  // call
             // ------------------- Drawable Screenshot -------------
             //----------------------------------------------------
  /*-------------------------------------------------------*/
-struct DrawableScreenShot : public DrawableItem
+struct DrawableScreenShot : public DrawableItem     // for a screenshot startPos is the center of the image!
 {
     DrawableScreenShot() : DrawableItem()
     {
@@ -953,9 +953,9 @@ struct DrawableScreenShot : public DrawableItem
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
     // QPolygonF ToPolygonF()  - default
 private:
-    QPixmap _image;      // screenshot image
-    QPixmap _rotatedImage;
-    QPolygonF _rotatedArea;
+    QPixmap _image;             // screenshot image
+    QPixmap _rotatedImage;      // that is shown
+    QPolygonF _rotatedArea;     // line area of enclosing rectangle after rotation
 };
 
 QDataStream& operator<<(QDataStream& ofs, const  DrawableScreenShot& di);

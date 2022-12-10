@@ -829,7 +829,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableRectangle& di)		  // call AFTE
 void DrawableScreenShot::SetImage(QPixmap& animage)
 {
 	_image = animage;
-	_rotatedArea = QRectF(startPos, _image.size());
+	QSize size = _image.size();
+	_rotatedArea = QRectF(startPos - QPointF(size.width()/2.0, size.height()/2.0), size); // non rotated area this time
 }
 
 QRectF DrawableScreenShot::Area() const
@@ -858,10 +859,10 @@ void DrawableScreenShot::Rotate(MyRotation arot, QPointF &center)
 
 	arot.RotatePoly(_rotatedArea, center, true);
 
-	startPos = _rotatedArea.boundingRect().topLeft();
+	//??? startPos = _rotatedArea.boundingRect().center();		startPos is center() 
 
 	rot.AddRotation(arot);
-//	if (_rotatedImage.isNull())
+//???	if (_rotatedImage.isNull())
 	_rotatedImage = _image;
 	rot.RotatePixmap(_rotatedImage, startPos, center, true);
 	if (rot.HasSimpleRotation())
@@ -880,7 +881,7 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 	if (drawStarted)
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea)); // this painter paints on screenshot layer!
-		painter->drawPixmap(startPos - topLeftOfVisibleArea, Image());
+		painter->drawPixmap(_rotatedArea.boundingRect().topLeft() - topLeftOfVisibleArea, Image());
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
