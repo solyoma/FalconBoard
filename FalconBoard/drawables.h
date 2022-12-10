@@ -449,6 +449,7 @@ struct MyRotation
             return false;
         }
     }
+    bool IsNull() const { return !angle && flipType == flipNone; }
  private:
     QTransform _tr;
     void _CantRotateWarning() const;

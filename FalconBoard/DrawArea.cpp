@@ -689,8 +689,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					case Qt::Key_V: rot = MyRotation::rotFlipV; break;
 					default: rot = MyRotation::flipNone; break;
 				}
-				QRectF rr = _rubberRect;
-				if(_history->AddRotationItem(rot) ) // using History::_SelectionRect (== _rubberRect)
+				//QRectF rr = _rubberRect;
+				if(!rot.IsNull() && _history->AddRotationItem(rot) ) // using History::_SelectionRect (== _rubberRect)
 				{
 					_rubberRect = _history->SelectionRect().translated(-_topLeft);
 					_rubberBand->setGeometry(_rubberRect.toRect());

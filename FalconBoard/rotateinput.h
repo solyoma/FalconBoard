@@ -25,6 +25,7 @@ public:
 			ui.rbRight->setChecked(true);
 
 		ui.sbdRotAngle->setValue(r);
+		ui.sbdRotAngle->selectAll();
 	}
 private:
 	Ui::RotateInputDialog ui;
