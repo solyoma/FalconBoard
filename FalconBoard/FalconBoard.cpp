@@ -36,6 +36,7 @@ void FalconBoard::_RemoveMenus()
     ui.actionNew->setVisible(false);
     ui.actionSave->setVisible(false);
     ui.actionSaveAs->setVisible(false);
+    ui.actionImportImage->setVisible(false);
     ui.actionSaveVisible->setVisible(false);
     ui.actionLoadBackground->setVisible(false);
     ui.actionScreenshotTransparency->setVisible(false);
@@ -1183,6 +1184,12 @@ void FalconBoard::on_actionNew_triggered()
     //_drawArea->NewData();
     setWindowTitle(sWindowTitle);
     _backgroundImageName.clear();
+}
+void FalconBoard::on_actionImportImage_triggered()
+{
+    QString s = QFileDialog::getOpenFileName(this, tr("FalconBoard - Import"), _lastDir, "Images (*.jpg *.bmp *.png *.gif);;All files (*)");
+    if (!s.isEmpty())
+        _drawArea->AddImage(s);
 }
 #endif
 

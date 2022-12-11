@@ -320,6 +320,17 @@ bool DrawArea::OpenBackgroundImage(const QString& fileName)
 	return true;
 }
 
+bool DrawArea::AddImage(const QString& fileName)
+{
+	QPixmap pxmImg;
+	if (pxmImg.load(fileName))
+	{
+		AddScreenShotImage(pxmImg);
+		return true;
+	}
+	return false;
+}
+
 bool DrawArea::SaveVisibleImage(const QString& fileName, const char* fileFormat)
 {
 	HideRubberBand(true);
@@ -366,12 +377,15 @@ void DrawArea::SetPenKind(FalconPenKind newKind, int width)
 void DrawArea::AddScreenShotImage(QPixmap& animage)
 {
 	DrawableScreenShot bimg;
+
+		// try centering in window
 	int x = (geometry().width() -  animage.width()) / 2,
 		y = (geometry().height() - animage.height()) / 2;
-
+	
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;
-	bimg.startPos = QPointF(x, y) + _topLeft;
+	// for a screenshot startPos is the center of the image!
+	bimg.startPos = QPointF(x+animage.width()/2.0, y+animage.height()/2.0) + _topLeft;
 	bimg.SetImage(animage);
 	HistoryItem *phi = _history->AddDrawableItem(bimg);
 
@@ -2571,6 +2585,7 @@ void DrawArea::_End(bool toBottom)
 		x += 20;	// leave empty space to the right
 		_topLeft.setX(x);
 		_Redraw();
+		
 	}
 
 	_SetOrigin(_topLeft);

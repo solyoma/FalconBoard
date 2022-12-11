@@ -105,20 +105,16 @@ public:
     }
 
     bool OpenBackgroundImage(const QString& fileName);
+    bool AddImage(const QString& fileName);
     bool SaveVisibleImage(const QString& fileName, const char* fileFormat);
-//    void SetBackgroundImage(QImage& image);
+
     void InsertVertSpace();         // from top left of rubber band with height of rubber rectangle
     FalconPenKind PenKindFromKey(int key);  // keyboard press/menu click
     bool RecolorSelected(int key); // true: recolored
     void SetLimitedPage(bool limited) { _limited = limited; }
 
     void SynthesizeKeyEvent(Qt::Key key, Qt::KeyboardModifier mod=Qt::NoModifier);
-/*
-    void RotateImage(MyRotation rot);
-    void FlipImage(bool horiz, bool vert);
-    void DrawRect();    // use _rubberBand
-    void DrawEllipse();
-*/
+
     void HideRubberBand(bool del=false);
     void ApplyTransparencyToLoadedScreenshots(QColor trcolor, qreal fuzzyness);
 #endif

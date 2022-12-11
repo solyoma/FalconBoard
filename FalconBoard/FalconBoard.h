@@ -77,6 +77,7 @@ private slots:
 
 #ifndef _VIEWER
 	void on_actionNew_triggered();
+	void on_actionImportImage_triggered();
 
 	void on_actionSave_triggered();
 	void on_actionSaveAs_triggered();

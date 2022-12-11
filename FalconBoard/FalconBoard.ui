@@ -49,6 +49,7 @@
     </widget>
     <addaction name="actionNew"/>
     <addaction name="actionLoad"/>
+    <addaction name="actionImportImage"/>
     <addaction name="action_Close"/>
     <addaction name="action_CloseAll"/>
     <addaction name="separator"/>
@@ -841,6 +842,14 @@
    </property>
    <property name="shortcut">
     <string>Shift+F7</string>
+   </property>
+  </action>
+  <action name="actionImportImage">
+   <property name="text">
+    <string>&amp;Import image...</string>
+   </property>
+   <property name="toolTip">
+    <string>Import image to the screenshot list</string>
    </property>
   </action>
  </widget>
