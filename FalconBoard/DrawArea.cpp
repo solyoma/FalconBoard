@@ -1513,10 +1513,13 @@ void DrawArea::HideRubberBand(bool del)
  *------------------------------------------------------------*/
 void DrawArea::_ReshowRubberBand()
 {
-	if (_rubberBand && !_rubberBand->isVisible())
+	if (_rubberBand && !_rubberBand->isVisible() )
 	{
+		// DEBUG
+		//qDebug("ReshowRubberBand - tlwb:(%g,%g), tl:(%g,%g)", _topLeftWhenRubber.x(), _topLeftWhenRubber.y(), _topLeft.x(), _topLeft.y());
+		// end DEBUG
 		QPointF pt = _topLeftWhenRubber - _topLeft;  //  <0: viewport moved down/righ canvas muved up/left
-		pt += _rubberBand->pos();                   // move rubber band
+		pt += _rubberBand->pos();                    // move rubber band
 		_rubberBand->move(pt.toPoint());
 		_topLeftWhenRubber = _topLeft;
 		if ((_rubberBand->x() >= 0 || _rubberBand->x() + _rubberBand->width() < width()) &&
@@ -2575,7 +2578,7 @@ void DrawArea::_End(bool toBottom)
 	if (toBottom)
 	{
 		QSize siz = geometry().size();
-		_topLeft = _history->BottomRightLimit(siz);
+		_SetOrigin(_history->BottomRightLimit(siz));
 	}
 	else  // just go end of rightmost scribble in actual viewport
 	{
@@ -2583,12 +2586,11 @@ void DrawArea::_End(bool toBottom)
 		if (x < 0)
 			x = 0;
 		x += 20;	// leave empty space to the right
-		_topLeft.setX(x);
+		_SetOrigin(_topLeft+QPointF(x, 0));
 		_Redraw();
 		
 	}
 
-	_SetOrigin(_topLeft);
 	_Redraw();
 }
 void DrawArea::_Up(int amount)
