@@ -635,6 +635,7 @@ HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& d
 		case DrawableType::dtEllipse:
 			pdrE = (DrawableEllipse*)&dri;
 			myPath.addEllipse(pdrE->rect);
+			eraserStroke = myPath.toFillPolygon();
 			break;
 		case DrawableType::dtLine:
 			eraserStroke.append(((DrawableLine&)dri).startPos);
@@ -1349,11 +1350,11 @@ HistoryItem* History::AddCopiedItems(QPointF topLeft, Sprite* pSprite)			   // t
 	//----------- add drawables
 	for (DrawableItem *si : *pCopiedItems->Items() )
 	{
-		si->Translate(topLeft, -1);	// transforms original item
-		//si->zOrder = -1;	// so it will be on top
-		HistoryDrawableItem* p = new HistoryDrawableItem(this, *si);	   // si's data remains where it was
+		si->Translate(topLeft, -1);		// transforms original item
+		si->zOrder = -1;	// so it will be on top
+		HistoryDrawableItem* p = new HistoryDrawableItem(this, *si);	   // just a copy, si's data remains where it was
 		_AddItem(p);
-		si->Translate(-topLeft, -1);	// transform back
+		si->Translate(-topLeft, -1);	// transform back original item
 	}
 	// ------------Add Paste top marker item
 	QRectF rect = pCopiedRect->translated(topLeft);

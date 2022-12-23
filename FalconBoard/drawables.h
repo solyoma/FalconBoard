@@ -500,6 +500,9 @@ public:
     constexpr FalconPenKind PenKind() const { return _penKind; }
     void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR = QRectF(), QColor brushColor = QColor())
     {
+        if(clipR.isValid())
+            painter->setClipRect(clipR);
+
         QPen pen(QPen(PenColor(), penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin) );
         painter->setPen(pen);
         if (brushColor.isValid())
@@ -509,8 +512,6 @@ public:
         // painter's default compositionmode is CompositionMode_SourceOver
         // painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
-        if(clipR.isValid())
-            painter->setClipRect(clipR);
     }
 };
 
@@ -624,7 +625,7 @@ struct DrawableItem : public DrawablePen
             QPointF tl = area.topLeft();
             //if (dtType != DrawableType::dtScreenShot)
             //    tl -= QPointF(penWidth, penWidth) / 2.0;
-            Draw(&myPainter, tl);     // calls painter of subclass, 
+            Draw(&myPainter, tl,clipR);     // calls painter of subclass, 
                                             // which must check 'drawStarted' and 
                                             // must not call this function if it is set
                                             // clipRect is not important as the pixmap is exactly the right size
@@ -648,6 +649,7 @@ struct DrawableItem : public DrawablePen
                 else
                     myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
             }
+            painter->setClipRect(clipR);
             painter->drawImage(tl - topLeftOfVisibleArea, pxm);
             //painter->drawPixmap(tl - topLeftOfVisibleArea, pxm);
                         //pxm.save("pxm.png", "png");
