@@ -8,7 +8,7 @@ Snipper::Snipper(QWidget* parent) : QLabel(parent, Qt::FramelessWindowHint)
 
 void Snipper::_Pressed(QPoint pos, Qt::MouseButton button)
 {
-	if( (button == Qt::LeftButton) || (button == Qt::RightButton) )
+	if( (button == Qt::LeftButton) /*|| (button == Qt::RightButton) */)
 	{
 		_rubber_origin = pos;
 		if (!_rubberBand)
