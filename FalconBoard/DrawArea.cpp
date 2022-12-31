@@ -1165,8 +1165,8 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 				return;
 			else
 				lastpos = pos;
-
-			QPointF  dr = (event->pos - _lastPointC);   // displacement vector
+								// Multiple screens ?????
+			QPointF  dr = (event->pos - _lastPointC);   // displacement vector	
 			if (!dr.manhattanLength()
 #ifndef _VIEWER
 				&& (_AutoScrollDirection(event->pos) != _ScrollDirection::scrollNone)
@@ -1178,13 +1178,30 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 			if (_pSprite)     // move sprite
 			{
 				if (_AutoScrollDirection(event->pos) == _ScrollDirection::scrollNone)
-				{
 					_RemoveScrollTimer();
-					_MoveSprite(dr);
-				}
 				else
 					_AddScrollTimer();
-				_lastPointC = event->pos;
+				// DEBUG
+				if (_pSprite && _pSprite->visible)
+					qDebug("_pSprite before:topLeft:(%g,%g)", (_pSprite->topLeft + _topLeft).x(), (_pSprite->topLeft + _topLeft).y());
+
+				// DEBUG
+				qDebug("      dr=(%g, %g)", dr.x(), dr.y());
+
+				int spriteMoved = _MoveSprite(dr);
+				if(spriteMoved & 1)	// could move in x direction
+					_lastPointC.setX( event->pos.x());
+				if(spriteMoved & 2)	// could move in y direction
+					_lastPointC.setY( event->pos.y());
+				event->pos = _lastPointC.toPoint();
+				QCursor::setPos(mapToGlobal(_lastPointC.toPoint());
+
+				// DEBUG
+				if (_pSprite && _pSprite->visible)
+					qDebug("         after: topLeft:(%g,%g)", (_pSprite->topLeft + _topLeft).x(), (_pSprite->topLeft + _topLeft).y());
+					//DEBUG
+				qreal ax = (event->pos+_topLeft).x(), ay = (event->pos+_topLeft).y(), bx = (_lastPointC + _topLeft).x(), by = (_lastPointC + _topLeft).y();
+				qDebug("event->pos: (%g, %g), _lastPointC: (%g,%g)", ax, ay, bx, by);
 			}
 			else
 			{
@@ -1593,7 +1610,7 @@ void DrawArea::_AddScrollTimer()
 
 	_pScrollTimer = new QTimer(this);
 	connect(_pScrollTimer, &QTimer::timeout, this, &DrawArea::_ScrollTimerSlot);
-	_pScrollTimer->start(100ms);
+	_pScrollTimer->start(10ms);
 }
 
 /*=============================================================
@@ -1619,27 +1636,30 @@ void DrawArea::_RemoveScrollTimer()
 void DrawArea::_ScrollTimerSlot()
 {
 	QPointF dr;
+	constexpr const qreal count = 4;
+	constexpr const qreal delta = 5; // total move: count * delta
+
 	for (int i = 0; i < 4; ++i)
 	{
 		switch (_scrollDir)
 		{
-		case _ScrollDirection::scrollNone: return;
+			case _ScrollDirection::scrollNone: return;
 
-		case _ScrollDirection::scrollUp:
-			dr = { 0, 5 };
-			break;
-		case _ScrollDirection::scrollDown:
-			dr = { 0, -5 };
-			break;
-		case _ScrollDirection::scrollLeft:
-			dr = { 5, 0 };
-			break;
-		case _ScrollDirection::scrollRight:
-			dr = { -5, 0 };
-			break;
+			case _ScrollDirection::scrollUp:
+				dr = { 0, delta };
+				break;
+			case _ScrollDirection::scrollDown:
+				dr = { 0, -delta };
+				break;
+			case _ScrollDirection::scrollLeft:
+				dr = { delta, 0 };
+				break;
+			case _ScrollDirection::scrollRight:
+				dr = { -delta, 0 };
+				break;
 		}
 		_ShiftOrigin(dr);
-		_Redraw();
+		//_Redraw();
 		_lastPointC -= dr;
 	}
 	//    qDebug("dr=%d:%d, _lastPointC=%d:%d", dr.x(),dr.y(), _lastPointC.x(), _lastPointC.y());
@@ -1662,7 +1682,7 @@ DrawArea::_ScrollDirection DrawArea::_AutoScrollDirection(QPointF pos)
 		return _scrollDir = _ScrollDirection::scrollNone;
 	}
 
-	constexpr const int limit = 10;  // pixel
+	constexpr const int limit = 10;  // pixels to screen edge
 
 	_scrollDir = _ScrollDirection::scrollNone;
 
@@ -2193,7 +2213,6 @@ void DrawArea::_Redraw(bool clear)
 }
 
 QColor DrawArea::_PenColor()
-
 {
 	static FalconPenKind _prevKind = penNone;
 	static QColor color;
@@ -2747,18 +2766,23 @@ Sprite* DrawArea::_SpriteFromCollectedDrawables(QPointF tl)
 	return pSprite;
 }
 
-void DrawArea::_MoveSprite(QPointF dr)
+int DrawArea::_MoveSprite(QPointF dr)
 {
-	//        QRectF updateRect = _pSprite->rect.translated(_pSprite->topLeft);      // original rectangle
-	_pSprite->topLeft += dr;
-	if (_pSprite->topLeft.y() < 0)
-		_pSprite->topLeft.setY(0);
-	if (_pSprite->topLeft.x() < 0)
-		_pSprite->topLeft.setX(0);
-	//        updateRect = updateRect.united(_pSprite->rect.translated(_pSprite->topLeft)); // + new rectangle
-//            update(updateRect);
+	int result = 3;
+	QPointF stl = _pSprite->topLeft + dr + _topLeft;	// document relative position
+	// DEBUG
+	//qDebug("dr:(%g,%g), stl: (%g,%g), _topLeft:(%g, %g)", dr.x(), dr.y(), stl.x(), stl.y(), _topLeft.x(), _topLeft.y());
+	if (stl.x() < 0)
+		result &= 2, stl.setX(0);		// comma!
+	if (stl.y() < 0)
+		result &= 1, stl.setY(0);		// comma!
+
+	_pSprite->topLeft = stl - _topLeft;
+	// DEBUG
+	//qDebug("            stl: (%g,%g)", stl.x(), stl.y());
+
 	update();
-	//            QApplication::processEvents();
+	return result;
 }
 
 /*========================================================

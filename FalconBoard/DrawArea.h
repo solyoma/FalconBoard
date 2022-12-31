@@ -402,7 +402,7 @@ private:
     Sprite * _PrepareSprite(Sprite *pSprite, QPointF cursorPos, QRectF rect, bool itemsDeleted, bool setVisible=true);
     Sprite * _SpriteFromLists(); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible
     Sprite * _SpriteFromCollectedDrawables(QPointF topLeft); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible
-    void _MoveSprite(QPointF pt);
+    int _MoveSprite(QPointF pt);   // 1: sprite could move in x direction, 2: sprite coud move in y direction, 0 sprite could not move
     void _PasteSprite();
     void _AddCopiedItems(QPointF pos, Sprite* pSprite = nullptr);
 
