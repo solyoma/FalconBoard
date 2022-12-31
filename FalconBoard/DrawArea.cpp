@@ -2820,6 +2820,8 @@ void DrawArea::_AddCopiedItems(QPointF pos, Sprite* ps)
 	emit CanRedo(_history->CanRedo());
 	emit RubberBandSelection(true);
 }
+#endif
+
 QPointF DrawArea::_SanitizePointF(QPointF& pt)
 {
 	if (pt.x() < 0.0)
@@ -2828,4 +2830,3 @@ QPointF DrawArea::_SanitizePointF(QPointF& pt)
 		pt.setY(0.0);
 	return pt;
 }
-#endif

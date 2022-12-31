@@ -396,6 +396,7 @@ private:
     void _Left(int distance = 10);
     void _Right(int distance = 10);
     bool _NoPrintProblems();           // false: some problems
+    QPointF _SanitizePointF(QPointF& pt);
 #ifndef _VIEWER
     void _ShowCoordinates(const QPointF& qp);   // and sets mouse position into _actMousePos
     Sprite * _CreateSprite(QPointF cursorPos, QRectF& rect, bool itemsDeleted, bool setVisible=true);
@@ -405,7 +406,6 @@ private:
     int _MoveSprite(QPointF pt);   // 1: sprite could move in x direction, 2: sprite coud move in y direction, 0 sprite could not move
     void _PasteSprite();
     void _AddCopiedItems(QPointF pos, Sprite* pSprite = nullptr);
-    QPointF _SanitizePointF(QPointF& pt);
 
     // DEBUG
     bool _bSmoothDebug = true;
