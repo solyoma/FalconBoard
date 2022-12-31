@@ -1088,14 +1088,11 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 	static int counter = 0; // only refresh screen when this is REFRESH_LIMIT
 						// because tablet events frequency is large
 
+	QPointF epos = event->pos;
 #ifndef _VIEWER
 	if (_rubberBand)
 	{
-		QPointF epos = event->pos;
-		if (epos.x() < 0)
-			epos.setX(0);
-		if (epos.y() < 0)
-			epos.setY(0);
+		_SanitizePointF(epos);
 		
 		if (_spaceBarDown && (event->buttons & Qt::LeftButton))
 		{
@@ -1160,16 +1157,15 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 		if (((event->buttons & Qt::LeftButton) && _scribbling) || _pendown)
 		{
 			static QPointF lastpos;
-			QPointF pos = event->pos;
-			if (lastpos == pos)
+			if (lastpos == epos)
 				return;
 			else
-				lastpos = pos;
+				lastpos = epos;
 								// Multiple screens ?????
-			QPointF  dr = (event->pos - _lastPointC);   // displacement vector	
+			QPointF  dr = (epos - _lastPointC);   // displacement vector	
 			if (!dr.manhattanLength()
 #ifndef _VIEWER
-				&& (_AutoScrollDirection(event->pos) != _ScrollDirection::scrollNone)
+				&& (_AutoScrollDirection(epos) != _ScrollDirection::scrollNone)
 #endif
 				)
 				return;
@@ -1177,31 +1173,32 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 #ifndef _VIEWER
 			if (_pSprite)     // move sprite
 			{
-				if (_AutoScrollDirection(event->pos) == _ScrollDirection::scrollNone)
+				if (_AutoScrollDirection(epos) == _ScrollDirection::scrollNone)
 					_RemoveScrollTimer();
 				else
 					_AddScrollTimer();
 				// DEBUG
-				if (_pSprite && _pSprite->visible)
-					qDebug("_pSprite before:topLeft:(%g,%g)", (_pSprite->topLeft + _topLeft).x(), (_pSprite->topLeft + _topLeft).y());
+				//if (_pSprite && _pSprite->visible)
+				//	qDebug("_pSprite before:topLeft:(%g,%g)", (_pSprite->topLeft + _topLeft).x(), (_pSprite->topLeft + _topLeft).y());
 
 				// DEBUG
-				qDebug("      dr=(%g, %g)", dr.x(), dr.y());
+				//qDebug("      dr=(%g, %g)", dr.x(), dr.y());
 
 				int spriteMoved = _MoveSprite(dr);
+
 				if(spriteMoved & 1)	// could move in x direction
-					_lastPointC.setX( event->pos.x());
+					_lastPointC.setX( epos.x());
 				if(spriteMoved & 2)	// could move in y direction
-					_lastPointC.setY( event->pos.y());
-				event->pos = _lastPointC.toPoint();
-				QCursor::setPos(mapToGlobal(_lastPointC.toPoint());
+					_lastPointC.setY( epos.y());
+				//event->pos = _lastPointC.toPoint();
+				QCursor::setPos(mapToGlobal(_lastPointC.toPoint()));
 
 				// DEBUG
-				if (_pSprite && _pSprite->visible)
-					qDebug("         after: topLeft:(%g,%g)", (_pSprite->topLeft + _topLeft).x(), (_pSprite->topLeft + _topLeft).y());
-					//DEBUG
-				qreal ax = (event->pos+_topLeft).x(), ay = (event->pos+_topLeft).y(), bx = (_lastPointC + _topLeft).x(), by = (_lastPointC + _topLeft).y();
-				qDebug("event->pos: (%g, %g), _lastPointC: (%g,%g)", ax, ay, bx, by);
+				//if (_pSprite && _pSprite->visible)
+				//	qDebug("         after: topLeft:(%g,%g)", (_pSprite->topLeft + _topLeft).x(), (_pSprite->topLeft + _topLeft).y());
+				//	//DEBUG
+				//qreal ax = (epos+_topLeft).x(), ay = (epos+_topLeft).y(), bx = (_lastPointC + _topLeft).x(), by = (_lastPointC + _topLeft).y();
+				//qDebug("event->pos: (%g, %g), _lastPointC: (%g,%g)", ax, ay, bx, by);
 			}
 			else
 			{
@@ -1660,7 +1657,7 @@ void DrawArea::_ScrollTimerSlot()
 		}
 		_ShiftOrigin(dr);
 		//_Redraw();
-		_lastPointC -= dr;
+		//_lastPointC -= dr;
 	}
 	//    qDebug("dr=%d:%d, _lastPointC=%d:%d", dr.x(),dr.y(), _lastPointC.x(), _lastPointC.y());
 }
@@ -2422,14 +2419,15 @@ void DrawArea::_ShiftOrigin(QPointF &delta)
 
 	o += delta;                // calculate new screen origin
 
-	if (o.x() < 0)
-		o.setX(0);
+	//if (o.x() < 0)
+	//	o.setX(0);
 
 	if (delta.x() > 0 && _limited && o.x() + width() >= _prdata.screenPageWidth)
 		o.setX(_topLeft.x());
 
-	if (o.y() < 0)
-		o.setY(0);
+	//if (o.y() < 0)
+	//	o.setY(0);
+	_SanitizePointF(o);
 
 	_SetOrigin(o);
 }
@@ -2646,6 +2644,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	_lastCursorPos = qpt;
 
 	qpt += _topLeft;
+	_SanitizePointF(qpt);
 
 	_actMousePos = qpt;
 
@@ -2820,5 +2819,13 @@ void DrawArea::_AddCopiedItems(QPointF pos, Sprite* ps)
 	emit CanUndo(_history->CanUndo());
 	emit CanRedo(_history->CanRedo());
 	emit RubberBandSelection(true);
+}
+QPointF DrawArea::_SanitizePointF(QPointF& pt)
+{
+	if (pt.x() < 0.0)
+		pt.setX(0.0);
+	if (pt.y() < 0.0)
+		pt.setY(0.0);
+	return pt;
 }
 #endif

@@ -405,7 +405,7 @@ private:
     int _MoveSprite(QPointF pt);   // 1: sprite could move in x direction, 2: sprite coud move in y direction, 0 sprite could not move
     void _PasteSprite();
     void _AddCopiedItems(QPointF pos, Sprite* pSprite = nullptr);
-
+    QPointF _SanitizePointF(QPointF& pt);
 
     // DEBUG
     bool _bSmoothDebug = true;
