@@ -19,11 +19,10 @@ const QString sVersion = "2.0.2";
 
 const qreal eps = 1e-4;         // for 0 test of double
 inline constexpr qreal EqZero(qreal a) { return qAbs(a) < eps; }
-//const QChar CHANGE_MARKER_CHAR = QChar(0x2757); /*red exclamation point*/
-//const QChar CHANGE_MARKER_CHAR = QChar(0x274c);/* red x */
-const QChar CHANGE_MARKER_CHAR = QChar(0x26d4);/* no entry traffic sign */
+const QColor CHANGED_MARKER_FOREGROUND = "white",
+             CHANGED_MARKER_BACKGROUND = "red";
 
-extern QString FB_WARNING,      // ins FalconBoard.cpp
+extern QString FB_WARNING,      // in FalconBoard.cpp
                FB_ERROR;
 
 

@@ -23,8 +23,6 @@ QSettings* FBSettings::_ps = nullptr;
 QString FB_WARNING = QMainWindow::tr("falconBoard - Warning"),
         FB_ERROR   = QMainWindow::tr("falconBoard - Error");
 
-
-
 int nUntitledOrder = 1;
 
 #ifdef _VIEWER
@@ -810,11 +808,10 @@ void FalconBoard::_SetResetChangedMark(int index)
     QString text = _pTabs->tabText(index);
     int n = text.length() - 1;
 
-    if (text[n] == CHANGE_MARKER_CHAR)
-        text.remove(--n, 2);
-
     if (_drawArea->IsModified(index))
-        text = text + QChar(' ') + CHANGE_MARKER_CHAR;
+        _pTabs->setTabIcon(index, _ColoredIcon(_iconSaveAs, CHANGED_MARKER_FOREGROUND, CHANGED_MARKER_BACKGROUND));
+    else
+        _pTabs->setTabIcon(index, QIcon());
     _pTabs->setTabText(index, text);
 }
 
@@ -831,8 +828,6 @@ void FalconBoard::_SetTabText(int index, QString fname)
 
     _pTabs->setTabToolTip(index, fname);
     QString text = _FileNameToTabText(fname);
-    if (_drawArea->IsModified(index))
-        text = text + QChar(' ') + CHANGE_MARKER_CHAR;
     _pTabs->setTabText(index, text);
 }
 
@@ -1437,11 +1432,7 @@ void FalconBoard::on_actionSaveAs_triggered() // current tab
 {
     QString fname = _pTabs->tabText(_pTabs->currentIndex());//    _drawArea->HistoryName(UNTITLED);
     int n = fname.length() - 1;
-    if (fname.at(n) == CHANGE_MARKER_CHAR)
-        fname.remove(--n, 2);
 
-    //if (fname.isEmpty())
-    //    fname = _NextUntitledName();
     QString initialPath = _lastDir + fname; 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
                         initialPath, tr("FalconBoard Files (*.mwb);; All Files (*))"));
