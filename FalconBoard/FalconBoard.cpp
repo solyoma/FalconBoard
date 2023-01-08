@@ -180,7 +180,7 @@ void FalconBoard::RestoreState()
     ui.actionShowPageGuides->setChecked(n);
     _drawArea->SetPageGuidesOn(n);
     bool b = s->value("limited", true).toBool();
-    ui.actionLimitedPage->setChecked(b);    // default: checked
+    ui.actionLimitPaperWidth->setChecked(b);    // default: checked
 #ifndef _VIEWER
     _drawArea->SetLimitedPage(b);
 #endif
@@ -333,7 +333,7 @@ void FalconBoard::SaveState()
     s->setValue("mode", _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
     s->setValue("grid", (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
     s->setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
-    s->setValue("limited", ui.actionLimitedPage->isChecked());
+    s->setValue("limited", ui.actionLimitPaperWidth->isChecked());
 #ifndef _VIEWER
     s->setValue("size", QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]));
     s->setValue("saved", ui.actionAutoSaveData->isChecked());
@@ -1176,7 +1176,7 @@ void FalconBoard::on_actionNew_triggered()
 
     bool b = QMessageBox::question(this, "falconBoard", tr("Do you want to limit the editable area horizontally to the screen width?\n"
                                                            " You may change this any time in Options/Page"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
-    ui.actionLimitedPage->setChecked(b);
+    ui.actionLimitPaperWidth->setChecked(b);
     _drawArea->SetLimitedPage(b);
 
     _AddNewTab(QString(), false, true);
@@ -1805,25 +1805,12 @@ void FalconBoard::on_actionClearBackgroundImage_triggered()
     _sImageName.clear();
 }
 
-void FalconBoard::on_actionInfinitePage_triggered()
+void FalconBoard::on_actionLimitPaperWidth_triggered()
 {
     if (_busy)
         return;
     ++_busy;
-	bool b = ui.actionInfinitePage->isChecked();
-	ui.actionLimitedPage->setChecked(!b);
-	_drawArea->SetLimitedPage(!b);
-    
-    --_busy;
-}
-
-void FalconBoard::on_actionLimitedPage_triggered()
-{
-    if (_busy)
-        return;
-    ++_busy;
-    bool b = ui.actionLimitedPage->isChecked();
-    ui.actionInfinitePage->setChecked(!b);
+    bool b = ui.actionLimitPaperWidth->isChecked();
     _drawArea->SetLimitedPage(b);
 
     --_busy;

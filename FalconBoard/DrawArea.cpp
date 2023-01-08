@@ -1634,8 +1634,7 @@ void DrawArea::_ScrollTimerSlot()
 {
 	QPointF dr;
 	constexpr const qreal count = 4;
-	constexpr const qreal delta = 5; // total move: count * delta
-
+	qreal delta = 5; // total move: count * delta
 	for (int i = 0; i < 4; ++i)
 	{
 		switch (_scrollDir)
@@ -1646,18 +1645,21 @@ void DrawArea::_ScrollTimerSlot()
 				dr = { 0, delta };
 				break;
 			case _ScrollDirection::scrollDown:
+				if (_pSprite && _pSprite->topLeft.y() + _topLeft.y() - delta < 0)
+					delta = _pSprite->topLeft.y();
 				dr = { 0, -delta };
 				break;
 			case _ScrollDirection::scrollLeft:
 				dr = { delta, 0 };
 				break;
 			case _ScrollDirection::scrollRight:
+				if (_pSprite && _pSprite->topLeft.x() + _topLeft.x() - delta < 0)
+					delta = _pSprite->topLeft.x();
 				dr = { -delta, 0 };
 				break;
 		}
-		_ShiftOrigin(dr);
-		//_Redraw();
-		//_lastPointC -= dr;
+		if(delta > 0)
+			_ShiftAndDisplayBy(dr, false);
 	}
 	//    qDebug("dr=%d:%d, _lastPointC=%d:%d", dr.x(),dr.y(), _lastPointC.x(), _lastPointC.y());
 }
@@ -2400,6 +2402,7 @@ void DrawArea::_SetOrigin(QPointF o)
 #ifndef _VIEWER
 	_ShowCoordinates(QPointF());
 #endif
+	qApp->processEvents();
 }
 
 

@@ -120,8 +120,7 @@ private slots:
 
 	void on_actionClearBackgroundImage_triggered();
 
-	void on_actionInfinitePage_triggered();
-	void on_actionLimitedPage_triggered();
+	void on_actionLimitPaperWidth_triggered();
 
 	void on_action_InsertVertSpace_triggered();
 

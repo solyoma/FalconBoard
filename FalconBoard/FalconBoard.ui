@@ -159,13 +159,6 @@
      <addaction name="actionFixedGrid"/>
      <addaction name="actionGridSize"/>
     </widget>
-    <widget class="QMenu" name="menu_Paper">
-     <property name="title">
-      <string>&amp;Paper Width</string>
-     </property>
-     <addaction name="actionInfinitePage"/>
-     <addaction name="actionLimitedPage"/>
-    </widget>
     <widget class="QMenu" name="actionLanguages">
      <property name="enabled">
       <bool>false</bool>
@@ -175,9 +168,8 @@
      </property>
     </widget>
     <addaction name="menu_Mode"/>
-    <addaction name="menu_Paper"/>
-    <addaction name="separator"/>
     <addaction name="menuGrid"/>
+    <addaction name="actionLimitPaperWidth"/>
     <addaction name="actionShowPageGuides"/>
     <addaction name="separator"/>
     <addaction name="actionScreenshotTransparency"/>
@@ -850,6 +842,17 @@
    </property>
    <property name="toolTip">
     <string>Import image to the screenshot list</string>
+   </property>
+  </action>
+  <action name="actionLimitPaperWidth">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Limit paper &amp;width</string>
    </property>
   </action>
  </widget>

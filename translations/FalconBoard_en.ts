@@ -22,38 +22,38 @@ Invalid file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2067"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2103"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2070"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2106"/>
         <source>Can&apos;t find printer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="709"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="723"/>
         <source>With this pen width drawing would be outside of &quot;paper&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2073"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2109"/>
         <source>Print error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2076"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2112"/>
         <source>Print cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2622"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2660"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2627"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2665"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -61,126 +61,131 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="436"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="437"/>
         <source>%1...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="481"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="482"/>
         <source>Pen Width:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="495"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="496"/>
         <source>Grid size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="639"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="640"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1004"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1005"/>
         <source>C&amp;lear list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1169"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1170"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1176"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1177"/>
         <source>Do you want to limit the editable area horizontally to the screen width?
  You may change this any time in Options/Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1311"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1190"/>
+        <source>FalconBoard - Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1318"/>
         <source>Load Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1313"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1320"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1350"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1357"/>
         <source>FalconBoard - Go to Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1350"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1357"/>
         <source>Page:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1492"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1499"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1494"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1501"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1249"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1256"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1255"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1262"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1402"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1409"/>
         <source>Please restart the program to change the language!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1439"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1477"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1446"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1484"/>
         <source>Save As</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1440"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1447"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1455"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1462"/>
         <source>Open Background Image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1479"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1486"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1491"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1498"/>
         <source>About FalconBoard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1493"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1500"/>
         <source>&lt;p&gt;Version </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1597"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1604"/>
         <source>falconBoard - Grid spacing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1598"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1605"/>
         <source>Spacing in pixels:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -203,613 +208,623 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="71"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="72"/>
         <source>&amp;Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="75"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="76"/>
         <source>Pen Color</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="88"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="89"/>
         <source>Transform</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="124"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="125"/>
         <source>&amp;Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="131"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="132"/>
         <source>&amp;Clear</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="143"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="144"/>
         <source>&amp;Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="147"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="148"/>
         <source>&amp;Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="155"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="156"/>
         <source>Grid</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="163"/>
-        <source>&amp;Paper Width</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="173"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="167"/>
         <source>Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="212"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="205"/>
         <source>&amp;Open...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="215"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="208"/>
         <source>Open</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="218"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="211"/>
         <source>Load whiteboard data into the selected tab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="221"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="214"/>
         <source>Ctrl+O</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="230"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="223"/>
         <source>&amp;Save</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="233"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="226"/>
         <source>Save...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="236"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="229"/>
         <source>Save actual tab into file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="239"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="232"/>
         <source>Ctrl+S</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="248"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="241"/>
         <source>S&amp;ave As...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="251"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="244"/>
         <source>Save actual tab into file with a new name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="260"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="253"/>
         <source>E&amp;xit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="263"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="256"/>
         <source>Alt+X</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="278"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="271"/>
         <source>Blac&amp;k</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="281"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="274"/>
         <source>1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="293"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="286"/>
         <source>&amp;Red</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="296"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="289"/>
         <source>2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="308"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="301"/>
         <source>&amp;Green</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="311"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="304"/>
         <source>3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="323"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="316"/>
         <source>&amp;Blue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="326"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="319"/>
         <source>4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="331"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="324"/>
         <source>?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="334"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="327"/>
         <source>F1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="339"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="332"/>
         <source>&amp;About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="347"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="340"/>
         <source>&amp;Print...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="350"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="343"/>
         <source>Ctrl+P</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="355"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="348"/>
         <source>C&amp;lear Roll</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="358"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="351"/>
         <source>Clear whole Whiteboard except background image.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="361"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="354"/>
         <source>Ctrl+Del</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="373"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="366"/>
         <source>&amp;Eraser</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="376"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="369"/>
         <source>E</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="384"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="377"/>
         <source>&amp;Insert vertical space.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="387"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="380"/>
         <source>Insert vertical space.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="390"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="383"/>
         <source>F5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="402"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="395"/>
         <source>&amp;Undo</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="405"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="398"/>
         <source>Ctrl+Z</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="417"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="410"/>
         <source>Re&amp;do</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="420"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="413"/>
         <source>Ctrl+Y</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="425"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="418"/>
         <source>Clear Undo &amp;History</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="434"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="427"/>
         <source>&amp;New</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="437"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="430"/>
         <source>Clear whiteboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="440"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="433"/>
         <source>Ctrl+N</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="445"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="438"/>
         <source>Loa&amp;d Backgorund Image...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="448"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="441"/>
         <source>Load Background</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="451"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="444"/>
         <source>Load image as background</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="456"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="449"/>
         <source>Save &amp;Visible</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="459"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="452"/>
         <source>Save visible image (not the lines themselves)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="464"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="457"/>
         <source>Clear Bac&amp;kground</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="473"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="466"/>
         <source>&amp;Screenshot</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="476"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="469"/>
         <source>Create a snapshot of some part of the screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="479"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="472"/>
         <source>F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="490"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="483"/>
         <source>Auto Save Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="493"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="486"/>
         <source>Automatic save of data at exit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="504"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="497"/>
         <source>Auto Save Background Image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="507"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="500"/>
         <source>Save background image at exit automatically</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="519"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="512"/>
         <source>&amp;Yellow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="522"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="515"/>
         <source>5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="530"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="523"/>
         <source>Vertical space...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="535"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="528"/>
         <source>Clear Visible &amp;Screen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="538"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="531"/>
         <source>Clear Visible Screen. Anything left or right of visible screen remains visible.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="543"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="536"/>
         <source>Clear Visible Screen and &amp;Above</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="546"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="539"/>
         <source>Clear Visible Screen and Above. Only a visible screen wide vertical band is cleared.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="551"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="544"/>
         <source>Clear Visible Screen and &amp;Below</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="554"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="547"/>
         <source>Clear Visible Screen and Below.  Only a visible screen wide vertical band is cleared.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="559"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="552"/>
         <source>Pa&amp;ge Setup...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="567"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="560"/>
         <source>Show Page Guides</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="572"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="565"/>
         <source>&amp;Export to Pdf ...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="575"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="568"/>
         <source>Export actual TAB to Pdf</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="580"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="573"/>
         <source>C&amp;lear List</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="583"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="576"/>
         <source>Clear List of prev. documents</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="594"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="587"/>
         <source>System Colors</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="602"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="595"/>
         <source>Dark</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="610"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="603"/>
         <source>Black</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="618"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="611"/>
         <source>&amp;Show</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="626"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="619"/>
         <source>Fixed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="637"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="630"/>
         <source>Infinite</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="648"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="641"/>
         <source>&amp;Limited</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="653"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="646"/>
         <source>Grid Size...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="656"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="649"/>
         <source>Select spacing of grid lines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="661"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="654"/>
         <source>New Tab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="664"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="657"/>
         <source>Create a new, empty  document in a new TAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="672"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="665"/>
         <source>Screenshot &amp;transparency...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="675"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="668"/>
         <source>Select color which will be transparent on screenshots</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="680"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="673"/>
         <source>ide</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="688"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="681"/>
         <source>Rotate Left 9&amp;0°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="691"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="684"/>
         <source>Rotates completely selected linesimages to the left</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="702"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="695"/>
         <source>Rotate Right &amp;90°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="705"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="698"/>
         <source>Rotates completely selected linesimages to the right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="713"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="706"/>
         <source>Flip &amp;Horizontal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="716"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="709"/>
         <source>Flip completely selected lines/images horizontally</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="724"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="717"/>
         <source>Flip &amp;Vertical</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="727"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="720"/>
         <source>Flip completely selected lines/images vertically</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="735"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="728"/>
         <source>Draw an ellipse or a &amp;Circle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="738"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="731"/>
         <source>Right button to draw enclosing rectangle, Hold down Shift for a circle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="746"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="739"/>
         <source>Draw a &amp;Rectangle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="749"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="742"/>
         <source>Right button to draw rectangle, Hold down Shift for a square</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="757"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="750"/>
         <source>Rotate 1&amp;80°</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="760"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="753"/>
         <source>Rotates completely selected lines/images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="765"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="758"/>
         <source>&amp;Go to page...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="768"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="761"/>
         <source>Go to page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="771"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="764"/>
         <source>Ctrl+G</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="776"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="769"/>
         <source>Apply Transparency For Loaded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="781"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="774"/>
         <source>C&amp;lose</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="784"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="777"/>
         <source>Ctrl+F4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="789"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="782"/>
         <source>Close All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="797"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="790"/>
         <source>Mark Center point of selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="805"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="798"/>
         <source>Draw a filled Ellipse or Circle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="813"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="806"/>
         <source>Draw a Filled Rectangle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="821"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="814"/>
         <source>&apos;X&apos; to Center point of selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="829"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="822"/>
         <source>Rotate...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="832"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="825"/>
         <source>F7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="840"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="833"/>
         <source>Repeat rotation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="843"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="836"/>
         <source>Shift+F7</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.ui" line="841"/>
+        <source>&amp;Import image...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.ui" line="844"/>
+        <source>Import image to the screenshot list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.ui" line="855"/>
+        <source>Limit paper &amp;width</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1363,7 +1378,7 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="599"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="600"/>
         <source>Save Visi&amp;ble As...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1424,7 +1439,7 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="971"/>
+        <location filename="../FalconBoard/history.cpp" line="972"/>
         <source>Nothing to save</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1439,7 +1454,7 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="68"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="69"/>
         <source>Untitled</source>
         <translation type="unfinished"></translation>
     </message>
