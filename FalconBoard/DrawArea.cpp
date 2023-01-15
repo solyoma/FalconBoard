@@ -691,7 +691,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					default: rot = MyRotation::flipNone; break;
 				}
 				//QRectF rr = _rubberRect;
-				if(!rot.IsNull() && _history->AddRotationItem(rot) ) // using History::_SelectionRect (== _rubberRect)
+				if(!rot.IsNull() && _CanRotate(rot) && _history->AddRotationItem(rot) ) // items in _driSelectedDrawables, using History::_SelectionRect (== _rubberRect)
 				{
 					_rubberRect = _history->SelectionRect().translated(-_topLeft);
 					_rubberBand->setGeometry(_rubberRect.toRect());
@@ -1590,6 +1590,14 @@ void DrawArea::_InitiateDrawing(MyPointerEvent* event)
 	_firstPointC = _lastPointC = event->pos;
 
 	_InitiateDrawingIngFromLastPos();
+}
+
+bool DrawArea::_CanRotate(MyRotation rot)
+{
+	if(!_history || !_history->SelectedSize())
+		return false;
+	QRectF r = _history->SelectionRect();
+	return rot.RotateRect(r, r.center(), false);
 }
 
 

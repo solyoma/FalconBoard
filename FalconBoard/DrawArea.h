@@ -338,7 +338,9 @@ private:
     void _AddScrollTimer();
     void _RemoveScrollTimer();
     _ScrollDirection _AutoScrollDirection(QPointF pt);    // sets and returns _scrollDir
+#endif
 private:
+#ifndef _VIEWER
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
     QPointF   _rubber_origin,           // position where we stated to draw the rubber band
              _topLeftWhenRubber;        // top left when the rubber band was hidden
@@ -352,6 +354,7 @@ private:
 
     void _InitiateDrawingIngFromLastPos();   // from _lastPoint
     void _InitiateDrawing(MyPointerEvent* event);
+    bool _CanRotate(MyRotation rot);    // items inside _history->SelectionRect()
 #endif
     int _LoadCommon();
     void _ClearCanvas();
@@ -362,9 +365,8 @@ private:
     void _SetLastPointPosition();           // for actual _history
     bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
     QPointF _CorrectForDirection(QPointF &newp);     // using _drawStarted and _isHorizontal
-    void _CreatePens();
 #endif
-
+    
     bool _DrawFreehandLineTo(QPointF endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
     void _DrawLineTo(QPointF endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
