@@ -23,6 +23,7 @@ HEADERS += ./common.h \
     ./pagesetup.h \
     ./printprogress.h \
 	./quadtree.h \
+	./rotateinput.h \
     ./screenshotTransparency.h \
 	./smoother.h \
     ./snipper.h
@@ -39,6 +40,7 @@ FORMS += ./FalconBoard.ui \
 	./helpdialog.ui \
     ./pagesetup.ui \
     ./printprogress.ui \
+	./rotateinput.ui \
     ./screenshotTransparency.ui
 RESOURCES += FalconBoard.qrc
 INCLUDEPATH += .

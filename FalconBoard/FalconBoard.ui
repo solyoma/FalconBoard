@@ -89,6 +89,7 @@
       <string>Transform</string>
      </property>
      <addaction name="actionRotate"/>
+     <addaction name="actionRepeatRotation"/>
      <addaction name="actionRotateLeft"/>
      <addaction name="actionRotateRight"/>
      <addaction name="actionRotate180"/>
@@ -110,7 +111,6 @@
     <addaction name="action_InsertVertSpace"/>
     <addaction name="separator"/>
     <addaction name="menuRotate"/>
-    <addaction name="actionRepeatRotation"/>
     <addaction name="separator"/>
     <addaction name="actionDrawEllipse"/>
     <addaction name="actionDrawFilledEllipse"/>
