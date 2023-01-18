@@ -945,9 +945,9 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot startPos
     void Rotate(MyRotation rot, QPointF &center);
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is inside the image
     {
-        if(fabs(rot.angle) < eps && !rot.HasSimpleRotation() )
+        if(fabs(rot.angle) > eps && !rot.HasSimpleRotation() )
             rot.RotateSinglePoint(p, _rotatedArea.boundingRect().center(), true);
-        return _rotatedArea.contains(p);
+        return QRectF(startPos- QPointF(_image.size().width()/2, _image.size().height()/2), _image.size()).contains(p);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
     // QPolygonF ToPolygonF()  - default
@@ -1587,6 +1587,22 @@ public:
         }
         return rect;
     }
+    int/*DrawableItemIndex*/ IndexOfTopMostItemInlist(IntVector &iv) const
+    {
+        int j = 0;
+        for (int i = 0, zOrder = 0; i < iv.size(); ++i)
+        {
+            int zo = _items[iv.at(i)]->zOrder;
+            if (zo > zOrder)
+            {
+                j = i;
+                zOrder = zo;
+            }
+        }
+        return j;
+
+    }
+
     int/*DrawableItemIndex*/ IndexOfTopMostItemUnder(QPointF point, int penWidth, DrawableType type = DrawableType::dtNone) const
     {
         if (point == QPoint(-1, -1))  // select topmost item
@@ -1639,7 +1655,7 @@ public:
 
                 for (++i; i < iv.size(); ++i)
                 {
-                    pdrw = (*this)[iv.at(i)];
+                    pdrw = _items[iv.at(i)];
                     if (pdrw->isVisible && pdrw->PointIsNear(point, penWidth / 2.0 + 3))
                     {
                         if (pdrw->zOrder > res.zorder)
