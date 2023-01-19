@@ -1426,6 +1426,7 @@ void FalconBoard::on_actionSave_triggered()
     {
         _SaveFile(fname);
         _SetTabText(-1, fname);
+        _SetResetChangedMark(-1);
     }
 }
 void FalconBoard::on_actionSaveAs_triggered() // current tab
@@ -1445,6 +1446,7 @@ void FalconBoard::on_actionSaveAs_triggered() // current tab
     _SaveFile(fileName);    // and sets _SaveResult
     setWindowTitle(sWindowTitle + QString(" - %1").arg(fileName));
     _SetTabText(-1, fileName);
+    _SetResetChangedMark(-1);
 }
 
 void FalconBoard::on_actionLoadBackground_triggered()
@@ -1815,7 +1817,7 @@ void FalconBoard::on_actionUndo_triggered()
         on_action_Eraser_triggered();
     else
         _SetCursor(csPen);
-
+    _SetResetChangedMark(-1);
 }
 
 void FalconBoard::on_actionRedo_triggered()

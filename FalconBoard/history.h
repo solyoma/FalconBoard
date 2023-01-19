@@ -449,6 +449,8 @@ class History  // stores all drawing sections and keeps track of undo and redo
             _loadedName;                // set only after the file is loaded, used to check reloads
     bool _inLoad = false;               // in function Load() / needed for correct z- order settings
     int _readCount = 0;                 // undo works until this index is reached
+    int _lastSaved = 0;                 // the count of _items when data was saved, after read it is _readCount
+
                                         // unscribble items have no indices in here
     bool _isSaved = false;              // clear after every change!
     QRectF _clpRect;                     // clipping rectangle for selecting points to draw
@@ -466,7 +468,6 @@ class History  // stores all drawing sections and keeps track of undo and redo
                                         // when _driSelectedDrawables is empty
 
 
-    bool _modified = false;
 
     HistoryItem* _AddItem(HistoryItem* p);
 
@@ -550,7 +551,7 @@ public:
     int Load(quint32& version_loaded, bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
     bool IsModified() const 
     { 
-        return _modified & CanUndo(); 
+        return _lastSaved != _items.size();
     }
     bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
     bool CanRedo() const { return _redoList.size(); }

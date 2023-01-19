@@ -360,12 +360,15 @@ struct MyRotation
         points.translate(center);
         return true;
     }
-    bool RotateSinglePoint(QPointF &pt, QPointF center, bool noCheck = false)  const
-    {
+    bool RotateSinglePoint(QPointF &pt, QPointF center, bool noCheck = false, bool invertRotation=false)  const
+    {                               // only rotation can be inverted flips can't
         QPointF p = pt;
-
+        MyRotation mr = *this;
         p -= center;
-        p = _tr.map(p);
+        if (invertRotation)
+            mr.InvertAngle();
+        p = mr._tr.map(p);
+
         if (flipType == rotFlipH)
         {
             p.setX(-p.x());
@@ -946,7 +949,7 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot startPos
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is inside the image
     {
         if(fabs(rot.angle) > eps && !rot.HasSimpleRotation() )
-            rot.RotateSinglePoint(p, _rotatedArea.boundingRect().center(), true);
+            rot.RotateSinglePoint(p, _rotatedArea.boundingRect().center(), true, true);
         return QRectF(startPos- QPointF(_image.size().width()/2, _image.size().height()/2), _image.size()).contains(p);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables

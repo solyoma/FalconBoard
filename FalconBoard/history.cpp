@@ -883,8 +883,6 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 		}
 	_redoList.clear();	
 
-	_modified = true;
-
 	int n = _items.size() - 1;
 	p = _items[n];
 
@@ -907,10 +905,8 @@ void History::Clear(bool andDeleteQuadTree)		// does not clear lists of copied i
 	_redoList.clear();
 
 	_drawables.Clear(andDeleteQuadTree);			// images and others + clear _pQTree and set it to nullptr
-	_readCount = 0;
+	_readCount = _lastSaved = 0;
 	_loadedName.clear();
-
-	_modified = false;
 }
 
 int History::Size() const
@@ -967,7 +963,7 @@ SaveResult History::Save(QString name)
 	if (name != _loadedName)
 		_loadedName = _fileName = name;
 
-	if (_drawables.Count() == 0 && !_modified)					// no elements or no visible elements
+	if (_drawables.Count() == 0 && _lastSaved == 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
 		return srSaveSuccess;
@@ -998,12 +994,13 @@ SaveResult History::Save(QString name)
 		}
 		phi = _drawables.NextVisibleDrawable();	// in increasing zOrder
 	}
-	_modified = false;
 	if (QFile::exists(name + "~"))
 		QFile::remove(QString(name + "~"));
 	QFile::rename(name, QString(name + "~"));
 
 	f.rename(name);
+
+	_lastSaved = _items.count();	// saved at this point
 
 	return srSaveSuccess;
 }
@@ -1102,7 +1099,7 @@ int History::_LoadV2(QDataStream&ifs, bool force)
 
 	_loadedName = _fileName;
 
-	return _readCount = n;
+	return _readCount = _lastSaved = n;
 }
 
 
@@ -1213,11 +1210,9 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 		}
 		(void)AddDrawableItem(*pdrwh);	// this will add the drawable to the list and sets its zOrder too
 	}
-	_modified = false;
-
 	_loadedName = _fileName;
 
-	return  _readCount = _items.size();
+	return  _readCount = _lastSaved = _items.size();
 }
 
 //--------------------- Add Items ------------------------------------------
@@ -1441,7 +1436,7 @@ void History::Rotate(int index, MyRotation rot, QPointF center)
 void History::InserVertSpace(int y, int heightInPixels)
 {
 	_drawables.VertShiftItemsBelow(y, heightInPixels);
-	_modified = true;
+//	_modified = true;
 }
 
 HistoryItem* History::Undo()      // returns item on top of _items or null
@@ -1470,7 +1465,7 @@ HistoryItem* History::Undo()      // returns item on top of _items or null
 		_items.pop_back();	// we need _items for removing the
 		--actItem;
 	}
-	_modified = true;
+//	_modified = true;
 
 	return actItem >= 0 ? _items[actItem] : nullptr;
 }
@@ -1510,7 +1505,7 @@ HistoryItem* History::Redo()   // returns item to redone
 
 	}
 
-	_modified = true;
+//	_modified = true;
 
 	return phi;
 }
