@@ -762,7 +762,7 @@ struct DrawableEllipse : public DrawableItem
         // first, if ellipse is rotated, rotate point by -angle 
         // into the original (unrotated) ellipse based coord system
         // flips don't matter
-        if (fabs(rot.angle) < eps)
+        if (fabs(rot.angle) > eps)
         {
             QTransform tr;
             tr.rotate(-rot.angle);
@@ -948,9 +948,15 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot startPos
     void Rotate(MyRotation rot, QPointF &center);
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is inside the image
     {
-        if(fabs(rot.angle) > eps && !rot.HasSimpleRotation() )
-            rot.RotateSinglePoint(p, _rotatedArea.boundingRect().center(), true, true);
-        return QRectF(startPos- QPointF(_image.size().width()/2, _image.size().height()/2), _image.size()).contains(p);
+        QRectF rect = QRectF(startPos - QPointF(_image.size().width() / 2, _image.size().height() / 2), _image.size());
+        if (fabs(rot.angle) > eps && !rot.HasSimpleRotation())
+        {
+            QTransform tr;
+            tr.rotate(-rot.angle);
+            QPointF center = _rotatedArea.boundingRect().center();
+            p = tr.map(p - center) + center;
+        }
+        return rect.contains(p);
     }
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
     // QPolygonF ToPolygonF()  - default
@@ -1646,7 +1652,7 @@ public:
             for (i = 0; i < iv.size(); ++i)
             {
                 pdrw = _items[iv.at(i)];
-                if (pdrw->isVisible && pdrw->dtType == type)
+                if (pdrw->isVisible && pdrw->dtType == type && pdrw->PointIsNear(point, penWidth / 2.0 + 3))
                     break;
             }
 
@@ -1669,6 +1675,8 @@ public:
                     }
                 }
             }
+            else
+                res.index = -1;
         }
         return res.index;
     }
