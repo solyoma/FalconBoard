@@ -455,14 +455,13 @@ bool MyPrinter::_PrintItem(int yi)
         else
             _pImagePainter->drawPixmap(visibleRect, psi->Image(), srcRect);
     }
-    else if (phi->Type() == DrawableType::dtScribble)
+    else if (phi->IsDrawable() )
     {             // paint over transparent layer
         DrawableItem* pDrwbl = phi->GetDrawable(true);    // dot, ellipse, rectangle, scribble, text
         FalconPenKind pk = pDrwbl->PenKind();
         int pw = pDrwbl->penWidth;
 
         pDrwbl->Draw(_pDrawablePainter, _actPage.screenArea.topLeft());
-
     }
 
     return false;

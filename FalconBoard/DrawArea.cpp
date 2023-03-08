@@ -663,8 +663,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_Redraw();
 				}
 			}
-												
-																														else if (bRecolor)
+			else if (bRecolor)
 			{
 				RecolorSelected(key);
 			}
@@ -1388,19 +1387,20 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
 	if (!_bPageGuidesOn)
 		return;
 
-	int nxp = _topLeft.x() / _prdata.screenPageWidth,
+	int w = width() , h = height(), 
+		nxp = _topLeft.x() / _prdata.screenPageWidth,
 		nyp = _topLeft.y() / _prdata.screenPageHeight,
-		nx = (_topLeft.x() + width()) / _prdata.screenPageWidth,
-		ny = (_topLeft.y() + height()) / _prdata.screenPageHeight,
-		x = height(), y;
+		nx = (_topLeft.x() + w) / _prdata.screenPageWidth,
+		ny = (_topLeft.y() + h) / _prdata.screenPageHeight,
+		x, y; // value just for debug
 
 	painter.setPen(QPen(_pageGuideColor, 2, Qt::DotLine));
-	if (nx - nxp > 0)     // x - guide
-		for (x = nxp + 1 * _prdata.screenPageWidth - _topLeft.x(); x < width(); x += _prdata.screenPageWidth)
-			painter.drawLine(x, 0, x, height());
-	if (ny - nyp > 0)    // y - guide
-		for (y = nyp + 1 * _prdata.screenPageHeight - _topLeft.y(); y < height(); y += _prdata.screenPageHeight)
-			painter.drawLine(0, y, width(), y);
+	if (nx - nxp > 0)     // draw all visible x guides
+		for (x = (nxp + 1) * _prdata.screenPageWidth - _topLeft.x(); x < w; x += _prdata.screenPageWidth)
+			painter.drawLine(x, 0, x, h);
+	if (ny - nyp > 0)    // draw all visible y - guides
+		for (y = (nyp + 1) * _prdata.screenPageHeight - _topLeft.y(); y < h; y += _prdata.screenPageHeight)
+			painter.drawLine(0, y, w, y);
 }
 
 
@@ -1411,8 +1411,8 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
  * RETURNS:
  * REMARKS: - logical layers:
  *                  top     sprite layer     ARGB
- *                          _pActCanvas      ARGB
  *                          page guides if shown
+ *                          _pActCanvas      ARGB (other drawables)
  *                          screenshots
  *                          grid        if shown
  *                  bottom  background image if any
@@ -1448,12 +1448,11 @@ void DrawArea::paintEvent(QPaintEvent* event)
 			pimg = _history->NextVisibleScreenShot();
 		}
 	}
-	// page guides layer:
-	_DrawPageGuides(painter);
-
 	// _pActCanvas layer: the scribbles
 	painter.setClipRect(dirtyRect);
 	painter.drawImage(dirtyRect, *_pActCanvas, dirtyRect);          // canvas layer
+	// page guides layer:
+	_DrawPageGuides(painter);
 
 // sprite layer
 	if (_pSprite && _pSprite->visible)
