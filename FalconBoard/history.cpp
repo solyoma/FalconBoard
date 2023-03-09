@@ -805,9 +805,9 @@ void History::_RestoreClippingRect()
 QSizeF History::UsedArea()
 {
 	QRectF rect;
-	for (auto item : _items)
+	for (auto item : _drawables.Items())
 	{
-		if (!item->IsHidden())
+		if (item->IsVisible())
 			rect = rect.united(item->Area());
 	}
 	return rect.size();
@@ -846,9 +846,9 @@ int History::RightMostInBand(QRectF rect)
 	int x = -1;
 	for (auto ix : iv)
 	{
-		HistoryItem* phi = _items[ix];
-		if (x < phi->Area().right())
-			x = phi->Area().right();
+		DrawableItem* pdrwi = Drawable(ix);
+		if (x < pdrwi->Area().right())
+			x = pdrwi->Area().right();
 	}
 	return x;
 }
@@ -982,7 +982,7 @@ SaveResult History::Save(QString name)
 	ofs << (uint16_t)gridOptions;
 
 	QRectF area = QuadAreaToArea(_drawables.Area());
-	DrawableItem* phi = _drawables.FirstVisibleDrawable(area); // first in zOrder
+	DrawableItem* phi = _drawables.FirstVisibleDrawable(area); // lowest in zOrder
 	while(phi)
 	{
 		ofs << *phi;
@@ -1343,7 +1343,7 @@ HistoryItem* History::AddCopiedItems(QPointF topLeft, Sprite* pSprite)			   // t
 	}
 
 	//----------- add drawables
-	for (DrawableItem *si : *pCopiedItems->Items() )
+	for (auto &si : pCopiedItems->Items() )
 	{
 		si->Translate(topLeft, -1);		// transforms original item
 		si->zOrder = -1;	// so it will be on top
@@ -1710,9 +1710,9 @@ void History::CopySelected(Sprite* sprite)
 		}
 		_parent->_copiedRect = _selectionRect.translated(-_selectionRect.topLeft());
 
-		DrawableItemList *pdrl = copiedItems.Items();
+		DrawableItemList &pdrl = copiedItems.Items();
 
-		std::sort(pdrl->begin(), pdrl->end(), [](DrawableItem* pl, DrawableItem* pr) {return pl->zOrder < pr->zOrder; });
+		std::sort(pdrl.begin(), pdrl.end(), [](DrawableItem* pl, DrawableItem* pr) {return pl->zOrder < pr->zOrder; });
 																			
 		if (sprite)
 		{
@@ -1804,8 +1804,8 @@ void HistoryList::CopyToClipboard()
 	QDataStream data(&clipData, QIODevice::WriteOnly);		  // uses internal QBuffer
 
 	data << _copiedRect;
-	data << _copiedItems.Items()->size();
-	for (auto sr : *_copiedItems.Items())
+	data << _copiedItems.Items().size();
+	for (auto sr : _copiedItems.Items())
 		data << sr;
 
 	QMimeData* mimeData = new QMimeData;

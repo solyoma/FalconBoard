@@ -436,7 +436,9 @@ int MyPrinter::_PageForPoint(const QPointF p)
  *-------------------------------------------------------*/
 bool MyPrinter::_PrintItem(int yi)
 {
-    HistoryItem * phi = _pHist->Item(yi);
+//    HistoryItem * phi = _pHist->Item(yi);
+    DrawableItem* pTmp = _pHist->Drawable(yi);
+/*
     if(phi->IsImage())
     {                               // paint over background layer
         DrawableScreenShot* psi = dynamic_cast<DrawableScreenShot*>(phi->GetDrawable(true) );
@@ -455,13 +457,18 @@ bool MyPrinter::_PrintItem(int yi)
         else
             _pImagePainter->drawPixmap(visibleRect, psi->Image(), srcRect);
     }
-    else if (phi->IsDrawable() )
+    else if (phi->IsDrawable() && phi->IsVisible())
     {             // paint over transparent layer
-        DrawableItem* pDrwbl = phi->GetDrawable(true);    // dot, ellipse, rectangle, scribble, text
+        DrawableItem* pDrwbl = phi->GetDrawable(true);    // visible only, dot, ellipse, rectangle, scribble, text
         FalconPenKind pk = pDrwbl->PenKind();
         int pw = pDrwbl->penWidth;
 
         pDrwbl->Draw(_pDrawablePainter, _actPage.screenArea.topLeft());
+    }
+    */
+    if (pTmp->IsVisible())
+    {
+        pTmp->Draw(_pDrawablePainter, _actPage.screenArea.topLeft());
     }
 
     return false;

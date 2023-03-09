@@ -2409,7 +2409,13 @@ void DrawArea::_SetOrigin(QPointF o)
 #ifndef _VIEWER
 	_ShowCoordinates(QPointF());
 #endif
-	qApp->processEvents();
+	// processEvents speeds up scroll, however may cause stack overflow in
+	// Qt, so I try to constrain how many refresh events are sent
+	static int watchdog = 0;
+	if (watchdog++ < 50)
+		qApp->processEvents();
+	else if (watchdog == 100)
+		watchdog = 0;
 }
 
 

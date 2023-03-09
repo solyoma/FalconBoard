@@ -1175,9 +1175,9 @@ struct QuadTreeDelegate
         {
             DrawableItem* pdri1 = (*pItems)[i], * pdri2 = (*pItems)[j];
             // no two items may have the same z-order
-            bool zOrderOk = pdri1->zOrder < pdri2->zOrder;
+            bool zOrder1Smaller = pdri1->zOrder < pdri2->zOrder;
 
-            if (zOrderOk)	// zOrder OK
+            if (zOrder1Smaller)	// zOrder OK
                 return true;
             // zorder i >= zorder j
             return false;
@@ -1318,7 +1318,7 @@ public:
         _pQTree = nullptr;
     }
 
-    DrawableItemList* Items() { return &_items; }
+    DrawableItemList &Items() { return _items; }
 
     void ResetZorder()
     {
