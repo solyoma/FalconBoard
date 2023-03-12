@@ -172,7 +172,7 @@ DrawableItem& DrawableItem::operator=(const DrawableItem& other)
 // add eraser strokes cut up to as many parts as required
 // the area of the Drawable, which already contains the 2 x (half pen width +1) width 
 // and height extension is extended further by the 
-// half width of the eraser pen, therefore th eraser strokes need not be adjusted
+// half width of the eraser pen, therefore the eraser strokes need not be adjusted
 // when intersections are examined
 int DrawableItem::AddEraserStroke(int eraserWidth, const QPolygonF& stroke)
 {

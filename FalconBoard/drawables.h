@@ -504,7 +504,7 @@ public:
     void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR = QRectF(), QColor brushColor = QColor())
     {
         if(clipR.isValid())
-            painter->setClipRect(clipR);
+            painter->setClipRect(clipR);  // clipR must be DrawArea relative
 
         QPen pen(QPen(PenColor(), penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin) );
         painter->setPen(pen);
@@ -622,9 +622,9 @@ struct DrawableItem : public DrawablePen
         {                                   // and copy the pixmap to the visible area
             QRectF area = Area();           // includes half of pen width (none for screenshots)
             //QPixmap pxm(area.size().toSize());
-            QImage pxm(area.width(), area.height(), QImage::Format_ARGB32);
-            pxm.fill(Qt::transparent);
-            QPainter myPainter(&pxm);
+            QImage pimg(area.width(), area.height(), QImage::Format_ARGB32);
+            pimg.fill(Qt::transparent);
+            QPainter myPainter(&pimg);
             QPointF tl = area.topLeft();
             //if (dtType != DrawableType::dtScreenShot)
             //    tl -= QPointF(penWidth, penWidth) / 2.0;
@@ -632,6 +632,8 @@ struct DrawableItem : public DrawablePen
                                             // which must check 'drawStarted' and 
                                             // must not call this function if it is set
                                             // clipRect is not important as the pixmap is exactly the right size
+            // DEBUG
+            // pimg.save("pimg-before.png", "png");
             // and now the erasers
 #if !defined _VIEWER && defined _DEBUG
             if (!isDebugMode)
@@ -643,7 +645,7 @@ struct DrawableItem : public DrawablePen
             }
 #endif
 
-            for (auto er : erasers)
+            for (auto &er : erasers)
             {
                 QPen pen(QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
                 myPainter.setPen(pen);
@@ -652,10 +654,11 @@ struct DrawableItem : public DrawablePen
                 else
                     myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
             }
-            painter->setClipRect(clipR);
-            painter->drawImage(tl - topLeftOfVisibleArea, pxm);
-            //painter->drawPixmap(tl - topLeftOfVisibleArea, pxm);
-                        //pxm.save("pxm.png", "png");
+            painter->setClipRect(clipR.translated(-topLeftOfVisibleArea) );
+            painter->drawImage(tl - topLeftOfVisibleArea, pimg);
+            //painter->drawPixmap(tl - topLeftOfVisibleArea, pimg);
+            // DEBUG
+            //            pimg.save("pimg.png", "png");
             // end DEBUG
         }
         else                                // no erasers: just paint normally

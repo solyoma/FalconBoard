@@ -1973,7 +1973,7 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
  * GLOBALS: _pActCanvas,_actPenKind, _actPenWidth, _erasemode
  *          _clippingRect, _lastPointC, _topLeft
  * RETURNS:
- * REMARKS: - no errro checking on pscrbl
+ * REMARKS: - no error checking on pscrbl
  *-------------------------------------------------------*/
 void DrawArea::_DrawAllPoints(DrawableItem* pscrbl)
 {
