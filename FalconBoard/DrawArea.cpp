@@ -436,8 +436,9 @@ int DrawArea::IsModified(int fromIndex, bool any) const
 #ifndef _VIEWER
 void DrawArea::InsertVertSpace()
 {
+	qreal y = _rubberRect.y(), h = _rubberRect.height();
 	HideRubberBand(true);
-	_history->AddInsertVertSpace(_rubberRect.y() + _topLeft.y(), _rubberRect.height());
+	_history->AddInsertVertSpace(y + _topLeft.y(), h);
 	_Redraw();
 }
 FalconPenKind DrawArea::PenKindFromKey(int key)
