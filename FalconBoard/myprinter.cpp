@@ -181,7 +181,7 @@ MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
         }
 
         _CalcPages();
-        _status = rsOk;
+//???        _status = rsOk;
     }
     return _status;
 }
@@ -193,7 +193,7 @@ struct PageNum2
 
     PageNum2() { yindices.resize(1); }
 
-    void clear() {yindices.clear(); yindices.resize(1);}
+    void ClearList() {yindices.clear(); yindices.resize(1);}
 
     bool operator<(const PageNum2& o) { return ny < o.ny ? true : (ny == o.ny && nx < o.nx) ? true :  false; }
     bool operator==(const PageNum2& o) { return (nx == o.nx && ny == o.ny); }
@@ -345,15 +345,20 @@ int MyPrinter::_CalcPages()
     QSizeF usedArea = _pHist->UsedArea();
     int maxY = usedArea.height();
     int maxX;   // on a _data.ScreenPageHeight high band
-    int ny = 0;     // page y index
+    pgn.ny = 0;     // page y index
 
-    for (int y = 0; y < maxY; y += _data.screenPageHeight, ++ny)
+    for (int y = 0; y < maxY; y += _data.screenPageHeight, ++pgn.ny)
     {
         maxX = _pHist->RightMostInBand(QRectF(0, y, usedArea.width(), _data.screenPageHeight));
-        pgn.clear();
-        pgn.ny = ny;
+        pgn.ClearList();
 
-        for (pgn.nx = 0; pgn.nx * _data.screenPageWidth < maxX; ++pgn.nx)
+        // mut "print" empty pages too
+        QRectF rect(0, pgn.ny * _data.screenPageHeight, _data.screenPageWidth, _data.screenPageHeight);
+        pgn.nx = 0;
+        _pHist->GetDrawablesInside(rect, pgn.yindices);
+        sortedPageNumbers.Insert(pgn);
+        // then insert pages to the right if they contain any data
+        for (pgn.nx = 1; pgn.nx * _data.screenPageWidth < maxX; ++pgn.nx)
         {
             QRectF rect(pgn.nx * _data.screenPageWidth, pgn.ny * _data.screenPageHeight, _data.screenPageWidth, _data.screenPageHeight);
             _pHist->GetDrawablesInside(rect, pgn.yindices);
@@ -364,14 +369,14 @@ int MyPrinter::_CalcPages()
     // add pages to linear page list
     _pages.clear();
     Page pg;
-    pg.screenArea = QRectF(_data.topLeftActPage.x(), _data.topLeftActPage.y(), _data.screenPageWidth, _data.screenPageHeight);
+    pg.screenArea = QRectF(_data.topLeftOfCurrentPage.x(), _data.topLeftOfCurrentPage.y(), _data.screenPageWidth, _data.screenPageHeight);
 
     for (int i = 0; i < sortedPageNumbers.Size(); ++i)
     {
         pg.pageNumber = i;
-        pgn = sortedPageNumbers[i];
-        pg.yindices = pgn.yindices;
-        pg.screenArea.moveTo(pgn.nx * _data.screenPageWidth, pgn.ny* _data.screenPageHeight);
+        const PageNum2 &pgn2 = sortedPageNumbers[i];
+        pg.yindices = pgn2.yindices;
+        pg.screenArea.moveTo(pgn2.nx * _data.screenPageWidth, pgn2.ny* _data.screenPageHeight);
         _pages.push_back(pg);
     }
     int siz = _pages.size();
@@ -424,9 +429,10 @@ int MyPrinter::_PageForPoint(const QPointF p)
 }
 
 /*========================================================
- * TASK:   Print either an image or a scribble
- * PARAMS:  yi: y coord and z-order
+ * TASK:   Print a drawable on '_pItemImage'
+ * PARAMS:      yi: y coord and z-order
  * GLOBALS: _actPage
+ *          _pDrawablePainter, _pItemImage
  * RETURNS:
  * REMARKS: - item may start and/or end on an other page
  *          - there may be pages where no point 
@@ -434,10 +440,14 @@ int MyPrinter::_PageForPoint(const QPointF p)
  *                  page boundaries)
  *          - screenshot images may extend to more than one pages
  *-------------------------------------------------------*/
-bool MyPrinter::_PrintItem(int yi)
+bool MyPrinter::_PrintItem(int yi, const QRectF& clipR)
 {
 //    HistoryItem * phi = _pHist->Item(yi);
     DrawableItem* pTmp = _pHist->Drawable(yi);
+    if (pTmp->IsVisible())
+        pTmp->Draw(_pDrawablePainter, clipR.topLeft(), clipR);
+
+    return false;
 /*
     if(phi->IsImage())
     {                               // paint over background layer
@@ -466,12 +476,7 @@ bool MyPrinter::_PrintItem(int yi)
         pDrwbl->Draw(_pDrawablePainter, _actPage.screenArea.topLeft());
     }
     */
-    if (pTmp->IsVisible())
-    {
-        pTmp->Draw(_pDrawablePainter, _actPage.screenArea.topLeft());
-    }
 
-    return false;
 }
 
 void MyPrinter::_PrintGrid()
@@ -528,9 +533,10 @@ void MyPrinter::_PreparePage(int which)
     if ((_data.flags & pfGrid) != 0)  // grid is below any scribbles
         _PrintGrid();                 // on _pPageImage
     // items layer
+    QRectF clipR = _actPage.screenArea;
     for (auto ix : _actPage.yindices)
     {
-        _PrintItem(ix);
+        _PrintItem(ix, clipR);
         if (_pProgress)
         {
             _pProgress->Progress(_actPage.pageNumber);
@@ -607,7 +613,7 @@ bool MyPrinter::Print()
         if (range == QPrinter::CurrentPage)
         {
             PageNum2 pgn;
-            int nCurrent = _PageForPoint(_data.topLeftActPage);
+            int nCurrent = _PageForPoint(_data.topLeftOfCurrentPage);
             from = nCurrent; to = nCurrent;
         }
         else if (range == QPrinter::AllPages)
@@ -616,8 +622,8 @@ bool MyPrinter::Print()
         }
         else if (range == QPrinter::PageRange)
         {
-            int from = _printer->fromPage()-1;   
-            int to =   _printer->toPage()-1;
+            from = _printer->fromPage()-1;   
+            to =   _printer->toPage()-1;
         }
         else          // selection
         {
@@ -625,7 +631,7 @@ bool MyPrinter::Print()
             _FreeResources();
             return true;
         }
-        return _Print(from, to);
+        return _Print(from, to);   // calls FreeResources() at end
             // cleanup
     }
     return false;

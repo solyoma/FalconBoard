@@ -501,7 +501,7 @@ public:
         return penColor; 
     }
     constexpr FalconPenKind PenKind() const { return _penKind; }
-    void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR = QRectF(), QColor brushColor = QColor())
+    void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor())
     {
         if(clipR.isValid())
             painter->setClipRect(clipR);  // clipR must be DrawArea relative
@@ -592,7 +592,7 @@ struct DrawableItem : public DrawablePen
      *              the function that called it then draws the eraser strokes
      *              inside the clipping rectangle
      *------------------------------------------------------------*/
-    virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF())
+    virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
     {
         if (drawStarted)
         {
@@ -614,7 +614,7 @@ struct DrawableItem : public DrawablePen
      *              the function that called it then draws the eraser strokes
      *              inside the clipping rectangle
      *------------------------------------------------------------*/
-    void DrawWithEraser(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF())
+    void DrawWithEraser(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
     {
         drawStarted = true;
 
@@ -692,7 +692,7 @@ struct DrawableCross : public DrawableItem
     void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
     virtual MyRotation::Type RotationType() { return MyRotation::flipNone;  /* yet */ }
     QRectF Area() const override;    // includes half of pen width+1 pixel
-    void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR) override;
 private:
     QLineF _ltrb, _lbrt;
     void _Setup();
@@ -791,7 +791,7 @@ struct DrawableEllipse : public DrawableItem
         return (distP <= distQ && distP >= distQ - distance) ||
                 (distP > distQ && distP < distQ + distance * distance);
     }
-    virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
 private:
     QPolygonF _points;       // used when rotated by not an angle not a multiple of 90 degrees or not a flip
     QRectF _rotatedRect;         // used for Area(), same as 'rect' unless rotated
@@ -840,7 +840,7 @@ struct DrawableLine : public DrawableItem
     {                                                         
         return __IsLineNearToPoint(startPos, endPoint, p, distance);
     }
-    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableLine& di);  // call AFTER header is read in
@@ -900,7 +900,7 @@ struct DrawableRectangle : public DrawableItem
                                   );
         return !bDistanceTooLarge;
     }
-    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
 private:
     QRectF _rotatedRect;         // used for Area(), same as 'rect' unless rotated
     QPolygonF _points;
@@ -961,7 +961,7 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot startPos
         }
         return rect.contains(p);
     }
-    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;    // screenshot are painted in paintEvent first followed by other drawables
+    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;    // screenshot are painted in paintEvent first followed by other drawables
     // QPolygonF ToPolygonF()  - default
 private:
     QPixmap _image;             // screenshot image
@@ -1037,7 +1037,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
                 return true;
         return false;
     }
-    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
 };
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableScribble& di);
@@ -1090,7 +1090,7 @@ struct DrawableText : public DrawableItem
     {
         return false; // ???
     }
-    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override;
+    void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
     // QPolygonF ToPolygonF()  - default
 };
 

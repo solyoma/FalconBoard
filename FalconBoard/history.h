@@ -77,8 +77,8 @@ struct HistoryItem      // base class
     virtual DrawableType Type() const { return DrawableType::dtNone; }
     virtual bool IsImage() const { return false; }
     virtual bool Intersects(QRectF& rect) const { return GetDrawable(true)->Intersects(rect);  }
-    virtual void Draw(QPaintDevice* canvas, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) {}                     // sets painter at every draw
-    virtual void Draw(QPainter* painter, QPointF& topLeftOfVisibleArea, const QRectF& clipR = QRectF()) {} // when painter is known
+    virtual void Draw(QPaintDevice* canvas, QPointF &topLeftOfVisibleArea, const QRectF& clipR) {}                     // sets painter at every draw
+    virtual void Draw(QPainter* painter, QPointF& topLeftOfVisibleArea, const QRectF& clipR) {} // when painter is known
 
     virtual bool operator<(const HistoryItem& other);
 };
@@ -118,14 +118,14 @@ struct HistoryDrawableItem : public HistoryItem
     void Rotate(MyRotation rot, QPointF center) override;
     // no new undo/redo needed
     bool IsImage() const override { return _Drawable()->dtType == DrawableType::dtScreenShot ? true: false; }
-    void Draw(QPainter* painter, QPointF& topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override
+    void Draw(QPainter* painter, QPointF& topLeftOfVisibleArea, const QRectF& clipR) override
     { 
-        _Drawable()->Draw(painter, topLeftOfVisibleArea); 
+        _Drawable()->Draw(painter, topLeftOfVisibleArea, clipR); 
     }
-    void Draw(QPaintDevice *canvas, QPointF topLeftOfVisibleArea, const QRectF& clipR = QRectF()) override
+    void Draw(QPaintDevice *canvas, QPointF &topLeftOfVisibleArea, const QRectF& clipR) override
     { 
         QPainter painter(canvas);
-        _Drawable()->Draw(&painter, topLeftOfVisibleArea,clipR); 
+        _Drawable()->Draw(&painter, topLeftOfVisibleArea, clipR); 
     }
 private:
     inline DrawableItem* _Drawable() const { return (*pDrawables)[indexOfDrawable]; }

@@ -17,7 +17,7 @@
 /* How: Create a full sized QImage (1:1) using the screen size in pixels
  *      to print everything on it, then use QPainter's drawImage(target rect, image, source rect)
  *      to copy it to the actual device (printer or PDF)
- *  The target rectangle defines the margins and Qt shrinks ^expands the image
+ *  The target rectangle defines the margins and Qt shrinks / expands the image
  */
 class History;      // in history.h
 
@@ -29,7 +29,7 @@ class MyPrinterData
         // the areas below are the ones we print to. During printing all margins are 0
         // and reflect page orientation
     QRectF _printAreaInInches;           // full print (not screen) page in inches
-    QRectF  _printAreaInDots;             // full print (not screen) page in dots
+    QRectF  _printAreaInDots;            // full print (not screen) page in dots
     int _dpi = 300;
 
 
@@ -53,7 +53,8 @@ class MyPrinterData
 public:
     enum Unit {mpdInch, mpdDots};
 
-    QPointF topLeftActPage;          // set in DrawAre before printing
+    QPointF topLeftOfCurrentPage;          // if only the current page is selected for printing this is 
+                                     // the top left of that page. Set in DrawArea before printing
     QString directory;               // empty or ends with '/'
     QString* pdir = nullptr;         // points to either 'directory' or for PDF to caller
 
@@ -186,7 +187,7 @@ private:
     bool _AllocateResources();
     bool _FreeResources();
     int  _CalcPages();              // using _data 
-    bool _PrintItem(int yi);
+    bool _PrintItem(int yi, const QRectF& clipR);
     void _PrintGrid();
     void _PreparePage(int which);
     bool _PrintPage(int page, bool last);  // using _history last: no new page after this

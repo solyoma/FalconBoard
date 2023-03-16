@@ -571,7 +571,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			_lastDrawableCross = DrawableCross(p, halflen, _history->GetZorder(false), _actPenKind, _actPenWidth);
 
 			QPainter* painter = _GetPainter(_pActCanvas);
-			_lastDrawableCross.Draw(painter, _topLeft);
+			_lastDrawableCross.Draw(painter, _topLeft, _clippingRect);
 			delete painter;
 			_firstPointC = _lastPointC = _lastDrawableCross.startPos;;
 
@@ -730,7 +730,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
 
 					QPainter* painter = _GetPainter(_pActCanvas);
-					_lastRectangleItem.Draw(painter, _topLeft);
+					_lastRectangleItem.Draw(painter, _topLeft, _clippingRect);
 					delete painter;
 					update(_rubberRect.toRect());
 
@@ -751,7 +751,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_lastEllipseItem = DrawableEllipse(r.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
 				
 				QPainter* painter = _GetPainter(_pActCanvas);
-				_lastEllipseItem.Draw(painter, _topLeft);
+				_lastEllipseItem.Draw(painter, _topLeft, _clippingRect);
 				delete painter;
 				update(_rubberRect.toRect());
 
@@ -772,7 +772,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_lastDotItem = DrawableDot(_rubberRect.translated(_topLeft).center(), _history->GetZorder(false), _actPenKind, _actPenWidth);
 
 				QPainter* painter = _GetPainter(_pActCanvas);
-				_lastDotItem.Draw(painter, _topLeft);
+				_lastDotItem.Draw(painter, _topLeft,_clippingRect);
 				delete painter;
 
 				(void) _history->AddDrawableItem(_lastDotItem);
@@ -1979,7 +1979,7 @@ void DrawArea::_DrawAllPoints(DrawableItem* pscrbl)
 {
 	QPainter* painter = _GetPainter(_pActCanvas);
 
-	pscrbl->Draw(painter, _topLeft);
+	pscrbl->Draw(painter, _topLeft, _clippingRect);
 
 	_lastPointC = pscrbl->GetLastDrawnPoint();
 }
@@ -2128,7 +2128,7 @@ bool DrawArea::_NoPrintProblems()
 /*========================================================
  * TASK:    Print data to printer or to PDF
  * PARAMS:  name: file name for PDF
- *          pdir: pointer to
+ *          pdir: pointer to document directory
  * GLOBALS:
  * RETURNS:
  * REMARKS: - if pdir then name does not contain a directory
@@ -2158,7 +2158,7 @@ void DrawArea::Print(QString name, QString* pdir)
 
 	if (_bPageSetupValid)
 	{
-		_prdata.topLeftActPage = _topLeft;
+		_prdata.topLeftOfCurrentPage = _topLeft;
 		_prdata.backgroundColor = _backgroundColor;
 		_prdata.gridColor = (_prdata.flags & pfWhiteBackground) ? "#d0d0d0" : _gridColor;
 		_prdata.pBackgroundImage = &_background;
