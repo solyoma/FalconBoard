@@ -23,48 +23,16 @@ class History;      // in history.h
 
 class MyPrinterData
 {
-    qreal _hMargin = 1,              // in inches because QPageLayout does not have dots
-          _vMargin = 1,              // left-right and top-bottom margins
-          _gutterMargin = 0;         // added to left margin on odd, right margin on even pages
-        // the areas below are the ones we print to. During printing all margins are 0
-        // and reflect page orientation
-    QRectF _printAreaInInches;           // full print (not screen) page in inches
-    QRectF  _printAreaInDots;            // full print (not screen) page in dots
-    int _dpi = 300;
-
-
-    void _ConvertAreaToDots()
-    {
-        _printAreaInDots = QRectF( _printAreaInInches.x() * _dpi, _printAreaInInches.y()* _dpi, _printAreaInInches.width()* _dpi, _printAreaInInches.height()* _dpi).toRect();
-    }
-
-    void _CalcScreenPageHeight(bool calcScreenHeight)   // w. margins !
-    {
-        if (!calcScreenHeight)
-            return;
-
-        QRectF tr = TargetRectInDots(false);
-        if (tr.isValid())
-        {
-            qreal magn = tr.width() / qreal(screenPageWidth);
-            screenPageHeight = tr.height() / magn;
-        }
-    }
 public:
     enum Unit {mpdInch, mpdDots};
 
     QPointF topLeftOfCurrentPage;          // if only the current page is selected for printing this is 
                                      // the top left of that page. Set in DrawArea before printing
+
     QString directory;               // empty or ends with '/'
     QString* pdir = nullptr;         // points to either 'directory' or for PDF to caller
 
-    int paperId = 3;                 // default: A4
-    int screenPageWidth = 1920;      // width of page on screen in pixels - used to calculate pixel limits for pages (HD: 1920 x 1080)
-    int screenPageHeight = 1920 * 3508 / 2480;  // height of screen for selected paper size in pixels - for A4 (210mm x 297mm, 8.27 in x 11.7 in) with 300 dpi
-
-    QString printerName;            // last selected printer, usually the default one not saved between sessions
     QString docName;
-    int flags;                      // ORed from PrinterFlags (common.h)
     bool bExportPdf = false;
 
     // colors and others: set these before print in drawarea
@@ -78,7 +46,7 @@ public:
     bool openPDFInViewerAfterPrint = false;
 
         // for PDF printing only
-    QString fileName;
+    QString pdfFileName;
 
     QRectF PrintAreaInInches() const
     {
@@ -88,17 +56,33 @@ public:
     {
         return _printAreaInDots;
     }
+    QRectF PrintAreaInDotsWhenMargins(bool useMargins, bool useGutter)
+    {
+        QRectF r = PrintAreaInDots();
+        if (useMargins)
+        {
+            QPointF pm = Margins(useGutter, mpdDots);
+            r = QRectF(r.topLeft() + pm, QSize(r.width() - 2 * pm.x(),r.height()-2 * pm.y()));
+        }
+        return r;
+    }
+
+    int  ConvertToDots(qreal inches)   // using _dpi
+    {
+        return inches * _dpi;
+    }
+
     QRectF TargetRectInInches(bool gutterAtLeft) const     // with margins
     {
-        qreal mx = _hMargin, my= _vMargin;
-        return QRectF(mx + (gutterAtLeft ? _gutterMargin : 0), my, _printAreaInInches.width()- 2*mx - _gutterMargin, _printAreaInInches.height() - 2*my);
+        qreal mx = PageParams::hMargin, my = PageParams::vMargin;
+        return QRectF(mx + (gutterAtLeft ? PageParams::gutterMargin : 0), my, _printAreaInInches.width()- 2*mx - PageParams::gutterMargin, _printAreaInInches.height() - 2*my);
     }
 
     QRectF TargetRectInDots(bool gutterAtLeft) const
     {
-        qreal mx = _hMargin * _dpi, 
-              my = _vMargin * _dpi;
-		return QRectF(mx + (gutterAtLeft ? _gutterMargin * _dpi : 0), my, _printAreaInDots.width() - 2*mx - _gutterMargin * _dpi, _printAreaInDots.height() - 2*my);
+        qreal mx = PageParams::hMargin * _dpi, 
+              my = PageParams::vMargin * _dpi;
+		return QRectF(mx + (gutterAtLeft ? PageParams::gutterMargin * _dpi : 0), my, _printAreaInDots.width() - 2*mx - PageParams::gutterMargin * _dpi, _printAreaInDots.height() - 2*my);
     }
 
     int Dpi() const
@@ -109,29 +93,41 @@ public:
     void SetDpi(int odpi, bool calcScreenHeight);
     void SetPrintArea(const QRectF area, bool calcScreenHeight);    // area does not include the margins
     void SetPrintArea(int paperSizeIndex, bool calcScreenHeight);   // area does not include the margins
-    void SetMargins(qreal horiz, qreal vert, qreal gutter, bool calcScreenHeight);
 
-    int HMargin(Unit u=mpdInch) const { return u==mpdDots ? _hMargin * _dpi : _hMargin; }
-    int VMargin(Unit u=mpdInch) const { return u==mpdDots ? _vMargin * _dpi : _vMargin;}
+    int HMargin(Unit u=mpdInch) const { return u==mpdDots ? PageParams::hMargin * _dpi : PageParams::hMargin; }
+    int VMargin(Unit u=mpdInch) const { return u==mpdDots ? PageParams::vMargin * _dpi : PageParams::vMargin;}
     QPointF Margins(bool gutterToo, Unit u = mpdInch) const 
     { 
-        QPointF qpConv = u == mpdDots ? QPointF(_vMargin * _dpi, _hMargin * _dpi) : QPointF(_vMargin, _hMargin);
+        QPointF qpConv = u == mpdDots ? QPointF(PageParams::vMargin * _dpi, PageParams::hMargin * _dpi) : QPointF(PageParams::vMargin, PageParams::hMargin);
         if (gutterToo)
-            qpConv.setX(GutterM(u) + qpConv.x());
+            qpConv.setX(GutterMargin(u) + qpConv.x());
         return qpConv; 
     };
-    int GutterM(Unit u=mpdInch) const { return u == mpdDots ? _gutterMargin * _dpi : _gutterMargin; }
+    int GutterMargin(Unit u=mpdInch) const { return u == mpdDots ? PageParams::gutterMargin * _dpi : PageParams::gutterMargin; }
 
-    QRectF PrintPrintAreaInDots(bool useMargins, bool useGutter)
+    void CalcScreenPageHeight(bool calcScreenHeight)   // w. margins !
     {
-        QRectF r = PrintAreaInDots();
-        if (useMargins)
+        if (!calcScreenHeight)
+            return;
+
+        QRectF tr = TargetRectInDots(false);
+        if (tr.isValid())
         {
-            QPointF pm = Margins(useGutter, mpdDots);
-            r = QRectF(r.topLeft() + pm, QSize(r.width() - 2 * pm.x(),r.height()-2 * pm.y()));
+            qreal magn = tr.width() / qreal(PageParams::screenPageWidth);
+            PageParams::screenPageHeight = tr.height() / magn;
         }
-        return r;
     }
+private:
+    QRectF _printAreaInInches;       // full print (not screen) page in inches
+    QRectF  _printAreaInDots;        // full print (not screen) page in dots
+    int _dpi = 300;
+
+
+    void _ConvertAreaToDots()
+    {
+        _printAreaInDots = QRectF( _printAreaInInches.x() * _dpi, _printAreaInInches.y()* _dpi, _printAreaInInches.width()* _dpi, _printAreaInInches.height()* _dpi).toRect();
+    }
+
 };
 
 
@@ -189,7 +185,7 @@ private:
     int  _CalcPages();              // using _data 
     bool _PrintItem(int yi, const QRectF& clipR);
     void _PrintGrid();
-    void _PreparePage(int which);
+    void _PreparePage(int page);
     bool _PrintPage(int page, bool last);  // using _history last: no new page after this
     bool _Print(int from=1, int to=0x70000000);   // pages
     bool _Print(IntVector& pages);             // list of pages

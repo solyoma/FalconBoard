@@ -325,7 +325,165 @@
      <property name="title">
       <string>Layout</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
+     <layout class="QGridLayout" name="gridLayout_5">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Paper size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="cbPdfPaperSize">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>A7 ( 74 x 105 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A6 (105 x 148 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A5 (148 x 210 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A4 (210 x 297 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A3 (297 x 420 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A2 (420 x 594 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A1 (594 x 841 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>A0 (841 x 1189 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B7 (88 x 125 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B6 (125 x 176 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B5 (176 x 250 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B4 (250 x 353 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B3 (353 x 500 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B2 (500 x 707 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B1 (707 x 1000 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>B0 (1000 x 1414 mm)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>US Letter (8 1/2 x 11 in)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Legal (2 1/2 x 14 in)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Stationary (5 1/2 x 8 1/2 in)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Paper Orientation</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="1">
        <widget class="QComboBox" name="cbOrientation">
         <property name="minimumSize">
@@ -352,26 +510,7 @@
         </item>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Paper size:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="0" colspan="2">
+      <item row="2" column="0" colspan="3">
        <widget class="QGroupBox" name="groupBox_3">
         <property name="minimumSize">
          <size>
@@ -542,137 +681,160 @@
         </layout>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_4">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>24</height>
-         </size>
+      <item row="0" column="2" rowspan="2">
+       <widget class="QWidget" name="widget" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="text">
-         <string>Paper Orientation</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QComboBox" name="cbPdfPaperSize">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <weight>50</weight>
-          <bold>false</bold>
-         </font>
-        </property>
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <item>
-         <property name="text">
-          <string>A7 ( 74 x 105 mm)</string>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>2</number>
          </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A6 (105 x 148 mm)</string>
+         <property name="leftMargin">
+          <number>3</number>
          </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A5 (148 x 210 mm)</string>
+         <property name="topMargin">
+          <number>2</number>
          </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A4 (210 x 297 mm)</string>
+         <property name="rightMargin">
+          <number>2</number>
          </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A3 (297 x 420 mm)</string>
+         <property name="bottomMargin">
+          <number>2</number>
          </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A2 (420 x 594 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A1 (594 x 841 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>A0 (841 x 1189 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>B7 (88 x 125 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>B6 (125 x 176 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>B5 (176 x 250 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>B4 (250 x 353 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>B3 (353 x 500 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>B2 (500 x 707 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>B1 (707 x 1000 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>B0 (1000 x 1414 mm)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>US Letter (8 1/2 x 11 in)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Legal (2 1/2 x 14 in)</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Stationary (5 1/2 x 8 1/2 in)</string>
-         </property>
-        </item>
+         <item>
+          <widget class="QWidget" name="widget" native="true">
+           <layout class="QGridLayout" name="gridLayout_6">
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>1</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>1</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>2</number>
+            </property>
+            <item row="0" column="0" colspan="2">
+             <widget class="QCheckBox" name="chkPageNumbers">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Page numbers</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QRadioButton" name="rbPgTop">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>&amp;Top</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QRadioButton" name="rbPgBottom">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Bottom</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QFrame" name="frame_2">
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <property name="leftMargin">
+             <number>1</number>
+            </property>
+            <property name="topMargin">
+             <number>1</number>
+            </property>
+            <property name="rightMargin">
+             <number>1</number>
+            </property>
+            <property name="bottomMargin">
+             <number>1</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="rbPgLeft">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Left</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="rbPgCenter">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>&amp;Center</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="rbPgRight">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>&amp;Right</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

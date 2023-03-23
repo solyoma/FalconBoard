@@ -106,15 +106,6 @@ enum FalconPenKind { penNone=0, penBlack=1, penRed=2, penGreen=3, penBlue=4, pen
 // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
 enum DrawCursorShape { csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
-enum PrinterFlags :char {
-    pfPrintBackgroundImage  = 1,
-    pfWhiteBackground       = 2,		// or use display mode which may be dark
-    pfGrid                  = 4,
-    pfGrayscale             = 8,
-    pfLandscape             = 16,
-    pfDontPrintImages       = 32,
-    pfOpenPDFInViewer       = 64
-};
 enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess, srNoSave};
 enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
 

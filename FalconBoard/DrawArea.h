@@ -54,6 +54,7 @@ public:
 
     void SetScreenSize(QSize screenSize);
 
+    const MyPrinterData& PrinterData() { return _prdata; }
     void SetMyPrinterData(const MyPrinterData& prdata);
 
     void ClearBackground();
@@ -161,7 +162,7 @@ public:
     //    ScreenShotTransparencyDialog* dlg = new ScreenShotTransparencyDialog(this, c, b);
     //    dlg->exec();
     //}
-    bool PageSetup(PageSetupDialog::WhatToDo what);
+    bool PageSetup(PageParams::WhatToDo what);
 signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo

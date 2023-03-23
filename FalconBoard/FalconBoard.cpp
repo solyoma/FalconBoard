@@ -5,12 +5,16 @@
 #include <QPainter>
 #include <QThread>
 #include <QSettings>
+
+#include "config.h"
+#include "pagesetup.h"
 #include "common.h"
 #include "DrawArea.h"
 #include "screenshotTransparency.h"
 #include "FalconBoard.h"
 #include "myprinter.h"   // for MyPrinterData
 #include "helpdialog.h"
+#include "config.h"
 
 QSize FalconBoard::screenSize;
 
@@ -102,6 +106,8 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
 
     RestoreState();     // sets up all history item names, and loads the last used ones
 
+    PageParams::Load();
+
     _SetupIconsForPenColors(_screenMode);
     setAcceptDrops(true);
 
@@ -147,9 +153,9 @@ void FalconBoard::RestoreState()
     if (bIniExisted)
     {
 
-        restoreGeometry(s->value("geometry").toByteArray());
-        restoreState(s->value("windowState").toByteArray());
-        qs = s->value("version", "0").toString();       // (immediate toInt() looses digits)
+        restoreGeometry(s->value(GEOMETRY).toByteArray());
+        restoreState(s->value(WINDOWSTATE).toByteArray());
+        qs = s->value(VERSION, "0").toString();       // (immediate toInt() looses digits)
         long ver = qs.toInt(0, 0);                                   // format Major.mInor.Sub
 
         if ((ver & 0xFFFFFF00) != (MAGIC_VERSION & 0xFFFFFF00))        // sub version number not used
@@ -159,7 +165,7 @@ void FalconBoard::RestoreState()
             return;
         }
     }
-    qs = s->value("mode", "s").toString();
+    qs = s->value(MODE, "s").toString();
 
     switch (qs[0].unicode())
     {
@@ -168,38 +174,26 @@ void FalconBoard::RestoreState()
         case 's': // default on form
         default: break;
     }
-    int n = s->value("grid", 0).toInt();
+    int n = s->value(GRID, 0).toInt();
     ui.actionFixedGrid->setChecked(n & 2);
 #ifndef _VIEWER
     _pChkGridOn->setChecked(n & 1);
 #endif
     _drawArea->SetGridOn(n & 1, n & 2);
-    n = s->value("pageG", 0).toInt(0);
+    n = s->value(PAGEGUIDES, 0).toInt(0);
     ui.actionShowPageGuides->setChecked(n);
     _drawArea->SetPageGuidesOn(n);
-    bool b = s->value("limited", true).toBool();
+    bool b = s->value(LIMITED, true).toBool();
     ui.actionLimitPaperWidth->setChecked(b);    // default: checked
 #ifndef _VIEWER
     _drawArea->SetLimitedPage(b);
 #endif
 
     MyPrinterData data;
-    
-    data.flags = s->value("pflags", 0).toInt();		        // bit 0: print background image, bit 1: white background
-    data.SetMargins(s->value("pdfmlr", 1.0).toFloat(), s->value("pdfmtb", 1.0).toFloat(), s->value("pdfgut", 0.0).toFloat(), false);
-    int resi = s->value("resi", 6).toInt(); // 1920 x 1080
-    if (s->value("useri",true).toBool() )
-        data.screenPageWidth = myScreenSizes[resi].w;
-    else
-        data.screenPageWidth = s->value("hpxs", 1920).toInt();
-
-    data.SetDpi(resos[s->value("pdfdpi", 0).toInt()], false);      // recalculates screen area for page and also sets 'data.screenPageHeight'
-    data.SetPrintArea(s->value("pdfpgs", 3).toInt(), true);       // using default DPI value
-
     _drawArea->SetMyPrinterData(data);
 
 #ifndef _VIEWER
-    qs = s->value("size", "3,3,3,3,3,30").toString();      // pen size for black, red, green, blue, yellow, eraser
+    qs = s->value(PENSIZES, "3,3,3,3,3,30").toString();      // pen size for black, red, green, blue, yellow, eraser
     QStringList qsl = qs.split(',');
     if (qsl.size() != PEN_COUNT)
     {
@@ -210,29 +204,30 @@ void FalconBoard::RestoreState()
         _penWidth[i] = qsl[i].toInt();
     _psbPenWidth->setValue(_penWidth[0]);
     
-    ui.actionAutoSaveData->setChecked(s->value("saved", false).toBool());
-    ui.actionAutoSaveBackgroundImage->setChecked(s->value("saveb", false).toBool());
-
-    qs = s->value("img", QString()).toString();
+    ui.actionAutoSaveData->setChecked(s->value(AUTOSAVEDATA, false).toBool());
+    ui.actionAutoSaveBackgroundImage->setChecked(s->value(AUTOSBCKIMG, false).toBool());
+    qs = s->value(BCKGIMG, QString()).toString();
     if (!qs.isEmpty())
         _drawArea->OpenBackgroundImage(qs);
-    if ((_useScreenshotTransparency = s->value("transp", false).toBool()))
+    if ((_useScreenshotTransparency = s->value(TRANSP, false).toBool()))
     {
-        _screenshotTransparencyColor = s->value("transc", "#ffffff").toString();
+        _screenshotTransparencyColor = s->value(TRANSC, "#00ffffff").toString();
+        _transparencyFuzzyness = _screenshotTransparencyColor.alphaF() * 100.0;
+        _screenshotTransparencyColor.setAlphaF(1.0);
         ui.actionScreenshotTransparency->setChecked(_useScreenshotTransparency);
     }
     
-    _nGridSpacing = s->value("gridspacing", 64).toInt();
+    _nGridSpacing = s->value(GRIDSPACING, 64).toInt();
     if (_nGridSpacing < 5)
         _nGridSpacing = 64;
     _psbGridSpacing->setValue(_nGridSpacing);
     emit GridSpacingChanged(_nGridSpacing);
 #endif
 
-    _lastDir  = s->value("lastDir",  "").toString();
+    _lastDir  = s->value(LASTDIR,  "").toString();
     if (!_lastDir.isEmpty() && _lastDir[_lastDir.size() - 1] != '/')
         _lastDir += "/";
-    _lastPDFDir  = s->value("lastPDFDir",  "").toString();
+    _lastPDFDir  = s->value(LASTPDFDIR,  "").toString();
     if (!_lastPDFDir.isEmpty() && _lastPDFDir[_lastPDFDir.size() - 1] != '/')
         _lastPDFDir += "/";
 
@@ -244,14 +239,14 @@ void FalconBoard::RestoreState()
     int argc = 10 - paramsList.size() + 1;     // max 10 tabs can be opened, 0. params is command path
     // tabs
 
-    s->beginGroup("tabs");
-    int nFilesToRestore = s->value("tabSize", 0).toInt();
+    s->beginGroup(TABS);
+    int nFilesToRestore = s->value(TABSIZE, 0).toInt();
     if (nFilesToRestore)
     {
         bool b = false; // window title set?
         for(int n = 1; n <= nFilesToRestore && n < argc; ++n )
         {
-            qs = QString("fn%1").arg(n);
+            qs = QString().setNum(n);
             qs = s->value(qs, QString()).toString();
             if (paramsList.indexOf(qs) < 0 && QFile::exists(qs) )    // if any of the old files is in the argument list do not use it
             {
@@ -260,7 +255,7 @@ void FalconBoard::RestoreState()
                     b = true, setWindowTitle(sWindowTitle + QString(" - %1").arg(qs));
             }
         }
-        _nLastTab = s->value("lastTab", 0).toInt();
+        _nLastTab = s->value(LASTTAB, 0).toInt();
     }
     else if (paramsList.size() == 1)       // nothing to restore: create new empty tab
         _AddNewTab();    // + new empty history
@@ -287,15 +282,15 @@ void FalconBoard::RestoreState()
 
     s->endGroup();       // tabs
 
-    _sImageName = s->value("bckgrnd", "").toString();
+    _sImageName = s->value(BCKGIMG, "").toString();
 #ifndef _VIEWER
     if (!_sImageName.isEmpty() && !_drawArea->OpenBackgroundImage(_sImageName))
         _sImageName.clear();
 #endif
 
     // recent documents
-    s->beginGroup("recent");
-    int cnt = s->value("cnt", 0).toInt();
+    s->beginGroup(RECENTLIST);
+    int cnt = s->value(CNTRECENT, 0).toInt();
     
     for (int i = 0; i < cnt; ++i)
     {
@@ -314,55 +309,65 @@ void FalconBoard::RestoreState()
     FBSettings::Close();
 }
 
+/*=============================================================
+ * TASK   : save program state
+ * PARAMS :
+ * EXPECTS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
 void FalconBoard::SaveState()
 {
     QSettings *s = FBSettings::Open();
 
-	s->setValue("geometry", saveGeometry());
-	s->setValue("windowState", saveState());
+	s->setValue(GEOMETRY, saveGeometry());
+	s->setValue(WINDOWSTATE, saveState());
     QString qsVersion("0x%1");
     qsVersion = qsVersion.arg(MAGIC_VERSION, 8, 16, QLatin1Char('0') );
-	s->setValue("version", qsVersion);
+	s->setValue(VERSION, qsVersion);
     if (_actLanguage < 0)
-        s->remove("lang");
+        s->remove(LANG);
     else
-        s->setValue("lang", _actLanguage);
+        s->setValue(LANG, _actLanguage);
 
-    s->setValue("mode", _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
-    s->setValue("grid", (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
-    s->setValue("pageG", ui.actionShowPageGuides->isChecked() ? 1 : 0);
-    s->setValue("limited", ui.actionLimitPaperWidth->isChecked());
+    s->setValue(MODE, _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
+    s->setValue(GRID, (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
+    s->setValue(PAGEGUIDES, ui.actionShowPageGuides->isChecked() ? 1 : 0);
+    s->setValue(LIMITED, ui.actionLimitPaperWidth->isChecked());
 #ifndef _VIEWER
-    s->setValue("size", QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]));
-    s->setValue("saved", ui.actionAutoSaveData->isChecked());
-    s->setValue("saveb", ui.actionAutoSaveBackgroundImage->isChecked());
+    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]));
+    s->setValue(AUTOSAVEDATA, ui.actionAutoSaveData->isChecked());
+    s->setValue(AUTOSBCKIMG, ui.actionAutoSaveBackgroundImage->isChecked());
     if (ui.actionAutoSaveBackgroundImage->isChecked())
-		s->setValue("img", _sImageName);
+		s->setValue(BCKGIMG, _sImageName);
     if (_useScreenshotTransparency)
     {
-        s->setValue("transp", _useScreenshotTransparency);
-        s->setValue("transc", _screenshotTransparencyColor.name());
+        s->setValue(TRANSP, _useScreenshotTransparency);
+        QColor c = _screenshotTransparencyColor;
+        c.setAlphaF(_transparencyFuzzyness / 100.0);
+        s->setValue(TRANSC, c.name());
     }
     else
     {
-        s->remove("transp");
-        s->remove("transc");
+        s->remove(TRANSP);
+        s->remove(TRANSC);
     }
 #endif
-    s->remove("tabs");
+    s->remove(TABS);
     int nFilesToRestore = _pTabs->count();      // 1,2,...
     if(nFilesToRestore != 1 || !_drawArea->HistoryName().isEmpty()) 
     {
-        s->beginGroup("tabs");
+        s->beginGroup(TABS);
 
-    	s->setValue("lastTab", _nLastTab);
-        s->setValue("tabSize", nFilesToRestore);
+    	s->setValue("LASTTAB", _nLastTab);
+        s->setValue("TABSIZE", nFilesToRestore);
         if (nFilesToRestore)
         {
             QString qs, qsn;
             for (int n = 1; n <= nFilesToRestore && n < 10; ++n)
             {
-                qs = QString("fn%1").arg(n);
+                qs = QString().setNum(n);
                 qsn = _drawArea->HistoryName(n-1);
                 s->setValue(qs, qsn);
             }
@@ -370,22 +375,20 @@ void FalconBoard::SaveState()
         s->endGroup();
     }
 
-	s->setValue("lastDir", _lastDir);
-	s->setValue("lastPDFDir", _lastPDFDir);
-	s->setValue("bckgrnd", _sImageName);
-    s->setValue("gridspacing", _nGridSpacing);
+	s->setValue(LASTDIR    , _lastDir);
+	s->setValue(LASTPDFDIR , _lastPDFDir);
+    s->setValue(GRIDSPACING, _nGridSpacing);
 
     if (_recentList.size())
     {
-        s->beginGroup("recent");
-        s->setValue("cnt", _recentList.size());
+        s->beginGroup(RECENTLIST);
+        s->setValue(CNTRECENT, _recentList.size());
         for (int i = 0; i < _recentList.size(); ++i)
             s->setValue(QString().setNum(i + 1), _recentList[i]);
         s->endGroup();
     }
     else
-        s->remove("recent");
-    s->setValue("histSize", _drawArea->HistoryListSize());
+        s->remove(RECENTLIST);
     FBSettings::Close();
 }
 
@@ -1973,7 +1976,7 @@ void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 
 void FalconBoard::on_actionPageSetup_triggered()
 {
-    _drawArea->PageSetup(PageSetupDialog::wtdPageSetup);
+    _drawArea->PageSetup(PageParams::wtdPageSetup);
 }
 
 void FalconBoard::on_actionExportToPdf_triggered()

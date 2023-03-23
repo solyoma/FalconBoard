@@ -18,6 +18,7 @@
 
 #include <math.h>
 
+#include "config.h"
 #include "rotateinput.h"
 #include "DrawArea.h"
 
@@ -46,11 +47,13 @@ DrawArea::DrawArea(QWidget* parent) : QWidget(parent)
 	historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
 	drawColors.Setup();
 	penCursors.Setup();
+
+
 }
 
 void DrawArea::SetScreenSize(QSize screenSize)
 {
-	_prdata.screenPageWidth = screenSize.width();
+	PageParams::screenPageWidth = screenSize.width();
 	_screenHeight = screenSize.height();
 }
 
@@ -352,7 +355,7 @@ void DrawArea::ApplyTransparencyToLoadedScreenshots(QColor trcolor, qreal fuzzyn
 
 void DrawArea::GotoPage(int page)
 {
-	_SetOrigin(QPointF(0, --page * _prdata.screenPageHeight));
+	_SetOrigin(QPointF(0, --page * PageParams::screenPageHeight));
 	_Redraw();
 }
 
@@ -1389,18 +1392,18 @@ void DrawArea::_DrawPageGuides(QPainter& painter)
 		return;
 
 	int w = width() , h = height(), 
-		nxp = _topLeft.x() / _prdata.screenPageWidth,
-		nyp = _topLeft.y() / _prdata.screenPageHeight,
-		nx = (_topLeft.x() + w) / _prdata.screenPageWidth,
-		ny = (_topLeft.y() + h) / _prdata.screenPageHeight,
+		nxp = _topLeft.x() / PageParams::screenPageWidth,
+		nyp = _topLeft.y() / PageParams::screenPageHeight,
+		nx = (_topLeft.x() + w) / PageParams::screenPageWidth,
+		ny = (_topLeft.y() + h) / PageParams::screenPageHeight,
 		x, y; // value just for debug
 
 	painter.setPen(QPen(_pageGuideColor, 2, Qt::DotLine));
 	if (nx - nxp > 0)     // draw all visible x guides
-		for (x = (nxp + 1) * _prdata.screenPageWidth - _topLeft.x(); x < w; x += _prdata.screenPageWidth)
+		for (x = (nxp + 1) * PageParams::screenPageWidth - _topLeft.x(); x < w; x += PageParams::screenPageWidth)
 			painter.drawLine(x, 0, x, h);
 	if (ny - nyp > 0)    // draw all visible y - guides
-		for (y = (nyp + 1) * _prdata.screenPageHeight - _topLeft.y(); y < h; y += _prdata.screenPageHeight)
+		for (y = (nyp + 1) * PageParams::screenPageHeight - _topLeft.y(); y < h; y += PageParams::screenPageHeight)
 			painter.drawLine(0, y, w, y);
 }
 
@@ -1469,9 +1472,9 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 	// /DEBUG
 	int h = height();
 	int w = width();
-	if (_limited && _topLeft.x() + w > _prdata.screenPageWidth)
+	if (_limited && _topLeft.x() + w > PageParams::screenPageWidth)
 	{
-		QPointF dr = QPointF((_topLeft.x() + w - _prdata.screenPageWidth), 0);
+		QPointF dr = QPointF((_topLeft.x() + w - PageParams::screenPageWidth), 0);
 		_ShiftOrigin(dr);
 	}
 
@@ -1676,7 +1679,7 @@ void DrawArea::_ScrollTimerSlot()
  * TASK:    sets up scroll direction and timer if the position
  *          of the mouse is near to a widget edge and scribing or when there is a sprite
  * PARAMS:  pos: position
- * GLOBALS: _pSprite, _limited, _prdata.screenPageWidth, _screenHeight
+ * GLOBALS: _pSprite, _limited, PageParams::screenPageWidth, _screenHeight
  *          _pTimer, _topLeft,_limited
  * RETURNS:
  * REMARKS:
@@ -1699,7 +1702,7 @@ DrawArea::_ScrollDirection DrawArea::_AutoScrollDirection(QPointF pos)
 		_scrollDir = _ScrollDirection::scrollUp;
 	else if (pos.x() < limit && _topLeft.x() > 0)
 		_scrollDir = _ScrollDirection::scrollRight;
-	else if (pos.x() > width() - limit && (!_limited || (_limited && _topLeft.x() + width() < _prdata.screenPageWidth)))
+	else if (pos.x() > width() - limit && (!_limited || (_limited && _topLeft.x() + width() < PageParams::screenPageWidth)))
 		_scrollDir = _ScrollDirection::scrollLeft;
 	// DEBUG
 	//const char *s;
@@ -2034,30 +2037,29 @@ void DrawArea::SlotForGridSpacingChanged(int spacing)
 	_Redraw();
 }
 
-bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
+bool DrawArea::PageSetup(PageParams::WhatToDo what)      // public slot
 {
-	PageSetupDialog* pageDlg = new PageSetupDialog(this, _prdata.printerName, what);
+	PageSetupDialog* pageDlg = new PageSetupDialog(this, what);
 	bool res = false;
-	bool forPdf = what == PageSetupDialog::wtdExportPdf;
-	int oldwidth = _prdata.screenPageWidth;
+	bool forPdf = what == PageParams::wtdExportPdf;
+	int oldwidth = PageParams::screenPageWidth;
 	if (pageDlg->exec())
 	{
 		if (!forPdf)
 		{
-			_prdata.printerName = pageDlg->actPrinterName;
-			_bPageSetupUsed = !_prdata.printerName.isEmpty();
+			_bPageSetupUsed = !PageParams::actPrinterName.isEmpty();
 		}
 		else
-			_openPDFInViewerAfterPrint = pageDlg->flags & pfOpenPDFInViewer;
+			_openPDFInViewerAfterPrint = PageParams::flags & openPdfViewerFlag;
 #define SQUARE(a)  (a*a)
 
-		if (!pageDlg->useResInd)
-			_prdata.screenPageWidth = pageDlg->horizPixels;
+		if (!PageParams::useResInd)
+			PageParams::screenPageWidth = PageParams::horizPixels;
 		if (_screenHeight > 0)           // -1 if no predefined resolution
 		{
 			static float fact[] = { 1.0, 1.0 / 2.54, 1.0 / 25.4 };   // inch, cm, mm
-			float cosine = (float)_prdata.screenPageWidth / (float)std::sqrt(SQUARE(_prdata.screenPageWidth) + SQUARE(_screenHeight));
-			_ppi = (float)_prdata.screenPageWidth / (pageDlg->screenDiagonal * fact[pageDlg->unitIndex] * cosine);
+			float cosine = (float)PageParams::screenPageWidth / (float)std::sqrt(SQUARE(PageParams::screenPageWidth) + SQUARE(_screenHeight));
+			_ppi = (float)PageParams::screenPageWidth / (PageParams::screenDiagonal * fact[PageParams::unitIndex] * cosine);
 		}
 		else
 			_ppi = 96;
@@ -2065,29 +2067,28 @@ bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
 #undef SQUARE
 
 		QSize ss;
-		_prdata.screenPageWidth = pageDlg->GetScreenSize(ss);
+		PageParams::screenPageWidth = pageDlg->GetScreenSize(ss);
 
 		_prdata.bExportPdf = forPdf;
-		_prdata.flags = pageDlg->flags;
 
 		qreal w, h;
 
-		if (_prdata.flags & pfLandscape)
+		if (PageParams::flags & pageOrientationFlag)
 		{
-			w = pageDlg->pdfHeight;
-			h = pageDlg->pdfWidth;
+			w = PageParams::pdfHeight;
+			h = PageParams::pdfWidth;
 		}
 		else
 		{
-			w = pageDlg->pdfWidth;
-			h = pageDlg->pdfHeight;
+			w = PageParams::pdfWidth;
+			h = PageParams::pdfHeight;
 		}
 
-		_prdata.paperId = PageId(pageDlg->pdfIndex);	// in pagesetup.cpp
+		PageParams::paperId = PageId(PageParams::pdfIndex);	// in pagesetup.cpp
 
 		_prdata.SetPrintArea(QRectF(0, 0, w, h), false); 	// do not re-calculate screen area for page
-		_prdata.SetDpi(resos[pageDlg->pdfDpi], false);
-		_prdata.SetMargins(pageDlg->hMargin, pageDlg->vMargin, pageDlg->gutterMargin, true); // and re-calculate screen area
+		_prdata.SetDpi(resos[PageParams::pdfDpiIndex], false);
+		_prdata.CalcScreenPageHeight(true); // and re-calculate screen area
 
 		_bPageSetupValid = true;
 
@@ -2096,7 +2097,7 @@ bool DrawArea::PageSetup(PageSetupDialog::WhatToDo what)      // public slot
 	_bPageSetupValid = res;
 	delete pageDlg;
 
-	if (oldwidth != _prdata.screenPageWidth)
+	if (oldwidth != PageParams::screenPageWidth)
 		_Redraw();
 	return res;
 }
@@ -2155,13 +2156,13 @@ void DrawArea::Print(QString name, QString* pdir)
 		_prdata.docName = name;
 
 	if (!_prdata.bExportPdf && !_bPageSetupUsed)
-		PageSetup(PageSetupDialog::wtdPageSetup);
+		PageSetup(PageParams::wtdPageSetup);
 
 	if (_bPageSetupValid)
 	{
 		_prdata.topLeftOfCurrentPage = _topLeft;
 		_prdata.backgroundColor = _backgroundColor;
-		_prdata.gridColor = (_prdata.flags & pfWhiteBackground) ? "#d0d0d0" : _gridColor;
+		_prdata.gridColor = (PageParams::flags & printWhiteBackgroundFlag) ? "#d0d0d0" : _gridColor;
 		_prdata.pBackgroundImage = &_background;
 		_prdata.nGridSpacingX = _nGridSpacingX;
 		_prdata.nGridSpacingY = _nGridSpacingY;
@@ -2174,7 +2175,7 @@ void DrawArea::Print(QString name, QString* pdir)
 			_printer->Print();
 			if (_NoPrintProblems() && _openPDFInViewerAfterPrint)		// prints errors if any
 			{
-				QUrl url = QUrl::fromLocalFile(_prdata.fileName);
+				QUrl url = QUrl::fromLocalFile(_prdata.pdfFileName);
 				QDesktopServices::openUrl(url);
 			}
 		}
@@ -2184,7 +2185,7 @@ void DrawArea::Print(QString name, QString* pdir)
 
 void DrawArea::ExportPdf(QString fileName, QString& directory)
 {
-	if (PageSetup(PageSetupDialog::wtdExportPdf))                // else cancelled
+	if (PageSetup(PageParams::wtdExportPdf))                // else cancelled
 		Print(fileName, &directory);
 }
 
@@ -2439,7 +2440,7 @@ void DrawArea::_ShiftOrigin(QPointF &delta)
 	//if (o.x() < 0)
 	//	o.setX(0);
 
-	if (delta.x() > 0 && _limited && o.x() + width() >= _prdata.screenPageWidth)
+	if (delta.x() > 0 && _limited && o.x() + width() >= PageParams::screenPageWidth)
 		o.setX(_topLeft.x());
 
 	//if (o.y() < 0)
@@ -2549,8 +2550,8 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
 		delta.setY(-_topLeft.y());
 	if (_topLeft.x() + delta.x() < 0)
 		delta.setX(-_topLeft.x());
-	if (delta.x() > 0 && _limited && delta.x() + width() >= _prdata.screenPageWidth)
-		delta.setX(_prdata.screenPageWidth - width());
+	if (delta.x() > 0 && _limited && delta.x() + width() >= PageParams::screenPageWidth)
+		delta.setX(PageParams::screenPageWidth - width());
 
 	if ((_topLeft + delta).x() < 0)
 		delta .setX(-_topLeft.x());
@@ -2561,7 +2562,7 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
 		return;      // nothing to do
 
 	int dx = qAbs(delta.x()), dy = qAbs(delta.y());
-	if (/*smooth && */ (dx <= _prdata.screenPageWidth / 10) && (dy <= _screenHeight / 10))
+	if (/*smooth && */ (dx <= PageParams::screenPageWidth / 10) && (dy <= _screenHeight / 10))
 	{                      // use smooth transform only for up/down/left/right never for pgUp, etc
 
 		QRectF clip1, clip2;
@@ -2666,7 +2667,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	_actMousePos = qpt;
 
 	QString qs;
-	int pg = int((_topLeft.y() + qp.y()) / _prdata.screenPageHeight) + 1;
+	int pg = int((_topLeft.y() + qp.y()) / PageParams::screenPageHeight) + 1;
 	if (_rubberBand)
 	{
 		QRectF r = _rubberBand->geometry();
