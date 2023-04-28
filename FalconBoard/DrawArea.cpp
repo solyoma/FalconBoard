@@ -2037,7 +2037,7 @@ void DrawArea::SlotForGridSpacingChanged(int spacing)
 	_Redraw();
 }
 
-bool DrawArea::PageSetup(PageParams::WhatToDo what)      // public slot
+bool DrawArea::PageSetup(PageParams::PageSetupType what)      // public slot
 {
 	PageSetupDialog* pageDlg = new PageSetupDialog(this, what);
 	bool res = false;

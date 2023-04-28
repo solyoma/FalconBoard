@@ -12,7 +12,7 @@ QPageSize::PageSizeId PageId(int index);
 struct PageParams
 {
 	enum UnitIndex { uiInch, uiCm, uiMm };
-	enum WhatToDo {wtdPageSetup, wtdPrint, wtdExportPdf};
+	enum PageSetupType {wtdPageSetup, wtdPrint, wtdExportPdf};
 
 	static int resolutionIndex;		// screen resolution in resolution combobox (pixels)
 	static int horizPixels;			// horizontal pixel count
@@ -54,10 +54,10 @@ class PageSetupDialog : public QDialog
 	Q_OBJECT
 public:
 public:
-	PageSetupDialog(QWidget* parent, PageParams::WhatToDo whatToDo = PageParams::wtdPageSetup);
+	PageSetupDialog(QWidget* parent, PageParams::PageSetupType whatToDo = PageParams::wtdPageSetup);
 	~PageSetupDialog();
 
-	PageParams::WhatToDo whatToDo= PageParams::wtdPageSetup;	// will this be a PDF document?
+	PageParams::PageSetupType whatToDo= PageParams::wtdPageSetup;	// will this be a PDF document?
 	double pdfMaxLR,				// these 2 are in inches and not saved
 		   pdfMaxTB;
 

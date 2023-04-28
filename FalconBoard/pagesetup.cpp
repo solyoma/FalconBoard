@@ -60,7 +60,7 @@ void PageParams::Load()
 	s->beginGroup(PSETUP);
 
 	resolutionIndex = s->value(RESI, 6).toInt();					// 1920 x 1080
-	horizPixels     = s->value(HPXS, 1920).toInt();
+	horizPixels     = s->value(HPXS, 1920).toInt();					// this many pixels in the width of one page
 	useResInd		= s->value(USERI, true).toBool();
 	screenDiagonal	= s->value(SDIAG, 24).toInt();					// inch
 	unitIndex		= GetUnit(s->value(UNITINDEX, 0).toInt());		// index to determines the multipl. factor for number in edScreenDiag number to inch
@@ -131,7 +131,7 @@ int PageSetupDialog::GetScreenSize(QSize& size)
 
 /*======== conversion ========*/
 
-PageSetupDialog::PageSetupDialog(QWidget* parent, PageParams::WhatToDo toDo) :  QDialog(parent)
+PageSetupDialog::PageSetupDialog(QWidget* parent, PageParams::PageSetupType toDo) :  QDialog(parent)
 {
 	whatToDo = toDo;
 	ui.setupUi(this);

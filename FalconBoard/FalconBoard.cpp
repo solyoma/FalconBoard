@@ -209,13 +209,13 @@ void FalconBoard::RestoreState()
     qs = s->value(BCKGIMG, QString()).toString();
     if (!qs.isEmpty())
         _drawArea->OpenBackgroundImage(qs);
+
     if ((_useScreenshotTransparency = s->value(TRANSP, false).toBool()))
-    {
-        _screenshotTransparencyColor = s->value(TRANSC, "#00ffffff").toString();
-        _transparencyFuzzyness = _screenshotTransparencyColor.alphaF() * 100.0;
-        _screenshotTransparencyColor.setAlphaF(1.0);
         ui.actionScreenshotTransparency->setChecked(_useScreenshotTransparency);
-    }
+
+    _screenshotTransparencyColor = s->value(TRANSC, "#00ffffff").toString();
+    _transparencyFuzzyness = _screenshotTransparencyColor.alphaF(); // 0.. 1.0
+    _screenshotTransparencyColor.setAlphaF(1.0);
     
     _nGridSpacing = s->value(GRIDSPACING, 64).toInt();
     if (_nGridSpacing < 5)
@@ -336,23 +336,15 @@ void FalconBoard::SaveState()
     s->setValue(PAGEGUIDES, ui.actionShowPageGuides->isChecked() ? 1 : 0);
     s->setValue(LIMITED, ui.actionLimitPaperWidth->isChecked());
 #ifndef _VIEWER
-    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]));
+    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]).arg(_penWidth[5]));
     s->setValue(AUTOSAVEDATA, ui.actionAutoSaveData->isChecked());
     s->setValue(AUTOSBCKIMG, ui.actionAutoSaveBackgroundImage->isChecked());
     if (ui.actionAutoSaveBackgroundImage->isChecked())
 		s->setValue(BCKGIMG, _sImageName);
-    if (_useScreenshotTransparency)
-    {
-        s->setValue(TRANSP, _useScreenshotTransparency);
-        QColor c = _screenshotTransparencyColor;
-        c.setAlphaF(_transparencyFuzzyness / 100.0);
-        s->setValue(TRANSC, c.name());
-    }
-    else
-    {
-        s->remove(TRANSP);
-        s->remove(TRANSC);
-    }
+    s->setValue(TRANSP, _useScreenshotTransparency);
+    QColor c = _screenshotTransparencyColor;
+    c.setAlphaF(_transparencyFuzzyness);
+    s->setValue(TRANSC, c.name(QColor::HexArgb));
 #endif
     s->remove(TABS);
     int nFilesToRestore = _pTabs->count();      // 1,2,...

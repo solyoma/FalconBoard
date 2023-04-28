@@ -162,7 +162,7 @@ public:
     //    ScreenShotTransparencyDialog* dlg = new ScreenShotTransparencyDialog(this, c, b);
     //    dlg->exec();
     //}
-    bool PageSetup(PageParams::WhatToDo what);
+    bool PageSetup(PageParams::PageSetupType what);
 signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo
