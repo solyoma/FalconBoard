@@ -17,6 +17,7 @@ struct PageParams
 	static int resolutionIndex;		// screen resolution in resolution combobox (pixels)
 	static int horizPixels;			// horizontal pixel count
 	static bool useResInd;			// use resolution index or horizPixels?
+
 	static int screenDiagonal;		// from text in 'edtScreenDiag' in inches
 	static int paperId;             // default: A4
 	static int screenPageWidth;     // width of page on screen in pixels - used to calculate pixel limits for pages (HD: 1920 x 1080)
@@ -42,6 +43,8 @@ struct PageParams
 
 	static auto GetUnit(int ix);
 	static auto UnitToIndex(UnitIndex ui);
+
+	static void SetScreenWidth();
 
 	PageParams() = delete;
 private:

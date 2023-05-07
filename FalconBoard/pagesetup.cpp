@@ -20,7 +20,7 @@ int		PageParams::paperId = 3;            // default: A4
 int		PageParams::horizPixels;			// horizontal pixel count
 bool	PageParams::useResInd = true;		// use resolution index or horizPixels?
 int		PageParams::screenDiagonal;			// from text in 'edtScreenDiag' in inches
-int		PageParams::screenPageWidth = 1920;      // width of page on screen in pixels - used to calculate pixel limits for pages (HD: 1920 x 1080)
+int		PageParams::screenPageWidth = 1920; // width of page on screen in pixels - used to calculate pixel limits for pages (HD: 1920 x 1080), set from horizPixels or from resolutionIndex
 int		PageParams::screenPageHeight = 1920 * 3508 / 2480;  // height of screen for selected paper size in pixels - for A4 (210mm x 297mm, 8.27 in x 11.7 in) with 300 dpi
 unsigned PageParams::flags;					// ORed from PrinterFlags (common.h)
 			// for PDF
@@ -38,7 +38,6 @@ QString   PageParams::actPrinterName;		// if not this is its name
 PageParams::UnitIndex PageParams::unitIndex;		// index of units for margins (in ini file 0: inch, 1: cm, 2: mm)
 PageParams::UnitIndex PageParams::pdfUnitIndex;
 
-
 auto PageParams::GetUnit(int ix)
 { 
 	static PageParams::UnitIndex ui[] = { PageParams::uiInch,PageParams::uiCm, PageParams::uiMm };
@@ -48,6 +47,12 @@ auto PageParams::GetUnit(int ix)
 auto PageParams::UnitToIndex(PageParams::UnitIndex ui)
 { 
 	return ui == PageParams::uiInch ? 0 : ui == PageParams::uiCm ? 1 : 2;
+}
+
+void PageParams::SetScreenWidth()
+{
+	screenPageWidth = useResInd ? myScreenSizes[resolutionIndex].w : horizPixels;
+	screenPageHeight = myPageSizes[paperId].h / myPageSizes[paperId].w * screenPageWidth;
 }
 
 void PageParams::Load()
@@ -62,6 +67,7 @@ void PageParams::Load()
 	resolutionIndex = s->value(RESI, 6).toInt();					// 1920 x 1080
 	horizPixels     = s->value(HPXS, 1920).toInt();					// this many pixels in the width of one page
 	useResInd		= s->value(USERI, true).toBool();
+
 	screenDiagonal	= s->value(SDIAG, 24).toInt();					// inch
 	unitIndex		= GetUnit(s->value(UNITINDEX, 0).toInt());		// index to determines the multipl. factor for number in edScreenDiag number to inch
 	flags			= s->value(PFLAGS, 0).toInt();					// ORed PrinterFlags
@@ -77,6 +83,7 @@ void PageParams::Load()
 	_isLoaded = true;
 
 	FBSettings::Close();
+	SetScreenWidth();
 }
 
 void PageParams::Save()

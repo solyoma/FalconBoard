@@ -27,6 +27,11 @@ QSettings* FBSettings::_ps = nullptr;
 QString FB_WARNING = QMainWindow::tr("falconBoard - Warning"),
         FB_ERROR   = QMainWindow::tr("falconBoard - Error");
 
+const QString appName = "FalconBoard.exe";
+const QString keyName = "FalconBoardKey";
+const QString pipeName = "FalconBoardPipe";
+const QString fileExtension = ".mwb";
+
 int nUntitledOrder = 1;
 
 #ifdef _VIEWER
@@ -112,6 +117,18 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     setAcceptDrops(true);
 
     ui.centralWidget->setFocus();
+}
+
+void FalconBoard::StartListenerThread(QObject* parent)
+{
+    _pListener = new Listener(*this);
+    _pListener->moveToThread(&_listenerThread);
+
+    connect(_pListener, &Listener::SignalAddNewTab, this, &FalconBoard::SlotForAddNewTab);
+    connect(_pListener, &Listener::SignalActivate,  this, &FalconBoard::SlotForActivate);
+    connect(this, &FalconBoard::SignalToCloseServer, _pListener, &Listener::SlotForCloseSocket);
+
+    _listenerThread.start();
 }
 
 #ifndef _VIEWER
@@ -542,8 +559,10 @@ void FalconBoard::_CreateAndAddActions()
 int FalconBoard::_AddNewTab(QString fname, bool loadIt, bool force) // and new history record
 {
     if (_pTabs->count() == MAX_NUMBER_OF_TABS)
+    {
+        QMessageBox::warning(this, tr("Falconboard - Warning"), tr("Too many open files"));
         return -1;
-
+    }
 #ifndef _VIEWER
     _drawArea->HideRubberBand(true);
 #endif
@@ -1036,6 +1055,8 @@ void FalconBoard::_SetWindowTitle(QString qs)
 
 void FalconBoard::closeEvent(QCloseEvent* event)
 {
+    emit  SignalToCloseServer();
+    _listenerThread.quit();
 #ifndef _VIEWER
     if (ui.actionAutoSaveBackgroundImage->isChecked())
         _SaveBackgroundImage();
@@ -1513,6 +1534,31 @@ void FalconBoard::on_actionBlackMode_triggered()
     _SetupMode(smBlack);
 }
 
+void FalconBoard::SlotForAddNewTab(QString name)
+{
+    name = QDir::fromNativeSeparators(name);
+    bool bOverwritable = IsOverwritable();
+    if (bOverwritable)  // then load into current tab 
+    {
+        _drawArea->SetHistoryName(name);
+        if (!_LoadData())        // to current TAB 
+            name.clear();
+        else
+            _SetTabText(-1, name);
+    }
+    else
+    {
+        int n;
+        if ((n = _drawArea->SameFileAlreadyUsed(name)) >= 0)
+        {
+            _pTabs->setCurrentIndex(n);
+            _nLastTab = n;
+        }
+        else if (_drawArea->HistoryListSize() < MAX_NUMBER_OF_TABS)
+            n = _AddNewTab(name);   // also appends history and loads from file
+    }
+}
+
 void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
 {
     // this function is called only when the _pTabs->currentTab() changes
@@ -1567,6 +1613,12 @@ void FalconBoard::SlotForTabSwitched(int direction)
         n = N - 1;
 
     _pTabs->setCurrentIndex(n);
+}
+
+void FalconBoard::SlotForActivate()
+{
+    raise();
+    activateWindow();
 }
 
 void FalconBoard::on_actionShowGrid_triggered()

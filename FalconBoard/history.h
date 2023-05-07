@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "pagesetup.h"
 #include "drawables.h"
 
 /*========================================================
@@ -439,9 +440,14 @@ class History  // stores all drawing sections and keeps track of undo and redo
                                         // drawable elements on this list may be either visible or hidden
     DrawableList _drawables;            // contains each type, including screenshots
                                         // drawable elements on this list may be either visible or hidden
+    int  _resolutionIndex = 6;           // gives PageSetup::resolutionIndex -> full HD
+    int  _pageWidthInPixels = 1920;     // full HD
+    bool _useResInd = true;              // what to do
+                                        // if the value is above 100 it is resolution index
+
     QuadTreeDelegate _quadTreeDelegate; // for fast display, set into _drawables
 
-    ZorderStore _zorderStore;            // max. zorder 
+    ZorderStore _zorderStore;           // max. zorder 
 
     QPointF _topLeft;                   // temporary, top left of the visible part of this history
                                         // document relative
@@ -453,9 +459,9 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
                                         // unscribble items have no indices in here
     bool _isSaved = false;              // clear after every change!
-    QRectF _clpRect;                     // clipping rectangle for selecting points to draw
+    QRectF _clpRect;                    // clipping rectangle for selecting points to draw
                                         // before searching operations set this when it is changed
-    QStack<QRectF> _savedClps;           // clipRect saves
+    QStack<QRectF> _savedClps;          // clipRect saves
 
     int _indexOfFirstVisible = -1;      // in _yxorder
 
@@ -483,7 +489,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     }
 
     int _LoadV1(QDataStream &ifs, qint32 version, bool force = false);    // load version 1.X files
-    int _LoadV2(QDataStream &ifs, bool force = false);    // load version 2.X files
+    int _LoadV2(QDataStream &ifs, qint32 version_loaded, bool force = false);    // load version 2.X files
 
 public:
     GridOptions gridOptions;
@@ -549,9 +555,28 @@ public:
     }
 
     int Load(quint32& version_loaded, bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
+    void SetPageParamsFromHistory() const
+    {
+        PageParams::resolutionIndex = _resolutionIndex;
+        PageParams::horizPixels     = _pageWidthInPixels;
+        PageParams::useResInd       = _useResInd;     
+    }
+    void GetPageParamsToHistory()
+    { 
+        _resolutionIndex    = PageParams::resolutionIndex   ;
+        _pageWidthInPixels  = PageParams::horizPixels ;
+        _useResInd          = PageParams::useResInd         ;
+    }
+
     bool IsModified() const 
     { 
         return _lastSaved != _items.size();
+    }
+
+    void SetModifiedState(int resInd, int pageWidth, bool useResInd) // so that IsModified will return true
+    {
+        if(resInd != _resolutionIndex || pageWidth != _pageWidthInPixels || useResInd != _useResInd)
+            _lastSaved = _items.size() - 1;
     }
     bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
     bool CanRedo() const { return _redoList.size(); }

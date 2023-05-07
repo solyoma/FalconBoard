@@ -2,6 +2,8 @@
 #ifndef _MYWHITEBOARD_H
 #define _MYWHITEBOARD_H
 
+#include <thread>	// for sleep when waiting for data through the pipe 'FalconBoardPipe'
+
 #include <QtWidgets/QMainWindow>
 #include <QApplication>
 #include <QColorDialog>
@@ -15,6 +17,14 @@
 #include <QEvent>
 #include <QActionGroup>
 
+// to check if the application alread run we need these:
+#include <QThread>
+#include <QFileInfo>
+#include <QtNetwork/QLocalServer>
+#include <QtNetwork/QLocalSocket>
+// link under windows with AdvAPI32.Lib and add network to Qt libraries
+
+
 #ifndef _VIEWER
 	#include "snipper.h"
 #endif
@@ -23,6 +33,14 @@
 //class DrawArea;
 
 const int MAX_NUMBER_OF_TABS = 30;
+constexpr const char* TO_FRONT = "*toFront";
+constexpr const int   TO_FRONT_SIZE = 8;
+
+extern const QString appName ;
+extern const QString keyName ;
+extern const QString pipeName;
+extern const QString fileExtension;
+
 
 enum ScreenMode { smSystem, smDark, smBlack };
 
@@ -30,14 +48,19 @@ enum ScreenMode { smSystem, smDark, smBlack };
 QStringList GetTranslations();	// list of translation files
 // ************************ /helper **********************
 
+	class Listener;		// pre-declaration
 
 // ************************ FalconBoard **********************
 class FalconBoard : public QMainWindow
 {
 	Q_OBJECT
 
+		friend class ListenerThread;
+
 public:
 	FalconBoard(QWidget *parent = Q_NULLPTR);
+
+	void StartListenerThread(QObject*parent=nullptr);
 
 	void SetLanguages(QStringList &names, int act)
 	{
@@ -157,10 +180,13 @@ private slots:
 	void on_actionDarkMode_triggered();
 	void on_actionBlackMode_triggered();
 
+	void SlotForAddNewTab(QString name);
 	void SlotForTabChanged(int index);
 	void SlotForTabCloseRequested(int index);
 	void SlotForTabMoved(int from, int to);
 	void SlotForTabSwitched(int direction); //1: right, 2: left - no tab history
+
+	void SlotForActivate();
 
 #ifndef _VIEWER
    signals:
@@ -169,12 +195,17 @@ private slots:
 #endif
    signals:
 	   void GridSpacingChanged(int spacing);
+	   void SignalToCloseServer();
 
 private:
 	Ui::FalconBoardClass ui;
 
 	FLAG _busy;
 	bool _firstShown = false;	// main window was shown first
+
+	QThread _listenerThread;
+
+	Listener* _pListener = nullptr;
 
 	QStringList _translations;	// list of *.qm files in resources
 	int _actLanguage = -1;			// index in list of languages ordered by abbreviations 
@@ -312,4 +343,74 @@ private:
 	void _PopulateLanguageMenu();	// from _translations (no clear)
 	void _SetWindowTitle(QString qs);
 };
+// ========================================================= Listener ==========================================
+
+class Listener	: public QObject
+{
+	Q_OBJECT
+public:
+	explicit Listener(FalconBoard& falconBoard)
+				: _falconBoard(falconBoard)
+	{
+		_pLocalServer  = new QLocalServer(nullptr); // original parent in different thread
+		_pLocalServer->listen(pipeName);
+		connect(_pLocalServer, &QLocalServer::newConnection, this, &Listener::SlotForConnection);
+	}
+
+public slots:
+	void SlotForCloseSocket()
+	{
+		if (_pLocalServer)
+		{
+			_pLocalServer->close();
+			delete _pLocalServer;
+			_pLocalServer = nullptr;
+		}
+	}
+	void SlotForConnection()
+	{
+		GetDataFromServer();
+	}
+
+signals:
+	void SignalAddNewTab(QString);
+	void SignalActivate();
+
+private:
+	QLocalServer* _pLocalServer;
+	FalconBoard& _falconBoard;
+
+	void GetDataFromServer()	// called when a connection is detected
+	{
+		if (_pLocalServer->waitForNewConnection(100)) 
+		{
+			QLocalSocket* clientSocket = _pLocalServer->nextPendingConnection();
+			// DEBUG
+			qDebug("Listener Thread: connection detected for pipe '%s'", _pLocalServer->serverName().toStdString().c_str());
+			if (clientSocket)
+			{
+				// DEBUG
+				qDebug("               : clientSocket created");
+				QByteArray data = clientSocket->readAll();
+				int siz = data.size();
+				// DEBUG
+				qDebug("Listener Thread: data size: %d - processing", siz);
+				if ((siz))
+				{
+					if (siz != TO_FRONT_SIZE || strcmp(data.constData(), TO_FRONT)) // then command line
+						emit SignalAddNewTab(data.constData());
+					clientSocket->flush();
+				}
+
+				//clientSocket->disconnectFromServer();
+				//clientSocket->deleteLater();
+
+				emit SignalActivate();
+			}
+		}
+	}
+
+};
+
 #endif
+

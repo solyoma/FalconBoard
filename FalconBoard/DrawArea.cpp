@@ -147,6 +147,8 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 			return -2;
 	}
 	_topLeft = QPointF(0, 0);
+	// set page parameters
+	_history->SetPageParamsFromHistory();
 
 	if (!b)
 		_Redraw(true);
@@ -157,11 +159,10 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 /*========================================================
  * TASK: set a new history into _currentHistoryIndex and
  *          _history
- * PARAMS: index: switch to here, if < 0
- *              use curent history
- *         redraw: redraw history after the switch
+ * PARAMS: index	 : switch to here, if < 0 use curent history
+ *         redraw	 : redraw history after the switch
  *         invalidate: set invalid current history?
- *          used only in ShowEvent
+ *						used only in ShowEvent
  * GLOBALS:
  * RETURNS:
  * REMARKS: - redraw is false when e.g. not the active
@@ -177,22 +178,25 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 
 	if (index >= HistoryListSize())
 		return false;
-	if (index != _currentHistoryIndex)
+	if (index != _currentHistoryIndex && index >= 0)
 	{
 #ifndef _VIEWER
 		HideRubberBand(true);
 #endif
-		if (index >= 0)     // store last viewport into previously shown history
+		if (_history)    // there is a history	=> store last viewport top left into previously shown history
 		{
-			if (_history)    // there is a history
-				_history->SetTopLeft(_topLeft);
-			_currentHistoryIndex = index;
-			_history = historyList[index];
-			_topLeft = _history->TopLeft();
+			_history->SetTopLeft(_topLeft);
+			_history->SetModifiedState(PageParams::resolutionIndex, PageParams::horizPixels, PageParams::useResInd);
+			_history->GetPageParamsToHistory();
 		}
-		else
-			index = _currentHistoryIndex;
+
+		_currentHistoryIndex = index;
+		_history = historyList[index];
+		_topLeft = _history->TopLeft();
+		_history->SetPageParamsFromHistory();
+		PageParams::SetScreenWidth();
 	}
+
 	int res = 1;
 	if (redraw)
 	{
@@ -2037,11 +2041,11 @@ void DrawArea::SlotForGridSpacingChanged(int spacing)
 	_Redraw();
 }
 
-bool DrawArea::PageSetup(PageParams::PageSetupType what)      // public slot
+bool DrawArea::PageSetup(PageParams::PageSetupType forWhat)      // public slot
 {
-	PageSetupDialog* pageDlg = new PageSetupDialog(this, what);
+	PageSetupDialog* pageDlg = new PageSetupDialog(this, forWhat);
 	bool res = false;
-	bool forPdf = what == PageParams::wtdExportPdf;
+	bool forPdf = (forWhat == PageParams::wtdExportPdf);
 	int oldwidth = PageParams::screenPageWidth;
 	if (pageDlg->exec())
 	{
@@ -2053,7 +2057,7 @@ bool DrawArea::PageSetup(PageParams::PageSetupType what)      // public slot
 			_openPDFInViewerAfterPrint = PageParams::flags & openPdfViewerFlag;
 #define SQUARE(a)  (a*a)
 
-		if (!PageParams::useResInd)
+		if (PageParams::useResInd == false)
 			PageParams::screenPageWidth = PageParams::horizPixels;
 		if (_screenHeight > 0)           // -1 if no predefined resolution
 		{

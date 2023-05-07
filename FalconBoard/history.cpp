@@ -980,6 +980,7 @@ SaveResult History::Save(QString name)
 	ofs << MAGIC_VERSION;	// file version
 
 	ofs << (uint16_t)gridOptions;
+	ofs << _resolutionIndex << _pageWidthInPixels << _useResInd;
 
 	QRectF area = QuadAreaToArea(_drawables.Area());
 	DrawableItem* phi = _drawables.FirstVisibleDrawable(area); // lowest in zOrder
@@ -1049,20 +1050,23 @@ int History::Load(quint32& version_loaded, bool force)
 	if ((version_loaded & 0x00FF0000) < 0x020000)
 		res = _LoadV1(ifs, version_loaded,  force);
 	else
-		res = _LoadV2(ifs, force);
-
+		res = _LoadV2(ifs, version_loaded, force);
+						 
 	f.close();
 	return res;
 }
 
-int History::_LoadV2(QDataStream&ifs, bool force)
+int History::_LoadV2(QDataStream&ifs, qint32 version_loaded, bool force)
 {
-	DrawableItem dh;
-
 	uint16_t u = 0;
 
 	ifs >> u;
 	gridOptions = u;
+
+	if (version_loaded > 0x56020200)
+		ifs >> _resolutionIndex >> _pageWidthInPixels >> _useResInd;
+
+	DrawableItem dh;
 
 // z order counters are reset
 	DrawableItem di, * pdrwh;

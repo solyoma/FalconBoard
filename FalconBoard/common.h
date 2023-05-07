@@ -14,8 +14,8 @@
 constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 
 const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
-const qint32 MAGIC_VERSION = 0x56020003; // V 02.00.03
-const QString sVersion = "2.0.3";
+const qint32 MAGIC_VERSION = 0x56020300; // V 02.03.00
+const QString sVersion = "2.3.0";
 
 const qreal eps = 1e-4;         // for 0 test of double
 inline constexpr qreal EqZero(qreal a) { return qAbs(a) < eps; }
