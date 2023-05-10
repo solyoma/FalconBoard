@@ -86,12 +86,6 @@ Not enough memory?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="652"/>
-        <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
-Do you want to save your changes?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../FalconBoard/FalconBoard.cpp" line="1014"/>
         <source>C&amp;lear list</source>
         <translation type="unfinished"></translation>
@@ -103,8 +97,8 @@ Do you want to save your changes?</source>
     </message>
     <message>
         <location filename="../FalconBoard/FalconBoard.cpp" line="1188"/>
-        <source>Do you want to limit the editable area horizontally to the screen width?
- You may change this any time in Options/Page</source>
+        <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
+ You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -145,6 +139,12 @@ Do you want to save your changes?</source>
     <message>
         <location filename="../FalconBoard/FalconBoard.cpp" line="1267"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="652"/>
+        <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
+Do you want to save your changes?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1489,17 +1489,17 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="99"/>
+        <location filename="../FalconBoard/main.cpp" line="98"/>
         <source>FalconBoard Viewer - Debug version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="101"/>
+        <location filename="../FalconBoard/main.cpp" line="100"/>
         <source>FalconBoard - Debug version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="105"/>
+        <location filename="../FalconBoard/main.cpp" line="104"/>
         <source>FalconBoard Viewer</source>
         <translation type="unfinished"></translation>
     </message>

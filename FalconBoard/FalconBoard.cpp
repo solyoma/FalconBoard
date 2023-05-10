@@ -1185,8 +1185,8 @@ void FalconBoard::on_actionNew_triggered()
 //    if (!_SaveIfYouWant(true))    // must ask if data changed, false: cancelled
 //        return;
 
-    bool b = QMessageBox::question(this, "falconBoard", tr("Do you want to limit the editable area horizontally to the screen width?\n"
-                                                           " You may change this any time in Options/Page"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
+    bool b = QMessageBox::question(this, "falconBoard", tr("Do you want to limit the editable area horizontally to the pixel width set in Page Setup?\n"
+                                                           " You may change this any time in 'Options/Limit Paper Width'"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
     ui.actionLimitPaperWidth->setChecked(b);
     _drawArea->SetLimitedPage(b);
 

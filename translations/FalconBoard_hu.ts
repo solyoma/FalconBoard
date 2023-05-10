@@ -111,11 +111,17 @@ Do you want to save your changes?</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
     <message>
+        <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
+ You may change this any time in &lt;i&gt;Options/Limit Paper Width&lt;/i&gt;</source>
+        <translation type="vanished">Lekorlátozzam a lap vízszintes méretét a Lapbeállításban megadott szélességre?
+ Ezt bármikor megváltoztathatod a &lt;i&gt;Lehetőségek/Lapszélesség korlátozása&lt;/i&gt; menüben.</translation>
+    </message>
+    <message>
         <location filename="../FalconBoard/FalconBoard.cpp" line="1188"/>
-        <source>Do you want to limit the editable area horizontally to the screen width?
- You may change this any time in Options/Page</source>
-        <translation>Lekorlátozzam a lap vízszintes méretét a képernyő szélességére?
- Ezt bármikor megváltoztathatod a Lehetőségek/Oldal menüben.</translation>
+        <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
+ You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
+        <translation>Lekorlátozzam a lap vízszintes méretét a&apos; Lapbeállítás&apos; menüben megadott szélességre?
+Ezt bármikor megváltoztathatod a &apos;Lehetőségek/Lapszélesség korlátozása&apos;  menüben</translation>
     </message>
     <message>
         <location filename="../FalconBoard/FalconBoard.cpp" line="1201"/>
@@ -1592,17 +1598,17 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation>Ez a lehetőség még nem működik</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="99"/>
+        <location filename="../FalconBoard/main.cpp" line="98"/>
         <source>FalconBoard Viewer - Debug version</source>
         <translation>FalconBoard Megjelenítő - Debug verzió</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="101"/>
+        <location filename="../FalconBoard/main.cpp" line="100"/>
         <source>FalconBoard - Debug version</source>
         <translation>FalconBoard - Debug verzió</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="105"/>
+        <location filename="../FalconBoard/main.cpp" line="104"/>
         <source>FalconBoard Viewer</source>
         <translation>FalconBoard Megjelenítő</translation>
     </message>
