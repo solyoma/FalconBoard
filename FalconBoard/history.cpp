@@ -1001,7 +1001,7 @@ SaveResult History::Save(QString name)
 
 	f.rename(name);
 
-	_lastSaved = _items.count();	// saved at this point
+	_readCount = _lastSaved = _items.count();	// saved at this point
 
 	return srSaveSuccess;
 }
