@@ -1198,13 +1198,13 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
     </message>
     <message>
         <location filename="../FalconBoard/pagesetup.ui" line="219"/>
-        <location filename="../FalconBoard/pagesetup.ui" line="671"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="550"/>
         <source>inch</source>
         <translation>inch</translation>
     </message>
     <message>
         <location filename="../FalconBoard/pagesetup.ui" line="224"/>
-        <location filename="../FalconBoard/pagesetup.ui" line="676"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="555"/>
         <source>cm</source>
         <translation>cm</translation>
     </message>
@@ -1219,169 +1219,168 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation>Képátló</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="256"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="259"/>
         <source>Resolution</source>
         <translation>Felbontás (pont/inch)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="278"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="284"/>
         <source> pixels</source>
         <translation> pixel</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="326"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="332"/>
         <source>Layout</source>
         <translation>Elrendezés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="503"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="515"/>
         <source>Portrait</source>
         <translation>Álló</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="508"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="520"/>
         <source>Landscape</source>
         <translation>fekvő</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="350"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="356"/>
         <source>Paper size:</source>
         <translation>Papír méret:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="522"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="534"/>
         <source>Margins</source>
         <translation>Margók</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="540"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="575"/>
         <source>Left and Right</source>
         <translation>Bal és jobb</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="578"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="660"/>
         <source>Top and Bottom</source>
         <translation>fent és lent</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="613"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="682"/>
         <source>Gutter margin</source>
         <translation>Bekötő margó</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="651"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="597"/>
         <source>Units:</source>
         <translation>Egység:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="483"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="492"/>
         <source>Paper Orientation</source>
         <translation>Tájolás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="373"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="382"/>
         <source>A7 ( 74 x 105 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="378"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="387"/>
         <source>A6 (105 x 148 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="383"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="392"/>
         <source>A5 (148 x 210 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="388"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="397"/>
         <source>A4 (210 x 297 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="393"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="402"/>
         <source>A3 (297 x 420 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="398"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="407"/>
         <source>A2 (420 x 594 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="403"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="412"/>
         <source>A1 (594 x 841 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="408"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="417"/>
         <source>A0 (841 x 1189 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="413"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="422"/>
         <source>B7 (88 x 125 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="418"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="427"/>
         <source>B6 (125 x 176 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="423"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="432"/>
         <source>B5 (176 x 250 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="428"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="437"/>
         <source>B4 (250 x 353 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="433"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="442"/>
         <source>B3 (353 x 500 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="438"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="447"/>
         <source>B2 (500 x 707 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="443"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="452"/>
         <source>B1 (707 x 1000 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="448"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="457"/>
         <source>B0 (1000 x 1414 mm)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="453"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="462"/>
         <source>US Letter (8 1/2 x 11 in)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="458"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="467"/>
         <source>Legal (2 1/2 x 14 in)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="463"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="472"/>
         <source>Stationary (5 1/2 x 8 1/2 in)</source>
         <translation>Boríték</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="735"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="723"/>
         <source>Page numbers</source>
         <translation>Oldalszámozás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="748"/>
         <source>&amp;Top</source>
-        <translation>&amp;Fent</translation>
+        <translation type="vanished">&amp;Fent</translation>
     </message>
     <message>
         <source>Bottom</source>
@@ -1392,107 +1391,113 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="vanished">&amp;Balra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="814"/>
         <source>&amp;Center</source>
-        <translation>&amp;Középre</translation>
+        <translation type="vanished">&amp;Középre</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="830"/>
         <source>&amp;Right</source>
-        <translation>&amp;Jobbra</translation>
+        <translation type="vanished">&amp;Jobbra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="852"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="915"/>
         <source>Printer</source>
         <translation>Nyomtató</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="864"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="927"/>
         <source> --- not selected ---</source>
         <translation> --- nincs kiválasztva ---</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="877"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="940"/>
         <source>Select Printer</source>
         <translation>Nyomtatóválasztás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="917"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="980"/>
         <source>Options</source>
         <translation>Lehetőségek</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="967"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1030"/>
         <source>G&amp;rid</source>
         <translation>&amp;Rács</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="935"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="998"/>
         <source>Print &amp;Background Image</source>
         <translation>&amp;Háttérkép nyomtatása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1005"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="860"/>
+        <source>Position:</source>
+        <translation>Pozició:</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pagesetup.ui" line="874"/>
+        <source>Start at:</source>
+        <translation>Első szám:</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pagesetup.ui" line="1068"/>
         <source>&amp;White background</source>
         <translation>&amp;Fehér háttér</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="954"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1017"/>
         <source>Do not print &amp;images</source>
         <translation>Ne nyomtasson &amp;képeket</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="761"/>
         <source>&amp;Bottom</source>
-        <translation>&amp;Lent</translation>
+        <translation type="vanished">&amp;Lent</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="801"/>
         <source>&amp;Left</source>
-        <translation>&amp;Balra</translation>
+        <translation type="vanished">&amp;Balra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="986"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1049"/>
         <source>&amp;Grayscale</source>
         <translation>S&amp;zürkeárnyalatos</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1044"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1107"/>
         <source>Open PDF in default viewer</source>
         <translation>PDF megnyitása az alap nézőkében</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1057"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1120"/>
         <source>(viewer must be set in the OS)</source>
         <translation>(A nézőkét az op.rendszerben kell beállítani)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1079"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1142"/>
         <source>PDF Resolution</source>
         <translation>PDF felbontás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1109"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1172"/>
         <source>300 dpi</source>
         <translation>300 pont/inch</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1131"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1194"/>
         <source>600 dpi</source>
         <translation>600 pont/inch</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1150"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1213"/>
         <source>1200 dpi</source>
         <translation>1200 pont/inch</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1202"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1265"/>
         <source>O&amp;k</source>
         <translation>&amp;Rendben</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pagesetup.ui" line="1215"/>
+        <location filename="../FalconBoard/pagesetup.ui" line="1278"/>
         <source>Cancel</source>
         <translation>Mégse</translation>
     </message>
@@ -1593,7 +1598,7 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="vanished">FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/myprinter.cpp" line="683"/>
+        <location filename="../FalconBoard/myprinter.cpp" line="686"/>
         <source>This option is not yet implemented</source>
         <translation>Ez a lehetőség még nem működik</translation>
     </message>
