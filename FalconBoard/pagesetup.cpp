@@ -23,6 +23,8 @@ int		PageParams::screenDiagonal;			// from text in 'edtScreenDiag' in inches
 int		PageParams::screenPageWidth = 1920; // width of page on screen in pixels - used to calculate pixel limits for pages (HD: 1920 x 1080), set from horizPixels or from resolutionIndex
 int		PageParams::screenPageHeight = 1920 * 3508 / 2480;  // height of screen for selected paper size in pixels - for A4 (210mm x 297mm, 8.27 in x 11.7 in) with 300 dpi
 unsigned PageParams::flags;					// ORed from PrinterFlags (common.h)
+unsigned PageParams::pgPositionOnPage = 0;
+int PageParams::startPageNumber = 1;
 			// for PDF
 int		PageParams::pdfIndex;				// in page size combo box
 double	PageParams::pdfWidth, 			  	// page size in inches
@@ -71,6 +73,7 @@ void PageParams::Load()
 	screenDiagonal	= s->value(SDIAG, 24).toInt();					// inch
 	unitIndex		= GetUnit(s->value(UNITINDEX, 0).toInt());		// index to determines the multipl. factor for number in edScreenDiag number to inch
 	flags			= s->value(PFLAGS, 0).toInt();					// ORed PrinterFlags
+	pgPositionOnPage = s->value(PPOSIT, 0).toInt();					// 0-5 : top -left... bottom-right
 	pdfIndex		= s->value(PDFPGS, 3).toInt();					// index in paper size combo box (default: A4)
 	pdfDpiIndex		= s->value(PDFDPI, 0).toInt();				// index: 0: 300, 1: 600, 2: 1200 dpi
 	pdfUnitIndex	= GetUnit(s->value(PDFUI, 0).toInt() );
@@ -97,6 +100,7 @@ void PageParams::Save()
 	s->setValue(HPXS, horizPixels);
 	s->setValue(SDIAG, screenDiagonal);
 	s->setValue(PFLAGS, flags);	// includes pfOpenPDFInViewer
+	s->setValue(PPOSIT, pgPositionOnPage);
 	// for PDF
 	s->setValue(PDFPGS, pdfIndex);
 	s->setValue(PDFMLR, hMargin);
@@ -167,12 +171,10 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, PageParams::PageSetupType toDo
 	ui.chkGrid->setChecked(PageParams::flags & printGridFlag);
 	ui.chkDontPrintImages->setChecked(PageParams::flags & printNoImagesFlag);
 
-	ui.chkPageNumbers->setChecked(PageParams::flags & pageNumberFlagUsePageNumber);
-	ui.rbPgBottom->setChecked(PageParams::flags & pageNumberFlagTopBottom);
-	ui.rbPgTop->setChecked((PageParams::flags & pageNumberFlagTopBottom) == 0);
-	ui.rbPgCenter->setChecked((PageParams::flags & pageNumberFlagLeftCenterRight) == 0);
-	ui.rbPgLeft->setChecked(PageParams::flags & pageNumberBitsForLeft);
-	ui.rbPgRight->setChecked(PageParams::flags & pageNumberBitsForRight);
+	QRadioButton *rbs[6] = { ui.rbTl, ui.rbTc, ui.rbTr, ui.rbBl, ui.rbBc, ui.rbBr };
+
+	rbs[PageParams::pgPositionOnPage]->setChecked(true);
+	ui.sbFirstPageNumber->setValue(PageParams::startPageNumber);
 
 	// for PDF
 
@@ -369,6 +371,11 @@ void PageSetupDialog::on_cbPdfPaperSize_currentIndexChanged(int i)
 	_changed = true;
 }
 
+void PageSetupDialog::on_sbFirstPageNumber_valueChanged(int value)
+{
+	PageParams::startPageNumber = value;
+}
+
 void PageSetupDialog::on_rbUseResInd_toggled(bool b)
 {
 	ui.sbHorizPixels->setEnabled(!b);
@@ -396,45 +403,45 @@ void PageSetupDialog::on_rb1200_toggled(bool b)
 	_changed = true;
 }
 
-void PageSetupDialog::on_rbPgBottom_toggled(bool b)
-{
-	if (_busy)	// special case: b -> top, !b -> bottom
-		return;
-	unsigned flg = PageParams::flags & ~pageNumberFlagTopBottom;
-	if (b)
-		flg |= pageNumberFlagTopBottom;
-	PageParams::flags = flg;
-	_changed = true;
-}
-
-void PageSetupDialog::on_rbPgLeft_toggled(bool b)
-{
-	if (_busy || !b)
-		return;
-	unsigned flg = PageParams::flags & ~pageNumberFlagLeftCenterRight;
-	flg |= pageNumberBitsForLeft;
-	PageParams::flags = flg;
-	_changed = true;
-}
-
-void PageSetupDialog::on_rbPgCenter_toggled(bool b)
-{
-	if (_busy || !b)
-		return;
-	unsigned flg = PageParams::flags & ~pageNumberFlagLeftCenterRight;
-	PageParams::flags = flg;	// clear all flags
-	_changed = true;
-}
-
-void PageSetupDialog::on_rbPgRight_toggled(bool b)
-{
-	if (_busy || !b)
-		return;
-	unsigned flg = PageParams::flags & ~pageNumberFlagLeftCenterRight;
-	flg |= pageNumberBitsForRight;
-	PageParams::flags = flg;
-	_changed = true;
-}
+//void PageSetupDialog::on_rbPgBottom_toggled(bool b)
+//{
+//	if (_busy)	// special case: b -> top, !b -> bottom
+//		return;
+//	unsigned flg = PageParams::flags & ~pageNumberFlagTopBottom;
+//	if (b)
+//		flg |= pageNumberFlagTopBottom;
+//	PageParams::flags = flg;
+//	_changed = true;
+//}
+//
+//void PageSetupDialog::on_rbPgLeft_toggled(bool b)
+//{
+//	if (_busy || !b)
+//		return;
+//	unsigned flg = PageParams::flags & ~pageNumberFlagLeftCenterRight;
+//	flg |= pageNumberBitsForLeft;
+//	PageParams::flags = flg;
+//	_changed = true;
+//}
+//
+//void PageSetupDialog::on_rbPgCenter_toggled(bool b)
+//{
+//	if (_busy || !b)
+//		return;
+//	unsigned flg = PageParams::flags & ~pageNumberFlagLeftCenterRight;
+//	PageParams::flags = flg;	// clear all flags
+//	_changed = true;
+//}
+//
+//void PageSetupDialog::on_rbPgRight_toggled(bool b)
+//{
+//	if (_busy || !b)
+//		return;
+//	unsigned flg = PageParams::flags & ~pageNumberFlagLeftCenterRight;
+//	flg |= pageNumberBitsForRight;
+//	PageParams::flags = flg;
+//	_changed = true;
+//}
 
 void PageSetupDialog::_ChangePdfPaperSize()	
 {

@@ -588,7 +588,7 @@ bool MyPrinter::_PrintPage(int page, bool last)
         pgNumFont.setPixelSize(fontHeightInPixels); //  setPointSize(26);
         pgNumFont = QFont(pgNumFont, _pItemImage);
         QString sNum; 
-        sNum.setNum(page+1);
+        sNum.setNum(page + PageParams::startPageNumber);
         QFontMetrics fm(pgNumFont);
         QSize size = fm.size(Qt::TextSingleLine, sNum);
             // get number position
@@ -597,15 +597,18 @@ bool MyPrinter::_PrintPage(int page, bool last)
         // qreal d4p = PageParams::screenPageWidth / _data.PrintAreaInDots().width(); // dots for pixel
         y = 4 * fontHeightInPixels; //_data.ConvertToDots(0.05) * d4p;   // top / bottom / left / center / right margin for page number 
 
-        if (PageParams::flags & pageNumberBitsForLeft)
-            x = y;
-        else if (PageParams::flags & pageNumberBitsForRight)
-            x = rectp.width() - size.width() - y;
-        else
-            x = (rectp.width() - size.width()) / 2;
+        unsigned pos = PageParams::pgPositionOnPage;
 
-        if (PageParams::flags & pageNumberFlagTopBottom)     
+        if (!pos || pos == 3)            // left
+            x = y;
+        else if (pos == 1||pos == 4)      // center
+            x = (rectp.width() - size.width()) / 2;
+        else                            // right
+            x = rectp.width() - size.width() - y;
+
+        if (pos >2)                     // bottom
             y = rectp.height() - size.height() - y;   // bottom
+
         _pPrintPainter->setFont(pgNumFont);
         _pPrintPainter->drawText(QPoint(x, y), sNum);
     }

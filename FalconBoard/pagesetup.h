@@ -25,6 +25,8 @@ struct PageParams
 
 	static UnitIndex unitIndex;		// index of units for margins (in ini file 0: inch, 1: cm, 2: mm)
 	static unsigned flags;			// ORed from PrinterFlags (common.h)
+	static unsigned pgPositionOnPage; //0-5: top-left, top-center, top=right, bottom-left, bottom-center-bottom-right
+	static int startPageNumber;	
 				// for PDF
 	static int pdfIndex;			// in page size combo box
 	static int pdfDpiIndex;			// 0,1,2 -> dots/inch = (pdfDpi * 300 + 300)
@@ -55,7 +57,6 @@ private:
 class PageSetupDialog : public QDialog
 {
 	Q_OBJECT
-public:
 public:
 	PageSetupDialog(QWidget* parent, PageParams::PageSetupType whatToDo = PageParams::wtdPageSetup);
 	~PageSetupDialog();
@@ -103,10 +104,20 @@ private slots:
 	void on_rb300_toggled(bool b);
 	void on_rb600_toggled(bool b);
 	void on_rb1200_toggled(bool b);
-	void on_rbPgBottom_toggled(bool b);	// b == false => top
-	void on_rbPgLeft_toggled(bool b);
-	void on_rbPgCenter_toggled(bool b);
-	void on_rbPgRight_toggled(bool b);
+
+	void on_rbTl_toggled(bool b){PageParams::pgPositionOnPage = 0;}
+	void on_rbTc_toggled(bool b){PageParams::pgPositionOnPage = 1;}
+	void on_rbTr_toggled(bool b){PageParams::pgPositionOnPage = 2;}
+	void on_rbBl_toggled(bool b){PageParams::pgPositionOnPage = 3;}
+	void on_rbBc_toggled(bool b){PageParams::pgPositionOnPage = 4;}
+	void on_rbBr_toggled(bool b){PageParams::pgPositionOnPage = 5;}
+
+	void on_sbFirstPageNumber_valueChanged(int value);
+																
+	//void on_rbPgBottom_toggled(bool b);	// b == false => top
+	//void on_rbPgLeft_toggled(bool b);
+	//void on_rbPgCenter_toggled(bool b);
+	//void on_rbPgRight_toggled(bool b);
 	void on_rbUseResInd_toggled(bool b);
 
 	void on_sbHorizPixels_valueChanged(int val);

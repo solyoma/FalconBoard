@@ -32,8 +32,7 @@ constexpr const char
 	*PSETUP = "Page Setup", // group for page setup
 	*PFLAGS = "pflags",		// bit #0: print background image, bit #1: white background
 							// bit #2: 0-> no page numbers, 1-> page numbers 
-							// bit #3: 0->top, 1-> bottom,
-							// bits #4-5: 01-> left, 00->center, 10->right
+	*PPOSIT = "pposit",		// page number position: 0-6:topLeft,topCenter,topRight,bottomLeft,bottomCenter,bottomRight
 	*PDFMLR = "pdfmlr",		// PDF margins: left/right
 	*PDFMTB = "pdfmtb",		//				top/bottom
 	*PDFGUT = "pdfgut",		//				gutter
@@ -63,13 +62,13 @@ constexpr const unsigned
 	printNoImagesFlag			= 0x10,	// bit #4
 	openPdfViewerFlag			= 0x20,	// bit #5
 	pageNumberFlagUsePageNumber = 0x40,	// bit #6
-	pageNumberFlagTopBottom		= 0x80,	// bit #7		 0: top, 1: bottom
-	pageNumberFlagLeftCenterRight=0x300,// bit #8-9
-	pageOrientationFlag			= 0x400,// bit #10		 0: portrait, 1: landscape		
+	//pageNumberFlagTopBottom		= 0x80,	// bit #7		 0: top, 1: bottom
+	//pageNumberFlagLeftCenterRight=0x300,// bit #8-9
+	pageOrientationFlag			= 0x400 // bit #10		 0: portrait, 1: landscape		
 	  // used for pageNumberFlagLeftCenterRigh
-	pageNumberBitsForLeft		= 0x100,			
-	pageNumberBitsForCenter		= 0x000,
-	pageNumberBitsForRight		= 0x200
+	//pageNumberBitsForLeft		= 0x100,			
+	//pageNumberBitsForCenter		= 0x000,
+	//pageNumberBitsForRight		= 0x200
 ;
 
 #endif
