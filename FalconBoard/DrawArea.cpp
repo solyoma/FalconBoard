@@ -291,6 +291,13 @@ int DrawArea::_LoadCommon()
 	return res;
 }
 
+int DrawArea::_AppendCommon(QString& fileName, int yOffset)
+{
+	quint32 file_version_loaded=0;	// aasuume old file, no grid data in _history->gridOptions yet
+	int res = _history->Append(fileName, file_version_loaded, yOffset);
+	return res;
+}
+
 int DrawArea::Load()
 {
 #ifndef _VIEWER
@@ -303,6 +310,26 @@ int DrawArea::Load()
 		_Redraw();
 	}
 	emit CanUndo(false);    // no undo or redo after open file
+	emit CanRedo(false);
+	update();
+	return res;
+}
+
+int DrawArea::Append(QStringList &fileNames)
+{
+#ifndef _VIEWER
+	HideRubberBand(true);
+#endif
+	QSize siz = geometry().size(); 
+	bool res = false;
+	for (auto s : fileNames)
+	{
+		if (_AppendCommon(s, _history->BottomRightLimit(siz).y() + 10))	// resi < 0: error loading file
+			res = true;
+	}
+	if (res)
+		_Redraw(true);
+	emit CanUndo(true);    // no redo after open file
 	emit CanRedo(false);
 	update();
 	return res;

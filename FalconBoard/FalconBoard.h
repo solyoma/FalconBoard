@@ -100,10 +100,12 @@ private slots:
 
 #ifndef _VIEWER
 	void on_actionNew_triggered();
-	void on_actionImportImage_triggered();
+	void on_actionAppend_triggered();
 
 	void on_actionSave_triggered();
 	void on_actionSaveAs_triggered();
+
+	void on_actionImportImage_triggered();
 
 	void on_actionLoadBackground_triggered();
 	void on_actionSaveVisible_triggered();
@@ -170,8 +172,17 @@ private slots:
 #endif
 	void SlotForChkGridOn(bool checked);
 	void on_actionPageSetup_triggered();
-	void on_actionPrint_triggered() { _drawArea->Print();  }
+	void on_actionPrint_triggered() 
+	{ 
+#ifndef _VIEWER
+		_QDoSaveModified(tr("print"));
+#endif
+
+		_drawArea->Print();  
+	}
 	void on_actionExportToPdf_triggered();
+
+	void on_actionAllowMultipleProgramInstances_triggered();
 
 	void on_actionAbout_triggered();
 	void on_actionHelp_triggered();
@@ -297,6 +308,20 @@ private:
 	void _CreateAndAddActions();
 
 #ifndef _VIEWER
+
+	void _QDoSaveModified(const QString s)
+	{
+		if (_drawArea->IsModified())
+		{
+			QString cs = QString(tr("Do you want to save the document before %1?\n\n(You may set automatic save in the Options menu.)")).arg(s);
+			if (ui.actionAutoSaveBeforePrintOrExport->isChecked() ||
+				(QMessageBox::question(this, tr("FalconBoard - Question"), cs) == QMessageBox::Yes))
+			{
+				_drawArea->Save(_drawArea->HistoryName(), -1);
+			}
+		}
+
+	}
 	QString _NextUntitledName();
 
 	void _AddSaveVisibleAsMenu();

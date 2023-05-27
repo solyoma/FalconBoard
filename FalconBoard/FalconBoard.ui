@@ -49,7 +49,7 @@
     </widget>
     <addaction name="actionNew"/>
     <addaction name="actionLoad"/>
-    <addaction name="actionImportImage"/>
+    <addaction name="actionAppend"/>
     <addaction name="action_Close"/>
     <addaction name="action_CloseAll"/>
     <addaction name="separator"/>
@@ -59,6 +59,7 @@
     <addaction name="actionPageSetup"/>
     <addaction name="actionPrint"/>
     <addaction name="separator"/>
+    <addaction name="actionImportImage"/>
     <addaction name="actionExportToPdf"/>
     <addaction name="separator"/>
     <addaction name="actionRecentDocuments"/>
@@ -172,12 +173,14 @@
     <addaction name="actionLimitPaperWidth"/>
     <addaction name="actionShowPageGuides"/>
     <addaction name="separator"/>
+    <addaction name="actionAllowMultipleProgramInstances"/>
     <addaction name="actionScreenshotTransparency"/>
     <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>
     <addaction name="actionAutoSaveData"/>
     <addaction name="actionAutoSaveBackgroundImage"/>
+    <addaction name="actionAutoSaveBeforePrintOrExport"/>
     <addaction name="separator"/>
     <addaction name="actionLanguages"/>
    </widget>
@@ -208,7 +211,7 @@
     <string>Open</string>
    </property>
    <property name="toolTip">
-    <string>Load whiteboard data into the selected tab</string>
+    <string>Load FalconBoard data into the active tab</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -853,6 +856,36 @@
    </property>
    <property name="text">
     <string>Limit paper &amp;width</string>
+   </property>
+  </action>
+  <action name="actionAutoSaveBeforePrintOrExport">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto Save Before Print/Export</string>
+   </property>
+   <property name="toolTip">
+    <string>If not checked asks if you want to save modified documents</string>
+   </property>
+  </action>
+  <action name="actionAppend">
+   <property name="text">
+    <string>Append...</string>
+   </property>
+   <property name="toolTip">
+    <string>Append FalconBoard file</string>
+   </property>
+  </action>
+  <action name="actionAllowMultipleProgramInstances">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Allow multiple program instances</string>
+   </property>
+   <property name="toolTip">
+    <string>When checked then a new instance of the program is run when you click on  an mwb file</string>
    </property>
   </action>
  </widget>

@@ -37,24 +37,46 @@ int nUntitledOrder = 1;
 #ifdef _VIEWER
 void FalconBoard::_RemoveMenus()
 {
-    QList<QAction*> pMenuActions = ui.menuBar->actions(); // [0]:file,[1]:Edit,[2]:Delete,[3]:options,[4]:Help
+    QList<QAction*> pMenuActions = ui.menuBar->actions(); // [0]:file,[1]:Edit,[2]:Clear,[3]:options,[4]:Help
     ui.menuBar->removeAction(pMenuActions[1] ); // edit
     ui.menuBar->removeAction(pMenuActions[2]);  // clear
-    ui.actionNew->setVisible(false);
-    ui.actionSave->setVisible(false);
-    ui.actionSaveAs->setVisible(false);
-    ui.actionImportImage->setVisible(false);
-    ui.actionSaveVisible->setVisible(false);
-    ui.actionLoadBackground->setVisible(false);
-    ui.actionScreenshotTransparency->setVisible(false);
+    QMenu* pMenu = pMenuActions[0]->menu();
+            // File Menu (removeAction changes the order of the actions after the removed one
+            // therefore this order is important
+    pMenu->removeAction(pMenu->actions()[17]);       // Save Visible
+    pMenu->removeAction(pMenu->actions()[12]);       // Import image
+    pMenu->removeAction(pMenu->actions()[8]);        // separator
+    pMenu->removeAction(pMenu->actions()[7]);        // Save As
+    pMenu->removeAction(pMenu->actions()[6]);        // Save
+                                                     // 5 - separator
+    pMenu->removeAction(pMenu->actions()[2]);        // Append (was 3rd menu, but now 2nd)
+    pMenu->removeAction(pMenu->actions()[0]);        // New
 
-    ui.actionAutoSaveData->setVisible(false);
-    ui.actionAutoSaveBackgroundImage->setVisible(false);
-    ui.actionApplyTransparencyToLoaded->setVisible(false);
+    // options menu
+    pMenu = pMenuActions[3]->menu();    
+                                                    // 14 - language
+    pMenu->removeAction(pMenu->actions()[13]);      // separator
+    pMenu->removeAction(pMenu->actions()[12]);      //  Auto save before print
+    pMenu->removeAction(pMenu->actions()[11]);      //  Auto save background image
+    pMenu->removeAction(pMenu->actions()[10]);      //  Auto save data
+                                                    // 9 - separator
+    pMenu->removeAction(pMenu->actions()[8]);       //  Load Background Image 
+    pMenu->removeAction(pMenu->actions()[7]);       // separator
+    pMenu->removeAction(pMenu->actions()[6]);       //  Screenshot Transparency
+                                                    // 5 -Allow multiple program instances
+                                                    // 4 - separator
+                                                    // 3 - Show page guides
+    pMenu->removeAction(pMenu->actions()[2]);       //  paper width
+    pMenu->removeAction(pMenu->actions()[1]);       //  grid
+
+
+    //ui.actionLoadBackground->setVisible(false);
+    //ui.actionScreenshotTransparency->setVisible(false);
+
+    //ui.actionAutoSaveData->setVisible(false);
+    //ui.actionAutoSaveBackgroundImage->setVisible(false);
+    //ui.actionApplyTransparencyToLoaded->setVisible(false);
     ui.menuGrid->removeAction(ui.menuGrid->actions()[2]);
-    pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]); // paper width
-    pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]); // grid
-    pMenuActions[3]->menu()->removeAction(pMenuActions[3]->menu()->actions()[1]); // grid
 
     removeToolBar(ui.mainToolBar);
 }
@@ -182,6 +204,13 @@ void FalconBoard::RestoreState()
             return;
         }
     }
+    bool b = s->value(SINGLE, true).toBool();
+    ui.actionAllowMultipleProgramInstances->setChecked(!b);
+
+
+    b = s->value(AUTOSAVEPRINT, false).toBool();
+    ui.actionAutoSaveBeforePrintOrExport->setChecked(b);
+
     qs = s->value(MODE, "s").toString();
 
     switch (qs[0].unicode())
@@ -200,7 +229,7 @@ void FalconBoard::RestoreState()
     n = s->value(PAGEGUIDES, 0).toInt(0);
     ui.actionShowPageGuides->setChecked(n);
     _drawArea->SetPageGuidesOn(n);
-    bool b = s->value(LIMITED, true).toBool();
+    b = s->value(LIMITED, true).toBool();
     ui.actionLimitPaperWidth->setChecked(b);    // default: checked
 #ifndef _VIEWER
     _drawArea->SetLimitedPage(b);
@@ -1465,6 +1494,24 @@ void FalconBoard::on_actionSaveAs_triggered() // current tab
     _SetResetChangedMark(-1);
 }
 
+void FalconBoard::on_actionAppend_triggered()
+{
+    QStringList fileNames = QFileDialog::getOpenFileNames(this,
+        tr("Load Data"),
+        _lastDir, // QDir::currentPath(),
+        tr("FalconBoard files (*.mwb);;All files (*)"));
+    if (fileNames.isEmpty())     // cancelled
+        return;
+
+    _SaveLastDirectory(fileNames[0]);
+    int n = _pTabs->currentIndex();
+    _drawArea->Append(fileNames);
+#ifndef _VIEWER
+    if (_eraserOn)
+        on_action_Eraser_triggered();
+#endif
+}
+
 void FalconBoard::on_actionLoadBackground_triggered()
 {
     _sImageName = QFileDialog::getOpenFileName(this,
@@ -1532,6 +1579,13 @@ void FalconBoard::on_actionDarkMode_triggered()
 void FalconBoard::on_actionBlackMode_triggered()
 {
     _SetupMode(smBlack);
+}
+
+void FalconBoard::on_actionAllowMultipleProgramInstances_triggered()
+{
+    QSettings* s = FBSettings::Open(); 
+    s->setValue(SINGLE, !ui.actionAllowMultipleProgramInstances->isChecked());
+    FBSettings::Close();
 }
 
 void FalconBoard::SlotForAddNewTab(QString name)
@@ -2025,6 +2079,9 @@ void FalconBoard::on_actionPageSetup_triggered()
 
 void FalconBoard::on_actionExportToPdf_triggered()
 {
+#ifndef _VIEWER
+    _QDoSaveModified(tr("export"));
+#endif
     QString saveName = _drawArea->HistoryName();
     int pos = saveName.lastIndexOf('/');
     QString name = _lastPDFDir + saveName.mid(pos+1);

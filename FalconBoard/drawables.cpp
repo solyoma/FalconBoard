@@ -315,6 +315,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 	int n;
 	ifs >> n; di.dtType = (DrawableType)n;
 	ifs >> di.startPos;
+	di.startPos += {0, di.yOffset};
 	ifs >> n;
 	di.SetPenKind((FalconPenKind)n);
 	ifs /*>> di.penColor*/ >> di.penWidth >> di.rot;
@@ -546,6 +547,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di) // topmost
 QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER header is read in
 {
 	ifs >> di.rect >> di.isFilled;
+	di.rect.translate(0, di.yOffset);
 	// eliipse always stored as having axes parallel to the coord axes
 	// but even when not we must set the _rotatedRectangle in it
 	MyRotation arot = di.rot;
@@ -655,6 +657,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di) // DrawableIte
 QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER header is read in
 {
 	ifs >> di.endPoint;
+	di.endPoint += {0, di.yOffset};
 	di.rot = MyRotation();	// endpoints were rotated before save
 	return ifs;
 }
@@ -766,6 +769,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di) // Drawab
 QDataStream& operator>>(QDataStream& ifs, DrawableRectangle& di)		  // call AFTER header is read in
 {
 	ifs >> di.rect >> di.isFilled;
+	di.rect.translate(0, di.yOffset);
 	// rectangle always stored as having axes parallel to the coord axes
 	// but even when not we must set the _rotatedRectangle in it
 	MyRotation arot = di.rot;
@@ -1008,6 +1012,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableScribble& di)	  // call AFTER 
 	di.points.clear();
 
 	ifs >> di.points;
+	di.points.translate({ 0, di.yOffset });
 	di.rot = MyRotation();	// rotated points were stored
 
 	return ifs;

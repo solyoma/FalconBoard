@@ -10,8 +10,12 @@ constexpr const char
 	*WINDOWSTATE = "windowState",
 	*VERSION= "version",
 	*LANG	= "lang",		// actual language
+
+	*SINGLE = "single",		// allow multiple program instances
+
 	*AUTOSAVEDATA = "saved",// automatic save of changed documents on close
 	*AUTOSBCKIMG = "saveb",	// automatic save of page background on close
+	*AUTOSAVEPRINT="saveonprint",	// auto save before print/ PDF
 
 	*RECENTLIST = "Recent",	// group for recent file list of max 9 recent files
 	*CNTRECENT = "cnt",		// count of recent files

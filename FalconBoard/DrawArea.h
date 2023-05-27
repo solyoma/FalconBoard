@@ -93,7 +93,8 @@ public:
     }
 
     //------------------------------------------------------
-    int Load();         // into current history
+    int Load();                         // into current history
+    int Append(QStringList &fileNames);       // to current history
     bool EnableRedraw(bool value);
 #ifndef _VIEWER
     SaveResult Save(QString name, int index=-1) 
@@ -358,6 +359,7 @@ private:
     bool _CanRotate(MyRotation rot);    // items inside _history->SelectionRect()
 #endif
     int _LoadCommon();
+    int _AppendCommon(QString & fileName, int yOffset);
     void _ClearCanvas();
 
     void _SetTopLeftFromItem(HistoryItem *phi);   // possibly sets _topLeft. Must _redraw after it

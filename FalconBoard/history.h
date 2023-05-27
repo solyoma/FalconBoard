@@ -366,7 +366,6 @@ struct HistoryPenWidthChangeItem : public HistoryItem
     int Redo() override;
 };
 
-
 // ******************************************************
 class History;
         // declare here so that CopySelected can use it, but 
@@ -459,6 +458,9 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
                                         // unscribble items have no indices in here
     bool _isSaved = false;              // clear after every change!
+
+    qreal _yOffsetForDataRead = 0;            // add this coordinate to every coordinate read 
+
     QRectF _clpRect;                    // clipping rectangle for selecting points to draw
                                         // before searching operations set this when it is changed
     QStack<QRectF> _savedClps;          // clipRect saves
@@ -488,8 +490,11 @@ class History  // stores all drawing sections and keeps track of undo and redo
         _driSelectedDrawablesAtLeft.clear();
     }
 
-    int _LoadV1(QDataStream &ifs, qint32 version, bool force = false);    // load version 1.X files
-    int _LoadV2(QDataStream &ifs, qint32 version_loaded, bool force = false);    // load version 2.X files
+    int _ReadV1(QDataStream &ifs,DrawableItem &di, qint32 version); // reads items from version 1.X files and returns count of read
+    int _ReadV2(QDataStream &ifs,DrawableItem &di);                 // reads items from version 2.X files and returns count of read
+
+    int _LoadV1(QDataStream &ifs, qint32 version);          // load version 1.X files
+    int _LoadV2(QDataStream &ifs, qint32 version_loaded);   // load version 2.X files
 
 public:
     GridOptions gridOptions;
@@ -554,7 +559,8 @@ public:
         Clear();
     }
 
-    int Load(quint32& version_loaded, bool force=false);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
+    int Load(quint32& version_loaded, bool force=false, int fromY=0);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
+    int Append(QString fileName, quint32& version_loaded, int fromY);
     void SetPageParamsFromHistory() const
     {
         PageParams::resolutionIndex = _resolutionIndex;

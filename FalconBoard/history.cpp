@@ -711,7 +711,7 @@ HistoryPenWidthChangeItem::HistoryPenWidthChangeItem(History* pHist, qreal chang
 	Redo();
 }
 
-HistoryPenWidthChangeItem::HistoryPenWidthChangeItem(const HistoryPenWidthChangeItem &o) :
+HistoryPenWidthChangeItem::HistoryPenWidthChangeItem(const HistoryPenWidthChangeItem& o) :
 	affectedIndexList(o.affectedIndexList), dw(o.dw), HistoryItem(o)
 {
 	if (affectedIndexList.isEmpty())				// will not be used or saved in callers!
@@ -752,8 +752,6 @@ int HistoryPenWidthChangeItem::Redo()
 	}
 	return 1;
 }
-
-
 
 //********************************** History class ****************************
 History::History(HistoryList* parent) noexcept: _parent(parent) 
@@ -1009,8 +1007,11 @@ SaveResult History::Save(QString name)
 
 /*========================================================
  * TASK:	Loads saved file whose name is set into _fileName
- * PARAMS:	'force' load it even when already loaded
+ * PARAMS:	'version_loaded' set version of loaded file into this
+ *			'force' load it even when already loaded
  *				in which case it overwrites data in memory
+ *			'fromY' - add this to the y coord of every point loaded
+ *						(used for append)
  * GLOBALS: _fileName, _inLoad,_readCount,_items,
  *			_screenShotImageList,_modified, 
  * RETURNS:   -1: file does not exist
@@ -1022,13 +1023,15 @@ SaveResult History::Save(QString name)
  *			- when 'force' clears data first
  *			- both _fileName and _loadedName can be empty
  *-------------------------------------------------------*/
-int History::Load(quint32& version_loaded, bool force)
+int History::Load(quint32& version_loaded, bool force, int fromY)
 {
 	if (_fileName.isEmpty())
 		return 1;			//  no record loaded, but this is not an error
 
 	if (!force && _fileName == _loadedName)	// already loaded?
 		return _readCount;
+
+	_yOffsetForDataRead = fromY;
 
 	QFile f(_fileName);
 	f.open(QIODevice::ReadOnly);
@@ -1048,70 +1051,76 @@ int History::Load(quint32& version_loaded, bool force)
 	
 	int res;
 	if ((version_loaded & 0x00FF0000) < 0x020000)
-		res = _LoadV1(ifs, version_loaded,  force);
+		res = _LoadV1(ifs, version_loaded);
 	else
-		res = _LoadV2(ifs, version_loaded, force);
+		res = _LoadV2(ifs, version_loaded);
 						 
 	f.close();
 	return res;
 }
 
-int History::_LoadV2(QDataStream&ifs, qint32 version_loaded, bool force)
+int History::Append(QString fileName, quint32& version_loaded, int fromY)
 {
-	uint16_t u = 0;
+	if (_fileName.isEmpty())
+		return 1;			//  no record loaded, but this is not an error
 
-	ifs >> u;
-	gridOptions = u;
+	if (_fileName == _loadedName)	// don't append itself to itself
+		return _readCount;
+	QFile f(_fileName);
+	f.open(QIODevice::ReadOnly);
+	if (!f.isOpen())
+		return -1;			// File not found
 
-	if (version_loaded > 0x56020200)
-		ifs >> _resolutionIndex >> _pageWidthInPixels >> _useResInd;
+	QDataStream ifs(&f);
+	qint32 id;
+	ifs >> id;
+	if (id != MAGIC_ID)
+		return 0;			// read error
+	ifs >> version_loaded;		// like 0x56020101 for V 2.1.1
+	if ((version_loaded >> 24) != 'V')	// invalid/damaged  file or old version format
+		return 0;
 
-	DrawableItem dh;
+	DrawableItem di;
+	di.yOffset = _yOffsetForDataRead;		
+	int nPosBottom = _items.size();
+	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, nPosBottom, -1);
+	_AddItem(pb);			   // added at index 'nPosBottom'
+				// read items
+	int nReadLines;
+	if ((version_loaded & 0x00FF0000) < 0x020000)
+		nReadLines = _ReadV1(ifs, di, version_loaded);
+	else
+		nReadLines = _ReadV2(ifs, di);
 
-// z order counters are reset
-	DrawableItem di, * pdrwh;
-	DrawableDot dDot;
-	DrawableCross dCross;
-	DrawableEllipse dEll;
-	DrawableLine dLin;
-	DrawableRectangle dRct;
-	DrawableScribble dScrb;
-	DrawableText dTxt;
-	DrawableScreenShot dsImg;
-
-	int n = 0;
-	while (!ifs.atEnd())
+	if (nReadLines < 0)	// error in appending file
 	{
-		++n;
-		ifs >> di;
-
-		switch (di.dtType)
+		if (nReadLines < -2)				// read some lines
+			nReadLines = -nReadLines + 2;
+		else  // no lines read
 		{
-			case DrawableType::dtDot:			(DrawableItem&)dDot   = di; ifs >> dDot;	pdrwh = &dDot;	break;
-			case DrawableType::dtCross:			(DrawableItem&)dCross = di; ifs >> dCross;	pdrwh = &dCross;break;
-			case DrawableType::dtEllipse:		(DrawableItem&)dEll	  = di; ifs >> dEll;	pdrwh = &dEll;	break;
-			case DrawableType::dtLine:			(DrawableItem&)dLin   = di; ifs >> dLin;	pdrwh = &dLin;	break;
-			case DrawableType::dtRectangle:		(DrawableItem&)dRct   = di; ifs >> dRct;	pdrwh = &dRct;	break;
-			case DrawableType::dtScreenShot:	(DrawableItem&)dsImg  = di; ifs >> dsImg;	pdrwh = &dsImg;	break;
-			case DrawableType::dtScribble:		(DrawableItem&)dScrb  = di; ifs >> dScrb;	pdrwh = &dScrb;	break;
-			case DrawableType::dtText:			(DrawableItem&)dTxt   = di; ifs >> dTxt;	pdrwh = &dTxt;	break;
-			default: break;
+			_items.pop_back();	// drop history item for append
+			return 0;
 		}
-		(void)AddDrawableItem(*pdrwh); // this will add the drawable to the list and sets its zOrder too
-		di.erasers.clear();
 	}
+		// set correct count
+	pb = reinterpret_cast<HistoryPasteItemBottom*>(_items[nPosBottom]);
+	pb->count = nReadLines;
+	int nTop = _items.size();
+	QuadArea qarea = _quadTreeDelegate.Area();
+	QRectF rect = { 0, _yOffsetForDataRead, qarea.Width(), qarea.Bottom() - _yOffsetForDataRead };
+	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, nPosBottom, nReadLines, rect);
+	_AddItem(pt);
+	f.close();
 
-	_loadedName = _fileName;
+	_yOffsetForDataRead = qarea.Top();
 
-	return _readCount = _lastSaved = n;
+	return nReadLines;
 }
 
+int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// returns OK: count of items read
+{																			//        ERR: -(count read so far +2)
+	DrawableItem *pdrwh;
 
-int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
-{
-	_inLoad = true;
-
-	DrawableItem dh, * pdrwh;
 	DrawableDot dDot;
 	DrawableLine dLin;
 	DrawableRectangle dRct;
@@ -1119,7 +1128,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 	DrawableScreenShot dsImg;
 
 // z order counters are reset
-	int n;
+	int n, nRead = _items.size();
 	while (!ifs.atEnd())
 	{
 		ifs >> n;	// HistEvent				
@@ -1209,14 +1218,84 @@ int History::_LoadV1(QDataStream &ifs, qint32 version, bool force)
 			if (ifs.status() != QDataStream::Ok)
 			{
 				_inLoad = false;
-				return -(_items.size() + 2);
+				return -((_items.size() - nRead) + 2);
 			}
 		}
 		(void)AddDrawableItem(*pdrwh);	// this will add the drawable to the list and sets its zOrder too
 	}
+	return   _items.size() - nRead;
+}
+int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
+{
+// z order counters are reset
+	DrawableItem * pdrwh;
+	DrawableDot dDot;
+	DrawableCross dCross;
+	DrawableEllipse dEll;
+	DrawableLine dLin;
+	DrawableRectangle dRct;
+	DrawableScribble dScrb;
+	DrawableText dTxt;
+	DrawableScreenShot dsImg;
+
+	int nRead = _items.count();
+	while (!ifs.atEnd())
+	{
+		ifs >> di;
+
+		switch (di.dtType)
+		{
+			case DrawableType::dtDot:			(DrawableItem&)dDot   = di; ifs >> dDot;	pdrwh = &dDot;	break;
+			case DrawableType::dtCross:			(DrawableItem&)dCross = di; ifs >> dCross;	pdrwh = &dCross;break;
+			case DrawableType::dtEllipse:		(DrawableItem&)dEll	  = di; ifs >> dEll;	pdrwh = &dEll;	break;
+			case DrawableType::dtLine:			(DrawableItem&)dLin   = di; ifs >> dLin;	pdrwh = &dLin;	break;
+			case DrawableType::dtRectangle:		(DrawableItem&)dRct   = di; ifs >> dRct;	pdrwh = &dRct;	break;
+			case DrawableType::dtScreenShot:	(DrawableItem&)dsImg  = di; ifs >> dsImg;	pdrwh = &dsImg;	break;
+			case DrawableType::dtScribble:		(DrawableItem&)dScrb  = di; ifs >> dScrb;	pdrwh = &dScrb;	break;
+			case DrawableType::dtText:			(DrawableItem&)dTxt   = di; ifs >> dTxt;	pdrwh = &dTxt;	break;
+			default: break;
+		}
+		(void)AddDrawableItem(*pdrwh); // this will add the drawable to the list and sets its zOrder too
+		di.erasers.clear();
+	}
+
+	return _items.count()-nRead;
+}
+
+int History::_LoadV1(QDataStream &ifs, qint32 version)
+{
+	_inLoad = true;
+
+	DrawableItem di;
+	di.yOffset = _yOffsetForDataRead;		
+
+	_lastSaved = 0;		
+
+	int res = _ReadV1(ifs, di, version);
+
+	_loadedName = _fileName;
+	return 	_readCount = _lastSaved += res;
+}
+int History::_LoadV2(QDataStream&ifs, qint32 version_loaded)
+{
+	uint16_t u = 0;
+
+	ifs >> u;
+	gridOptions = u;
+
+	if (version_loaded > 0x56020200)
+		ifs >> _resolutionIndex >> _pageWidthInPixels >> _useResInd;
+
+	DrawableItem di;
+	di.yOffset = _yOffsetForDataRead;		
+
+	_lastSaved = 0;		
+
+	int res = _ReadV2(ifs, di);
+
 	_loadedName = _fileName;
 
-	return  _readCount = _lastSaved = _items.size();
+	return 	_readCount = _lastSaved += res;
 }
 
 //--------------------- Add Items ------------------------------------------
@@ -1424,6 +1503,7 @@ HistoryItem* History::AddPenWidthChange(int increment)
 	return _AddItem(ppwch);
 }
 
+
 //********************************************************************* History ***********************************
 
 void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
@@ -1451,7 +1531,7 @@ HistoryItem* History::Undo()      // returns item on top of _items or null
 
 	// ------------- first Undo top item
 	HistoryItem* phi = _items[--actItem];
-	int count = phi->Undo()-1;		// it will affect (count+1) elements (copy / paste )
+	int count = phi->Undo()-1;		// it will affect (count+1) elements (copy / paste / append)
 
 	_redoList.push_back(phi);		// move to redo list
 	_items.pop_back();				// and remove from _items

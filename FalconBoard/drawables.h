@@ -37,14 +37,15 @@ enum class HistEvent {
     heClearCanvas,          // visible image erased
     heEraserStroke,         // eraser stroke added
     heItemsDeleted,         // store the list of items deleted in this event
-    heItemsPastedBottom,// list of draw events added first drawn item is at index 'drawableItem'
-    heItemsPastedTop,    // list of draw events added first drawn item is at index 'drawableItem'
-                        // last one is at index 'lastScribbleIndex'
-                        // Undo: set _indexLastScribbleItem to that given in previous history item
-                        // Redo: set _indexLastScribbleItem to 'lastScribbleIndex'
+    heItemsPastedBottom,    // list of draw events added first drawn item is at index 'drawableItem'
+    heItemsPastedTop,       // list of draw events added first drawn item is at index 'drawableItem'
+                            // last one is at index 'lastScribbleIndex'
+                            // Undo: set _indexLastScribbleItem to that given in previous history item
+                            // Redo: set _indexLastScribbleItem to 'lastScribbleIndex'
     heRecolor,              // save old color, set new color
     heRotation,             // items rotated
-    hePenWidthChange,        // change pen widths for all drawables selected
+    hePenWidthChange,       // change pen widths for all drawables selected
+    heAppendFiles,          // file(s) appended to current data
     heSpaceDeleted,         // empty space is deleted
     heVertSpace,            // insert vertical space
                 };
@@ -531,6 +532,7 @@ struct DrawableItem : public DrawablePen
     MyRotation rot;         // used to store the actual state of the rotations and check if rotation is possible
     int   zOrder = -1;      // not saved. Drawables are saved from lowest zOrder to highest zOrder
     bool  isVisible = true;                              // not saved
+    qreal  yOffset = 0.0;      // add this to every coordinates read
     // eraser strokes for a drawables. Oonly those parts of the eraser stroke that intersects the bounding rectangle of the
     // drawable plus an eraser pen width/2 wide margin are saved here. When drawing the drawable eraser strokes are
     // clipped to the bounding box of the drawable plus half of the pen width for scribbles rectangles and ellipses.
