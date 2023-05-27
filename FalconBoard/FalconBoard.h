@@ -318,6 +318,7 @@ private:
 				(QMessageBox::question(this, tr("FalconBoard - Question"), cs) == QMessageBox::Yes))
 			{
 				_drawArea->Save(_drawArea->HistoryName(), -1);
+				_SetResetChangedMark(-1);
 			}
 		}
 

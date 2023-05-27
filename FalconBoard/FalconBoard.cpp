@@ -1,5 +1,6 @@
 ﻿#include <QSpinBox>
 #include <QSpinBox>
+#include <QSpinBox>
 #include <QLabel>
 #include <QScreen>
 #include <QPainter>
@@ -391,6 +392,7 @@ void FalconBoard::SaveState()
     QColor c = _screenshotTransparencyColor;
     c.setAlphaF(_transparencyFuzzyness);
     s->setValue(TRANSC, c.name(QColor::HexArgb));
+    s->setValue(AUTOSAVEPRINT, ui.actionAutoSaveBeforePrintOrExport->isChecked());
 #endif
     s->remove(TABS);
     int nFilesToRestore = _pTabs->count();      // 1,2,...
