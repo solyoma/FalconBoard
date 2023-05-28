@@ -359,7 +359,7 @@ private:
     bool _CanRotate(MyRotation rot);    // items inside _history->SelectionRect()
 #endif
     int _LoadCommon();
-    int _AppendCommon(QString & fileName, int yOffset);
+    int _AppendCommon(QString & fileName);
     void _ClearCanvas();
 
     void _SetTopLeftFromItem(HistoryItem *phi);   // possibly sets _topLeft. Must _redraw after it

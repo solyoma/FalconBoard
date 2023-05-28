@@ -532,7 +532,7 @@ struct DrawableItem : public DrawablePen
     MyRotation rot;         // used to store the actual state of the rotations and check if rotation is possible
     int   zOrder = -1;      // not saved. Drawables are saved from lowest zOrder to highest zOrder
     bool  isVisible = true;                              // not saved
-    qreal  yOffset = 0.0;      // add this to every coordinates read
+    static qreal  yOffset;  // add this to every coordinates read including erasers
     // eraser strokes for a drawables. Oonly those parts of the eraser stroke that intersects the bounding rectangle of the
     // drawable plus an eraser pen width/2 wide margin are saved here. When drawing the drawable eraser strokes are
     // clipped to the bounding box of the drawable plus half of the pen width for scribbles rectangles and ellipses.
@@ -1399,7 +1399,7 @@ public:
 
     IntVector ListOfItemIndicesInRect(QRectF& r) const; // ordered by z-order then y, then x
     IntVector ListOfItemIndicesInQuadArea(QuadArea& r) const; // ordered by z-order then y, then x
-    QPointF DrawableList::BottomRightLimit(QSize& screenSize);
+    QPointF DrawableList::BottomRightLimit(QSize screenSize);
 
     DrawableItem* FirstVisibleDrawable(QRectF& r)  // smallest in zOrder
     {

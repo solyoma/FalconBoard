@@ -635,6 +635,7 @@ void FalconBoard::_CloseTab(int index)
         _AddNewTab(QString(), false);
 
     _drawArea->SwitchToHistory(_nLastTab, !cnt);
+    ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
 }
 
 #ifndef _VIEWER
@@ -702,6 +703,8 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
         _SaveFile(saveName);             // sets _saveResult
 
     _drawArea->SwitchToHistory(_nLastTab, true);
+    ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
+
     return _saveResult;
 }
 
@@ -1127,6 +1130,7 @@ void FalconBoard::showEvent(QShowEvent* event)
             if (_pTabs->count() == 1)
             {
                 _drawArea->SwitchToHistory(0, true);
+                ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
             }
             else if(_nLastTab == _pTabs->currentIndex())
             {
@@ -1222,6 +1226,7 @@ void FalconBoard::on_actionNew_triggered()
     _drawArea->SetLimitedPage(b);
 
     _AddNewTab(QString(), false, true);
+    ui.actionAppend->setEnabled(false);
 
     //_drawArea->NewData();
     setWindowTitle(sWindowTitle);
@@ -1246,7 +1251,11 @@ bool FalconBoard::_LoadData(int index)
         _SetPenKind();
 #endif
         _AddToRecentList(_drawArea->HistoryName(index));
+        ui.actionAppend->setEnabled(true);
     }
+    else
+        ui.actionAppend->setEnabled(false);
+
     _drawArea->EnableRedraw(true);
 
     return res;
@@ -1631,6 +1640,7 @@ void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
         _drawArea->SwitchToHistory(index, true);
         _SetWindowTitle(_drawArea->HistoryName());
     }
+    ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
     _nLastTab = index;
 }
 

@@ -7,6 +7,8 @@
 	bool isDebugMode = false;
 #endif
 
+	// static member
+qreal	DrawableItem::yOffset = 0.0;
 
 
 QRectF QuadAreaToArea(const QuadArea& qarea)
@@ -315,7 +317,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 	int n;
 	ifs >> n; di.dtType = (DrawableType)n;
 	ifs >> di.startPos;
-	di.startPos += {0, di.yOffset};
+	di.startPos += {0, DrawableItem::yOffset};
 	ifs >> n;
 	di.SetPenKind((FalconPenKind)n);
 	ifs /*>> di.penColor*/ >> di.penWidth >> di.rot;
@@ -324,6 +326,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 	{
 		DrawableItem::EraserData ed;
 		ifs >> ed.eraserPenWidth >> ed.eraserStroke;	// saved un-rotated when items read are rotated after, no need to rotate them
+		if(DrawableItem::yOffset)
+			ed.eraserStroke.translate({ 0, DrawableItem::yOffset } );
 		di.erasers.push_back(ed);
 	}
 	// the real (derived class)  data cannot be read here into a DrawableItem
@@ -547,7 +551,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di) // topmost
 QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER header is read in
 {
 	ifs >> di.rect >> di.isFilled;
-	di.rect.translate(0, di.yOffset);
+	di.rect.translate(0, DrawableItem::yOffset);
 	// eliipse always stored as having axes parallel to the coord axes
 	// but even when not we must set the _rotatedRectangle in it
 	MyRotation arot = di.rot;
@@ -657,7 +661,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di) // DrawableIte
 QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER header is read in
 {
 	ifs >> di.endPoint;
-	di.endPoint += {0, di.yOffset};
+	di.endPoint += {0, DrawableItem::yOffset};
 	di.rot = MyRotation();	// endpoints were rotated before save
 	return ifs;
 }
@@ -769,7 +773,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di) // Drawab
 QDataStream& operator>>(QDataStream& ifs, DrawableRectangle& di)		  // call AFTER header is read in
 {
 	ifs >> di.rect >> di.isFilled;
-	di.rect.translate(0, di.yOffset);
+	di.rect.translate(0, DrawableItem::yOffset);
 	// rectangle always stored as having axes parallel to the coord axes
 	// but even when not we must set the _rotatedRectangle in it
 	MyRotation arot = di.rot;
@@ -1012,7 +1016,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableScribble& di)	  // call AFTER 
 	di.points.clear();
 
 	ifs >> di.points;
-	di.points.translate({ 0, di.yOffset });
+	di.points.translate({ 0, DrawableItem::yOffset });
 	di.rot = MyRotation();	// rotated points were stored
 
 	return ifs;
@@ -1056,7 +1060,7 @@ IntVector DrawableList::ListOfItemIndicesInQuadArea(QuadArea& q) const
 	return _pQTree ? _pQTree->GetValues(&_items, q) : IntVector();
 }
 
-QPointF DrawableList::BottomRightLimit(QSize& screenSize)
+QPointF DrawableList::BottomRightLimit(QSize screenSize)
 {
 	QPointF pt;
 	int ixBottom = 0;

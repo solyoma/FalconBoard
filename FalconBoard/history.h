@@ -459,8 +459,6 @@ class History  // stores all drawing sections and keeps track of undo and redo
                                         // unscribble items have no indices in here
     bool _isSaved = false;              // clear after every change!
 
-    qreal _yOffsetForDataRead = 0;            // add this coordinate to every coordinate read 
-
     QRectF _clpRect;                    // clipping rectangle for selecting points to draw
                                         // before searching operations set this when it is changed
     QStack<QRectF> _savedClps;          // clipRect saves
@@ -560,7 +558,7 @@ public:
     }
 
     int Load(quint32& version_loaded, bool force=false, int fromY=0);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
-    int Append(QString fileName, quint32& version_loaded, int fromY);
+    int Append(QString fileName, quint32& version_loaded);
     void SetPageParamsFromHistory() const
     {
         PageParams::resolutionIndex = _resolutionIndex;
@@ -594,7 +592,7 @@ public:
     HistoryItem* operator[](DrawableItemIndex dri);   // index: absolute index
     HistoryItem* operator[](DrawableItemIndex dri) const { return _items[dri.index]; }  // index: physical index in _items
 
-    QPointF BottomRightLimit(QSize &screenSize);      // returns bottom right coordinate of last visible item
+    QPointF BottomRightLimit(QSize screenSize);      // returns bottom right coordinate of last visible item
 
 //--------------------- Add Items ------------------------------------------
     int AddExistingDrawableItem(DrawableItem* pdrh);  // only add drawable Items here

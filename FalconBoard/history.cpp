@@ -852,7 +852,7 @@ int History::RightMostInBand(QRectF rect)
 }
 
 
-QPointF History::BottomRightLimit(QSize &screenSize)
+QPointF History::BottomRightLimit(QSize screenSize)
 {
 	return _drawables.BottomRightLimit(screenSize);
 }
@@ -999,7 +999,7 @@ SaveResult History::Save(QString name)
 
 	f.rename(name);
 
-	_readCount = _lastSaved = _items.count();	// saved at this point
+	/*_readCount = */ _lastSaved = _items.count();	// saved at this point
 
 	return srSaveSuccess;
 }
@@ -1031,7 +1031,7 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 	if (!force && _fileName == _loadedName)	// already loaded?
 		return _readCount;
 
-	_yOffsetForDataRead = fromY;
+	DrawableItem::yOffset = 0.0;
 
 	QFile f(_fileName);
 	f.open(QIODevice::ReadOnly);
@@ -1059,14 +1059,14 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 	return res;
 }
 
-int History::Append(QString fileName, quint32& version_loaded, int fromY)
+int History::Append(QString fileName, quint32& version_loaded)
 {
-	if (_fileName.isEmpty())
+	if (fileName.isEmpty())
 		return 1;			//  no record loaded, but this is not an error
 
-	if (_fileName == _loadedName)	// don't append itself to itself
+	if (fileName == _loadedName)	// don't append itself to itself
 		return _readCount;
-	QFile f(_fileName);
+	QFile f(fileName);
 	f.open(QIODevice::ReadOnly);
 	if (!f.isOpen())
 		return -1;			// File not found
@@ -1081,7 +1081,7 @@ int History::Append(QString fileName, quint32& version_loaded, int fromY)
 		return 0;
 
 	DrawableItem di;
-	di.yOffset = _yOffsetForDataRead;		
+	DrawableItem::yOffset = BottomRightLimit(QSize()).y();
 	int nPosBottom = _items.size();
 	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, nPosBottom, -1);
 	_AddItem(pb);			   // added at index 'nPosBottom'
@@ -1090,7 +1090,16 @@ int History::Append(QString fileName, quint32& version_loaded, int fromY)
 	if ((version_loaded & 0x00FF0000) < 0x020000)
 		nReadLines = _ReadV1(ifs, di, version_loaded);
 	else
+	{
+		uint16_t u = 0;
+		int n;
+		bool b;
+
+		ifs >> u;	// drop grid options
+		if (version_loaded > 0x56020200)	// and
+			ifs >> n >> n >> b;				// resolution Index, page Width In Pixels, use Resolution Index flag
 		nReadLines = _ReadV2(ifs, di);
+	}
 
 	if (nReadLines < 0)	// error in appending file
 	{
@@ -1107,12 +1116,10 @@ int History::Append(QString fileName, quint32& version_loaded, int fromY)
 	pb->count = nReadLines;
 	int nTop = _items.size();
 	QuadArea qarea = _quadTreeDelegate.Area();
-	QRectF rect = { 0, _yOffsetForDataRead, qarea.Width(), qarea.Bottom() - _yOffsetForDataRead };
+	QRectF rect = { 0, DrawableItem::yOffset, qarea.Width(), qarea.Bottom() - DrawableItem::yOffset };
 	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, nPosBottom, nReadLines, rect);
 	_AddItem(pt);
 	f.close();
-
-	_yOffsetForDataRead = qarea.Top();
 
 	return nReadLines;
 }
@@ -1267,7 +1274,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version)
 	_inLoad = true;
 
 	DrawableItem di;
-	di.yOffset = _yOffsetForDataRead;		
+	di.yOffset = 0;		
 
 	_lastSaved = 0;		
 
@@ -1287,7 +1294,7 @@ int History::_LoadV2(QDataStream&ifs, qint32 version_loaded)
 		ifs >> _resolutionIndex >> _pageWidthInPixels >> _useResInd;
 
 	DrawableItem di;
-	di.yOffset = _yOffsetForDataRead;		
+	di.yOffset = 0;		
 
 	_lastSaved = 0;		
 
