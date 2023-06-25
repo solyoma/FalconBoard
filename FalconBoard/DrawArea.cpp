@@ -1126,7 +1126,7 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 #ifndef _VIEWER
 	if (_rubberBand)
 	{
-		_SanitizePointF(epos);
+		_SanitizePointF(epos);	  // although it almost never happens that x or y is negative
 		
 		if (_spaceBarDown && (event->buttons & Qt::LeftButton))
 		{
@@ -1144,6 +1144,7 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 			if (!dr.manhattanLength())
 				return;
 			dr = -dr;
+
 			_ShiftOrigin(dr);
 
 			if (!event->fromPen)    // else already redrawn
@@ -1196,7 +1197,10 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 			else
 				lastpos = epos;
 								// Multiple screens ?????
-			QPointF  dr = (epos - _lastPointC);   // displacement vector	
+			QPointF lpc = _lastPointC.x() >= 0 ? _lastPointC : epos;
+			if (_lastPointC.x() < 0)
+				_lastPointC = lpc;
+			QPointF  dr = (epos - lpc);   // displacement vector
 			if (!dr.manhattanLength()
 #ifndef _VIEWER
 				&& (_AutoScrollDirection(epos) != _ScrollDirection::scrollNone)
@@ -1211,12 +1215,6 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 					_RemoveScrollTimer();
 				else
 					_AddScrollTimer();
-				// DEBUG
-				//if (_pSprite && _pSprite->visible)
-				//	qDebug("_pSprite before:topLeft:(%g,%g)", (_pSprite->topLeft + _topLeft).x(), (_pSprite->topLeft + _topLeft).y());
-
-				// DEBUG
-				//qDebug("      dr=(%g, %g)", dr.x(), dr.y());
 
 				int spriteMoved = _MoveSprite(dr);
 
@@ -1226,13 +1224,6 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 					_lastPointC.setY( epos.y());
 				//event->pos = _lastPointC.toPoint();
 				QCursor::setPos(mapToGlobal(_lastPointC.toPoint()));
-
-				// DEBUG
-				//if (_pSprite && _pSprite->visible)
-				//	qDebug("         after: topLeft:(%g,%g)", (_pSprite->topLeft + _topLeft).x(), (_pSprite->topLeft + _topLeft).y());
-				//	//DEBUG
-				//qreal ax = (epos+_topLeft).x(), ay = (epos+_topLeft).y(), bx = (_lastPointC + _topLeft).x(), by = (_lastPointC + _topLeft).y();
-				//qDebug("event->pos: (%g, %g), _lastPointC: (%g,%g)", ax, ay, bx, by);
 			}
 			else
 			{
@@ -1601,7 +1592,6 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
 	_lastScribbleItem.bSmoothDebug = _bSmoothDebug;
 	// end DEBUG
 	_lastScribbleItem.SetPenKind(_actPenKind);
-//	_lastScribbleItem.SetPenColor();
 	_lastScribbleItem.penWidth = _actPenWidth;
 	_lastScribbleItem.startPos = _lastPointC + _topLeft;
 	_lastScribbleItem.zOrder = _history->GetZorder(false);
@@ -1645,7 +1635,9 @@ bool DrawArea::_CanRotate(MyRotation rot)
 void DrawArea::_AddScrollTimer()
 {
 	if (_pScrollTimer)  // already added
+	{
 		return;
+	}
 
 	_pScrollTimer = new QTimer(this);
 	connect(_pScrollTimer, &QTimer::timeout, this, &DrawArea::_ScrollTimerSlot);
@@ -1661,6 +1653,8 @@ void DrawArea::_AddScrollTimer()
  *------------------------------------------------------------*/
 void DrawArea::_RemoveScrollTimer()
 {
+	// DEBUG
+	qDebug("RemovedScrollTimer. Scrolltimer was %s", _pScrollTimer ? "present":"not set");
 	delete _pScrollTimer;
 	_pScrollTimer = nullptr;
 }
@@ -1676,8 +1670,9 @@ void DrawArea::_ScrollTimerSlot()
 {
 	QPointF dr;
 	constexpr const qreal count = 4;
-	qreal delta = 5; // total move: count * delta
-	for (int i = 0; i < 4; ++i)
+	qreal delta = 5.0; // total move: count * delta
+
+	for (int i = 0; i < count; ++i)
 	{
 		switch (_scrollDir)
 		{
@@ -1685,25 +1680,34 @@ void DrawArea::_ScrollTimerSlot()
 
 			case _ScrollDirection::scrollUp:
 				dr = { 0, delta };
+				// DEBUG
+//				qDebug("            Scroll up, _lastPointC=%f:%f", _lastPointC.x(), _lastPointC.y());
 				break;
 			case _ScrollDirection::scrollDown:
 				if (_pSprite && _pSprite->topLeft.y() + _topLeft.y() - delta < 0)
 					delta = _pSprite->topLeft.y();
 				dr = { 0, -delta };
+				// DEBUG
+//				qDebug("            Scroll down, _lastPointC=%f:%f", _lastPointC.x(), _lastPointC.y());
 				break;
 			case _ScrollDirection::scrollLeft:
 				dr = { delta, 0 };
+//				qDebug("            Scroll left, _lastPointC=%f:%f", _lastPointC.x(), _lastPointC.y());
 				break;
 			case _ScrollDirection::scrollRight:
 				if (_pSprite && _pSprite->topLeft.x() + _topLeft.x() - delta < 0)
 					delta = _pSprite->topLeft.x();
 				dr = { -delta, 0 };
+				// DEBUG
+//				qDebug("            Scroll right, _lastPointC=%f:%f", _lastPointC.x(), _lastPointC.y());
 				break;
 		}
+	// DEBUG
+//	qDebug("            count:%d, delta:%f, dr=(%f,%f)", i, delta, dr.x(), dr.y());
 		if(delta > 0)
-			_ShiftAndDisplayBy(dr, false);
+			_ShiftAndDisplayBy(dr, false);	  // changes _topLeft and redraws part of the screen
 	}
-	//    qDebug("dr=%d:%d, _lastPointC=%d:%d", dr.x(),dr.y(), _lastPointC.x(), _lastPointC.y());
+//	qDebug("             dr=(%f:%f), _lastPointC=%f:%f", dr.x(),dr.y(), _lastPointC.x(), _lastPointC.y());
 }
 
 /*=============================================================
@@ -2575,7 +2579,7 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
  *          - delta.x() > 0 - moves viewport right (diplayed left)
  *            delta.y() > 0 - moves viewport down (displayed up)
  *-------------------------------------------------------*/
-void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
+void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)
 {
 	if (_topLeft.y() + delta.y() < 0)
 		delta.setY(-_topLeft.y());
@@ -2590,7 +2594,10 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
 		delta .setY(-_topLeft.y());
 
 	if (delta.isNull())
+	{ // DEBUG
+//		qDebug("          => exit #1 _ShiftAndDisplay line #2625, delta: (%g,%g), lastPointC:(%g,%g)", delta.x(), delta.y(), _lastPointC.x(), _lastPointC.y());
 		return;      // nothing to do
+	}
 
 	int dx = qAbs(delta.x()), dy = qAbs(delta.y());
 	if (/*smooth && */ (dx <= PageParams::screenPageWidth / 10) && (dy <= _screenHeight / 10))
@@ -2605,21 +2612,31 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta change
 		{
 			_clippingRect = clip1;
 			_Redraw(false);
+ // DEBUG
+//			qDebug("             => after _ReDraw #1 line# 2643  _ShiftAndDisplay line #2625, delta: (%g,%g), lastPointC:(%g,%g)", delta.x(), delta.y(), _lastPointC.x(), _lastPointC.y());
 		}
 		if (clip2.isValid())
 		{
 			_clippingRect = clip2;
 			_Redraw(false);
+// DEBUG
+//			qDebug("             => after _ReDraw #2 line# 2650  _ShiftAndDisplay line #2625, delta: (%g,%g), lastPointC:(%g,%g)", delta.x(), delta.y(), _lastPointC.x(), _lastPointC.y());
 		}
 		_clippingRect = _canvasRect;
 		update();
+// DEBUG
+//		qDebug("             => after update() #2 line# 2650  _ShiftAndDisplay line #2625, delta: (%g,%g), lastPointC:(%g,%g)", delta.x(), delta.y(), _lastPointC.x(), _lastPointC.y());
 
 	}
 	else
 	{
 		_ShiftOrigin(delta);
 		_Redraw();
+// DEBUG
+///			qDebug("             => after _ReDraw #3 line# 2650  _ShiftAndDisplay line #2625, delta: (%g,%g), lastPointC:(%g,%g)", delta.x(), delta.y(), _lastPointC.x(), _lastPointC.y());
 	}
+// DEBUG
+//	qDebug("          => exit _ShiftAndDisplay line #2655, delta: (%g,%g), lastPointC:(%g,%g)", delta.x(), delta.y(), _lastPointC.x(), _lastPointC.y());
 }
 void DrawArea::_PageUp()
 {
@@ -2819,7 +2836,7 @@ int DrawArea::_MoveSprite(QPointF dr)
 	int result = 3;
 	QPointF stl = _pSprite->topLeft + dr + _topLeft;	// document relative position
 	// DEBUG
-	//qDebug("dr:(%g,%g), stl: (%g,%g), _topLeft:(%g, %g)", dr.x(), dr.y(), stl.x(), stl.y(), _topLeft.x(), _topLeft.y());
+	qDebug("_MoveSprite line #2846  dr:(%g,%g), stl: (%g,%g), _topLeft:(%g, %g)", dr.x(), dr.y(), stl.x(), stl.y(), _topLeft.x(), _topLeft.y());
 	if (stl.x() < 0)
 		result &= 2, stl.setX(0);		// comma!
 	if (stl.y() < 0)

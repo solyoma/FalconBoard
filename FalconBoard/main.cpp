@@ -57,27 +57,27 @@ int main(int argc, char *argv[])
 
 		// Try to connect to the named pipe
 		// DEBUG
-		qDebug("Trying to connect to pipe named '%s'", pipeName.toStdString().c_str());
+		//qDebug("Trying to connect to pipe named '%s'", pipeName.toStdString().c_str());
 		QLocalSocket socket;
 		socket.connectToServer(pipeName, QIODevice::WriteOnly);
 		if (socket.waitForConnected(1000))	// see if a server with 'pipeName' is running
 		{
 			// Another instance of the application is already running
 			// DEBUG
-			qDebug("  Another instance is running");
+			//qDebug("  Another instance is running");
 			// Send the command line arguments over the pipe
 			// DEBUG
-			qDebug("  writing '%s' to socket", arguments.constData());
+			//qDebug("  writing '%s' to socket", arguments.constData());
 			socket.write(arguments);
 			socket.flush();
 			bool success = socket.waitForBytesWritten(1000);
 			// DEBUG
-			qDebug("  write operation %s", success ? "successful" : "unsuccessful");
+			//qDebug("  write operation %s", success ? "successful" : "unsuccessful");
 			return success ? 0 : -1;
 		}
-		else
+		//else
 		// DEBUG
-			qDebug("Connection failed w. error '%s'",socket.errorString().toStdString().c_str());
+			//qDebug("Connection failed w. error '%s'",socket.errorString().toStdString().c_str());
 
 		// Application is not yet running. Create a local server to listen for connections from other instances
 		w.StartListenerThread(&a); // create new listener thread and start listeining on 'pipeName'
