@@ -1653,8 +1653,6 @@ void DrawArea::_AddScrollTimer()
  *------------------------------------------------------------*/
 void DrawArea::_RemoveScrollTimer()
 {
-	// DEBUG
-	qDebug("RemovedScrollTimer. Scrolltimer was %s", _pScrollTimer ? "present":"not set");
 	delete _pScrollTimer;
 	_pScrollTimer = nullptr;
 }
@@ -2835,16 +2833,12 @@ int DrawArea::_MoveSprite(QPointF dr)
 {
 	int result = 3;
 	QPointF stl = _pSprite->topLeft + dr + _topLeft;	// document relative position
-	// DEBUG
-	qDebug("_MoveSprite line #2846  dr:(%g,%g), stl: (%g,%g), _topLeft:(%g, %g)", dr.x(), dr.y(), stl.x(), stl.y(), _topLeft.x(), _topLeft.y());
 	if (stl.x() < 0)
 		result &= 2, stl.setX(0);		// comma!
 	if (stl.y() < 0)
 		result &= 1, stl.setY(0);		// comma!
 
 	_pSprite->topLeft = stl - _topLeft;
-	// DEBUG
-	//qDebug("            stl: (%g,%g)", stl.x(), stl.y());
 
 	update();
 	return result;

@@ -88,7 +88,7 @@ class Smoother
                     _average = newData;
             }
             // DEBUG
-            qDebug("in:(%4.1f, %4.1f), prev:(%4.1f, %4.1f), out:(%4.1f, %4.1f)", newData.x(),newData.y(), prevData.x(),prevData.y(),_average.x(),_average.y());
+//            qDebug("in:(%4.1f, %4.1f), prev:(%4.1f, %4.1f), out:(%4.1f, %4.1f)", newData.x(),newData.y(), prevData.x(),prevData.y(),_average.x(),_average.y());
             // end DEBUG
 
             return _average;
