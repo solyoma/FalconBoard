@@ -712,7 +712,7 @@
         </property>
         <layout class="QGridLayout" name="gridLayout">
          <item row="0" column="0" colspan="2">
-          <widget class="QCheckBox" name="chkPageNumbers_2">
+          <widget class="QCheckBox" name="chkPageNumbers">
            <property name="font">
             <font>
              <weight>50</weight>
@@ -1296,7 +1296,7 @@
   <tabstop>sbMarginTB</tabstop>
   <tabstop>sbGutterMargin</tabstop>
   <tabstop>cbPdfUnit</tabstop>
-  <tabstop>chkPageNumbers_2</tabstop>
+  <tabstop>chkPageNumbers</tabstop>
   <tabstop>rbTl</tabstop>
   <tabstop>rbTc</tabstop>
   <tabstop>rbTr</tabstop>

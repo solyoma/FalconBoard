@@ -33,7 +33,7 @@ const QString sWindowTitle =
         "FalconBoard";
 #endif
 
-struct MyPageSizes
+struct MyPageSize
 {
     double w, h;
     int index;
@@ -41,36 +41,52 @@ struct MyPageSizes
     QPageSize PageSize() { return QPageSize(pid); }
 };
 
-constexpr MyPageSizes myPageSizes[] =
-{    // in inches as resolution is always in dots / inch
-                //{ 1.041666667,  1.458333333,  0, QPageSize::}, //   A10
-                //{ 1.458333333,  2.041666667,  1, QPageSize::}, //   A9	
-                //{ 2.041666667,  2.916666667,  2, QPageSize::}, //   A8	
-                { 2.916666667,  4.125000000,  3, QPageSize::A7}, //   A7	
-                { 4.125000000,  5.833333333,  4, QPageSize::A6}, //   A6	
-                { 5.833333333,  8.250000000,  5, QPageSize::A5}, //   A5	
-                { 8.267716535, 11.692913386,  6, QPageSize::A4}, //   A4	
-                {11.708333333, 16.541666667,  7, QPageSize::A3}, //   A3	
-                {16.541666667, 23.375000000,  8, QPageSize::A2}, //   A2	
-                {23.375000000, 33.125000000,  9, QPageSize::A1}, //   A1	
-                {33.125000000, 46.791666667, 10, QPageSize::A0}, //   A0 
+struct MyPageSizes
+{
+    std::vector<MyPageSize> _myPageSizes = {
+        //              w               h        index   pid
+        // in inches as resolution is always in dots / inch
+                   //{ 1.041666667,  1.458333333,  0, QPageSize::}, //   A10
+                   //{ 1.458333333,  2.041666667,  1, QPageSize::}, //   A9	
+                   //{ 2.041666667,  2.916666667,  2, QPageSize::}, //   A8	
+                   { 2.916666667,  4.125000000,  3, QPageSize::A7}, //   A7	
+                   { 4.125000000,  5.833333333,  4, QPageSize::A6}, //   A6	
+                   { 5.833333333,  8.250000000,  5, QPageSize::A5}, //   A5	
+                   { 8.267716535, 11.692913386,  6, QPageSize::A4}, //   A4	
+                   {11.708333333, 16.541666667,  7, QPageSize::A3}, //   A3	
+                   {16.541666667, 23.375000000,  8, QPageSize::A2}, //   A2	
+                   {23.375000000, 33.125000000,  9, QPageSize::A1}, //   A1	
+                   {33.125000000, 46.791666667, 10, QPageSize::A0}, //   A0 
 
-                //{ 1.208333333,  1.750000000, 11, QPageSize::}, //   B10
-                //{ 1.750000000,  2.458333333, 12, QPageSize::}, //   B9 
-                //{ 2.458333333,  3.458333333, 13, QPageSize::}, //   B8 
-                { 3.458333333,  4.916666667, 14, QPageSize::B7}, //   B7 
-                { 4.916666667,  6.916666667, 15, QPageSize::B6}, //   B6 
-                { 6.916666667,  9.833333333, 16, QPageSize::B5}, //   B5 
-                { 9.833333333, 13.916666667, 17, QPageSize::B4}, //   B4 
-                {13.916666667, 19.666666667, 18, QPageSize::B3}, //   B3 
-                {19.666666667, 27.833333333, 19, QPageSize::B2}, //   B2 
-                {27.833333333, 39.375000000, 20, QPageSize::B1}, //   B1 
-                {39.375000000, 55.666666667, 21, QPageSize::B0}, //   B0 
+                   //{ 1.208333333,  1.750000000, 11, QPageSize::}, //   B10
+                   //{ 1.750000000,  2.458333333, 12, QPageSize::}, //   B9 
+                   //{ 2.458333333,  3.458333333, 13, QPageSize::}, //   B8 
+                   { 3.458333333,  4.916666667, 14, QPageSize::B7}, //   B7 
+                   { 4.916666667,  6.916666667, 15, QPageSize::B6}, //   B6 
+                   { 6.916666667,  9.833333333, 16, QPageSize::B5}, //   B5 
+                   { 9.833333333, 13.916666667, 17, QPageSize::B4}, //   B4 
+                   {13.916666667, 19.666666667, 18, QPageSize::B3}, //   B3 
+                   {19.666666667, 27.833333333, 19, QPageSize::B2}, //   B2 
+                   {27.833333333, 39.375000000, 20, QPageSize::B1}, //   B1 
+                   {39.375000000, 55.666666667, 21, QPageSize::B0}, //   B0 
 
-                {8.5, 11 , 22, QPageSize::Letter}, // US Letter, 
-                {2.5, 14 , 23, QPageSize::Legal}, // US Legal,     
-                {5.5, 8.5, 24, QPageSize::B6}  // US Stationary, // ?????????
+                   {8.5, 11 , 22, QPageSize::Letter}, // US Letter, 
+                   {2.5, 14 , 23, QPageSize::Legal}, // US Legal,     
+                   {5.5, 8.5, 24, QPageSize::B6}  // US Stationary, // ?????????
+    };
+    MyPageSize operator[](QPageSize::PageSizeId size)
+    {
+        for (auto &v : _myPageSizes)
+            if (v.pid == size)
+                return v;
+        return MyPageSize();
+    }
+    MyPageSize operator[](int index)
+    {
+        return _myPageSizes[index];
+    }
 };
+extern MyPageSizes myPageSizes; // in pagesetup.cpp
 
 struct MyScreenSizes
 {

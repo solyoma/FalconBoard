@@ -26,7 +26,7 @@ class MyPrinterData
 public:
     enum Unit {mpdInch, mpdDots};
 
-    QPointF topLeftOfCurrentPage;          // if only the current page is selected for printing this is 
+    QPointF topLeftOfCurrentPage;    // if only the current page is selected for printing this is 
                                      // the top left of that page. Set in DrawArea before printing
 
     QString directory;               // empty or ends with '/'

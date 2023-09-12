@@ -412,15 +412,15 @@ private:
 		{
 			QLocalSocket* clientSocket = _pLocalServer->nextPendingConnection();
 			// DEBUG
-			// qDebug("Listener Thread: connection detected for pipe '%s'", _pLocalServer->serverName().toStdString().c_str());
+			qDebug("Listener Thread: connection detected for pipe '%s'", _pLocalServer->serverName().toStdString().c_str());
 			if (clientSocket)
 			{
 				// DEBUG
-				//qDebug("               : clientSocket created");
+				qDebug("               : clientSocket created");
 				QByteArray data = clientSocket->readAll();
 				int siz = data.size();
 				// DEBUG
-				// qDebug("Listener Thread: data size: %d - processing", siz);
+				qDebug("Listener Thread: data size: %d - processing", siz);
 				if ((siz))
 				{
 					if (siz != TO_FRONT_SIZE || strcmp(data.constData(), TO_FRONT)) // then command line

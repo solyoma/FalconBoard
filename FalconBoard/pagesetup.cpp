@@ -16,7 +16,7 @@
 
 // static fields (one pageSetupDialog for the application)
 int		PageParams::resolutionIndex;		// screen resolution in resolution combobox (pixels)
-int		PageParams::paperId = 3;            // default: A4
+QPageSize::PageSizeId PageParams::paperSizeId = QPageSize::A4;
 int		PageParams::horizPixels;			// horizontal pixel count
 bool	PageParams::useResInd = true;		// use resolution index or horizPixels?
 int		PageParams::screenDiagonal;			// from text in 'edtScreenDiag' in inches
@@ -34,6 +34,8 @@ double	PageParams::pdfWidth, 			  	// page size in inches
 		PageParams::gutterMargin;			// left on odd, right on even pages inches
 bool	PageParams::_isLoaded = false;		// so we load it only once
 int		PageParams::pdfDpiIndex;					// 0,1,2: dots / inch = (pdfDpi * 300 + 300)
+
+MyPageSizes myPageSizes;
 
 QString   PageParams::actPrinterName;		// if not this is its name
 
@@ -54,7 +56,7 @@ auto PageParams::UnitToIndex(PageParams::UnitIndex ui)
 void PageParams::SetScreenWidth()
 {
 	screenPageWidth = useResInd ? myScreenSizes[resolutionIndex].w : horizPixels;
-	screenPageHeight = myPageSizes[paperId].h / myPageSizes[paperId].w * screenPageWidth;
+	screenPageHeight = myPageSizes[paperSizeId].h / myPageSizes[paperSizeId].w * screenPageWidth;
 }
 
 void PageParams::Load()
@@ -116,7 +118,7 @@ void PageParams::Save()
 
 // --------------------------------------------------------
 
-QPageSize::PageSizeId PageId(int index)
+QPageSize::PageSizeId PageSizeId(int index)
 { 
 	return myPageSizes[index].pid; 
 }
@@ -163,8 +165,9 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, PageParams::PageSetupType toDo
 	ui.cbUnit->setCurrentIndex(PageParams::unitIndex);
 
 
+	ui.cbOrientation->setCurrentIndex(PageParams::flags & landscapeModeFlag ? 1 : 0); // 1: landscape
+	ui.chkPageNumbers->setChecked(PageParams::flags & usePageNumbersFlag);
 	ui.chkOpenPDFInViewer->setChecked(PageParams::flags & openPdfViewerFlag);
-	ui.cbOrientation->setCurrentIndex(PageParams::flags & pageOrientationFlag ? 1 : 0); // 1: landscape
 	ui.chkWhiteBackground->setChecked(PageParams::flags & printWhiteBackgroundFlag);
 	ui.chkGrayscale->setChecked(PageParams::flags & printGrayScaleFlag);
 	ui.chkPrintBackgroundImage->setChecked(PageParams::flags & printBackgroundImageFlag);
@@ -287,9 +290,9 @@ void PageSetupDialog::on_cbUnit_currentIndexChanged(int i)
 }
 void PageSetupDialog::on_cbOrientation_currentIndexChanged(int landscape) 
 { 
-	PageParams::flags &= ~pageOrientationFlag;
+	PageParams::flags &= ~landscapeModeFlag;
 	if (landscape) 
-		PageParams::flags |= pageOrientationFlag;
+		PageParams::flags |= landscapeModeFlag;
 	_changed = true;
 }
 
@@ -351,9 +354,9 @@ void PageSetupDialog::on_chkPageNumbers_toggled(bool b)
 {
 	if (_busy)
 		return;
-	unsigned flg = PageParams::flags & ~pageNumberFlagUsePageNumber;
+	unsigned flg = PageParams::flags & ~usePageNumbersFlag;
 	if (b)
-		flg |= pageNumberFlagUsePageNumber;
+		flg |= usePageNumbersFlag;
 	PageParams::flags = flg;
 	_changed = true;
 }

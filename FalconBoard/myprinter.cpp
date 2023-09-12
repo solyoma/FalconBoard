@@ -77,7 +77,7 @@ void MyPrinterData::SetDpi(int odpi, bool calcScreenHeight)
 //
 //}
 
-void MyPrinterData::SetPrintArea(const QRectF area, bool calcScreenHeight)    // area does not include the margins
+void MyPrinterData::SetPrintArea(const QRectF area, bool calcScreenHeight)    // 'area' (in inches) does not include the margins
 {
     // Screen width of data will be
     // printed on a region with these dimension
@@ -118,8 +118,8 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
         }
 		_printer->setPrinterName(PageParams::actPrinterName);
         _printer->pageLayout().setUnits(QPageLayout::Inch);
-		_printer->setOrientation((PageParams::flags & pageOrientationFlag) ? QPrinter::Landscape : QPrinter::Portrait);
-        _printer->setPageSize(QPageSize(myPageSizes[PageParams::paperId].pid));
+		_printer->setPageOrientation((PageParams::flags & landscapeModeFlag) ? QPageLayout::Landscape : QPageLayout::Portrait);
+        _printer->setPageSize(QPageSize(myPageSizes[PageParams::paperSizeId].pid));
         _printer->setPageMargins({ qreal(_data.HMargin()), qreal(_data.VMargin()), qreal(_data.HMargin()), qreal(_data.VMargin()) });
 
         _pDlg = _DoPrintDialog();  // includes a _CalcPages() call
@@ -135,8 +135,8 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
         // get actual _printer data (may be different from the one set in page setup)
         PageParams::actPrinterName = _printer->printerName();
 
-        PageParams::flags &= ~pageOrientationFlag;
-        PageParams::flags |=_printer->orientation() == QPageLayout::Landscape ? pageOrientationFlag : 0;
+        PageParams::flags &= ~landscapeModeFlag;
+        PageParams::flags |=_printer->orientation() == QPageLayout::Landscape ? landscapeModeFlag : 0;
 
         _data.SetDpi(_printer->resolution(),false);
         _data.SetPrintArea(_printer->pageRect(QPrinter::Inch), true);
@@ -186,25 +186,18 @@ MyPrinter::StatusCode MyPrinter::_GetPdfPrinter()
         _printer->setPrinterName(PageParams::actPrinterName);
         _printer->setOutputFileName(_data.pdfFileName);
         _printer->setOutputFormat(QPrinter::PdfFormat);
-        _printer->setOrientation((PageParams::flags & pageOrientationFlag) ? QPrinter::Landscape : QPrinter::Portrait);
+        _printer->setPageSize(QPageSize(PageParams::paperSizeId));
+        _printer->setPageOrientation((PageParams::flags & landscapeModeFlag) ? QPageLayout::Landscape : QPageLayout::Portrait);
         _printer->setResolution(_data.Dpi());
 
-        QPageLayout pgLayout = _printer->pageLayout();
-        QMarginsF pgMargins = _printer->pageLayout().margins();
-        // debug
-        pgMargins = QMarginsF(0, 0, 0, 0);
-        pgLayout.setMargins(pgMargins);
-        _printer->setPageLayout(pgLayout);
-        // set page size in pixels
-        QPageSize pageSize(_data.PrintAreaInInches().size(), QPageSize::Inch, QString(), QPageSize::ExactMatch);
-        if (!_printer->setPageSize(pageSize))   // could not set page size
-        {
-            pgMargins = _printer->pageLayout().margins();                 // ???
-            qreal ml = pgMargins.left() * _data.Dpi() , mt = pgMargins.top() * _data.Dpi();
-        }
-
+#if _DEBUG
+        QRectF rf = _printer->pageLayout().fullRectPixels(_data.Dpi());
+        QPageSize psiz = _printer->pageLayout().pageSize();
+        QPageLayout::Orientation orientation = _printer->pageLayout().orientation();
+        qDebug("page size: %g x %g (%s), orientation:%s", rf.width(), rf.height(),psiz.name().toStdString().c_str(),
+                    orientation== QPageLayout::Landscape ? "landscape" : "portrait");
+#endif
         _CalcPages();
-//???        _status = rsOk;
     }
     return _status;
 }
@@ -362,7 +355,6 @@ int MyPrinter::_CalcPages()
 
     // for each scribble determine pages it apperas on and prepare
     // a list of pages ordered first by y then by x page indices
-    HistoryItem* phi;
     PageNum2 pgn;
 
     QSizeF usedArea = _pHist->UsedArea();
@@ -375,7 +367,7 @@ int MyPrinter::_CalcPages()
         maxX = _pHist->RightMostInBand(QRectF(0, y, usedArea.width(), PageParams::screenPageHeight));
         pgn.ClearList();
 
-        // mut "print" empty pages too
+        // must "print" empty pages too
         QRectF rect(0, pgn.ny * PageParams::screenPageHeight, PageParams::screenPageWidth, PageParams::screenPageHeight);
         pgn.nx = 0;
         _pHist->GetDrawablesInside(rect, pgn.yindices);
@@ -580,7 +572,7 @@ bool MyPrinter::_PrintPage(int page, bool last)
     QRectF target = _data.TargetRectInDots((_actPage.pageNumber & 1) == 0);
     _pPrintPainter->drawImage(target, *_pPageImage);
     // page number if any
-    if (PageParams::flags * pageNumberFlagUsePageNumber)
+    if (PageParams::flags & usePageNumbersFlag)
     {
         const int fontHeightInPixels = 40;
         QFont pgNumFont;
