@@ -163,7 +163,8 @@ public:
     //    ScreenShotTransparencyDialog* dlg = new ScreenShotTransparencyDialog(this, c, b);
     //    dlg->exec();
     //}
-    bool PageSetup(PageParams::PageSetupType what);
+    bool SetupPage(PageParams::PageSetupType forWhat);
+    bool PageSetup(PageParams::PageSetupType what);     // opens dialog and then calls SetupPage()
 signals:
     void CanUndo(bool state);     // state: true -> can undo
     void CanRedo (bool  state);   // state: true -> can redo
@@ -241,7 +242,7 @@ private:
     Qt::KeyboardModifiers _mods;
 
     bool    _drawStarted = false;   // calculate start vector
-    bool    _isHorizontal;          // when _shiftKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
+    bool    _isHorizontal = true;          // when _shiftKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
                                     // and used in line drawing
 
     bool    _allowPen = true;       // true if message is only accepted from the pen
@@ -257,7 +258,7 @@ private:
     int     _actPenWidth = 1;
     FalconPenKind _actPenKind = penBlack;
 
-    bool    _bPageSetupValid;
+    bool    _bPageSetupValid = false;
     bool    _bPageSetupUsed = false;
     bool    _openPDFInViewerAfterPrint = false;
 
@@ -345,14 +346,14 @@ private:
 #ifndef _VIEWER
     QRubberBand* _rubberBand = nullptr;	// mouse selection with right button
     QPointF   _rubber_origin,           // position where we stated to draw the rubber band
-             _topLeftWhenRubber;        // top left when the rubber band was hidden
+             _topLeftWhenRubber;        // top left of visible area (rel. to (0,0)) when the rubber band was hidden
                                         // used to re-show rubberband after a scroll
                                         // or during move paper 
-    QRectF   _rubberRect;        // used to select histoy items
+    QRectF   _rubberRect;               // screen relative, used to select histoy items
 
 
     void _InitRubberBand( MyPointerEvent* event);
-    void _ReshowRubberBand();
+    void _ReshowRubberBand();           // safe to use with no or visible rubber band
 
     void _InitiateDrawingIngFromLastPos();   // from _lastPoint
     void _InitiateDrawing(MyPointerEvent* event);

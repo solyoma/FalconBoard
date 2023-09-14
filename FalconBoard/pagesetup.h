@@ -19,19 +19,18 @@ struct PageParams
 	static bool useResInd;			// use resolution index or horizPixels?
 
 	static int screenDiagonal;		// from text in 'edtScreenDiag' in inches
-	static QPageSize::PageSizeId paperSizeId;             // default: QPageSize::A4
-	static bool pageIsLandscape;	
 	static int screenPageWidth;     // width of page on screen in pixels - used to calculate pixel limits for pages (HD: 1920 x 1080)
 	static int screenPageHeight;	// height of screen for selected paper size in pixels - for A4 (210mm x 297mm, 8.27 in x 11.7 in) with 300 dpi
 
 	static UnitIndex unitIndex;		// index of units for margins (in ini file 0: inch, 1: cm, 2: mm)
-	static unsigned flags;			// ORed from PrinterFlags (common.h)
+	static unsigned flags;			// ORed from flags (common.h), used bits: 0-6, 8
 	static unsigned pgPositionOnPage; //0-5: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
 	static int startPageNumber;	
-				// for PDF
-	static int pdfIndex;			// in page size combo box
+				// for print/PDF
+	static int pageSizeIndex;		// in page size combo box
+	static QPageSize::PageSizeId paperSizeId; // set to myPageSizes[pageSizeIndex].pid
 	static int pdfDpiIndex;			// 0,1,2 -> dots/inch = (pdfDpi * 300 + 300)
-	static double pdfWidth, pdfHeight,	// page size in inches, depends on orientation
+	static double printWidth, printHeight,	// page size in inches, depends on orientation
 				hMargin,			// left and right in inches
 				vMargin,			// top and bottom -"-
 				gutterMargin;		// inches, left on odd, right on even pages

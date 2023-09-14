@@ -26,9 +26,9 @@ unsigned PageParams::flags;					// ORed from PrinterFlags (common.h)
 unsigned PageParams::pgPositionOnPage = 0;
 int PageParams::startPageNumber = 1;
 			// for PDF
-int		PageParams::pdfIndex;				// in page size combo box
-double	PageParams::pdfWidth, 			  	// page size in inches
-		PageParams::pdfHeight,
+int		PageParams::pageSizeIndex;				// in page size combo box
+double	PageParams::printWidth, 			  	// page size in inches
+		PageParams::printHeight,
 		PageParams::hMargin,				// left and right in inches
 		PageParams::vMargin,				// top and bottom -"-
 		PageParams::gutterMargin;			// left on odd, right on even pages inches
@@ -56,7 +56,8 @@ auto PageParams::UnitToIndex(PageParams::UnitIndex ui)
 void PageParams::SetScreenWidth()
 {
 	screenPageWidth = useResInd ? myScreenSizes[resolutionIndex].w : horizPixels;
-	screenPageHeight = myPageSizes[paperSizeId].h / myPageSizes[paperSizeId].w * screenPageWidth;
+	qreal w = printWidth-2*hMargin-gutterMargin, h = printHeight-2*vMargin;
+	screenPageHeight = ((flags & landscapeModeFlag) ? w/h : h/w) * screenPageWidth;
 }
 
 void PageParams::Load()
@@ -68,20 +69,27 @@ void PageParams::Load()
 
 	s->beginGroup(PSETUP);
 
-	resolutionIndex = s->value(RESI, 6).toInt();					// 1920 x 1080
-	horizPixels     = s->value(HPXS, 1920).toInt();					// this many pixels in the width of one page
-	useResInd		= s->value(USERI, true).toBool();
+	resolutionIndex = s->value(RESI, 6).toInt();					// for predefined values (useResInd == true), default: 1920 x 1080
+	horizPixels     = s->value(HPXS, 1920).toInt();					// when useResInd == true this many pixels in the width of one page
+	useResInd		= s->value(USERI, true).toBool();				// what to use
 
 	screenDiagonal	= s->value(SDIAG, 24).toInt();					// inch
+
 	unitIndex		= GetUnit(s->value(UNITINDEX, 0).toInt());		// index to determines the multipl. factor for number in edScreenDiag number to inch
 	flags			= s->value(PFLAGS, 0).toInt();					// ORed PrinterFlags
-	pgPositionOnPage = s->value(PPOSIT, 0).toInt();					// 0-5 : top -left... bottom-right
-	pdfIndex		= s->value(PDFPGS, 3).toInt();					// index in paper size combo box (default: A4)
-	pdfDpiIndex		= s->value(PDFDPI, 0).toInt();				// index: 0: 300, 1: 600, 2: 1200 dpi
-	pdfUnitIndex	= GetUnit(s->value(PDFUI, 0).toInt() );
+	pgPositionOnPage= s->value(PPOSIT, 0).toInt();					// 0-5 : top -left... bottom-right
+	pageSizeIndex	= s->value(PDFPGS, 3).toInt();					// index in paper size combo box (default: A4)
+
+	paperSizeId = myPageSizes[pageSizeIndex].pid;					// in pagesetup.cpp (QPageSize::A4 = 0)
+	printWidth  = myPageSizes[pageSizeIndex].w;						// full page width in inches, portrait orientation, not screen width! (no margins)
+	printHeight = myPageSizes[pageSizeIndex].h;						// full page height in inches, portrait orientation, not screen height! (no margins)
+
 	hMargin			= s->value(PDFMLR, 1.0).toFloat();				// left - right	in inches
 	vMargin			= s->value(PDFMTB, 1.0).toFloat();				// top - bottom	in inches
 	gutterMargin	= s->value(PDFGUT, 0.0).toFloat();				// gutter in inches
+
+	pdfDpiIndex		= s->value(PDFDPI, 0).toInt();					// index: 0: 300, 1: 600, 2: 1200 dpi
+	pdfUnitIndex	= GetUnit(s->value(PDFUI, 0).toInt() );
 
 	s->endGroup();
 
@@ -97,14 +105,15 @@ void PageParams::Save()
 	s->beginGroup(PSETUP);
 
 	s->setValue(RESI, resolutionIndex);
+	s->setValue(HPXS, horizPixels);
 	s->setValue(USERI, useResInd);
 
-	s->setValue(HPXS, horizPixels);
 	s->setValue(SDIAG, screenDiagonal);
+	// paperSizeId set from table using 
 	s->setValue(PFLAGS, flags);	// includes pfOpenPDFInViewer
 	s->setValue(PPOSIT, pgPositionOnPage);
 	// for PDF
-	s->setValue(PDFPGS, pdfIndex);
+	s->setValue(PDFPGS, pageSizeIndex);
 	s->setValue(PDFMLR, hMargin);
 	s->setValue(PDFMTB, vMargin);
 	s->setValue(PDFGUT, gutterMargin);
@@ -181,11 +190,11 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, PageParams::PageSetupType toDo
 
 	// for PDF
 
-	PageParams::pdfWidth  = myPageSizes[PageParams::pdfIndex].w;					// w.o. margins in inches
-	PageParams::pdfHeight = myPageSizes[PageParams::pdfIndex].h;
+	PageParams::printWidth  = myPageSizes[PageParams::pageSizeIndex].w;					// w.o. margins in inches
+	PageParams::printHeight = myPageSizes[PageParams::pageSizeIndex].h;
 
-	pdfMaxLR = myPageSizes[PageParams::pdfIndex].w / 3.0;				// always stored in inches
-	pdfMaxTB = myPageSizes[PageParams::pdfIndex].h / 3.0;				// always stored in inches
+	pdfMaxLR = myPageSizes[PageParams::pageSizeIndex].w / 3.0;				// always stored in inches
+	pdfMaxTB = myPageSizes[PageParams::pageSizeIndex].h / 3.0;				// always stored in inches
 
 
 	float fact = PageParams::pdfUnitIndex == PageParams::uiInch ? 1.0 : 2.54;				// to convert cm-s to inches
@@ -199,7 +208,7 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, PageParams::PageSetupType toDo
 	ui.sbGutterMargin->setMaximum(pdfMaxTB * fact);		// this may be in inches or cm
 	ui.sbGutterMargin->setValue(PageParams::gutterMargin * fact);
 
-	ui.cbPdfPaperSize->setCurrentIndex(PageParams::pdfIndex);
+	ui.cbPdfPaperSize->setCurrentIndex(PageParams::pageSizeIndex);
 	ui.cbPdfUnit->setCurrentIndex(PageParams::UnitToIndex(PageParams::pdfUnitIndex) );
 
 	switch (PageParams::pdfDpiIndex)
@@ -369,7 +378,7 @@ void PageSetupDialog::on_btnOk_clicked()
 }
 void PageSetupDialog::on_cbPdfPaperSize_currentIndexChanged(int i)
 {
-	PageParams::pdfIndex = i;
+	PageParams::pageSizeIndex = i;
 	_ChangePdfPaperSize();
 	_changed = true;
 }
@@ -452,12 +461,12 @@ void PageSetupDialog::_ChangePdfPaperSize()
 		return;
 
 	double factM = PageParams::pdfUnitIndex == PageParams::uiInch ? 1.0 : 2.54;	// if 0: numbers are in cm, if 1 in inches
-	if (PageParams::pdfIndex >= 0)
+	if (PageParams::pageSizeIndex >= 0)
 	{
-		PageParams::pdfWidth  = myPageSizes[PageParams::pdfIndex].w;
-		PageParams::pdfHeight = myPageSizes[PageParams::pdfIndex].h;
-		pdfMaxLR  = PageParams::pdfWidth  / 3.0;
-		pdfMaxTB  = PageParams::pdfHeight / 3.0;
+		PageParams::printWidth  = myPageSizes[PageParams::pageSizeIndex].w;
+		PageParams::printHeight = myPageSizes[PageParams::pageSizeIndex].h;
+		pdfMaxLR  = PageParams::printWidth  / 3.0;
+		pdfMaxTB  = PageParams::printHeight / 3.0;
 		if (PageParams::hMargin > pdfMaxLR)
 		{
 			PageParams::hMargin = pdfMaxLR;

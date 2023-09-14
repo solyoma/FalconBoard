@@ -58,7 +58,7 @@ class FalconBoard : public QMainWindow
 		friend class ListenerThread;
 
 public:
-	FalconBoard(QWidget *parent = Q_NULLPTR);
+	FalconBoard(QSize screenSize, QWidget *parent = Q_NULLPTR);
 
 	void StartListenerThread(QObject*parent=nullptr);
 

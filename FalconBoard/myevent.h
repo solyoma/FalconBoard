@@ -8,13 +8,13 @@ class MyPointerEvent : public QEvent
 public:
 	QEvent* pevent;
 	bool fromPen = false;
-	Qt::MouseButton button;
+	Qt::MouseButton button = Qt::NoButton;
 	Qt::MouseButtons buttons;
 	Qt::KeyboardModifiers mods;
 	QPoint pos;
 	QPoint globalPos;
 	qreal pressure = 1.0;	// always maximum for mouse
-	QTabletEvent::PointerType pointerT;
+	QTabletEvent::PointerType pointerT = QTabletEvent::UnknownPointer;
 
 	MyPointerEvent(bool fromPen, QEvent* pevent) : QEvent(pevent->type()), pevent(pevent), fromPen(fromPen)
 	{

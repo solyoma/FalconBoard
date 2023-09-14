@@ -13,6 +13,7 @@
 #include <QImage>
 
 #include "common.h"
+#include "config.h"
 
 /* How: Create a full sized QImage (1:1) using the screen size in pixels
  *      to print everything on it, then use QPainter's drawImage(target rect, image, source rect)
@@ -81,8 +82,9 @@ public:
     QRectF TargetRectInDots(bool gutterAtLeft) const
     {
         qreal mx = PageParams::hMargin * _dpi, 
-              my = PageParams::vMargin * _dpi;
-		return QRectF(mx + (gutterAtLeft ? PageParams::gutterMargin * _dpi : 0), my, _printAreaInDots.width() - 2*mx - PageParams::gutterMargin * _dpi, _printAreaInDots.height() - 2*my);
+              my = PageParams::vMargin * _dpi,
+              gx = gutterAtLeft ? PageParams::gutterMargin * _dpi : 0;
+		return QRectF(mx + gx, my, _printAreaInDots.width() - 2*mx - gx, _printAreaInDots.height() - 2*my);
     }
 
     int Dpi() const
@@ -110,11 +112,13 @@ public:
         if (!calcScreenHeight)
             return;
 
-        QRectF tr = TargetRectInDots(false);
+        QRectF tr = TargetRectInDots(false);        // inside margins
         if (tr.isValid())
         {
-            qreal magn = tr.width() / qreal(PageParams::screenPageWidth);
-            PageParams::screenPageHeight = tr.height() / magn;
+            if (PageParams::flags & landscapeModeFlag)
+                PageParams::screenPageHeight = tr.height() / tr.width() * PageParams::screenPageWidth;
+            else
+                PageParams::screenPageHeight = tr.width() / tr.height() * PageParams::screenPageWidth;
         }
     }
 private:

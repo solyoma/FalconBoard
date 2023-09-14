@@ -94,8 +94,9 @@ QStringList GetTranslations()
 }
 // ************************ FalconBoard **********************
 
-FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
-{
+FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
+{   
+    screenSize = scrSize;
     UNTITLED = QString(QObject::tr("Untitled"));    // set here so itgets translated
 
 	ui.setupUi(this);
@@ -135,6 +136,7 @@ FalconBoard::FalconBoard(QWidget *parent)	: QMainWindow(parent)
     RestoreState();     // sets up all history item names, and loads the last used ones
 
     PageParams::Load();
+    _drawArea->SetupPage(PageParams::wtdPageSetup);
 
     _SetupIconsForPenColors(_screenMode);
     setAcceptDrops(true);

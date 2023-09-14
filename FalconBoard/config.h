@@ -55,7 +55,7 @@ constexpr const char
 	*TRANSP = "transp",		// transparency used for screenshots
 	*TRANSC = "transc",		// transparent color + fuzzyness, format #FFRRGGBB, default #FFFFFF, FF fuzzyness in %
 
-	*end_of_config = ""
+	*end_of_config = nullptr;
 ;
 
 constexpr const unsigned

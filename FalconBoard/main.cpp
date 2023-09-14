@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 			a.installTranslator(&translator);
 	}
 	// set ip window and languages
-	FalconBoard w;
+	FalconBoard w(a.screens()[0]->size());
 	w.SetLanguages(fileNames, ixLang);
 
 	if (allowOnlyOneInstanceRunning)
@@ -86,7 +86,6 @@ int main(int argc, char *argv[])
 	a.setAttribute(Qt::AA_SynthesizeMouseForUnhandledTouchEvents);
 	a.setWindowIcon(QIcon(":/FalconBoard/Resources/falconboard.png"));
 
-	FalconBoard::screenSize = a.screens()[0]->size();
 	// after a new translation is added add Language names into
 	//  FalconBoard::_PopulateLanguageMenu()
 

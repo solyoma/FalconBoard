@@ -1566,7 +1566,7 @@ void DrawArea::_ReshowRubberBand()
 		// DEBUG
 		//qDebug("ReshowRubberBand - tlwb:(%g,%g), tl:(%g,%g)", _topLeftWhenRubber.x(), _topLeftWhenRubber.y(), _topLeft.x(), _topLeft.y());
 		// end DEBUG
-		QPointF pt = _topLeftWhenRubber - _topLeft;  //  <0: viewport moved down/righ canvas muved up/left
+		QPointF pt = _topLeftWhenRubber - _topLeft;  //  <0: viewport moved down/right, canvas moved up/left
 		pt += _rubberBand->pos();                    // move rubber band
 		_rubberBand->move(pt.toPoint());
 		_topLeftWhenRubber = _topLeft;
@@ -2068,62 +2068,66 @@ void DrawArea::SlotForGridSpacingChanged(int spacing)
 	_Redraw();
 }
 
+bool DrawArea::SetupPage(PageParams::PageSetupType forWhat)
+{
+	bool res = false;
+
+	bool forPdf = (forWhat == PageParams::wtdExportPdf);
+
+	if (PageParams::useResInd == false)
+		PageParams::screenPageWidth = PageParams::horizPixels;
+
+	if (_screenHeight > 0)           // -1 if no predefined resolution
+	{
+		static float fact[] = { 1.0, 1.0 / 2.54, 1.0 / 25.4 };   // inch, cm, mm
+#define SQUARE(a)  ((a)*(a))
+		float cosine = (float)PageParams::screenPageWidth / (float)std::sqrt(SQUARE(PageParams::screenPageWidth) + SQUARE(_screenHeight));
+#undef SQUARE
+		_ppi = (float)PageParams::screenPageWidth / (PageParams::screenDiagonal * fact[PageParams::unitIndex] * cosine);
+	}
+	else
+		_ppi = 96;
+	qreal w, h;
+
+	if (PageParams::flags & landscapeModeFlag)
+	{
+		w = PageParams::printHeight;
+		h = PageParams::printWidth;
+	}
+	else
+	{
+		w = PageParams::printWidth;
+		h = PageParams::printHeight;
+	}
+
+	_prdata.SetPrintArea(QRectF(0, 0, w, h), false); 	// do not re-calculate screen area for page
+	_prdata.SetDpi(resos[PageParams::pdfDpiIndex], false);
+	_prdata.CalcScreenPageHeight(true); // and re-calculate screen area
+
+	_prdata.bExportPdf = forPdf;
+	if (!forPdf)
+		_openPDFInViewerAfterPrint = PageParams::flags & openPdfViewerFlag;
+	else
+		_bPageSetupUsed = !PageParams::actPrinterName.isEmpty();
+
+
+	_bPageSetupValid = true;
+
+	res = true;
+
+	return res;
+}
+
 bool DrawArea::PageSetup(PageParams::PageSetupType forWhat)      // public slot
 {
 	PageSetupDialog* pageDlg = new PageSetupDialog(this, forWhat);
 	bool res = false;
-	bool forPdf = (forWhat == PageParams::wtdExportPdf);
 	int oldwidth = PageParams::screenPageWidth;
 	if (pageDlg->exec())
 	{
-		if (!forPdf)
-		{
-			_bPageSetupUsed = !PageParams::actPrinterName.isEmpty();
-		}
-		else
-			_openPDFInViewerAfterPrint = PageParams::flags & openPdfViewerFlag;
-#define SQUARE(a)  (a*a)
-
-		if (PageParams::useResInd == false)
-			PageParams::screenPageWidth = PageParams::horizPixels;
-		if (_screenHeight > 0)           // -1 if no predefined resolution
-		{
-			static float fact[] = { 1.0, 1.0 / 2.54, 1.0 / 25.4 };   // inch, cm, mm
-			float cosine = (float)PageParams::screenPageWidth / (float)std::sqrt(SQUARE(PageParams::screenPageWidth) + SQUARE(_screenHeight));
-			_ppi = (float)PageParams::screenPageWidth / (PageParams::screenDiagonal * fact[PageParams::unitIndex] * cosine);
-		}
-		else
-			_ppi = 96;
-
-#undef SQUARE
-
 		QSize ss;
 		PageParams::screenPageWidth = pageDlg->GetScreenSize(ss);
-
-		_prdata.bExportPdf = forPdf;
-
-		qreal w, h;
-
-		if (PageParams::flags & landscapeModeFlag)
-		{
-			w = PageParams::pdfHeight;
-			h = PageParams::pdfWidth;
-		}
-		else
-		{
-			w = PageParams::pdfWidth;
-			h = PageParams::pdfHeight;
-		}
-
-		PageParams::paperSizeId = myPageSizes[PageParams::pdfIndex].pid;	// in pagesetup.cpp (QPageSize::A4 = 0)
-
-		_prdata.SetPrintArea(QRectF(0, 0, w, h), false); 	// do not re-calculate screen area for page
-		_prdata.SetDpi(resos[PageParams::pdfDpiIndex], false);
-		_prdata.CalcScreenPageHeight(true); // and re-calculate screen area
-
-		_bPageSetupValid = true;
-
-		res = true;
+		res = SetupPage(forWhat);
 	}
 	_bPageSetupValid = res;
 	delete pageDlg;
