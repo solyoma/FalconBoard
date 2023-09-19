@@ -983,10 +983,8 @@ SaveResult History::Save(QString name)
 	ofs << (uint16_t)gridOptions;
 	ofs << _resolutionIndex << _pageWidthInPixels << _useResInd;
 	for (int i = (int)penRed; i < penLastNotUseThis; ++i)
-	{
 		drawColors.SavePen(ofs, (FalconPenKind)i);
-	}
-	ofs << (int)DrawableType::dtPen;
+
 					  // drawables
 	QRectF area = QuadAreaToArea(_drawables.Area());
 	DrawableItem* phi = _drawables.FirstVisibleDrawable(area); // lowest in zOrder

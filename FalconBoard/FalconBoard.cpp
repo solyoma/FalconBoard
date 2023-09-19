@@ -696,7 +696,7 @@ void FalconBoard::_AddSaveVisibleAsMenu()
  *              is about to close
  *          - not only the active history can be saved
  *-------------------------------------------------------*/
-SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
+SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onClose)
 {
     _saveResult = srSaveSuccess;    // result: ok
 
@@ -732,8 +732,11 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk)
     else 
         _SaveFile(saveName);             // sets _saveResult
 
-    _drawArea->SwitchToHistory(_nLastTab, true);
-    ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
+    if (!onClose)
+    {
+        _drawArea->SwitchToHistory(_nLastTab, true);
+        ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
+    }
 
     return _saveResult;
 }
@@ -1678,7 +1681,7 @@ void FalconBoard::SlotForTabCloseRequested(int index)
 {
 #ifndef _VIEWER
     _drawArea->HideRubberBand(true);
-    if (!_drawArea->IsModified(index) || _SaveIfYouWant(index, true)!= srCancelled)
+    if (!_drawArea->IsModified(index) || _SaveIfYouWant(index, true, true)!= srCancelled)
     {
 #endif
         _CloseTab(index);

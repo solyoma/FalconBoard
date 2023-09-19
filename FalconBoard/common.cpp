@@ -183,6 +183,14 @@ const QString& FalconPens::ActionName(FalconPenKind pk) const
     return pk == penNone ? what : (_darkMode ? operator[](int(pk)).darkName : operator[](int(pk)).lightName);
 }
 
+bool FalconPens::IsAnyPensChanged()
+{
+    for (int i = 0; i < size(); ++i)
+        if ((*this)[i].IsChanged())
+            return true;
+    return false;
+}
+
 bool FalconPens::FromSettings(QSettings* s) // may be overwritten in ".mwb" files
 {
     QStringList sc, sN; 
@@ -272,8 +280,6 @@ bool DrawColors::SameColors(const DrawColors& o)
             return false;
     return true;
 }
-
-
 
 bool DrawColors::SetDarkMode(bool dark) // returns previous mode
 {

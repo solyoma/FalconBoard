@@ -100,7 +100,8 @@ struct FalconPen
         lightName(o.lightName), darkName(o.darkName),
         defaultLightColor(o.defaultLightColor), defaultDarkColor(o.defaultDarkColor) {}
     FalconPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName) : 
-        kind(pk), lightColor(lc), darkColor(dc), lightName(sLName), darkName(sDName) {}
+        kind(pk), lightColor(lc), darkColor(dc), lightName(sLName), darkName(sDName),
+        defaultLightColor(lightColor), defaultDarkColor(darkColor) {}
 
     bool IsChanged() const
     {
@@ -133,6 +134,8 @@ public:
     QCursor Pointer(FalconPenKind pk) const;
     const QString& ActionName(FalconPenKind pk) const;
 
+    bool IsAnyPensChanged();
+
     bool FromSettings(QSettings* s);
     bool ToSettings(QSettings* s) const;
 };
@@ -156,6 +159,7 @@ public:
     QCursor PenPointer(FalconPenKind pk=penNone) const;    // for actual pen
     QString ActionName(FalconPenKind pk = penNone);
     bool IsDarkMode() const { return _dark; }
+    bool IsChanged() { return _pens.IsAnyPensChanged(); }
 
     bool SetDarkMode(bool dark);
     void SetDrawingPen(FalconPenKind pk);
