@@ -154,9 +154,8 @@
     </widget>
     <widget class="QMenu" name="menuGrid">
      <property name="title">
-      <string>Grid</string>
+      <string>Grid options</string>
      </property>
-     <addaction name="actionShowGrid"/>
      <addaction name="actionFixedGrid"/>
      <addaction name="actionGridSize"/>
     </widget>
@@ -169,12 +168,14 @@
      </property>
     </widget>
     <addaction name="menu_Mode"/>
+    <addaction name="actionShowGrid"/>
     <addaction name="menuGrid"/>
     <addaction name="actionLimitPaperWidth"/>
     <addaction name="actionShowPageGuides"/>
     <addaction name="separator"/>
     <addaction name="actionAllowMultipleProgramInstances"/>
     <addaction name="actionScreenshotTransparency"/>
+    <addaction name="actionDefinePenColors"/>
     <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>
@@ -611,7 +612,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Show</string>
+    <string>&amp;Show grid</string>
    </property>
   </action>
   <action name="actionFixedGrid">
@@ -886,6 +887,11 @@
    </property>
    <property name="toolTip">
     <string>When checked then a new instance of the program is run when you click on  an mwb file</string>
+   </property>
+  </action>
+  <action name="actionDefinePenColors">
+   <property name="text">
+    <string>Define pen colors...</string>
    </property>
   </action>
  </widget>

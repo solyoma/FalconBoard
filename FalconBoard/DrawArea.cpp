@@ -30,9 +30,9 @@
 	ofsdbg << qs << "\n";			 \
 }
 
-// !!!
-DrawColors drawColors;      // global used here and for print, declared in common.h
-PenCursors penCursors;
+//// !!!
+//globalDrawColors drawColors;      // global used here and for print, declared in common.h
+//PenPointers PenPointers;
 
 //----------------------------- DrawArea ---------------------
 DrawArea::DrawArea(QWidget* parent) : QWidget(parent)
@@ -45,10 +45,6 @@ DrawArea::DrawArea(QWidget* parent) : QWidget(parent)
 	setCursor(Qt::CrossCursor);
 	setMouseTracking(true);
 	historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
-	drawColors.Setup();
-	penCursors.Setup();
-
-
 }
 
 void DrawArea::SetScreenSize(QSize screenSize)
@@ -125,6 +121,7 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 		_history->SetTopLeft(_topLeft);
 
 	History* ph = new History(&historyList);
+	ph->drawColors = globalDrawColors;
 	//    _history.SetCopiedLists(&_copiedImages, &_copiedItems, &_copiedRect);
 	if (!name.isEmpty())
 		ph->SetName(name);
@@ -194,7 +191,9 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 		_history = historyList[index];
 		_topLeft = _history->TopLeft();
 		_history->SetPageParamsFromHistory();
+		globalDrawColors = _history->drawColors;
 		PageParams::SetScreenWidth();
+
 	}
 
 	int res = 1;
@@ -253,7 +252,7 @@ int DrawArea::RemoveHistory(int index)
  * REMARKS: - _history will not change
  *          - _to == _currentHistoryIndex
  *-------------------------------------------------------*/
-void DrawArea::MoveHistory(int from, int to)
+void DrawArea::SwapHistories(int from, int to)
 {
 	History* pdh = historyList[to];
 	historyList[to] = historyList[from];
@@ -263,7 +262,7 @@ void DrawArea::MoveHistory(int from, int to)
 
 int DrawArea::_LoadCommon()
 {
-	quint32 file_version_loaded=0;	// aasuume old file, no grid data in _history->gridOptions yet
+	file_version_loaded=0;	// aasuume old file, no grid data in _history->gridOptions yet
 	int res = _history->Load(file_version_loaded); // only loads if names diferent, if result is 0 readCount = 0
 	if( (file_version_loaded & 0x00FF0000) < 0x020000)	// no grid options from file, set them
 	{
@@ -390,13 +389,12 @@ void DrawArea::GotoPage(int page)
 	_Redraw();
 }
 
-void DrawArea::SetMode(bool darkMode, QString color, QString sGridColor, QString sPageGuideColor)
+void DrawArea::SetMode(bool darkMode, QString backgroundColor, QString sGridColor, QString sPageGuideColor)
 {
-	_backgroundColor = color;
+	_backgroundColor = backgroundColor;
 	_gridColor = sGridColor;
 	_pageGuideColor = sPageGuideColor;
-	drawColors.SetDarkMode(_darkMode = darkMode);
-	penCursors.Setup();
+	globalDrawColors.SetDarkMode(_darkMode = darkMode);
 	_Redraw();                  // because pen color changed!
 	SetCursor(_erasemode ? csEraser : csPen);
 }
@@ -542,7 +540,7 @@ void DrawArea::_ClearCanvas() // uses _clippingRect
 }
 
 #ifndef _VIEWER
-void DrawArea::ChangePenColorByKeyboard(int key)
+void DrawArea::_ChangePenByKeyboard(int key)
 {
 	FalconPenKind pk = PenKindFromKey(key);
 	emit PenKindChange(pk);
@@ -833,7 +831,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )
 				__DrawCross(_actMousePos, 10);
 			else if (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5)
-					ChangePenColorByKeyboard(key);
+					_ChangePenByKeyboard(key);
 #endif
 		}
 #ifndef _VIEWER
@@ -1485,7 +1483,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
 	}
 	// _pActCanvas layer: the scribbles
 	painter.setClipRect(dirtyRect);
-	painter.drawImage(dirtyRect, *_pActCanvas, dirtyRect);          // canvas layer
+	painter.drawImage(dirtyRect, *_pActCanvas, dirtyRect);   // *_pActCanvas is a transparent image with scribbles already on it
 	// page guides layer:
 	_DrawPageGuides(painter);
 
@@ -2226,7 +2224,6 @@ void DrawArea::ExportPdf(QString fileName, QString& directory)
 
 void DrawArea::_Redraw(bool clear)
 {
-
 	if (!_mustRedrawArea)
 	{
 		_redrawPending = true;
@@ -2257,23 +2254,24 @@ void DrawArea::_Redraw(bool clear)
 
 QColor DrawArea::_PenColor()
 {
-	static FalconPenKind _prevKind = penNone;
-	static QColor color;
-	if (_actPenKind == _prevKind)
-	{
-		if (_actPenKind != penBlack)
-			return color;
-		return _darkMode ? QColor(Qt::white) : QColor(Qt::black);
-	}
+	//static FalconPenKind _prevKind = penNone;
+	//static QColor color;
+	//if (_actPenKind == _prevKind)
+	//{
+	//	if (_actPenKind != penBlack)
+	//		return color;
+	//	return _darkMode ? QColor(Qt::white) : QColor(Qt::black);
+	//}
 
-	_prevKind = _actPenKind;
+	//_prevKind = _actPenKind;
 
-	switch (_actPenKind)
-	{
-	case penBlack: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
-	default:
-		return color = drawColors[_actPenKind];
-	}
+	//switch (_actPenKind)
+	//{
+	//case penBlack: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
+	//default:
+	//	return color = globalDrawColors[_actPenKind];
+	//}
+	return globalDrawColors.Color();
 }
 
 void DrawArea::_SaveCursorAndReplaceItWith(QCursor newCursor)
@@ -2386,7 +2384,7 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 }
 void DrawArea::ChangePenColorSlot(int key)
 {
-	ChangePenColorByKeyboard(key);
+	_ChangePenByKeyboard(key);
 }
 
 #endif
@@ -2401,9 +2399,9 @@ void DrawArea::SetCursor(DrawCursorShape cs)
 	case csArrow: setCursor(Qt::ArrowCursor); break;
 	case csOHand: setCursor(Qt::OpenHandCursor); break;
 	case csCHand: setCursor(Qt::ClosedHandCursor); break;
-	case csPen:   setCursor(penCursors[_actPenKind]); break;
+	case csPen:   setCursor(globalDrawColors.PenPointer(_actPenKind) ); break;
 #ifndef _VIEWER
-	case csEraser: setCursor(penCursors[penEraser]); 
+	case csEraser: setCursor(globalDrawColors.PenPointer(penEraser)  ); 
 		_erasemode = true; 
 		HideRubberBand(true); 
 		break;

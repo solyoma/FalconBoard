@@ -1,4 +1,5 @@
 #include <QSpinBox>
+#include <QSpinBox>
 #include <QLabel>
 #include <QScreen>
 #include <QPrinter>
@@ -34,8 +35,6 @@ double	PageParams::printWidth, 			  	// page size in inches
 		PageParams::gutterMargin;			// left on odd, right on even pages inches
 bool	PageParams::_isLoaded = false;		// so we load it only once
 int		PageParams::pdfDpiIndex;					// 0,1,2: dots / inch = (pdfDpi * 300 + 300)
-
-MyPageSizes myPageSizes;
 
 QString   PageParams::actPrinterName;		// if not this is its name
 

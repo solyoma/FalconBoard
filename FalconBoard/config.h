@@ -2,6 +2,13 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+// version number 0xMMIISS;     M - major, I-minor, s- sub
+constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
+
+const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
+const qint32 MAGIC_VERSION = 0x56020303; // V 02.03.03
+const QString sVersion = "2.3.3";
+
 // names in configuration
 
 constexpr const char
@@ -27,6 +34,18 @@ constexpr const char
 	*LIMITED= "limited",	// page width limited to visible screen / width
 	*LASTDIR = "lastDir",	// last used folder path for documents
 	*LASTPDFDIR = "lastPDFDir",	// last used folder path for PDF output
+		// PEN COLORS			   defaults: (light,dark)
+	*PEN_BLACK = "penBlack",	// 000000,FFFFFF
+	*PEN_RED   = "penRed",		// FF0000,FF0000
+	*PEN_GREEN = "penGreen",	// 007D1A,00FF00
+	*PEN_BLUE  = "penBlue",		// 0000FF,82DBFC
+	*PEN_YELLOW= "penYellow",	// B704BE,FF00FF
+		// PEN COLOR NAMES		    defaults: (light,dark)	- user defined names do not get translated
+	*PEN_BLACK_NAME	= "penNBlack",	// 
+	*PEN_RED_NAME	= "penNRed",	// 
+	*PEN_GREEN_NAME	= "penNGreen",	// 
+	*PEN_BLUE_NAME	= "penNBlue",	// 
+	*PEN_YELLOW_NAME= "penNYellow",	// 
 		// TABS
 	*TABS = "Tabs",			// group for tabs
 	*TABSIZE = "tabSize",	// how many TABS
@@ -51,7 +70,7 @@ constexpr const char
 	*PDFUI	= "pdfui",		// pdf unit
 		// drawing
 	*GRIDSPACING = "gridspacing",
-	*PENSIZES = "size",		// e.g. "3,3,3,3,3,30" - pen size for black, red, green, blue, yellow, eraser
+	*PENSIZES = "size",		// e.g. "30, 3,3,3,3,3,3" - pen size for black, red, green, blue, yellow, eraser
 	*TRANSP = "transp",		// transparency used for screenshots
 	*TRANSC = "transc",		// transparent color + fuzzyness, format #FFRRGGBB, default #FFFFFF, FF fuzzyness in %
 

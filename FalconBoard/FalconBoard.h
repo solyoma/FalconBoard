@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _MYWHITEBOARD_H
-#define _MYWHITEBOARD_H
+#ifndef _FALCONBOARD_H
+#define _FALCONBOARD_H
 
 #include <thread>	// for sleep when waiting for data through the pipe 'FalconBoardPipe'
 
@@ -27,6 +27,7 @@
 
 #ifndef _VIEWER
 	#include "snipper.h"
+	#include "pencolors.h"
 #endif
 #include "ui_FalconBoard.h"
 
@@ -170,6 +171,7 @@ private slots:
 	void SlotForLabel(QString text);
 	void SlotForPenKindChange(FalconPenKind pk);
 #endif
+	void SlotForPensChanged();	// sent when 'history' is changed and pens are changed too changed actions when needed
 	void SlotForChkGridOn(bool checked);
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() 
@@ -223,7 +225,7 @@ private:
 	QSignalMapper _languageMapper;
 
 	bool	_eraserOn = false;
-	int		_penWidth[PEN_COUNT] = { 3,3,3,3,3,30 };	// last is always the eraser
+	int		_penWidths[PEN_COUNT] = { 30,3,3,3,3,3 }; // first is the eraser C.f. FalconPenKind
 	FalconPenKind _actPen = penBlack;
 
 		// default icons
@@ -259,7 +261,7 @@ private:
 	QStringList _recentList;
 
 
-	QActionGroup* _penGroup, *_modeGroup;
+	QActionGroup* _penGroup, *_modeGroup;		// these are needed for radiobutton like behaviour for actions in the group
 
 #ifndef _VIEWER
 	Snipper* _plblScreen = nullptr;		// screen grab label

@@ -316,6 +316,10 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 {
 	int n;
 	ifs >> n; di.dtType = (DrawableType)n;
+	// special handling for data of not really drawables
+	if (n >= (int)DrawableType::dtNonDrawableStart)
+		return ifs;
+
 	ifs >> di.startPos;
 	di.startPos += {0, DrawableItem::yOffset};
 	ifs >> n;

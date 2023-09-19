@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include <algorithm>
 
+#include "config.h"		  // version
 #include "history.h"
 //#include <cmath>
 
@@ -756,6 +757,8 @@ int HistoryPenWidthChangeItem::Redo()
 //********************************** History class ****************************
 History::History(HistoryList* parent) noexcept: _parent(parent) 
 { 
+	drawColors.Initialize();
+
 	_quadTreeDelegate.SetUp();
 	_drawables.SetQuadTreeDelegate(&_quadTreeDelegate).SetZorderStore(&_zorderStore);	// allocate objects and set them 
 	_drawables.SetZorderStore(&_zorderStore);
@@ -972,14 +975,19 @@ SaveResult History::Save(QString name)
 
 	if (!f.isOpen())
 		return srFailed;   // can't write file
-
+					  // global part
 	QDataStream ofs(&f);
 	ofs << MAGIC_ID;
 	ofs << MAGIC_VERSION;	// file version
 
 	ofs << (uint16_t)gridOptions;
 	ofs << _resolutionIndex << _pageWidthInPixels << _useResInd;
-
+	for (int i = (int)penRed; i < penLastNotUseThis; ++i)
+	{
+		drawColors.SavePen(ofs, (FalconPenKind)i);
+	}
+	ofs << (int)DrawableType::dtPen;
+					  // drawables
 	QRectF area = QuadAreaToArea(_drawables.Area());
 	DrawableItem* phi = _drawables.FirstVisibleDrawable(area); // lowest in zOrder
 	while(phi)
@@ -1246,6 +1254,7 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 	DrawableScreenShot dsImg;
 
 	int nRead = _items.count();
+	bool replaceColors = nRead == 0;
 	while (!ifs.atEnd())
 	{
 		ifs >> di;
@@ -1260,9 +1269,13 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 			case DrawableType::dtScreenShot:	(DrawableItem&)dsImg  = di; ifs >> dsImg;	pdrwh = &dsImg;	break;
 			case DrawableType::dtScribble:		(DrawableItem&)dScrb  = di; ifs >> dScrb;	pdrwh = &dScrb;	break;
 			case DrawableType::dtText:			(DrawableItem&)dTxt   = di; ifs >> dTxt;	pdrwh = &dTxt;	break;
+			case DrawableType::dtPen:			if (drawColors.ReadPen(ifs) && replaceColors)
+													globalDrawColors = drawColors;
+												break;
 			default: break;
 		}
-		(void)AddDrawableItem(*pdrwh); // this will add the drawable to the list and sets its zOrder too
+		if((int)di.dtType < (int)DrawableType::dtNonDrawableStart)	// only add drawables
+			(void)AddDrawableItem(*pdrwh);		// this will set its zOrder too
 		di.erasers.clear();
 	}
 

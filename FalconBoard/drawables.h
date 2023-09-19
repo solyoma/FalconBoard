@@ -13,6 +13,7 @@
 #include <QDataStream>
 #include <QIODevice>
 
+#include "config.h"     // version info
 #include "common.h"
 
 #include "quadtree.h"
@@ -59,7 +60,10 @@ enum class DrawableType {
     dtRectangle,        // 4 courner points
     dtScreenShot,       // shown below any other drawable
     dtScribble,         // series of points from start to finish of scribble, eraser strokes added to  scribble
-    dtText
+    dtText,
+
+    dtNonDrawableStart = 0x80,   // it is dealt with DrawableItem::operator>>() and DrawableItem::operator<<() 
+    dtPen = dtNonDrawableStart,  // pen data for redefined pens
 };
  // determined from the number of points
 enum ScribbleSubType { sstScribble,     // any number
@@ -494,16 +498,18 @@ public:
     void SetPenKind(FalconPenKind pk)
     {
         _penKind = pk;
+        globalDrawColors.SetDrawingPen(pk);
     }
 
     QColor PenColor() const 
     { 
-        QColor penColor = drawColors[_penKind];
+        QColor penColor = globalDrawColors.Color();
         return penColor; 
     }
     constexpr FalconPenKind PenKind() const { return _penKind; }
     void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor())
     {
+        globalDrawColors.SetDrawingPen(_penKind);
         if(clipR.isValid())
             painter->setClipRect(clipR);  // clipR must be DrawArea relative
 

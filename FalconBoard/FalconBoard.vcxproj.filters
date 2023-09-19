@@ -57,6 +57,9 @@
     <ClCompile Include="drawables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DrawArea.h">
@@ -83,6 +86,9 @@
     <QtMoc Include="rotateinput.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="pencolors.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="pagesetup.ui">
@@ -104,6 +110,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="rotateinput.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="pencolors.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

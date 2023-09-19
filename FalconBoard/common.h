@@ -2,6 +2,10 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#include <vector>
+
+#include <QVector>
+#include <QString>
 #include <QBitmap>
 #include <QIcon>
 #include <QColor>
@@ -10,21 +14,8 @@
 #include <QDir>
 #include <QSettings>
 #include <QPageSize>
-// version number 0xMMIISS;     M - major, I-minor, s- sub
-constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 
-const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
-const qint32 MAGIC_VERSION = 0x56020310; // V 02.03.00
-const QString sVersion = "2.3.1";
-
-const qreal eps = 1e-4;         // for 0 test of double
-inline constexpr qreal EqZero(qreal a) { return qAbs(a) < eps; }
-const QColor CHANGED_MARKER_FOREGROUND = "white",
-             CHANGED_MARKER_BACKGROUND = "red";
-
-extern QString FB_WARNING,      // in FalconBoard.cpp
-               FB_ERROR;
-
+extern quint32 file_version_loaded;	// set in history::Load
 
 const QString sWindowTitle =
 #ifdef _VIEWER
@@ -33,92 +24,23 @@ const QString sWindowTitle =
         "FalconBoard";
 #endif
 
-struct MyPageSize
-{
-    double w, h;
-    int index;
-    QPageSize::PageSizeId pid;
-    QPageSize PageSize() { return QPageSize(pid); }
-};
+using IntVector = QVector<int>;
+const qreal eps = 1e-4;         // for 0 test of double
+inline constexpr qreal EqZero(qreal a) { return qAbs(a) < eps; }
 
-struct MyPageSizes
-{
-    std::vector<MyPageSize> _myPageSizes = {
-        //              w               h        index   pid
-        // in inches as resolution is always in dots / inch
-                   //{ 1.041666667,  1.458333333,  0, QPageSize::}, //   A10
-                   //{ 1.458333333,  2.041666667,  1, QPageSize::}, //   A9	
-                   //{ 2.041666667,  2.916666667,  2, QPageSize::}, //   A8	
-                   { 2.916666667,  4.125000000,  3, QPageSize::A7}, //   A7	
-                   { 4.125000000,  5.833333333,  4, QPageSize::A6}, //   A6	
-                   { 5.833333333,  8.250000000,  5, QPageSize::A5}, //   A5	
-                   { 8.267716535, 11.692913386,  6, QPageSize::A4}, //   A4	
-                   {11.708333333, 16.541666667,  7, QPageSize::A3}, //   A3	
-                   {16.541666667, 23.375000000,  8, QPageSize::A2}, //   A2	
-                   {23.375000000, 33.125000000,  9, QPageSize::A1}, //   A1	
-                   {33.125000000, 46.791666667, 10, QPageSize::A0}, //   A0 
+const int MAX_DRAWABLE_ID  = 0x7F;
 
-                   //{ 1.208333333,  1.750000000, 11, QPageSize::}, //   B10
-                   //{ 1.750000000,  2.458333333, 12, QPageSize::}, //   B9 
-                   //{ 2.458333333,  3.458333333, 13, QPageSize::}, //   B8 
-                   { 3.458333333,  4.916666667, 14, QPageSize::B7}, //   B7 
-                   { 4.916666667,  6.916666667, 15, QPageSize::B6}, //   B6 
-                   { 6.916666667,  9.833333333, 16, QPageSize::B5}, //   B5 
-                   { 9.833333333, 13.916666667, 17, QPageSize::B4}, //   B4 
-                   {13.916666667, 19.666666667, 18, QPageSize::B3}, //   B3 
-                   {19.666666667, 27.833333333, 19, QPageSize::B2}, //   B2 
-                   {27.833333333, 39.375000000, 20, QPageSize::B1}, //   B1 
-                   {39.375000000, 55.666666667, 21, QPageSize::B0}, //   B0 
+const QColor CHANGED_MARKER_FOREGROUND = "white",
+             CHANGED_MARKER_BACKGROUND = "red";
 
-                   {8.5, 11 , 22, QPageSize::Letter}, // US Letter, 
-                   {2.5, 14 , 23, QPageSize::Legal}, // US Legal,     
-                   {5.5, 8.5, 24, QPageSize::B6}  // US Stationary, // ?????????
-    };
-    MyPageSize operator[](QPageSize::PageSizeId size)
-    {
-        for (auto &v : _myPageSizes)
-            if (v.pid == size)
-                return v;
-        return MyPageSize();
-    }
-    MyPageSize operator[](int index)
-    {
-        return _myPageSizes[index];
-    }
-};
-extern MyPageSizes myPageSizes; // in pagesetup.cpp
+extern QString FB_WARNING,      // in FalconBoard.cpp
+               FB_ERROR;
 
-struct MyScreenSizes
-{
-    int w, h;
-};
+extern QString UNTITLED;     // in falconBoard.cpp
 
-constexpr const MyScreenSizes myScreenSizes[] =
-{
-    {3840,   2160},
-    {3440,   1440},
-    {2560,   1440},
-    {2560,   1080},
-    {2048,   1152},
-    {1920,   1200},
-    {1920,   1080},
-    {1680,   1050},
-    {1600,   900 },
-    {1536,   864 },
-    {1440,   900 },
-    {1366,   768 },
-    {1360,   768 },
-    {1280,   1024},
-    {1280,   800 },
-    {1280,   720 },
-    {1024,   768 },
-    {800 ,   600 },
-    {640 ,   360 }
-};
+constexpr int PEN_COUNT = 6;    // including eraser, no 'penNone' pen! Modify if pen count changes !
+enum FalconPenKind { penNone=-1, penEraser=0, penBlack, penRed, penGreen, penBlue, penYellow, penLastNotUseThis};
 
-
-constexpr int PEN_COUNT = 6;    // no 'penNone' pen modify if pen count changes
-enum FalconPenKind { penNone=0, penBlack=1, penRed=2, penGreen=3, penBlue=4, penYellow=5, penEraser=PEN_COUNT};
 // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
 enum DrawCursorShape { csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
@@ -127,165 +49,126 @@ enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
 
 constexpr const int resos[] = { 300, 600, 1200 };;
 
-
-using IntVector = QVector<int>;
-
-extern QString UNTITLED;     // in falconBoard.cpp
-
 inline int IsUntitled(QString name)
 {
     return name.isEmpty() ? 1 : (name.left(UNTITLED.length()) == UNTITLED ? 2 : 0);
 }
 
-// ******************************************************
-/*========================================================
- * TASK: from a single QIcon create icons for all used colors
- * PARAMS:  icon - base icon (png with white and black color)
- *          colorW - replacement color for white must be valid
- *          colorB - replacement colors for black,
-                     may be invalid
- * GLOBALS:
- * RETURNS: new icon with new colors set
- * REMARKS: -
- *-------------------------------------------------------*/
-// ******************************************************
+struct MyPageSize
+{
+    double w=-1, h=-1;
+    int index=-1;
+    QPageSize::PageSizeId pid = QPageSize::A4;
+    MyPageSize() {}
+    MyPageSize(double w, double h, int ix, QPageSize::PageSizeId pid) : w(w), h(h), index(ix), pid(pid) {}
+    QPageSize PageSize() { return QPageSize(pid); }
+};
+
+class MyPageSizes : public std::vector<MyPageSize>
+{
+public:
+    MyPageSizes();
+    //MyPageSize operator[](QPageSize::PageSizeId size);
+};
+extern MyPageSizes myPageSizes; // in common.cpp
+
+struct MyScreenSize
+{
+    int w, h;
+    MyScreenSize(int w, int h) : w(w), h(h) {}
+};
+class MyScreenSizes : public std::vector<MyScreenSize>
+{
+public:
+    MyScreenSizes();
+};
+
+extern MyScreenSizes myScreenSizes;
+     
+//******************************************************
+struct FalconPen
+{
+    FalconPenKind kind = penBlack;
+    QColor lightColor = Qt::black,    // _dark = false - for light mode
+        darkColor = Qt::white;        // _dark = true  - for dark mode
+    QString lightName, darkName;      // Menu names for dark and light modes
+    QColor defaultLightColor = "black", defaultDarkColor = "white";
+
+    FalconPen() {}
+    FalconPen(const FalconPen &o) : 
+        kind(o.kind), lightColor(o.lightColor), darkColor(o.darkColor), 
+        lightName(o.lightName), darkName(o.darkName),
+        defaultLightColor(o.defaultLightColor), defaultDarkColor(o.defaultDarkColor) {}
+    FalconPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName) : 
+        kind(pk), lightColor(lc), darkColor(dc), lightName(sLName), darkName(sDName) {}
+
+    bool IsChanged() const
+    {
+        return (defaultLightColor != lightColor) || (defaultDarkColor != darkColor);
+    }
+};
+
+//----------------------------- FalconPens -------------------
+class FalconPens : public std::vector<FalconPen>
+{
+    QCursor _pointers[PEN_COUNT];
+    bool _darkMode = false;     // use SetDarkMode to set up
+
+    QIcon _RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB);
+    void _SetupEraser();
+    void _PreparePointerFor(FalconPenKind pk);
+    void _PreparePointers();
+public:
+    FalconPens() {}
+    void Initialize();
+
+    FalconPens(const FalconPens& o) { *this = o; }
+    FalconPens& operator=(const FalconPens& o);
+
+    bool SetDarkMode(bool dark);
+    bool SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName);  // and pointer
+    bool SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName);
+
+    QColor Color(FalconPenKind pk) const;
+    QCursor Pointer(FalconPenKind pk) const;
+    const QString& ActionName(FalconPenKind pk) const;
+
+    bool FromSettings(QSettings* s);
+    bool ToSettings(QSettings* s) const;
+};
+
 //----------------------------- DrawColors -------------------
-// object created in DrawArea.cpp
 class DrawColors
 {
-    QColor _invalid;
     bool _dark = false;
-    struct _clr
-    {
-        FalconPenKind kind = penBlack;
-        QColor lightColor = Qt::black,    // _dark = false - for light mode
-               darkColor = Qt::white;     // _dark = true  - for dark mode
-        QString lightName, darkName; // Menu names for dark and light modes
-        _clr() : kind(penNone), lightColor(QColor()), darkColor(QColor()) { }
-    } _colors[PEN_COUNT];     // no color for 'penNone'
-    QCursor _cursors[PEN_COUNT];    // no cursor for penNone
-
-    int _penColorIndex(FalconPenKind pk)
-    {
-        for (int i = 0; i < PEN_COUNT; ++i)
-            if (_colors[i].kind == pk)
-                return i;
-        return -1;
-    }
-    void _Setup(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName)
-    {
-        int ix = (int)pk - 1;
-        if (pk != penEraser)        // else special handling
-		{
-			_colors[ix].kind = pk;
-			_colors[ix].lightColor = lc;
-			_colors[ix].darkColor = dc;
-			_colors[ix].lightName = sLName;
-			_colors[ix].darkName = sDName;
-		}
-    }
+    FalconPens _pens;     // no color for 'penNone'
+    FalconPenKind _pkActual = penNone;
 public:
-    void Setup()
-    {
-        _Setup(penBlack, Qt::black, Qt::white,  QObject::tr("Blac&k" ),  QObject::tr("Blac&k") );
-        _Setup(penRed,   Qt::red,   Qt::red,    QObject::tr("&Red"   ),  QObject::tr("&Red") );
-        _Setup(penGreen, "#007d1a", Qt::green,  QObject::tr("&Green" ),  QObject::tr("&Green") );
-        _Setup(penBlue , Qt::blue, "#82dbfc",   QObject::tr("&Blue"  ),  QObject::tr("&Blue") );
-        _Setup(penYellow,"#b704be", Qt::yellow, QObject::tr("&Purple"), QObject::tr("&Yellow") );
+    DrawColors() {}
+    DrawColors(const DrawColors& o) { *this = o; }
 
-        _Setup(penEraser, Qt::white, Qt::white, QObject::tr("&Eraser"), QObject::tr("&Eraser") );
-    }
+    DrawColors& operator= (const DrawColors& o);
 
-    bool SetDarkMode(bool dark) // returns previous mode
-    {
-        bool b = _dark;
-        _dark = dark;
-        return b;
-    }
+    void Initialize() { _pens.Initialize(); }
+
+    bool SameColors(const DrawColors& o);
+    QColor  Color(FalconPenKind pk = penNone) const;       // for actual pen
+    QCursor PenPointer(FalconPenKind pk=penNone) const;    // for actual pen
+    QString ActionName(FalconPenKind pk = penNone);
     bool IsDarkMode() const { return _dark; }
-    QColor& operator[](FalconPenKind pk)
-    {
-        int i = _penColorIndex(pk);
-        return   (i < 0 ? _invalid : (_dark ? _colors[i].darkColor : _colors[i].lightColor));
-    }
-    QString &ActionName(FalconPenKind pk)
-    { 
-        static QString what = "???";
-        int i = _penColorIndex(pk);
-        return (i < 0 ? what : (_dark ? _colors[i].darkName : _colors[i].lightName));
-    }
+
+    bool SetDarkMode(bool dark);
+    void SetDrawingPen(FalconPenKind pk);
+    void SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColoruserName, QString sDarkColorUserName, bool darkModeForCursor);
+        // global pen colors
+    bool ToSettings(QSettings* s);
+    bool FromSettings(QSettings* s);
+        // pen colors for files read
+    bool ReadPen(QDataStream& ifs);    // only call if drawable type is dtPen! first data to be read is pen kind
+    QDataStream& SavePen(QDataStream& ifs, FalconPenKind pk);    // only saved if pen is changed saves dtPen as first type
+    void SetPens(FalconPens pens);             // used when history changed Don't forget to change the corresponding actions in 'FalconBoard.cpp'
 };
-
-extern DrawColors drawColors;       // in drawarea.cpp
-
-class PenCursors 
-{
-    QCursor _cursors[PEN_COUNT];
-    bool    _wasSetup[PEN_COUNT] = { false };
-
-	QIcon ColoredIcon(QIcon sourceIcon, QColor colorW, QColor colorB)
-	{
-		QPixmap pm, pmW, pmB;
-		pmW = pmB = pm = sourceIcon.pixmap(64, 64);
-		QBitmap mask = pm.createMaskFromColor(Qt::white, Qt::MaskOutColor);
-
-		pmW.fill(colorW);
-		pmW.setMask(mask);
-		if (colorB.isValid())
-		{
-			mask = pm.createMaskFromColor(Qt::black, Qt::MaskOutColor);
-			pmB.fill(colorB);
-			pmB.setMask(mask);
-			QPainter painter(&pmW);
-			painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-			painter.drawPixmap(0, 0, pm.width(), pm.height(), pmB);
-		}
-		return QIcon(pmW);
-	}
-    void _SetupEraser()
-    {
-        QIcon icon = ColoredIcon(QIcon(":/FalconBoard/Resources/eraser.png"), drawColors.IsDarkMode() ? Qt::black : Qt::white, drawColors.IsDarkMode() ? Qt::white : Qt::black);
-        QPixmap pm = icon.pixmap(64,64);
-        _cursors[(int)penEraser-1] = QCursor(pm);
-        _wasSetup[(int)penEraser-1] = true;
-    }
-
-    void _Setup(FalconPenKind pk)
-    {
-        constexpr int SIZE = 32;    //px
-        int n = (int)pk - 1;
-        QPixmap pm(SIZE, SIZE);
-        pm.fill(Qt::transparent);
-        QPainter painter(&pm);
-
-        QColor color = drawColors[pk];
-        painter.setPen(QPen(color, 2, Qt::SolidLine));
-        painter.drawLine(QPoint(0, SIZE/2), QPoint(SIZE-1, SIZE/2));
-        painter.drawLine(QPoint(SIZE/2, 0), QPoint(SIZE/2, SIZE-1));
-        _cursors[n] = QCursor(pm);
-        _wasSetup[n] = true;
-    }
-public:
-    void Setup()
-    {
-        _Setup(penBlack);
-        _Setup(penRed);
-        _Setup(penGreen);
-        _Setup(penBlue);
-        _Setup(penYellow);
-        _SetupEraser();
-    }
-    QCursor operator[](FalconPenKind pk)
-    {
-        if (pk == penNone)
-            return QCursor();
-        int ix = (int)pk - 1;
-        if (!_wasSetup[ix])
-            _Setup(pk);
-        return _cursors[ix];
-    }
-};
-extern PenCursors penCursors;       // in drawarea.cpp
+extern DrawColors globalDrawColors;
 
 /*=============================================================
  * TASK:    centralized settings handler
@@ -294,29 +177,9 @@ extern PenCursors penCursors;       // in drawarea.cpp
 struct FBSettings
 {
     static QString homePath;       // path for user's home directory
-    static void Init()             // set home path for falconBoard
-    {
-        homePath = QDir::homePath() +
-#if defined (Q_OS_Linux)   || defined (Q_OS_Darwin) || defined(__linux__)
-            "/.falconBoard";
-#elif defined(Q_OS_WIN)
-            "/Appdata/Local/FalconBoard";
-#endif
-    }
-    static QString Name()
-    {
-        return homePath +
-#ifdef _VIEWER
-            "/FalconBoardViewer.ini";
-#else
-            "/FalconBoard.ini";
-#endif        
-    }
-
-    static QSettings *Open()
-    {
-        return _ps = new QSettings(Name(), QSettings::IniFormat);
-    }
+    static void Init();            // set home path for falconBoard
+    static QString Name();
+    static QSettings* Open();
     static void Close() { delete _ps; }
 
 private:

@@ -74,6 +74,9 @@
     <ClCompile Include="..\FalconBoard\drawables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\FalconBoard\common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="..\FalconBoard\DrawArea.h">

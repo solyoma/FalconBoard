@@ -62,7 +62,7 @@ public:
     int AddHistory(const QString name = QString(), bool loadIt = true, int indexAt = 1000000); // with name it may load it as well
     bool SwitchToHistory(int index, bool redraw, bool invalidate=false);   // use this before others
     int RemoveHistory(int index);
-    void MoveHistory(int from, int to);   // from _currentHistoryIndex
+    void SwapHistories(int from, int to);   // from _currentHistoryIndex
 
     QString HistoryName(QString qsDefault) const
     {
@@ -178,6 +178,7 @@ signals:
     void CloseTab(int tab);
     void TabSwitched(int direction);
     void SignalSetGrid(bool on, bool fixed, uint16_t value);
+    void SignalPensChanged();   // new pens already in global 'drawColors'
 
 public slots:
     void NewData();
@@ -216,10 +217,8 @@ protected:
 
 #ifndef _VIEWER
 
-
-
 private:
-    void ChangePenColorByKeyboard(int key);
+    void _ChangePenByKeyboard(int key);
 #endif
 private:
     History *_history=nullptr;      // actual history (every scribble and image element with undo/redo)

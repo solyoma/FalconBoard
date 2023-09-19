@@ -106,6 +106,7 @@
     <QtUic Include="..\FalconBoard\rotateinput.ui" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\FalconBoard\common.cpp" />
     <ClCompile Include="..\FalconBoard\drawables.cpp" />
     <ClCompile Include="..\FalconBoard\DrawArea.cpp" />
     <ClCompile Include="..\FalconBoard\history.cpp" />

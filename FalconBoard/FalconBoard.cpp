@@ -28,9 +28,15 @@ QSettings* FBSettings::_ps = nullptr;
 QString FB_WARNING = QMainWindow::tr("falconBoard - Warning"),
         FB_ERROR   = QMainWindow::tr("falconBoard - Error");
 
+#ifndef _Viewer
 const QString appName = "FalconBoard.exe";
 const QString keyName = "FalconBoardKey";
 const QString pipeName = "FalconBoardPipe";
+#else
+const QString appName = "FalconBoardViewer.exe";
+const QString keyName = "FalconBoardViewerKey";
+const QString pipeName = "FalconBoardViewerPipe";
+#endif
 const QString fileExtension = ".mwb";
 
 int nUntitledOrder = 1;
@@ -101,13 +107,15 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 
 	ui.setupUi(this);
 
+    globalDrawColors.Initialize();    // set up colors and pointers
+
     historyList.SetupClipBoard();
 
     if (!QDir(FBSettings::homePath).exists())
         QDir(FBSettings::homePath).mkdir(FBSettings::homePath);
 
     _drawArea = static_cast<DrawArea*>(ui.centralWidget);
-    _drawArea->SetPenKind(_actPen, _penWidth[_actPen-1]); 
+    _drawArea->SetPenKind(_actPen, _penWidths[_actPen]); 
     _drawArea->SetScreenSize(screenSize);
 
     _CreateAndAddActions(); // to toolbar
@@ -129,6 +137,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &FalconBoard::SlotForRubberBandSelection);
 #endif
     connect(_drawArea, &DrawArea::SignalSetGrid, this, &FalconBoard::SlotToSetGrid);
+    connect(_drawArea, &DrawArea::SignalPensChanged, this, &FalconBoard::SlotForPensChanged);
     connect(this, &FalconBoard::GridSpacingChanged, _drawArea, &DrawArea::SlotForGridSpacingChanged);
 
     connect(qApp, &QApplication::primaryScreenChanged, _drawArea, &DrawArea::SlotForPrimaryScreenChanged);
@@ -183,6 +192,10 @@ QString FalconBoard::_NextUntitledName()
  * GLOBALS:
  * RETURNS:
  * REMARKS: - disables redraw
+ *          - restores pen colors if they were modified from
+ *            the default. When a new document is created it
+ *            will use these colors. Existing documents
+ *            still use their own colors.
  *-------------------------------------------------------*/
 void FalconBoard::RestoreState()
 {
@@ -241,17 +254,24 @@ void FalconBoard::RestoreState()
     MyPrinterData data;
     _drawArea->SetMyPrinterData(data);
 
+    globalDrawColors.FromSettings(s);
+
 #ifndef _VIEWER
-    qs = s->value(PENSIZES, "3,3,3,3,3,30").toString();      // pen size for black, red, green, blue, yellow, eraser
+    qs = s->value(PENSIZES, "30, 3,3,3,3,3").toString();      // pen size for eraser, black, red, green, blue, yellow
     QStringList qsl = qs.split(',');
     if (qsl.size() != PEN_COUNT)
     {
         qsl.clear();
-        qsl << "3" << "3" << "3" << "3" << "3" << "30";
+        qsl << "30" << "3" << "3" << "3" << "3" << "3";
     }
     for (int i = 0; i < PEN_COUNT; ++i)
-        _penWidth[i] = qsl[i].toInt();
-    _psbPenWidth->setValue(_penWidth[0]);
+        _penWidths[i] = qsl[i].toInt();
+
+    if (file_version_loaded < 0x560203)      // in old version files eraser was the last, now it is the first
+        std::swap(_penWidths[0], _penWidths[5]);
+
+
+    _psbPenWidth->setValue(_penWidths[(int)penBlack]); 
     
     ui.actionAutoSaveData->setChecked(s->value(AUTOSAVEDATA, false).toBool());
     ui.actionAutoSaveBackgroundImage->setChecked(s->value(AUTOSBCKIMG, false).toBool());
@@ -364,7 +384,9 @@ void FalconBoard::RestoreState()
  * EXPECTS:
  * GLOBALS:
  * RETURNS:
- * REMARKS:
+ * REMARKS: - also saves changed pen colors
+ *          - pen colors in drawColors are replaced with the
+ *            one from the actual document on close
  *------------------------------------------------------------*/
 void FalconBoard::SaveState()
 {
@@ -385,7 +407,10 @@ void FalconBoard::SaveState()
     s->setValue(PAGEGUIDES, ui.actionShowPageGuides->isChecked() ? 1 : 0);
     s->setValue(LIMITED, ui.actionLimitPaperWidth->isChecked());
 #ifndef _VIEWER
-    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6").arg(_penWidth[0]).arg(_penWidth[1]).arg(_penWidth[2]).arg(_penWidth[3]).arg(_penWidth[4]).arg(_penWidth[5]));
+
+    globalDrawColors.ToSettings(s)
+        ;
+    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6").arg(_penWidths[0]).arg(_penWidths[1]).arg(_penWidths[2]).arg(_penWidths[3]).arg(_penWidths[4]).arg(_penWidths[5]));
     s->setValue(AUTOSAVEDATA, ui.actionAutoSaveData->isChecked());
     s->setValue(AUTOSBCKIMG, ui.actionAutoSaveBackgroundImage->isChecked());
     if (ui.actionAutoSaveBackgroundImage->isChecked())
@@ -450,23 +475,23 @@ void FalconBoard::_LoadIcons()
 
 void FalconBoard::_SetupIconsForPenColors(ScreenMode sm)
 {
-    drawColors.SetDarkMode(sm != smSystem);
+    globalDrawColors.SetDarkMode(sm != smSystem);
 
 #ifndef _VIEWER
-    ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, drawColors[penBlack]) : _iconPen);
-    ui.action_Black->setText(drawColors.ActionName(penBlack));
+    ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, globalDrawColors.Color(penBlack)) : _iconPen);
+    ui.action_Black->setText(globalDrawColors.ActionName(penBlack));
 
-    ui.action_Red->setIcon(_ColoredIcon(_iconPen,   drawColors[penRed]));
-    ui.action_Red->setText(drawColors.ActionName(penRed));
+    ui.action_Red->setIcon(_ColoredIcon(_iconPen,   globalDrawColors.Color(penRed)));
+    ui.action_Red->setText(globalDrawColors.ActionName(penRed));
 
-    ui.action_Green->setIcon(_ColoredIcon(_iconPen, drawColors[penGreen]));
-    ui.action_Green->setText(drawColors.ActionName(penGreen));
+    ui.action_Green->setIcon(_ColoredIcon(_iconPen, globalDrawColors.Color(penGreen)));
+    ui.action_Green->setText(globalDrawColors.ActionName(penGreen));
 
-    ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  drawColors[penBlue]));
-    ui.action_Blue->setText(drawColors.ActionName(penBlue));
+    ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  globalDrawColors.Color(penBlue)));
+    ui.action_Blue->setText(globalDrawColors.ActionName(penBlue));
 
-    ui.action_Yellow->setIcon(_ColoredIcon(_iconPen,drawColors[penYellow]));
-    ui.action_Yellow->setText(drawColors.ActionName(penYellow));
+    ui.action_Yellow->setIcon(_ColoredIcon(_iconPen,globalDrawColors.Color(penYellow)));
+    ui.action_Yellow->setText(globalDrawColors.ActionName(penYellow));
 #endif
 }
 
@@ -503,14 +528,17 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.action_Green);
     ui.mainToolBar->addAction(ui.action_Blue);
     ui.mainToolBar->addAction(ui.action_Yellow);
+
     ui.mainToolBar->addAction(ui.action_Eraser);
 
+        // these are needed for radiobutton like behaviour for actions in the group
     _penGroup = new QActionGroup(this);
     _penGroup->addAction(ui.action_Black);
     _penGroup->addAction(ui.action_Red);
     _penGroup->addAction(ui.action_Green);
     _penGroup->addAction(ui.action_Blue);
     _penGroup->addAction(ui.action_Yellow);
+
     _penGroup->addAction(ui.action_Eraser);
 #endif
 
@@ -527,7 +555,7 @@ void FalconBoard::_CreateAndAddActions()
     _psbPenWidth->setMinimum(1);
     _psbPenWidth->setMaximum(200);
     _psbPenWidth->setSingleStep(1);
-    _psbPenWidth->setValue(_penWidth[0]);
+    _psbPenWidth->setValue(_penWidths[0]);
     QRect rect = _psbPenWidth->geometry();
     rect.setWidth(40);
     _psbPenWidth->setGeometry(rect);
@@ -751,9 +779,9 @@ void FalconBoard::_SetPenKind()
     _eraserOn = _actPen == penEraser;
     if(_actPen != penNone)
 	{
-		_drawArea->SetPenKind(_actPen, _penWidth[_actPen - 1]);
+		_drawArea->SetPenKind(_actPen, _penWidths[_actPen]);
 		++_busy;
-		_psbPenWidth->setValue(_penWidth[_actPen - 1]);
+		_psbPenWidth->setValue(_penWidths[_actPen]);
 		--_busy;
 	}
 }
@@ -778,9 +806,9 @@ void FalconBoard::_SetYellowPen()  { _SetPenKind (penYellow); }
 
 void FalconBoard::_SetPenWidth(FalconPenKind pk)
 {
-    _drawArea->SetPenKind(pk, _penWidth[pk-1]);
+    _drawArea->SetPenKind(pk, _penWidths[pk]);
     ++_busy;
-    _psbPenWidth->setValue(_penWidth[pk-1]);
+    _psbPenWidth->setValue(_penWidths[pk]);
     --_busy;
 }
 
@@ -905,7 +933,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     {
         default:
         case smSystem:
-            // already set : _drawArea->drawColors.SetDarkMode(false);   // light mode: dark colors
+            // already set : _drawArea->globalDrawColors.SetDarkMode(false);   // light mode: dark colors
             // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]));
             ui.actionExit   ->setIcon(_iconExit   );
             ui.action_Eraser->setIcon(_iconEraser );
@@ -926,7 +954,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sToolBarColor = "#AAAAAA";
             break;
         case smDark:
-            // already set : _drawArea->drawColors.SetDarkMode(true);
+            // already set : _drawArea->globalDrawColors.SetDarkMode(true);
             // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
             ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
             ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, QColor(Qt::white)));
@@ -947,7 +975,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sToolBarColor = "#202020";
             break;
         case smBlack:
-            // already set : _drawArea->drawColors.SetDarkMode(true);
+            // already set : _drawArea->globalDrawColors.SetDarkMode(true);
             // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
 
             ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
@@ -1665,7 +1693,7 @@ void FalconBoard::SlotForTabCloseRequested(int index)
 
 void FalconBoard::SlotForTabMoved(int from, int to)
 {
-    _drawArea->MoveHistory(from, to); 
+    _drawArea->SwapHistories(from, to); 
 }
 
 void FalconBoard::SlotForTabSwitched(int direction)
@@ -1979,7 +2007,7 @@ void FalconBoard::slotPenWidthChanged(int val)
     if (_busy)		// from program
         return;
     // from user
-    _penWidth[_actPen-1] = val;
+    _penWidths[_actPen] = val;
     _SetPenKind();
 }
 
@@ -2084,7 +2112,13 @@ void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 {
     _SetPenKind(pk);
 }
-#endif
+#endif  // not _VIEWER
+
+void FalconBoard::SlotForPensChanged()
+{
+    _SetupIconsForPenColors(_screenMode);
+    _drawArea->update();
+}
 
 void FalconBoard::on_actionPageSetup_triggered()
 {

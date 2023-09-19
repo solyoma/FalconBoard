@@ -497,10 +497,13 @@ class History  // stores all drawing sections and keeps track of undo and redo
 public:
     GridOptions gridOptions;
 
+    DrawColors drawColors;         // global for all drawables in this history
+
     History(HistoryList* parent) noexcept;
     History(const History& o);
     History(History&& o) noexcept;
     virtual ~History();
+
 
     QSizeF UsedArea();   // of all points and images
     int CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize); // -1: invalid page for px, -2: invalid page for py i.e. outside used area. First call with getAreaSize=true, others with false
