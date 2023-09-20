@@ -12,7 +12,8 @@ OBJECTS_DIR += ./Debug
 UI_DIR += ./Debug/Ui
 RCC_DIR += ./Debug/rcc
 win32:RC_FILE = FalconBoard.rc
-HEADERS += ../FalconBoard/common.h \
+HEADERS += \
+	../FalconBoard/common.h \
 	../FalconBoard/drawables.h \
 	../FalconBoard/DrawArea.h \
 	../FalconBoard/FalconBoard.h \
@@ -21,21 +22,26 @@ HEADERS += ../FalconBoard/common.h \
 	../FalconBoard/myevent.h \
 	../FalconBoard/myprinter.h \
 	../FalconBoard/pagesetup.h \
+	../FalconBoard/pencolors.h \
 	../FalconBoard/printprogress.h \
 	../FalconBoard/quadtree.h \
 	../FalconBoard/screenshotTransparency.h \
 	./FalconBoard/smoother.h \
 	../FalconBoard/snipper.h
-SOURCES += ../FalconBoard/drawables.cpp
+SOURCES += \
+	../FalconBoard/common.cpp \
+	../FalconBoard/drawables.cpp
 	../FalconBoard/DrawArea.cpp \
 	../FalconBoard/FalconBoard.cpp \
 	../FalconBoard/history.cpp \
 	../FalconBoard/main.cpp \
 	../FalconBoard/myprinter.cpp \
 	../FalconBoard/pagesetup.cpp \
+	../FalconBoard/pencolors.cpp \
 	../FalconBoard/screenshotTransparency.cpp \
 	../FalconBoard/snipper.cpp
-FORMS += ../FalconBoard/FalconBoard.ui \
+FORMS += \
+	../FalconBoard/FalconBoard.ui \
 	../FalconBoard/helpdialog.ui \
 	../FalconBoard/pagesetup.ui \
 	../FalconBoard/printprogress.ui \

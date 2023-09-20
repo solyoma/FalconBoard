@@ -57,6 +57,9 @@
     <ClCompile Include="drawables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pencolors.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

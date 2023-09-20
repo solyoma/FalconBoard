@@ -148,6 +148,8 @@ private slots:
 
 	void on_actionLimitPaperWidth_triggered();
 
+	void on_actionDefinePenColors_triggered();
+
 	void on_action_InsertVertSpace_triggered();
 
 	void on_actionApplyTransparencyToLoaded_triggered();

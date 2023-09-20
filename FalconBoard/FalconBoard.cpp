@@ -47,8 +47,8 @@ void FalconBoard::_RemoveMenus()
     QList<QAction*> pMenuActions = ui.menuBar->actions(); // [0]:file,[1]:Edit,[2]:Clear,[3]:options,[4]:Help
     ui.menuBar->removeAction(pMenuActions[1] ); // edit
     ui.menuBar->removeAction(pMenuActions[2]);  // clear
-    QMenu* pMenu = pMenuActions[0]->menu();
-            // File Menu (removeAction changes the order of the actions after the removed one
+    QMenu* pMenu = pMenuActions[0]->menu();    // File Menu 
+            // (removeAction changes the order of the actions after the removed one
             // therefore this order is important
     pMenu->removeAction(pMenu->actions()[17]);       // Save Visible
     pMenu->removeAction(pMenu->actions()[12]);       // Import image
@@ -61,20 +61,23 @@ void FalconBoard::_RemoveMenus()
 
     // options menu
     pMenu = pMenuActions[3]->menu();    
-                                                    // 14 - language
-    pMenu->removeAction(pMenu->actions()[13]);      // separator
-    pMenu->removeAction(pMenu->actions()[12]);      //  Auto save before print
-    pMenu->removeAction(pMenu->actions()[11]);      //  Auto save background image
-    pMenu->removeAction(pMenu->actions()[10]);      //  Auto save data
-                                                    // 9 - separator
-    pMenu->removeAction(pMenu->actions()[8]);       //  Load Background Image 
-    pMenu->removeAction(pMenu->actions()[7]);       // separator
-    pMenu->removeAction(pMenu->actions()[6]);       //  Screenshot Transparency
-                                                    // 5 -Allow multiple program instances
-                                                    // 4 - separator
-                                                    // 3 - Show page guides
-    pMenu->removeAction(pMenu->actions()[2]);       //  paper width
-    pMenu->removeAction(pMenu->actions()[1]);       //  grid
+                                                    //16: language
+    pMenu->removeAction(pMenu->actions()[15]);      //15:    separator
+    pMenu->removeAction(pMenu->actions()[14]);      //14: Auto save before print
+    pMenu->removeAction(pMenu->actions()[13]);      //13: Auto save background image
+    pMenu->removeAction(pMenu->actions()[12]);      //12: Auto save data
+                                                    //11:   separator
+    pMenu->removeAction(pMenu->actions()[10]);      //10: Load Background Image 
+    pMenu->removeAction(pMenu->actions()[9]);       // 9:   separator
+    pMenu->removeAction(pMenu->actions()[8]);       // 8: define pen colors
+    pMenu->removeAction(pMenu->actions()[7]);       // 7: Screenshot Transparency
+                                                    // 6: Allow multiple program instances
+                                                    // 5:   separator
+                                                    // 4: Show page guides
+    pMenu->removeAction(pMenu->actions()[3]);       // 3: paper width
+    pMenu->removeAction(pMenu->actions()[2]);       // 2: grid options
+                                                    // 1: grid shown
+                                                    // 0: mode
 
 
     //ui.actionLoadBackground->setVisible(false);
@@ -479,19 +482,19 @@ void FalconBoard::_SetupIconsForPenColors(ScreenMode sm)
 
 #ifndef _VIEWER
     ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, globalDrawColors.Color(penBlack)) : _iconPen);
-    ui.action_Black->setText(globalDrawColors.ActionName(penBlack));
+    ui.action_Black->setText(globalDrawColors.ActionText(penBlack));
 
     ui.action_Red->setIcon(_ColoredIcon(_iconPen,   globalDrawColors.Color(penRed)));
-    ui.action_Red->setText(globalDrawColors.ActionName(penRed));
+    ui.action_Red->setText(globalDrawColors.ActionText(penRed));
 
     ui.action_Green->setIcon(_ColoredIcon(_iconPen, globalDrawColors.Color(penGreen)));
-    ui.action_Green->setText(globalDrawColors.ActionName(penGreen));
+    ui.action_Green->setText(globalDrawColors.ActionText(penGreen));
 
     ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  globalDrawColors.Color(penBlue)));
-    ui.action_Blue->setText(globalDrawColors.ActionName(penBlue));
+    ui.action_Blue->setText(globalDrawColors.ActionText(penBlue));
 
     ui.action_Yellow->setIcon(_ColoredIcon(_iconPen,globalDrawColors.Color(penYellow)));
-    ui.action_Yellow->setText(globalDrawColors.ActionName(penYellow));
+    ui.action_Yellow->setText(globalDrawColors.ActionText(penYellow));
 #endif
 }
 
@@ -1952,6 +1955,17 @@ void FalconBoard::on_actionLimitPaperWidth_triggered()
     bool b = ui.actionLimitPaperWidth->isChecked();
     _drawArea->SetLimitedPage(b);
 
+    --_busy;
+}
+
+void FalconBoard::on_actionDefinePenColors_triggered()
+{
+    if (_busy)
+        return;
+    ++_busy;
+    PenColorsDialog *pcdg = new PenColorsDialog(this);
+    pcdg->exec();
+    delete pcdg;
     --_busy;
 }
 

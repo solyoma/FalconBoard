@@ -757,8 +757,6 @@ int HistoryPenWidthChangeItem::Redo()
 //********************************** History class ****************************
 History::History(HistoryList* parent) noexcept: _parent(parent) 
 { 
-	drawColors.Initialize();
-
 	_quadTreeDelegate.SetUp();
 	_drawables.SetQuadTreeDelegate(&_quadTreeDelegate).SetZorderStore(&_zorderStore);	// allocate objects and set them 
 	_drawables.SetZorderStore(&_zorderStore);
@@ -766,6 +764,7 @@ History::History(HistoryList* parent) noexcept: _parent(parent)
 
 History::History(const History& o)
 {
+	drawColors = o.drawColors;	// visible
 	_parent = o._parent;
 	_items = o._items;
 	_redoList = o._redoList;
@@ -777,6 +776,8 @@ History::History(const History& o)
 
 History::History(History&& o) noexcept
 {
+	drawColors = o.drawColors;	// visible
+
 	_parent = o._parent;
 	_items = o._items;
 	_redoList = o._redoList;
