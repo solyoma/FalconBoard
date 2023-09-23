@@ -16,14 +16,6 @@ PenColorsDialog::PenColorsDialog(QWidget* parent) : QDialog(parent)
 	pb[2][0] = ui.btnL4; pb[2][1] = ui.btnD4;
 	pb[3][0] = ui.btnL5; pb[3][1] = ui.btnD5;
 
-	QString style;
-
-	auto _makeStyle = [&](int i, int dark)->QString
-		{
-			style = QString("background-color:%1").arg(_colors[i][dark].name());
-			return style;
-		};
-
 	for (int i = 0; i < PEN_COUNT - 2; ++i)
 	{
 		pe[i][0]->setText(globalDrawColors.ActionText((FalconPenKind)(i+2), 0)) ;
@@ -34,32 +26,84 @@ PenColorsDialog::PenColorsDialog(QWidget* parent) : QDialog(parent)
 		pb[i][1]->setStyleSheet(_makeStyle(i, 1));
 	}
 }
+QString PenColorsDialog::_makeStyle (int i, int dark)
+{
+	QString style;
+
+	style = QString("background-color:%1").arg(_colors[i][dark].name());
+	return style;
+};
+
 
 PenColorsDialog::~PenColorsDialog()
-{
-
-}
-
-void PenColorsDialog::mousePressEvent(QMouseEvent* event)
-{
-}
-
-void PenColorsDialog::keyPressEvent(QKeyEvent* event)
 {
 }
 
 void PenColorsDialog::_SelectColor(int row, int dark)
 {
-	bool isDarkMode = globalDrawColors.IsDarkMode();
-	globalDrawColors.SetDarkMode(dark);
-
 	QColor newc = QColorDialog::getColor(_colors[row][dark], this, QString(tr("FalconBoard - Select new pen color for Color #%1")).arg(row + 2));
 	if (newc.isValid())
 	{
 		_colors[row][dark] = newc;
-		globalDrawColors.SetupPenAndCursor((FalconPenKind)row, _colors[row][0], _colors[row][1]);	// leave name the same
+		pb[row][dark]->setStyleSheet(_makeStyle(row, dark) );
 	}
-	if((bool)dark != isDarkMode)
-		globalDrawColors.SetDarkMode(isDarkMode);
+}
+// color names
+//void PenColorsDialog::on_edtL2_textChanged(const QChar &txt)
+//{
+//}
+//void PenColorsDialog::on_edtL3_textChanged(const QChar &txt)
+//{
+//}
+//void PenColorsDialog::on_edtL4_textChanged(const QChar &txt)
+//{
+//}
+//void PenColorsDialog::on_edtL5_textChanged(const QChar &txt)
+//{
+//}
+//void PenColorsDialog::on_edtD2_textChanged(const QChar &txt)
+//{
+//}
+//void PenColorsDialog::on_edtD3_textChanged(const QChar &txt)
+//{
+//}
+//void PenColorsDialog::on_edtD4_textChanged(const QChar &txt)
+//{
+//}
+//void PenColorsDialog::on_edtD5_textChanged(const QChar &txt)
+//{
+//}
 
+// button clicks
+void PenColorsDialog::on_btnL2_clicked()
+{
+	_SelectColor(0, 0);
+}
+void PenColorsDialog::on_btnL3_clicked()
+{
+	_SelectColor(1, 0);
+}
+void PenColorsDialog::on_btnL4_clicked()
+{
+	_SelectColor(2, 0);
+}
+void PenColorsDialog::on_btnL5_clicked()
+{
+	_SelectColor(3, 0);
+}
+void PenColorsDialog::on_btnD2_clicked()
+{
+	_SelectColor(0, 1);
+}
+void PenColorsDialog::on_btnD3_clicked()
+{
+	_SelectColor(1, 1);
+}
+void PenColorsDialog::on_btnD4_clicked()
+{
+	_SelectColor(2, 1);
+}
+void PenColorsDialog::on_btnD5_clicked()
+{
+	_SelectColor(3, 1);
 }

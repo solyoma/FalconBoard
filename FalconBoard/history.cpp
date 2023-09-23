@@ -754,6 +754,39 @@ int HistoryPenWidthChangeItem::Redo()
 	return 1;
 }
 
+//****************** HistoryPenColorChangeItem ****************
+HistoryPenColorChangeItem::HistoryPenColorChangeItem(History* pHist, const DrawColors& origc, const DrawColors& newc)  :
+	original(origc), redefined(newc), HistoryItem(pHist, HistEvent::hePenColorChanged)
+{
+	Redo();
+}
+
+HistoryPenColorChangeItem::HistoryPenColorChangeItem(const HistoryPenColorChangeItem& o):
+	original(o.original), redefined(o.redefined), HistoryItem(o)
+{
+	Redo();
+}
+
+HistoryPenColorChangeItem& HistoryPenColorChangeItem::operator=(const HistoryPenColorChangeItem& o)
+{
+	(HistoryItem&)(*this) = (HistoryItem&)o;
+	original = o.original;
+	redefined = o.redefined;
+	return *this;
+}
+
+int HistoryPenColorChangeItem::Undo()
+{
+	pHist->drawColors = globalDrawColors = original;
+	return 1;
+}
+
+int HistoryPenColorChangeItem::Redo()
+{
+	pHist->drawColors = globalDrawColors = redefined;
+	return 1;
+}
+
 //********************************** History class ****************************
 History::History(HistoryList* parent) noexcept: _parent(parent) 
 { 
@@ -1252,8 +1285,10 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 	DrawableText dTxt;
 	DrawableScreenShot dsImg;
 
+	// set default colors
+	drawColors.Initialize();
 	int nRead = _items.count();
-	bool replaceColors = nRead == 0;
+	// bool replaceColors = nRead == 0;
 	while (!ifs.atEnd())
 	{
 		ifs >> di;
@@ -1268,7 +1303,7 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 			case DrawableType::dtScreenShot:	(DrawableItem&)dsImg  = di; ifs >> dsImg;	pdrwh = &dsImg;	break;
 			case DrawableType::dtScribble:		(DrawableItem&)dScrb  = di; ifs >> dScrb;	pdrwh = &dScrb;	break;
 			case DrawableType::dtText:			(DrawableItem&)dTxt   = di; ifs >> dTxt;	pdrwh = &dTxt;	break;
-			case DrawableType::dtPen:			if (drawColors.ReadPen(ifs) && replaceColors)
+			case DrawableType::dtPen:			if (drawColors.ReadPen(ifs) /* && replaceColors*/ )
 													globalDrawColors = drawColors;
 												break;
 			default: break;
@@ -1522,6 +1557,11 @@ HistoryItem* History::AddPenWidthChange(int increment)
 	return _AddItem(ppwch);
 }
 
+HistoryItem* History::AddPenColorChange(const DrawColors& newdc)
+{
+	HistoryPenColorChangeItem* ppcwc = new HistoryPenColorChangeItem(this, globalDrawColors, newdc);
+	return _AddItem(ppcwc);
+}
 
 //********************************************************************* History ***********************************
 

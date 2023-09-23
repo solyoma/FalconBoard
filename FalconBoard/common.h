@@ -97,8 +97,7 @@ struct FalconPen
     FalconPen() {}
 
     FalconPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName) :
-        kind(pk), lightColor(lc), darkColor(dc),
-        defaultLightColor(lightColor), defaultDarkColor(darkColor)
+        kind(pk), lightColor(lc), darkColor(dc)
     {
         if (!sLName.isEmpty())
             lightName = sLName;
@@ -115,6 +114,12 @@ struct FalconPen
     {
         return (defaultLightColor != lightColor) || (defaultDarkColor != darkColor);
     }
+
+    void SetDefaultColors(QColor dlc, QColor ddc)
+    {
+        defaultLightColor = dlc;
+        defaultDarkColor = ddc;
+    }
 };
 
 //----------------------------- FalconPens -------------------
@@ -128,14 +133,14 @@ class FalconPens : public std::vector<FalconPen>
     void _PreparePointerFor(FalconPenKind pk);
     void _PreparePointers();
 public:
-    FalconPens() {}
+    FalconPens() { resize(PEN_COUNT); }
     void Initialize();
 
     FalconPens(const FalconPens& o) { *this = o; }
     FalconPens& operator=(const FalconPens& o);
 
     bool SetDarkMode(bool dark);
-    bool SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName);  // and pointer
+    bool SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName, bool setDefaults);  // and pointer
     bool SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName);
 
     QColor Color(FalconPenKind pk, int dark = -1) const;  //-1: use _darkMode
@@ -172,7 +177,7 @@ public:
 
     bool SetDarkMode(bool dark);
     void SetDrawingPen(FalconPenKind pk);
-    void SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColorUserName=QString(), QString sDarkColorUserName=QString(), bool darkModeForCursor=false);
+    void SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColorUserName=QString(), QString sDarkColorUserName=QString());
     void SetActionText(FalconPenKind pk, QString text, bool dark);  // used from 'pencolors'
         // global pen colors
     bool ToSettings(QSettings* s);

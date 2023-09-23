@@ -7,6 +7,77 @@
 	bool isDebugMode = false;
 #endif
 
+static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'ccenter'
+{
+#define SQR(x)  ((x)*(x))
+#define DIST2(a,b) (SQR((a).x() - (b).x()) + SQR((a).y() - (b).y()))
+	// simple checks:
+	if (DIST2(p1, ccenter) > r && DIST2(p2, ccenter) > r && DIST2(p1, p2) < 2 * r)
+		return false;
+
+	// first transform coord system origin to center of circle 
+	p1 -= ccenter;
+	p2 -= ccenter;
+	// then solve the equations for a line given by p1 and p2 to intersect a circle w. radius r
+	qreal dx = p2.x() - p1.x(),
+		dy = p2.y() - p1.y(),
+		dr2 = SQR(dx) + SQR(dy),
+		D = p1.x() * p2.y() - p2.x() * p1.y(),
+		discr = SQR(r) * dr2 - SQR(D),
+		pdr2 = 1 / dr2;
+
+	if (discr < 0)   // then the line does not intersect the circle
+		return false;
+	else if (EqZero(discr))  // floating point, no abs. 0 test
+	{                       // tangent line. Check tangent point.
+		qreal xm = (D * dy) * pdr2,
+			ym = -(D * dx) * pdr2;
+		return (SQR(xm) + SQR(ym) <= SQR(r));
+	}
+	else    // one or two intersections with the line, but is there any for the line section?
+	{
+
+		if (SQR(p1.x()) + SQR(p1.y()) <= SQR(r) || SQR(p2.x()) + SQR(p2.y()) <= SQR(r))
+			return true;    // at least one of the endpoints is inside the circle
+
+		// not so easy... Get intersection points ip1,ip2
+		qreal sqrt_discr = sqrt(discr),
+			xm1 = (D * dy) * pdr2,
+			xm2 = (dx * sqrt_discr * (dy < 0 ? -1 : 1)) * pdr2,
+			ym1 = -(D * dx) * pdr2,
+			ym2 = abs(dy) * sqrt_discr * pdr2;
+		// the two intersection points are:
+		QPointF ip1 = QPointF(xm1 + xm2, ym1 + ym2),
+			ip2 = QPointF(xm1 - xm2, ym1 - ym2);
+
+		// here neither of the end points is inside the circle and
+		// the 4 points are on the same line (or less than 'eps' distance from it)
+		// If the points are ordered by their x or y coordinates
+		// for intersection the order of points on the line must be 
+		// p1 -> ip1 -> ip2 -> p2         
+		if (EqZero(abs(p2.y() - p1.y())))      // vertical line
+		{
+			// order points by y coordinate
+			if (p1.y() > p2.y())
+				std::swap<QPointF>(p1, p2);
+			if (ip1.y() > ip2.y())
+				std::swap<QPointF>(ip1, ip2);
+
+			return  (p1.y() <= ip1.y() && ip2.y() <= p2.y());
+		}
+		// non-vertical line: order points by x coordinate
+		if (p1.x() > p2.x())
+			std::swap<QPointF>(p1, p2);
+		if (ip1.x() > ip2.x())
+			std::swap<QPointF>(ip1, ip2);
+
+		return p1.x() <= ip1.x() && ip2.x() <= p2.x();
+	}
+#undef SQR
+#undef DIST2
+};
+
+
 	// static member
 qreal	DrawableItem::yOffset = 0.0;
 
@@ -133,6 +204,274 @@ QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness, Qt
 }
 
 /* *********************** MyRotation ********************/
+
+constexpr qreal MyRotation::AngleForType(Type myrot)
+{
+
+	qreal alpha = 0.0;
+	switch (myrot)
+	{
+	case rotL90: alpha = -90; break;	// top left -> bottom left
+	case rotR90: alpha = 90; break;
+	case rot180: alpha = 180; break;
+	default:                        // for no rotation and flips
+		break;
+	}
+	return alpha;
+}
+
+constexpr MyRotation::Type MyRotation::TypeForAngle(qreal angle)
+{
+	if (!angle)
+		return flipNone;
+	if (angle == 90.0)
+		return rotR90;
+	if (angle == -90.0 || angle == 270.0)
+		return rotL90;
+	if (angle == -180.0 || angle == 180.0)
+		return rot180;
+}
+
+MyRotation& MyRotation::operator=(Type typ)
+{
+	_SetRot((angle = AngleForType(typ)));
+
+	if (IsFlipType(typ))
+		flipType = typ;
+	return *this;
+}
+
+MyRotation& MyRotation::operator=(qreal anAngle)
+{
+	_SetRot(anAngle);
+	flipType = flipNone;
+	return *this;
+}
+
+void MyRotation::AddAngle(qreal anAngle)
+{
+	if (flipType != flipNone)
+		anAngle = -anAngle;         // flip + angle = -angle + flip
+
+	_SetRot(angle + anAngle);
+}
+
+void MyRotation::AddType(Type typ)
+{
+	if (!IsFlipType(typ))   // then rotation
+		_SetRot(angle + AngleForType(typ));
+	else                    // then flip or no flip
+	{
+		if (flipType == flipNone)     // none + flip = flip
+			flipType = typ;
+		else if (typ != flipNone)      // flip1 + flip2 =   +0 rotation and flipNone for flip1==flip2
+		{                             //               = +180 rotation and flipnone for flip1 != flip2
+			if (flipType != typ)
+				_SetRot(angle + 180);
+			flipType = flipNone;
+		}
+	}
+}
+
+MyRotation MyRotation::AddRotation(MyRotation arot)
+{
+	if (arot.flipType != flipNone)   // then no rotation
+		AddType(arot.flipType);
+	else                             // pure rotation, no flip
+		AddAngle(arot.angle);
+	return *this;
+}
+
+bool MyRotation::ResultsInNoRotation(MyRotation& arot, bool markIfNoRotation)
+{
+	MyRotation tmpRot = *this;
+	tmpRot.AddRotation(arot);
+	return tmpRot.flipType == flipNone && !tmpRot.angle;
+}
+
+bool MyRotation::RotateRect(QRectF& rect, QPointF center, bool noCheck) const
+{
+	bool result = true;
+	QRectF r = rect;
+	r.translate(-center);
+
+	if (angle)   // angle == 0.0 check is ok
+		r = _tr.map(r).boundingRect();
+
+	if (flipType != flipNone)
+	{
+		switch (flipType)
+		{
+		case rotFlipH:
+		{
+			qreal w = r.width();
+			r.setX(-r.right());	// top left is replaced by original top right
+			r.setWidth(w);
+		}
+		break;
+		case rotFlipV:
+		{
+			qreal h = r.height();
+			r.setY(-r.bottom());
+			r.setHeight(h);
+		}
+		break;
+		default:
+			break;
+		}
+	}
+	r.translate(center);
+
+	if (!noCheck && (r.top() < 0 || r.left() < 0))
+	{
+		_CantRotateWarning();
+		result = false;
+	}
+	else
+	{
+		rect = r;
+		result = true;
+	}
+
+	return result;
+}
+
+bool MyRotation::RotatePoly(QPolygonF& points, QPointF center, bool noCheck) const
+{
+	QRectF bndRect = points.boundingRect();
+
+	points.translate(-center);
+	if (!noCheck && !RotateRect(bndRect, center, noCheck)) // must or could rotate
+		return false;
+
+	if (angle)
+		points = _tr.map(points);
+
+	if (flipType == rotFlipH)
+	{
+		for (auto& pt : points)
+			pt.setX(-pt.x());
+	}
+	else if (flipType == rotFlipV)
+	{
+		for (auto& pt : points)
+			pt.setY(-pt.y());
+	}
+	points.translate(center);
+	return true;
+}
+
+bool MyRotation::RotateSinglePoint(QPointF& pt, QPointF center, bool noCheck, bool invertRotation) const
+{
+	QPointF p = pt;
+	MyRotation mr = *this;
+	p -= center;
+	if (invertRotation)
+		mr.InvertAngle();
+	p = mr._tr.map(p);
+
+	if (flipType == rotFlipH)
+	{
+		p.setX(-p.x());
+	}
+	else if (flipType == rotFlipV)
+	{
+		p.setY(-p.y());
+	}
+	p = p + center;
+
+	if (!noCheck && (p.x() < 0 || p.y() < 0))
+	{
+		_CantRotateWarning();
+		return false;
+	}
+
+	pt = p;
+	return true;
+}
+
+bool MyRotation::RotatePixmap(QPixmap& img, QPointF topLeft, QPointF center, bool noCheck) const
+{
+	if (!noCheck)
+	{
+		QRectF r = QRectF(topLeft, img.size());
+		r = _tr.map(r).boundingRect();
+		if (r.x() < 0 || r.y() < 0)
+		{
+			_CantRotateWarning();
+			return false;
+		}
+	}
+	bool fliph = false, flipv = true;	// default flip orientations
+
+	img = img.transformed(_tr, Qt::SmoothTransformation);   // rotation
+
+	QImage image;
+	switch (flipType)
+	{
+	case MyRotation::rotFlipH:
+		fliph = true;
+		flipv = false;		// NO break here! 
+		[[fallthrough]];	// min C++17!
+	case MyRotation::rotFlipV:
+		image = img.toImage();
+		image = image.mirrored(fliph, flipv);
+		img = QPixmap::fromImage(image);
+		break;
+	default:
+		break;
+	}
+	return true;
+}
+
+bool MyRotation::RotateLine(QLineF& line, QPointF center, bool noCheck)
+{
+	QLineF l = line;
+
+	l.translate(-center);
+	l = _tr.map(l);       // always rotation first
+
+	if (flipType == rotFlipH)
+	{
+		l.setP1(QPointF(-l.p1().x(), l.p1().y()));
+		l.setP2(QPointF(-l.p1().x(), l.p1().y()));
+	}
+	else if (flipType == rotFlipV)
+	{
+		l.setP1(QPointF(l.p1().x(), -l.p1().y()));
+		l.setP2(QPointF(l.p1().x(), -l.p1().y()));
+	}
+	l.translate(center);
+	if (noCheck || (l.p1().x() >= 0 && l.p1().y() >= 0 && l.p2().x() >= 0 && l.p2().y() >= 0))
+	{
+		line = l;
+		return true;
+	}
+	else
+	{
+		_CantRotateWarning();
+		return false;
+	}
+}
+
+void MyRotation::_CantRotateWarning() const
+{
+	QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
+}
+
+void MyRotation::_SetRot(qreal alpha)
+{
+	alpha = fmod(alpha, 360);   // set alpha into the (-180, 180] range
+	if (alpha > 180.0)
+		alpha -= 180.0;
+	if (fabs(alpha) < eps)
+		alpha = 0.0;
+	angle = alpha;
+
+	_tr = QTransform();
+	_tr.rotate(alpha);
+	angle = alpha;
+}
 
 QDataStream& operator<<(QDataStream& ofs, const MyRotation& mr)
 {
@@ -644,6 +983,11 @@ void DrawableLine::Rotate(MyRotation arot, QPointF &center)
 	rot.AddRotation(arot);
 }
 
+bool DrawableLine::PointIsNear(QPointF p, qreal distance) const
+{
+	return __IsLineNearToPoint(startPos, endPoint, p, distance);
+}
+
 void DrawableLine::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
 {
 	if (drawStarted)
@@ -841,7 +1185,8 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 {
 	if (drawStarted)
 	{
-		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea)); // this painter paints on screenshot layer!
+
+//		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea)); // this painter paints on screenshot layer!
 		painter->drawPixmap(_rotatedArea.boundingRect().topLeft() - topLeftOfVisibleArea, Image());
 	}
 	else
@@ -991,6 +1336,13 @@ void DrawableScribble::Rotate(MyRotation arot, QPointF & center)	// rotate aroun
 	//else
 	//	rot = flipNone;		// undone: no rotation set yet
 }
+bool DrawableScribble::PointIsNear(QPointF p, qreal distance) const
+{
+	for (auto i = 0; i < points.size() - 1; ++i)
+		if (__IsLineNearToPoint(points[i], points[i + 1], p, distance))
+			return true;
+	return false;
+}
 void DrawableScribble::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
 {
 	if (drawStarted)
@@ -1126,9 +1478,4 @@ void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-i
 	}
 
 	_pQTree->Resize(_pQTree->Area());
-}
-//*******************************************
-void MyRotation::_CantRotateWarning() const
-{
-		QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
 }

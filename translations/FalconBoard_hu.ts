@@ -27,13 +27,13 @@ Nem FalconBoard fájl</translation>
         <translation type="vanished">FalconBoard - Hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2145"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2154"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation>Erőforrás lefoglalási hiba. Nincs elég memória?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2148"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2157"/>
         <source>Can&apos;t find printer</source>
         <translation>Nem találom a nyomtatót</translation>
     </message>
@@ -47,22 +47,22 @@ Not enough memory?</source>
         <translation>Ezzel a tolllal a rajz a &quot;papíron&quot; kívül lenne</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2151"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2160"/>
         <source>Print error</source>
         <translation>Nyomtatási hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2154"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2163"/>
         <source>Print cancelled</source>
         <translation>Megszakítottad a nyomtatást</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2708"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2725"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 | Kijelölés: x:%6, y:%7, szél.:%8, mag.:%9</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2713"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2730"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 </translation>
     </message>
@@ -70,43 +70,43 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="508"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="515"/>
         <source>%1...</source>
         <translation>%1...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="556"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="563"/>
         <source>Pen Width:</source>
         <translation>Toll vastagság:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="570"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="577"/>
         <source>Grid size:</source>
         <translation>Rács mérete:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="627"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="634"/>
         <source>Falconboard - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="627"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="634"/>
         <source>Too many open files</source>
         <translation>Túl sok fájl - nem tudok többet megnyitni</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="717"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="724"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation>&lt;i&gt;%1&lt;/i&gt; megváltozott. Elmentsem a változásokat?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1084"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1091"/>
         <source>C&amp;lear list</source>
         <translation>Lista &amp;Törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1252"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1259"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
@@ -117,62 +117,62 @@ Do you want to save your changes?</source>
  Ezt bármikor megváltoztathatod a &lt;i&gt;Lehetőségek/Lapszélesség korlátozása&lt;/i&gt; menüben.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1259"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1266"/>
         <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
  You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
         <translation>Lekorlátozzam a lap vízszintes méretét a&apos; Lapbeállítás&apos; menüben megadott szélességre?
 Ezt bármikor megváltoztathatod a &apos;Lehetőségek/Lapszélesség korlátozása&apos;  menüben</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1273"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1280"/>
         <source>FalconBoard - Import</source>
         <translation>FalconBoard - Importálás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1343"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1350"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1349"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1356"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation>Valószínűleg túl sok fájlt próbáltál megnyitni! Csak az első %1 darab még nem betöltött fájlt lehet betölteni.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1405"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1547"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1412"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1554"/>
         <source>Load Data</source>
         <translation>Adatok betöltése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1407"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1549"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1414"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1556"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation>FalconBoard fájl (*.mwb);;Minden fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1444"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1451"/>
         <source>FalconBoard - Go to Page</source>
         <translation>FalconBoard - Ugrás adott oldalra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1444"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1451"/>
         <source>Page:</source>
         <translation>Oldal:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1602"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1609"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation>Nyilt forráskódú tantermi tábla alkalmazás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1604"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1611"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt;&lt;p&gt;A QuadTree kódot innen vettem:&lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2148"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2165"/>
         <source>export</source>
         <translation>export</translation>
     </message>
@@ -182,38 +182,38 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="vanished">FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1496"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1503"/>
         <source>Please restart the program to change the language!</source>
         <translation>Indítsd újra programot anyelvváltáshoz!</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1530"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1587"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1537"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1594"/>
         <source>Save As</source>
         <translation>Mentés másként</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1531"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1538"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation>FalconBoard fájlok (*.mwb);; Mindenl Fájl (*))</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1565"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1572"/>
         <source>Open Background Image</source>
         <translation>Háttérkép megnyitása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1589"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1596"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation>%1 Fájlok (*.%2);;Mindenl Fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1601"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1608"/>
         <source>About FalconBoard</source>
         <translation>FalconBoard - Névjegy</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1603"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1610"/>
         <source>&lt;p&gt;Version </source>
         <translation>&lt;p&gt;Verzió </translation>
     </message>
@@ -222,12 +222,12 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="obsolete">&lt;p&gt;© A. Sólyom (2020-21)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt; {2020)?}</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1746"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1754"/>
         <source>falconBoard - Grid spacing</source>
         <translation>FalconBoard - rácsméret</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1747"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1755"/>
         <source>Spacing in pixels:</source>
         <translation>A távolság pixelben:</translation>
     </message>
@@ -237,7 +237,7 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation>nyomtatás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="320"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="321"/>
         <source>Do you want to save the document before %1?
 
 (You may set automatic save in the Options menu.)</source>
@@ -245,7 +245,7 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
 (Az Opciók menüben beállíthatod az automatikus mentést.)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="322"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="323"/>
         <source>FalconBoard - Question</source>
         <translation>FalconBoard - kérdés</translation>
     </message>
@@ -959,9 +959,8 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
         <translation>&lt;p&gt;Tartsd nyomva a bal egérgombot és mozgassd az egeret, vagy használj tollat&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="108"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click/tap on the colored icons or press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; or &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; on the keyboard&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;p&gt;Kattints a színes ikonokra, vagy nyomd meg az &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; vagy &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; billentyűk valamelyikét&lt;/p&gt;</translation>
+        <translation type="vanished">&lt;p&gt;Kattints a színes ikonokra, vagy nyomd meg az &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; vagy &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; billentyűk valamelyikét&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="143"/>
@@ -1056,14 +1055,18 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
         <translation type="vanished">&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Terület kijelölése&lt;br/&gt;&lt;/span&gt;&lt;br/&gt;Nyomd be és tartsd nyomva a &lt;span style=&quot;font-weight:600; font-style:italic;&quot;&gt;a jobb egérgombot (vagy a toll gombját)&lt;/span&gt; illetve a &lt;span style=&quot; font-weight:600;font-style:italic;&quot;&gt;Ctrl/Command&lt;/span&gt;  gombot és &lt;span style=&quot; font-weight:600;font-style:italic;&quot;&gt; a bal egérgombot&lt;/span&gt; majd mozgasd az egeret (vagy a tollat). Engedd fel a gombot, vagy emeld fel a tollat a befejezéshez.&lt;/p&gt;&lt;p&gt;A gombot felengedésekor a kijelölt terület összezsugorodik a teljes egészében benne található tollvonásokra (amelyek tartalmazhatják, de a kezdeti kijelöléstől függően ki is zárhatják, a radírral húzott vonalakat!). Ez elkerülhető a &lt;span style=&quot;font-weight:600; font-style:italic;&quot;&gt;Alt/Option&lt;/span&gt; billentyű benyomásával a gomb felengedése előtt.&lt;p/&gt;&lt;p&gt;Négyzet alakú terület kijelöléséhez (négyzet, vagy kör rajzoládához) benyomva kell tartani a &lt;span style=&quot; font-weight:600;&quot;&gt;Shift&lt;/span&gt; gombot.&lt;/p&gt;&lt;p&gt;A terület kijelölése minden az adott területen belüli vonalat kijelöl. Ha csak bizonyos vonalakat akarunk kijelölni, azt a következő szakaszban leírtak szerint tehetünk meg.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Képernyőkép, vagy vonalak kijelölése&lt;/span&gt;&lt;/p&gt;&lt;p&gt;A Ctrl/Command gomb benyomása után kattintsunk a kijelölni kívánt képernyőképre, vagy tollvonásra. Ekkor a kattintás helye alatt található legfelső képernyőkép, vagy tollvonás lesz kijelölve. Több tollvonást is kijelölhetünk, ha a rákattintások során nyomva tartjuk valamelyik &lt;span style=&quot; font-weight:600;&quot;&gt;Shift&lt;/span&gt; billentyűt.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Képernyőfotó  kijelölése a dokumentumban&lt;/span&gt;&lt;br/&gt; A berakott képernyőfotók kijelöléséhez nyomd be a &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl&lt;/span&gt;/&lt;span style=&quot; font-weight:600;&quot;&gt;Command &lt;/span&gt;gombot és kattints a képre.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; Képernyő fotó  (F4) közben&lt;span style=&quot; font-weight:600;&quot;&gt; Tartsa lenyomva a bal egérgombot és mozgassa az egeret. Amikor a bal egérgombot felengedjük (vagy a tollat felemeljük) a kijelölt terület képként lesz a dokumentumba az ottani vonalak alá beilleszteve és ott kijelölve marad.&lt;/p&gt;&lt;p&gt;Nyomja meg az &lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; gombot a kijelölés megszüntetéséhez.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="462"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Drawing commands only work in the full program. In a Viewer these are not working!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;A rajz parancsok csak a program teljes változatában működnek, a Megjelenítő programban nem!&lt;/span&gt;&lt;/p&gt;</translation>
+        <translation type="vanished">&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;A rajz parancsok csak a program teljes változatában működnek, a Megjelenítő programban nem!&lt;/span&gt;&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="89"/>
         <source>Color</source>
         <translation>Szín</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/helpdialog.ui" line="108"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click/tap on the colored icons or press &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; or &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; on the keyboard. Every document may have different user defined color sets.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;p&gt;Kattints a színes ikonokra, vagy nyomd meg az &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;1,2,3,4&lt;/span&gt; vagy &lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;5&lt;/span&gt; billentyűk valamelyikét. A documentumokban különböző színkészleteket használhatsz&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="124"/>
@@ -1114,6 +1117,11 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
         <location filename="../FalconBoard/helpdialog.ui" line="372"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Recolor &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F7, &lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;0, 8, 9, H, V&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate or flip &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;F7 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;- Rotate with a specific angle&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;0 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection right by 90 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;8 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection by 180 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;9 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection left by 90 degrees&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;H - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip horizontal&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;V - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip vertical&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shift+F7&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; - repeat last rotation&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins, Ctrl+C&lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt;)&lt;span style=&quot; font-weight:600;&quot;&gt;- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Copy selected items &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt;)&lt;span style=&quot; font-weight:600;&quot;&gt;, Shift+Del- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Cut selected items&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+V (Command+V) - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert copied / cut items at the draw cursor position&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Delete selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R key- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Draw a rectangle around the selected area leaving a small margin around the selected items. &lt;br/&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Press &lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+R &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;if you don&apos;t want the margin, &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Shift+R&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; for a solid rectangle&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C key- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Draw an ellipse (or circle) inside the selected area,&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Shift+C- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;for solid ellipse (also for circles).&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X key - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Mark the center of a rectangular selection with intersecting lines&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;. (Dot)Key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Mark the center of a rectangular selection with a single point&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert vertical space from top of selected area (Moves all drawings down below the top of this selection)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Removes selected items or, when there are no items inside the selection area, removes empty space&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC &lt;/span&gt;Hide&lt;span style=&quot; font-style:italic;&quot;&gt; the selection&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 &lt;/span&gt;&lt;span style=&quot; font-style:italic; style=&quot; font-weight:600;&quot;&gt; - Kijelölt vonalak átszínezése&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;F7, 0, 8, 9, H, V&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; -  Kijelölt vonalak elforgatása&lt;/span&gt;&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;F7&lt;/span&gt; -Forgatás szögének megadása&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;0 &lt;/span&gt; - Kijelölt vonalak jobbra forgatása 90&lt;sup&gt;o&lt;/sup&gt;-al&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;8 &lt;/span&gt; - Kijelölt vonalak forgatása 180&lt;sup&gt;o&lt;/sup&gt;-al&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;9 &lt;/span&gt; - Kijelöltek balra forgatása 90&lt;sup&gt;o&lt;/sup&gt;-al&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;H &lt;/span&gt; -  Tükrözés vízszintesen&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt; - Tükrözés függőlegesen&lt;/span&gt;&lt;br/&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;span style=&quot; font-weight:600;&quot;&gt;Shift+F7&lt;/span&gt; -Előző forgatás ismétlése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins vagy  Ctrl+C (Command+C)&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Kijelölt vonalak vágólapra másolása &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X (Command+X), Shift+Del&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Kijelölt vonalak kivágása &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Kijelölt vonalak törlése &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R billentyű&lt;/span&gt; vagy &lt;span style=&quot; font-weight:600;&quot;&gt;Shift + R&lt;/span&gt;-&lt;span style=&quot; font-style:italic;&quot;&gt; Téglalap (négyzet) rajzolása a kijelölés határára. &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C billentyű&lt;/span&gt; vagy &lt;span style=&quot; font-weight:600;&quot;&gt;Shift+C billentyű&lt;/span&gt; - &lt;span style=&quot; font-style:italic;&quot;&gt; Ellipszis, vagy kör rajzolás a kijelölésbe.&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X billentyű&lt;/span&gt; &lt;span style=&quot; font-style:italic;&quot;&gt;Kijelölt terület középpontjának megjelölése keresztező vonalakkal&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;. (Pont)&lt;/span&gt; &lt;span style=&quot; font-style:italic;&quot;&gt;Kijelölt terület középpontjának megjelölése egy ponttal&lt;/span&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&lt;/p&gt;&lt;p&gt;Kijelölt vonalak és képek &lt;span style=&quot; font-style:italic;&quot;&gt;mozgatása&lt;/span&gt; a bal egérgombbal. Ha közben az &lt;span style=&quot; font-weight:600;&quot;&gt;Alt&lt;/span&gt; is be van nyomva akkor a kijelöltek egy másolatát mozgatja. &lt;br/&gt;Beillesztéshez jelölj ki egy kis területet, majd használd a &lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;V &lt;/span&gt;-t.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt; - &lt;span style=&quot; font-style:italic;&quot;&gt;Függőleges terület beszúrása a kiválasztott terület tetejétől annak méretével&lt;/span&gt; (Minden ez alatt levő vonalat lejjebb mozgat)&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; - A teljesen a kijelölt területen található vonalak, vagy egy üres terület törlése&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC&lt;/span&gt; - Kijelölés megszüntetése.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/helpdialog.ui" line="462"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Drawing commands only work in the full program and &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;don&apos;t work&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; in a &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Viewer&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;A rajzolási parancsok csak a teljes programban működnek &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;és nem használhatóak&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; a &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Nézőkében&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html</translation>
     </message>
     <message>
         <source>Keybord shortcuts</source>
@@ -1583,74 +1591,83 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
         <translation>FalconBoard - Toll szín definiálás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="29"/>
+        <location filename="../FalconBoard/pencolors.ui" line="39"/>
         <source>Light mode Pen colors</source>
         <translation>Vulágos módú színek</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="47"/>
-        <location filename="../FalconBoard/pencolors.ui" line="248"/>
+        <location filename="../FalconBoard/pencolors.ui" line="57"/>
+        <location filename="../FalconBoard/pencolors.ui" line="258"/>
         <source>Pen #</source>
         <translation>Toll</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="69"/>
-        <location filename="../FalconBoard/pencolors.ui" line="270"/>
+        <location filename="../FalconBoard/pencolors.ui" line="79"/>
+        <location filename="../FalconBoard/pencolors.ui" line="280"/>
         <source>Color Name</source>
         <translation>Szín neve</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="91"/>
-        <location filename="../FalconBoard/pencolors.ui" line="292"/>
+        <location filename="../FalconBoard/pencolors.ui" line="101"/>
+        <location filename="../FalconBoard/pencolors.ui" line="302"/>
         <source>Color</source>
         <translation>Szín</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="101"/>
-        <location filename="../FalconBoard/pencolors.ui" line="302"/>
+        <location filename="../FalconBoard/pencolors.ui" line="111"/>
+        <location filename="../FalconBoard/pencolors.ui" line="312"/>
         <source>2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="124"/>
-        <location filename="../FalconBoard/pencolors.ui" line="154"/>
-        <location filename="../FalconBoard/pencolors.ui" line="184"/>
-        <location filename="../FalconBoard/pencolors.ui" line="204"/>
-        <location filename="../FalconBoard/pencolors.ui" line="325"/>
-        <location filename="../FalconBoard/pencolors.ui" line="355"/>
-        <location filename="../FalconBoard/pencolors.ui" line="385"/>
-        <location filename="../FalconBoard/pencolors.ui" line="415"/>
+        <location filename="../FalconBoard/pencolors.ui" line="134"/>
+        <location filename="../FalconBoard/pencolors.ui" line="164"/>
+        <location filename="../FalconBoard/pencolors.ui" line="194"/>
+        <location filename="../FalconBoard/pencolors.ui" line="214"/>
+        <location filename="../FalconBoard/pencolors.ui" line="335"/>
+        <location filename="../FalconBoard/pencolors.ui" line="365"/>
+        <location filename="../FalconBoard/pencolors.ui" line="395"/>
+        <location filename="../FalconBoard/pencolors.ui" line="425"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="131"/>
-        <location filename="../FalconBoard/pencolors.ui" line="332"/>
+        <location filename="../FalconBoard/pencolors.ui" line="141"/>
+        <location filename="../FalconBoard/pencolors.ui" line="342"/>
         <source>3</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="161"/>
-        <location filename="../FalconBoard/pencolors.ui" line="362"/>
+        <location filename="../FalconBoard/pencolors.ui" line="171"/>
+        <location filename="../FalconBoard/pencolors.ui" line="372"/>
         <source>4</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="191"/>
-        <location filename="../FalconBoard/pencolors.ui" line="392"/>
+        <location filename="../FalconBoard/pencolors.ui" line="201"/>
+        <location filename="../FalconBoard/pencolors.ui" line="402"/>
         <source>5</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="230"/>
+        <location filename="../FalconBoard/pencolors.ui" line="240"/>
         <source>Dark mode Pen colors</source>
         <translation>Sötét módú színek</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pencolors.ui" line="435"/>
+        <source>You can use a different set of 2 x 4 colors in each document. 
+The color for Pen #1 is always black (light mode) and white (dark modes) and cannot be redefined. 
+When you create a new document it inherits pen colors from the last active document.</source>
+        <translation>Különböző színkészleteket használhatsz minden dokumentumban.
+Az első toll színe azonban mindig fekete (világos módban) és fehér (sötét módban)
+Az új dokumentumok öröklik az aktív dokumentum tollkészletét.</translation>
     </message>
 </context>
 <context>
     <name>PenColorsDialog</name>
     <message>
-        <location filename="../FalconBoard/pencolors.cpp" line="56"/>
+        <location filename="../FalconBoard/pencolors.cpp" line="44"/>
         <source>FalconBoard - Select new pen color for Color #%1</source>
         <translation>FalconBoard - Toll színek a %1. szín helyett</translation>
     </message>
@@ -1681,7 +1698,7 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="677"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="684"/>
         <source>Save Visi&amp;ble As...</source>
         <translation>&amp;Látható mentése más néven...</translation>
     </message>
@@ -1707,52 +1724,52 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="93"/>
+        <location filename="../FalconBoard/common.cpp" line="94"/>
         <source>Blac&amp;k</source>
         <translation>&amp;Fekete</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="93"/>
+        <location filename="../FalconBoard/common.cpp" line="94"/>
         <source>&amp;White</source>
         <translation>&amp;Fehér</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="95"/>
+        <location filename="../FalconBoard/common.cpp" line="96"/>
         <location filename="../FalconBoard/common.cpp" line="210"/>
         <source>&amp;Red</source>
         <translation>&amp;Piros</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="96"/>
+        <location filename="../FalconBoard/common.cpp" line="97"/>
         <location filename="../FalconBoard/common.cpp" line="211"/>
         <source>&amp;Green</source>
         <translation>&amp;Zöld</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="97"/>
+        <location filename="../FalconBoard/common.cpp" line="98"/>
         <location filename="../FalconBoard/common.cpp" line="212"/>
         <source>&amp;Blue</source>
         <translation>&amp;Kék</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="98"/>
+        <location filename="../FalconBoard/common.cpp" line="99"/>
         <location filename="../FalconBoard/common.cpp" line="213"/>
         <source>&amp;Purple</source>
         <translation>&amp;Bíbor</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="98"/>
+        <location filename="../FalconBoard/common.cpp" line="99"/>
         <location filename="../FalconBoard/common.cpp" line="213"/>
         <source>&amp;Yellow</source>
         <translation>&amp;Sárga</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="91"/>
+        <location filename="../FalconBoard/common.cpp" line="92"/>
         <source>&amp;Eraser</source>
         <translation>Ra&amp;dir</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="970"/>
+        <location filename="../FalconBoard/history.cpp" line="1003"/>
         <source>Nothing to save</source>
         <translation>Nincs mit elmenteni</translation>
     </message>
@@ -1786,12 +1803,12 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
         <translation>Új fájl</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/drawables.cpp" line="1133"/>
+        <location filename="../FalconBoard/drawables.cpp" line="459"/>
         <source>FalconG - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/drawables.cpp" line="1133"/>
+        <location filename="../FalconBoard/drawables.cpp" line="459"/>
         <source>Can&apos;t rotate, as part of rotated area would be outside &apos;paper&apos;</source>
         <translation>Nem lehet elforgatni, mert része, vagy az egész a &quot;papíron&quot; kívülr kerülne</translation>
     </message>

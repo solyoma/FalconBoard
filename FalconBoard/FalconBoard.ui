@@ -50,6 +50,7 @@
     <addaction name="actionNew"/>
     <addaction name="actionLoad"/>
     <addaction name="actionAppend"/>
+    <addaction name="actionRecentDocuments"/>
     <addaction name="action_Close"/>
     <addaction name="action_CloseAll"/>
     <addaction name="separator"/>
@@ -62,7 +63,6 @@
     <addaction name="actionImportImage"/>
     <addaction name="actionExportToPdf"/>
     <addaction name="separator"/>
-    <addaction name="actionRecentDocuments"/>
     <addaction name="separator"/>
     <addaction name="actionSaveVisible"/>
     <addaction name="separator"/>

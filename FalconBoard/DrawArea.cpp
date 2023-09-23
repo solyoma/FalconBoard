@@ -1977,6 +1977,7 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 	QPainter painter(_pActCanvas);
 	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
 	painter.setPen(pen);
+//	qDebug("pen:#%02x%02x%02x - DrawLineTo(%g,%g) - D.A.cpp, line #1980", painter.pen().color().red(), painter.pen().color().green(), painter.pen().color().blue(), endPointC.x(), endPointC.y());
 	if (_erasemode && !_debugmode)
 		painter.setCompositionMode(QPainter::CompositionMode_Clear);
 	//else			Default mode is SourceOver
@@ -2064,6 +2065,14 @@ void DrawArea::SlotForGridSpacingChanged(int spacing)
 	if (_history)
 		_history->gridOptions.gridSpacing = spacing;
 	_Redraw();
+}
+
+void DrawArea::SlotForPenColorRedefined(const DrawColors& drwclr)
+{
+	_history->drawColors = drwclr;
+	_history->AddPenColorChange(drwclr);	// sets them into 'globalDrawColors'
+	_Redraw();
+	emit SignalPenColorChanged();
 }
 
 bool DrawArea::SetupPage(PageParams::PageSetupType forWhat)
@@ -2349,7 +2358,12 @@ void DrawArea::Undo()               // must draw again all underlying drawables
 	{
 		HideRubberBand(true);
 
-		HistoryItem* phi = _history->Undo();
+		HistoryItem* phi = _history->LastItem();	// before undo
+		_history->Undo();
+
+		if (phi && phi->type == HistEvent::hePenColorChanged)	// must come after undo so that globalDrawColors is set
+			emit SignalPenColorChanged();
+
 		if (_history->CanUndo())
 			_SetTopLeftFromItem(phi);
 
@@ -2367,6 +2381,9 @@ void DrawArea::Redo()       // need only to draw undone items, need not redraw e
 	HistoryItem* phi = _history->Redo();
 	if (!phi)
 		return;
+
+	if (phi && phi->type == HistEvent::hePenColorChanged)	// must come after undo so that globalDrawColors is set
+		emit SignalPenColorChanged();
 
 	HideRubberBand(true);
 

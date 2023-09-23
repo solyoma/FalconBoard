@@ -70,9 +70,11 @@ constexpr const char
 	*PDFUI	= "pdfui",		// pdf unit
 		// drawing
 	*GRIDSPACING = "gridspacing",
-	*PENSIZES = "size",		// e.g. "30, 3,3,3,3,3,3" - pen size for black, red, green, blue, yellow, eraser
 	*TRANSP = "transp",		// transparency used for screenshots
 	*TRANSC = "transc",		// transparent color + fuzzyness, format #FFRRGGBB, default #FFFFFF, FF fuzzyness in %
+	*PENSIZES = "pensizes",		// e.g. "30, 3,3,3,3,3,3" - pen width in pixels for eraser, black, red, green, blue, yellow
+		// pen color group
+	*PENGROUP = "Pens",
 
 	*end_of_config = nullptr;
 ;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "config.h"
+#include "drawables.h"
 
     // global variables
 quint32 file_version_loaded = 0;	// aasuume old file, no grid data in _history->gridOptions yet
@@ -78,7 +79,7 @@ MyScreenSizes::MyScreenSizes()
 const char       // DEFAULTS
 *PEN_DEFAULT_LIGHT_RED        = "#FF0000",
 *PEN_DEFAULT_LIGHT_GREEN      = "#007D1A",
-*PEN_DEFAULT_LIGHT_BLUE       = "#0000FF",
+*PEN_DEFAULT_LIGHT_BLUE       = "#0055FF",
 *PEN_DEFAULT_LIGHT_YELLOW     = "#B704BE",
 
 *PEN_DEFAULT_DARK_RED         = "#FF0000",
@@ -88,14 +89,14 @@ const char       // DEFAULTS
 
 void FalconPens::Initialize()    // Set defaults. Call AFTER the GUI applcation created!
 {
-    SetupPen(penEraser, Qt::white, Qt::white, QObject::tr("&Eraser"), QObject::tr("&Eraser"));            // eraser must come first
+    SetupPen(penEraser, Qt::white, Qt::white, QObject::tr("&Eraser"), QObject::tr("&Eraser"),true);            // eraser must come first
 
-    SetupPen(penBlack,  Qt::black   , Qt::white     , QObject::tr("Blac&k" ), QObject::tr("&White" ));
+    SetupPen(penBlack,  Qt::black   , Qt::white     , QObject::tr("Blac&k" ), QObject::tr("&White" ),true);
 
-    SetupPen(penRed,    PEN_DEFAULT_LIGHT_RED      , PEN_DEFAULT_DARK_RED     , QObject::tr("&Red"   ), QObject::tr("&Red"   ));
-    SetupPen(penGreen,  PEN_DEFAULT_LIGHT_GREEN    , PEN_DEFAULT_DARK_GREEN   , QObject::tr("&Green" ), QObject::tr("&Green" ));
-    SetupPen(penBlue,   PEN_DEFAULT_LIGHT_BLUE     , PEN_DEFAULT_DARK_BLUE    , QObject::tr("&Blue"  ), QObject::tr("&Blue"  ));
-    SetupPen(penYellow, PEN_DEFAULT_LIGHT_YELLOW   , PEN_DEFAULT_DARK_YELLOW  , QObject::tr("&Purple"), QObject::tr("&Yellow"));
+    SetupPen(penRed,    PEN_DEFAULT_LIGHT_RED      , PEN_DEFAULT_DARK_RED     , QObject::tr("&Red"   ), QObject::tr("&Red"   ), true);
+    SetupPen(penGreen,  PEN_DEFAULT_LIGHT_GREEN    , PEN_DEFAULT_DARK_GREEN   , QObject::tr("&Green" ), QObject::tr("&Green" ), true);
+    SetupPen(penBlue,   PEN_DEFAULT_LIGHT_BLUE     , PEN_DEFAULT_DARK_BLUE    , QObject::tr("&Blue"  ), QObject::tr("&Blue"  ), true);
+    SetupPen(penYellow, PEN_DEFAULT_LIGHT_YELLOW   , PEN_DEFAULT_DARK_YELLOW  , QObject::tr("&Purple"), QObject::tr("&Yellow"), true);
 }
 
 FalconPens& FalconPens::operator=(const FalconPens& o)
@@ -118,9 +119,13 @@ bool FalconPens::SetDarkMode(bool dark)
     return res;
 }
 
-bool FalconPens::SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName)
+bool FalconPens::SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName, bool setDefaults)
 {
     FalconPen pen(pk, lc, dc, sLName, sDName);
+    if (setDefaults)
+    {
+        pen.SetDefaultColors(pen.lightColor, pen.darkColor);
+    }
 
     if (pk != penNone)
     {
@@ -132,6 +137,7 @@ bool FalconPens::SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName
         }
         else
             (*this)[(size_t)pk] = pen;
+
         _PreparePointerFor(pk);
     }
     return true;
@@ -145,7 +151,7 @@ bool FalconPens::SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName)
     if (sc.size() != 2 || sn.size() != 2)   // wrong data: do not change
         return false;
 
-    return SetupPen(pk, sc[0], sc[1], sn[0], sn[1]);
+    return SetupPen(pk, sc[0], sc[1], sn[0], sn[1], false);         // ???
 }
 
 QColor FalconPens::Color(FalconPenKind pk, int dark) const
@@ -198,11 +204,10 @@ bool FalconPens::FromSettings(QSettings* s) // may be overwritten in ".mwb" file
         {
             key = QStringLiteral("PEN_") + key;
             QString nameKey = key + QStringLiteral("_NAME");
-            if (SetupPen(pk, s->value(key, sDLc).toString(), s->value(key, sDLd).toString(), s->value(nameKey, sDLn).toString(), s->value(key, sDDn).toString()))
+            if (SetupPen(pk, s->value(key, sDLc).toString(), s->value(key, sDLd).toString(), s->value(nameKey, sDLn).toString(), s->value(key, sDDn).toString(), true))
             {
                 FalconPen* pen = &(*this)[(int)pk];
-                pen->defaultLightColor = pen->lightColor;
-                pen->defaultDarkColor  = pen->darkColor;
+                pen->SetDefaultColors(pen->lightColor, pen->darkColor);
                 _PreparePointerFor(pk);
             }
         };
@@ -301,20 +306,20 @@ void DrawColors::SetDrawingPen(FalconPenKind pk)
     _pkActual = pk;
 }
 
-bool DrawColors::ReadPen(QDataStream& ifs)
+bool DrawColors::ReadPen(QDataStream& ifs)      // type already read in
 {
     int cnt = 0;
     int n;
-    ifs >> n; 
+    ifs >> n; // 'pk'
     if (n > 1 && n < PEN_COUNT) // no pen data may be read for none or eraser or black
     {
         FalconPenKind pk = (FalconPenKind)n;
         QString sl,sd;
-        ifs >> sl >> sd;    // light color, dark color
+        ifs >> sl >> sd;    // name of light color, dark color (#AARRGGBB)
         QColor qcl = sl, qcd = sl;
 
-        ifs >> sl >> sd;    // names of light and dark
-        SetupPenAndCursor(pk, qcl, qcd, sl, sd, _dark);
+        ifs >> sl >> sd;    // user names of light and dark
+        SetupPenAndCursor(pk, qcl, qcd, sl, sd);
         ++cnt;
     }
     return cnt;
@@ -325,16 +330,16 @@ QDataStream& DrawColors::SavePen(QDataStream& ofs, FalconPenKind pk)
     const FalconPen &pen = _pens[pk];
     if (pen.IsChanged())
     {
-        ofs << MAX_DRAWABLE_ID; // == dtPen, see drawables.h
+        ofs << DrawableType::dtPen; // == dtPen, see drawables.h
         ofs << (int)pk << pen.lightColor.name() << pen.darkColor.name()
             << pen.lightName << pen.darkName;
     }
     return ofs;
 }
 
-void DrawColors::SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColorUserName, QString sDarkColorUserName, bool darkModeForCursor)
+void DrawColors::SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColorUserName, QString sDarkColorUserName)
 {
-    _pens.SetupPen(pk, lightcolor, darkcolor, sLightColorUserName, sDarkColorUserName);
+    _pens.SetupPen(pk, lightcolor, darkcolor, sLightColorUserName, sDarkColorUserName, false);
 }
 
 void DrawColors::SetActionText(FalconPenKind pk, QString text, bool dark)
@@ -356,6 +361,7 @@ QColor DrawColors::Color(FalconPenKind pk, int dark) const
 {
     if (pk == penNone)
         pk = _pkActual;
+    //qDebug("pk:%d - common.cpp:line #359", pk);
     if (dark < 0)
         dark = _dark;
     return _pens.Color(pk, dark);

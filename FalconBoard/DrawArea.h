@@ -178,7 +178,7 @@ signals:
     void CloseTab(int tab);
     void TabSwitched(int direction);
     void SignalSetGrid(bool on, bool fixed, uint16_t value);
-    void SignalPensChanged();   // new pens already in global 'drawColors'
+    void SignalPenColorChanged();   // new pens already in global 'drawColors'
 
 public slots:
     void NewData();
@@ -190,6 +190,7 @@ public slots:
     void ExportPdf(QString fileName, QString &directory);   // filename w.o. directory
     void SlotForPrimaryScreenChanged(QScreen*);
     void SlotForGridSpacingChanged(int);
+    void SlotForPenColorRedefined(const DrawColors &drwclr);
 #ifndef _VIEWER
     void Undo();
     void Redo();

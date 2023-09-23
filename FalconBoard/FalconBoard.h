@@ -173,7 +173,7 @@ private slots:
 	void SlotForLabel(QString text);
 	void SlotForPenKindChange(FalconPenKind pk);
 #endif
-	void SlotForPensChanged();	// sent when 'history' is changed and pens are changed too changed actions when needed
+	void SlotForPenColorChanged();	// sent when 'history' is changed and pens are changed too changed actions when needed
 	void SlotForChkGridOn(bool checked);
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() 
@@ -206,6 +206,7 @@ private slots:
 #ifndef _VIEWER
    signals:
 	   void DrawPenColorBy(int key);
+	   void PenColorChangedSignal(const DrawColors &drwclr);
 
 #endif
    signals:
@@ -296,7 +297,7 @@ private:
 #endif
 	QIcon _ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB = QColor());
 	void _LoadIcons();
-	void _SetupIconsForPenColors(ScreenMode sm);		// depend on mode
+	void _SetupIconsForPenColors(ScreenMode sm, bool forAll = true, DrawColors *fromColors = nullptr);		// depend on mode, forAll: to black and eraser too?
 
 	void _LoadFiles(QStringList fileNames);
 	void _SaveLastDirectory(QString fileName);

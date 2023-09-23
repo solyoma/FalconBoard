@@ -17,17 +17,38 @@ public:
 	PenColorsDialog(QWidget* parent = nullptr);
 	~PenColorsDialog();
 
-	void mousePressEvent(QMouseEvent* event) override;
-	void keyPressEvent(QKeyEvent* event) override;
+	bool GetChanges(DrawColors &drcls) const 
+	{
+		int changeCount = 0;
+		for (int i = 0; i < PEN_COUNT - 2; ++i)
+		{
+			if ((_colors[i][0] != drcls.Color((FalconPenKind)(i + 2), 0)) ||
+				(_colors[i][1] != drcls.Color((FalconPenKind)(i + 2), 1)))
+			{
+				drcls.SetupPenAndCursor((FalconPenKind)(i + 2), _colors[i][0], _colors[i][1], pe[i][0]->text(), pe[i][1]->text());
+				++changeCount;
+			}
+		}
+		return changeCount;
+	}
 private:
 	QColor _colors[4][2];
 	QLineEdit *pe[4][2];
 	QToolButton* pb[4][2], *pbD[4][2];
 	Ui::PenColorDialogClass ui;
 
+	QString _makeStyle(int i, int dark);
 	void _SelectColor(int row, int col);
-	void _SetColorForButton(int which, int dark);
-	void _SetTextForLine(int which, int dark);
+
+public slots:
+	void on_btnL2_clicked();
+	void on_btnL3_clicked();
+	void on_btnL4_clicked();
+	void on_btnL5_clicked();
+	void on_btnD2_clicked();
+	void on_btnD3_clicked();
+	void on_btnD4_clicked();
+	void on_btnD5_clicked();
 };
 
 #endif

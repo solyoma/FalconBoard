@@ -366,6 +366,19 @@ struct HistoryPenWidthChangeItem : public HistoryItem
     int Redo() override;
 };
 
+            //--------------------------------------------
+            //      HistoryPenColorChangeItem
+            //--------------------------------------------
+struct HistoryPenColorChangeItem : public HistoryItem
+{
+    DrawColors original, redefined;
+    HistoryPenColorChangeItem(History* pHist, const DrawColors &origc, const DrawColors &newc);
+    HistoryPenColorChangeItem(const HistoryPenColorChangeItem& o);
+    HistoryPenColorChangeItem& operator=(const HistoryPenColorChangeItem& o);
+    int Undo() override;
+    int Redo() override;
+};
+
 // ******************************************************
 class History;
         // declare here so that CopySelected can use it, but 
@@ -513,6 +526,12 @@ public:
         return _items[index]; 
     }
 
+    HistoryItemPointer LastItem() const 
+    { 
+        int n = _items.size();
+        return n ? _items[n-1] : nullptr;
+    }
+
     int GetZorder(bool isscreenshot, bool increment=true) { return _zorderStore.GetZorder(isscreenshot, increment); }
     DrawableList* Drawables()  { return &_drawables; }
     DrawableItem* Drawable(int i) { return _drawables[i]; }
@@ -612,6 +631,7 @@ public:
     HistoryItem* AddRemoveSpaceItem(QRectF &rect);
     HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
     HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
+    HistoryItem* AddPenColorChange(const DrawColors& drwclr);
     // --------------------- drawing -----------------------------------
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void Rotate(int drawableIndex, MyRotation withRotation, QPointF center);

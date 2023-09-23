@@ -45,19 +45,31 @@ int nUntitledOrder = 1;
 void FalconBoard::_RemoveMenus()
 {
     QList<QAction*> pMenuActions = ui.menuBar->actions(); // [0]:file,[1]:Edit,[2]:Clear,[3]:options,[4]:Help
-    ui.menuBar->removeAction(pMenuActions[1] ); // edit
-    ui.menuBar->removeAction(pMenuActions[2]);  // clear
-    QMenu* pMenu = pMenuActions[0]->menu();    // File Menu 
             // (removeAction changes the order of the actions after the removed one
             // therefore this order is important
-    pMenu->removeAction(pMenu->actions()[17]);       // Save Visible
-    pMenu->removeAction(pMenu->actions()[12]);       // Import image
-    pMenu->removeAction(pMenu->actions()[8]);        // separator
-    pMenu->removeAction(pMenu->actions()[7]);        // Save As
-    pMenu->removeAction(pMenu->actions()[6]);        // Save
-                                                     // 5 - separator
-    pMenu->removeAction(pMenu->actions()[2]);        // Append (was 3rd menu, but now 2nd)
-    pMenu->removeAction(pMenu->actions()[0]);        // New
+    ui.menuBar->removeAction(pMenuActions[1] ); // edit
+    ui.menuBar->removeAction(pMenuActions[2]);  // clear
+
+    QMenu* pMenu = pMenuActions[0]->menu();    
+    // File Menu 
+    pMenu->removeAction(pMenu->actions()[17]);      //17: Save as image
+    pMenu->removeAction(pMenu->actions()[16]);      //16: export PDF
+    pMenu->removeAction(pMenu->actions()[15]);      //15: Import image
+                                                    //14: separator
+                                                    //13: print
+                                                    //12: page setup
+                                                    //11: separator
+                                                    //10: save visible
+    pMenu->removeAction(pMenu->actions()[9]);       // 9: separator
+    pMenu->removeAction(pMenu->actions()[8]);       // 8: Save As
+    pMenu->removeAction(pMenu->actions()[7]);       // 7: Save
+                                                    // 6: separator
+                                                    // 5: close all
+                                                    // 4: close
+                                                    // 3: recent
+    pMenu->removeAction(pMenu->actions()[2]);       // 2: Append
+                                                    // 1: Open
+    pMenu->removeAction(pMenu->actions()[0]);       // 0: New
 
     // options menu
     pMenu = pMenuActions[3]->menu();    
@@ -138,9 +150,10 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 #ifndef _VIEWER
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &FalconBoard::SlotForPointerType);
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &FalconBoard::SlotForRubberBandSelection);
+    connect(this, &FalconBoard::PenColorChangedSignal, _drawArea, &DrawArea::SlotForPenColorRedefined);
+    connect(_drawArea, &DrawArea::SignalPenColorChanged, this, &FalconBoard::SlotForPenColorChanged);   // set action icon for it from 'globalColors'
 #endif
     connect(_drawArea, &DrawArea::SignalSetGrid, this, &FalconBoard::SlotToSetGrid);
-    connect(_drawArea, &DrawArea::SignalPensChanged, this, &FalconBoard::SlotForPensChanged);
     connect(this, &FalconBoard::GridSpacingChanged, _drawArea, &DrawArea::SlotForGridSpacingChanged);
 
     connect(qApp, &QApplication::primaryScreenChanged, _drawArea, &DrawArea::SlotForPrimaryScreenChanged);
@@ -222,6 +235,7 @@ void FalconBoard::RestoreState()
             _AddNewTab();
             return;
         }
+        file_version_loaded = ver;
     }
     bool b = s->value(SINGLE, true).toBool();
     ui.actionAllowMultipleProgramInstances->setChecked(!b);
@@ -257,7 +271,7 @@ void FalconBoard::RestoreState()
     MyPrinterData data;
     _drawArea->SetMyPrinterData(data);
 
-    globalDrawColors.FromSettings(s);
+    // globalDrawColors.FromSettings(s);    -  do not read it here, but save it if changed
 
 #ifndef _VIEWER
     qs = s->value(PENSIZES, "30, 3,3,3,3,3").toString();      // pen size for eraser, black, red, green, blue, yellow
@@ -411,8 +425,8 @@ void FalconBoard::SaveState()
     s->setValue(LIMITED, ui.actionLimitPaperWidth->isChecked());
 #ifndef _VIEWER
 
-    globalDrawColors.ToSettings(s)
-        ;
+    //globalDrawColors.ToSettings(s);   // no restore on start
+
     s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6").arg(_penWidths[0]).arg(_penWidths[1]).arg(_penWidths[2]).arg(_penWidths[3]).arg(_penWidths[4]).arg(_penWidths[5]));
     s->setValue(AUTOSAVEDATA, ui.actionAutoSaveData->isChecked());
     s->setValue(AUTOSBCKIMG, ui.actionAutoSaveBackgroundImage->isChecked());
@@ -476,25 +490,31 @@ void FalconBoard::_LoadIcons()
     _iconScreenShot = QIcon(":/FalconBoard/Resources/screenshot.png");
 }
 
-void FalconBoard::_SetupIconsForPenColors(ScreenMode sm)
+void FalconBoard::_SetupIconsForPenColors(ScreenMode sm, bool forAll, DrawColors *pdrclr)
 {
-    globalDrawColors.SetDarkMode(sm != smSystem);
+    if (!pdrclr)
+        pdrclr = &globalDrawColors;
+
+//    globalDrawColors.SetDarkMode(sm != smSystem);
 
 #ifndef _VIEWER
-    ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, globalDrawColors.Color(penBlack)) : _iconPen);
-    ui.action_Black->setText(globalDrawColors.ActionText(penBlack));
+    if (forAll)
+    {
+        ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, globalDrawColors.Color(penBlack)) : _iconPen);
+        ui.action_Black->setText(globalDrawColors.ActionText(penBlack));
+    }
 
-    ui.action_Red->setIcon(_ColoredIcon(_iconPen,   globalDrawColors.Color(penRed)));
-    ui.action_Red->setText(globalDrawColors.ActionText(penRed));
+    ui.action_Red->setIcon(_ColoredIcon(_iconPen,   pdrclr->Color(penRed)));
+    ui.action_Red->setText(pdrclr->ActionText(penRed));
 
-    ui.action_Green->setIcon(_ColoredIcon(_iconPen, globalDrawColors.Color(penGreen)));
-    ui.action_Green->setText(globalDrawColors.ActionText(penGreen));
+    ui.action_Green->setIcon(_ColoredIcon(_iconPen, pdrclr->Color(penGreen)));
+    ui.action_Green->setText(pdrclr->ActionText(penGreen));
 
-    ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  globalDrawColors.Color(penBlue)));
-    ui.action_Blue->setText(globalDrawColors.ActionText(penBlue));
+    ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  pdrclr->Color(penBlue)));
+    ui.action_Blue->setText(pdrclr->ActionText(penBlue));
 
-    ui.action_Yellow->setIcon(_ColoredIcon(_iconPen,globalDrawColors.Color(penYellow)));
-    ui.action_Yellow->setText(globalDrawColors.ActionText(penYellow));
+    ui.action_Yellow->setIcon(_ColoredIcon(_iconPen,pdrclr->Color(penYellow)));
+    ui.action_Yellow->setText(pdrclr->ActionText(penYellow));
 #endif
 }
 
@@ -1675,6 +1695,7 @@ void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
     {
         _drawArea->SwitchToHistory(index, true);
         _SetWindowTitle(_drawArea->HistoryName());
+        _SetupIconsForPenColors(_screenMode, false);   // don't touch black pen
     }
     ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
     _nLastTab = index;
@@ -1964,7 +1985,15 @@ void FalconBoard::on_actionDefinePenColors_triggered()
         return;
     ++_busy;
     PenColorsDialog *pcdg = new PenColorsDialog(this);
-    pcdg->exec();
+    if (pcdg->exec() == QDialog::Accepted)
+    {
+        DrawColors newc(globalDrawColors);
+        newc.Initialize();
+        if (pcdg->GetChanges(newc))
+        {
+            emit PenColorChangedSignal(newc);
+        }
+    }
     delete pcdg;
     --_busy;
 }
@@ -2131,10 +2160,11 @@ void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 }
 #endif  // not _VIEWER
 
-void FalconBoard::SlotForPensChanged()
+void FalconBoard::SlotForPenColorChanged()      // called from _drawArea after the pen color is redefined
 {
-    _SetupIconsForPenColors(_screenMode);
-    _drawArea->update();
+    _SetupIconsForPenColors(_screenMode, false, &globalDrawColors);
+    _SetResetChangedMark(-1);
+//    _drawArea->setFocus();
 }
 
 void FalconBoard::on_actionPageSetup_triggered()
