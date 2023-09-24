@@ -275,6 +275,7 @@ int DrawArea::_LoadCommon()
 		++_busy;
 		SetGridOn(_history->gridOptions.gridOn, _history->gridOptions.fixedGrid);
 		SlotForGridSpacingChanged(_history->gridOptions.gridSpacing);
+		emit SignalPenColorChanged();
 		emit SignalSetGrid(_bGridOn, _gridIsFixed, _nGridSpacingX);
 		--_busy;
 	}
@@ -391,10 +392,12 @@ void DrawArea::GotoPage(int page)
 
 void DrawArea::SetMode(bool darkMode, QString backgroundColor, QString sGridColor, QString sPageGuideColor)
 {
+	qDebug("	Set mode to %s, %s:%d", darkMode ? "dark" : "light", __FILE__, __LINE__);
 	_backgroundColor = backgroundColor;
 	_gridColor = sGridColor;
 	_pageGuideColor = sPageGuideColor;
 	globalDrawColors.SetDarkMode(_darkMode = darkMode);
+	emit SignalPenColorChanged();
 	_Redraw();                  // because pen color changed!
 	SetCursor(_erasemode ? csEraser : csPen);
 }
@@ -558,7 +561,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 	if (key == Qt::Key_S)
 	{
 		_bSmoothDebug = !_bSmoothDebug;
-		qDebug("Smoothing %s", (_bSmoothDebug ? "on" : "off"));
+		// qDebug("Smoothing %s", (_bSmoothDebug ? "on" : "off"));
 	}
 #endif
 	// end DEBUG

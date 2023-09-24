@@ -1288,7 +1288,6 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 	// set default colors
 	drawColors.Initialize();
 	int nRead = _items.count();
-	// bool replaceColors = nRead == 0;
 	while (!ifs.atEnd())
 	{
 		ifs >> di;
@@ -1303,11 +1302,11 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 			case DrawableType::dtScreenShot:	(DrawableItem&)dsImg  = di; ifs >> dsImg;	pdrwh = &dsImg;	break;
 			case DrawableType::dtScribble:		(DrawableItem&)dScrb  = di; ifs >> dScrb;	pdrwh = &dScrb;	break;
 			case DrawableType::dtText:			(DrawableItem&)dTxt   = di; ifs >> dTxt;	pdrwh = &dTxt;	break;
-			case DrawableType::dtPen:			if (drawColors.ReadPen(ifs) /* && replaceColors*/ )
-													globalDrawColors = drawColors;
+			case DrawableType::dtPen:			(void)drawColors.ReadPen(ifs);
 												break;
 			default: break;
 		}
+		globalDrawColors = drawColors;
 		if((int)di.dtType < (int)DrawableType::dtNonDrawableStart)	// only add drawables
 			(void)AddDrawableItem(*pdrwh);		// this will set its zOrder too
 		di.erasers.clear();

@@ -159,7 +159,7 @@ QColor FalconPens::Color(FalconPenKind pk, int dark) const
     int ix = (int)pk;   // ix <= 0 => pk == penNone or pk == penEraser
     if (dark < 0)
         dark = _darkMode;
-    return  (ix <= 0 ? QColor() : (dark ? operator[](size_t(pk)).darkColor : operator[](size_t(pk)).lightColor));
+    return  (ix <= 0 ? QColor() : (dark ? (*this)[size_t(pk)].darkColor : (*this)[size_t(pk)].lightColor));
 }
 
 QCursor FalconPens::Pointer(FalconPenKind pk) const
@@ -316,7 +316,7 @@ bool DrawColors::ReadPen(QDataStream& ifs)      // type already read in
         FalconPenKind pk = (FalconPenKind)n;
         QString sl,sd;
         ifs >> sl >> sd;    // name of light color, dark color (#AARRGGBB)
-        QColor qcl = sl, qcd = sl;
+        QColor qcl = sl, qcd = sd;
 
         ifs >> sl >> sd;    // user names of light and dark
         SetupPenAndCursor(pk, qcl, qcd, sl, sd);
@@ -361,9 +361,9 @@ QColor DrawColors::Color(FalconPenKind pk, int dark) const
 {
     if (pk == penNone)
         pk = _pkActual;
-    //qDebug("pk:%d - common.cpp:line #359", pk);
     if (dark < 0)
         dark = _dark;
+//    qDebug("pk:%d, %s, color:%s - %s:line #%ld", pk, (dark? "dark " : "light"), _pens.Color(pk, dark).name().toStdString().c_str(), __FILE__, __LINE__);
     return _pens.Color(pk, dark);
 }
 

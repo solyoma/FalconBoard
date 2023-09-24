@@ -500,7 +500,7 @@ void FalconBoard::_SetupIconsForPenColors(ScreenMode sm, bool forAll, DrawColors
 #ifndef _VIEWER
     if (forAll)
     {
-        ui.action_Black->setIcon(sm == smSystem ? _ColoredIcon(_iconPen, globalDrawColors.Color(penBlack)) : _iconPen);
+        ui.action_Black->setIcon(_ColoredIcon(_iconPen, globalDrawColors.Color(penBlack)));
         ui.action_Black->setText(globalDrawColors.ActionText(penBlack));
     }
 
@@ -953,7 +953,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "undo"          // 7
     };
 
-    _SetupIconsForPenColors(mode);      // pen selection
+    _SetupIconsForPenColors(mode, true);      // pen selection
 
     switch (mode)
     {
@@ -2162,7 +2162,7 @@ void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 
 void FalconBoard::SlotForPenColorChanged()      // called from _drawArea after the pen color is redefined
 {
-    _SetupIconsForPenColors(_screenMode, false, &globalDrawColors);
+    _SetupIconsForPenColors(_screenMode, true);
     _SetResetChangedMark(-1);
 //    _drawArea->setFocus();
 }
