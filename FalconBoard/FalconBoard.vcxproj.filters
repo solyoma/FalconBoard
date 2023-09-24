@@ -63,6 +63,9 @@
     <ClCompile Include="common.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pencolorset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="DrawArea.h">
@@ -92,6 +95,9 @@
     <QtMoc Include="pencolors.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="pencolorset.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="pagesetup.ui">
@@ -116,6 +122,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="pencolors.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="pencolorset.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

@@ -374,7 +374,7 @@ QCursor DrawColors::PenPointer(FalconPenKind pk) const
     return _pens.Pointer(pk);
 }
 
-QString DrawColors::ActionText(FalconPenKind pk, int dark)
+QString DrawColors::ActionText(FalconPenKind pk, int dark) const
 {
     if (pk == penNone)
         pk = _pkActual;

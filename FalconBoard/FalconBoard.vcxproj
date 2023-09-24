@@ -191,6 +191,7 @@
     <ClCompile Include="history.cpp" />
     <ClCompile Include="pagesetup.cpp" />
     <ClCompile Include="pencolors.cpp" />
+    <ClCompile Include="pencolorset.cpp" />
     <ClCompile Include="screenshotTransparency.cpp" />
     <ClCompile Include="snipper.cpp" />
     <ClCompile Include="main.cpp" />
@@ -205,6 +206,7 @@
     <QtUic Include="helpdialog.ui" />
     <QtUic Include="pagesetup.ui" />
     <QtUic Include="pencolors.ui" />
+    <QtUic Include="pencolorset.ui" />
     <QtUic Include="printprogress.ui" />
     <QtUic Include="rotateinput.ui" />
     <QtUic Include="screenshotTransparency.ui" />
@@ -223,6 +225,7 @@
     <ClInclude Include="config.h" />
     <ClInclude Include="drawables.h" />
     <QtMoc Include="pencolors.h" />
+    <QtMoc Include="pencolorset.h" />
     <ClInclude Include="quadtree.h" />
     <QtMoc Include="rotateinput.h" />
     <ClInclude Include="smoother.h" />

@@ -6,8 +6,8 @@
 constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 
 const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
-const qint32 MAGIC_VERSION = 0x56020303; // V 02.03.03
-const QString sVersion = "2.3.3";
+const qint32 MAGIC_VERSION = 0x56020304; // V 02.03.03
+const QString sVersion = "2.3.4";
 
 // names in configuration
 
@@ -75,6 +75,7 @@ constexpr const char
 	*PENSIZES = "pensizes",		// e.g. "30, 3,3,3,3,3,3" - pen width in pixels for eraser, black, red, green, blue, yellow
 		// pen color group
 	*PENGROUP = "Pens",
+	*PENGROUPCOUNT = "count",
 
 	*end_of_config = nullptr;
 ;

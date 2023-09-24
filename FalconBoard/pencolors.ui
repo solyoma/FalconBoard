@@ -482,19 +482,19 @@ you can select any saved color scheme for it any time in this dialog box</string
          <bool>false</bool>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <property name="placeholderText">
          <string>Select Pen Color Scheme</string>
         </property>
         <item>
          <property name="text">
-          <string>Actual pen colors</string>
+          <string>Default pen colors</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Default pen colors</string>
+          <string>Actual pen colors</string>
          </property>
         </item>
        </widget>
@@ -511,7 +511,9 @@ you can select any saved color scheme for it any time in this dialog box</string
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="FalconBoard.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

@@ -171,7 +171,7 @@ public:
     bool SameColors(const DrawColors& o);
     QColor  Color(FalconPenKind pk = penNone, int dark=-1) const;       // penNone and dark < 0 for actual pen
     QCursor PenPointer(FalconPenKind pk=penNone) const;    // for actual pen
-    QString ActionText(FalconPenKind pk = penNone, int dark =-1);
+    QString ActionText(FalconPenKind pk = penNone, int dark =-1) const;
     bool IsDarkMode() const { return _dark; }
     bool IsChanged() { return _pens.IsAnyPensChanged(); }
 

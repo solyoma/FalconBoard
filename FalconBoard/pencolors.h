@@ -13,31 +13,31 @@ class PenColorsDialog : public QDialog
 {
 	Q_OBJECT
 
+	struct Data
+	{		    
+		QString title;
+		QColor  colors[4][2];
+		QString names[4][2];
+
+		void SetupFrom(const DrawColors& dc, QString schemeName);
+		void CopyInto(DrawColors& dc);
+	} _data;
+	QVector<Data> _schemes;
 public:
 	PenColorsDialog(QWidget* parent = nullptr);
 	~PenColorsDialog();
 
-	bool GetChanges(DrawColors &drcls) const 
-	{
-		int changeCount = 0;
-		for (int i = 0; i < PEN_COUNT - 2; ++i)
-		{
-			if ((_colors[i][0] != drcls.Color((FalconPenKind)(i + 2), 0)) ||
-				(_colors[i][1] != drcls.Color((FalconPenKind)(i + 2), 1)))
-			{
-				drcls.SetupPenAndCursor((FalconPenKind)(i + 2), _colors[i][0], _colors[i][1], pe[i][0]->text(), pe[i][1]->text());
-				++changeCount;
-			}
-		}
-		return changeCount;
-	}
+	bool GetChanges(DrawColors& drcls) const;
 private:
-	QColor _colors[4][2];
+	bool _busy = false;
+	bool _changed = false;
 	QLineEdit *pe[4][2];
 	QToolButton* pb[4][2], *pbD[4][2];
 	Ui::PenColorDialogClass ui;
 
-	QString _makeStyle(int i, int dark);
+	int _ReadData(bool overWriteActual);	// returns count of stored data
+	void _SetupFrom(int which);	// texts and buttons which < 0 => use actual data, else the i-th stored one
+	QString _makeStyle(int whichPen, int dark);	// uses 'data', set from 'schemes'
 	void _SelectColor(int row, int col);
 
 public slots:
@@ -49,6 +49,9 @@ public slots:
 	void on_btnD3_clicked();
 	void on_btnD4_clicked();
 	void on_btnD5_clicked();
+
+	void on_cbSelectScheme_currentIndexChanged(int index);
+	void on_btnSaveScheme_pressed();
 };
 
 #endif
