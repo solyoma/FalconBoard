@@ -1,5 +1,6 @@
-# ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png) FalconBoard
-Last modified: Nov. 6. 2022
+﻿# ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png) FalconBoard
+Last modified/utolsó változtatás: Sept. 24. 2023
+(A magyar nyelvű leírást az angol után találod)
 
 FalconBoard is a cross platform open source 
 whiteboard / blackboard application with unique features that makes it 
@@ -13,7 +14,7 @@ saved drawings, but cannot modify them or create PDFs.
 ## Screenshots:
 ![falconBoard-dark-mode](https://user-images.githubusercontent.com/37068759/121942239-8d803700-cd50-11eb-8493-e239f46e7da7.jpg)
 ![falconBoard-light-mode](https://user-images.githubusercontent.com/37068759/121942173-79d4d080-cd50-11eb-8ffe-dd9b99eed039.jpg)
-## Features (Version 2.0) : 
+## Features (Version 2.x) : 
 
    -  Works under Windows and Linux, and (I hope) on Macs too.
       did not try to compile it to Android or iOs
@@ -25,10 +26,10 @@ saved drawings, but cannot modify them or create PDFs.
    -  Maximum 30 documents can be open at the same time
    -  Freehand drawing with five different colored pens. Colors depend on
       interface modes (light/dark): black/white, red, green, blue/lighter blue, 
-      yellow/magenta.
+      yellow/magenta and (new) can be freely defined for each documents.
+   -  Widths of each pens and the Eraser are adjustable separately.
    -  Draw straight lines which may also be exactly horizontal or vertical.
    -  Draw empty or filled rectangles, ellipses or circles
-   -  Widths of each pens and the Eraser are adjustable separately.
    -  Unlimited Undo/Redo during a single session.
    -  "Unlimited" scrolling from top of "paper" by the keyboard 
       (Left, Right, Up, Down, PgUp,PgDown, Home, End, 
@@ -68,6 +69,10 @@ saved drawings, but cannot modify them or create PDFs.
               delete empty space from the right or from below with the Del key. 
         - copy / cut marked area and paste it into any open drawings at at any 
           position, even into new documents
+        - press F7 to rotate the selected area right or left with any angle. Use
+          Ctrl+F7 to repeat the last rotation.
+        - Rotat 9ö degrees by '1' or 'ö', 18ö degrees by '8', mirror vertically
+          or horizontally by 'V' and 'H'.
    -  Optional saving and loading sessions, option to automatic save of data
       and background image on exit.
    -  Print the whole document or a range of it. (Qt 15 does not make it possible
@@ -97,17 +102,16 @@ saved drawings, but cannot modify them or create PDFs.
   
 *Compilation*:
 
-  Compile it with Qt Version 5.15 or modify the .ui files 
-    (in older Qt versions some fields may be missing from the components 
-    e.g. QComboBox.setPlaceHolderText() ).wasn't tested with Qt version 6.
-  - On Microsoft Windows you can  compile it with Visual Studio 2017/2019
+  Compile it with Qt Version 5.15 or modify the .ui files. 
+    (Wasn't tested with Qt version 6.x)
+  - On Microsoft Windows you can  compile it with Visual Studio 2019/22
     using the extension [Qt VS Tools](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123)
-    A project file *FalconBoard.sln* file is included for VS 2019.
+    A project file *FalconBoard.sln* file is included for VS 2022 and 2019.
   - On Linux use the .pro files provided. 
 
 *Installation*:
   No installation necessary. Copy the executable (and if you don't yet have them, the Qt 
-	and Microsoft redistributables) into any folder. State of the programs are saved into *.ini files. On windows these are inside the
+	and Microsoft redistributables) into any folder. State of the programs are saved into *.ini files. On Windows these are inside the
     user's *AppData\Local\FalconBoard* folder, on linux under the hidden *.falconBoard* folder inside the user's home directory.
 
 *Uninstalling*:    
@@ -124,4 +128,102 @@ saved drawings, but cannot modify them or create PDFs.
   
   If you have downloaded the ZIP and there were only sub-version changes 
   (like from 1.1.x to 1.1.y , but now for 2.0 also) you only need the new executables. 
-  Unpack them into the same folder where the previous release is.
+  Unpack them into the same folder where the previous release resides.
+
+  ## --------------------------------------
+
+  *FalconBoard* egy platformfüggetlen, nyílt forráskódú "rajztábla" alkalmazás, amit a
+  COVID alatti távoktatásrfa készítettem, olyan speciális tulajdonságokkal, amik
+  osztályteremben kivetítésre, vagy távoktatásra nagyon hasznosak. Egy vizszintesen és 
+  függőlegesen egyaránt végtelen "vászonra" írhatunk és rajzolhatunk különböző vastagságú
+  és színű "tollakkal", képeket is vághatunk bele bármely más alkalmazásból, 
+  a dokumentumot kinyomtathatjuk és PDF-be is elmenthetjük.
+
+  Ugyanez a projekt tartalmaz egy nézegetőt (FalconBoardViewer), amivel az elmentett
+  (nem PDF) fájlokat megnézhetjük, de nem módosíthatjuk.
+  
+    ## Képernyőfotók:
+  ld. fent az angol részben
+
+    ## Tulajdonságok (2.x verziók):
+
+    - Működik Windows-on és linuxon és (remélem MAC-eken is)
+    - Jelenleg kétnyelvű: magyar és angol, ami a programból választható
+    - világos és sötét mód választhatóa programból
+    - Egérrel és Wacom kompatibilis grafikus tabletek tollával is használható
+    - Maximum 30 dokumentum szerkeszthető párhuzamosan
+    - Szabadkézi rajzolás 5 különböző, programban átdefiniálható, akár minden
+      dokumentumban más színű tollal, amelyek színe a világos/sötét módokban
+      különböző lehet. Az alapértelmezett színek (világos/sötét -módok): 
+      fekete/fehér, piros, zöld, kék/világoskék és bíbor/sárga.
+    - a tollak és a Radir vastagsága választható
+    - húzhatsz egyenes vonalakat, amelyek lehetnek pontosan vízszintesek vagy 
+      fügőlegesek is.
+    - rajzolhatsz üres, vagy kitöltött téglalapok/négyzetek és ellipszisek/köröket
+    - "végtelen sok" visszavonás és újra alkalmazás lehetséges minden megnyitott
+      dokumentumban
+    - "végtelen" görgetés a "vászon/papír" bal felső sarkához képest mindkét
+      irányban a billentyűzettel, illete az egérrel/tollal
+    - a legtöbb funkció billentyűzetkombinációkkal könnyen elérhető (F1- súgó)
+    - az egész dokumentum PDF fájlba exportálása
+    - Kijelölhetsz egy téglalap alakú tartományt a jobb gombbal. 
+        - Ha Shift-et is nyomva tartod négyzet alakú lesz a kijelölés.
+        - Ha a kijelölt tartományban vannak teljes vonalak, illetve alakzatok és
+          képek a kijelölés összehúzodik köréjük és ezzel kiválastja azokat.
+          Ha ezt nem akarjuk, akkor nyomjuk be az Alt-ot mielőtt felengedjük az 
+          egér/toll gombját.
+        - A kijelölt tartományba téglalapot, illetve ellipszist rajzolhatsz az
+          'R', ill. 'C' gombokkal
+        - A kijelölt tartományba eső alakzatokat a DEL gombbal kitörölheted.
+          Üres (vagy Alt-al kijelölt) terület esetén az F5 gomb egy üres 
+          területet hoz létre, a kijelőlés tetejétől a kijelölés magsságával. 
+          (Azaz minden, a kijelölés teteje alatti vonalat és képet eltol
+          lefele.)
+        - A kijelölt vonalak vastagsátáa a '[' és ']' gombokkal változtathatod
+        - A kijelölés középpontját megjelölheted a '.', ill.'X' billentyűkkel
+        - A kijelölt tartományba eső objektumokat mozgathatod az egérrel, ill. a tollal,
+          vágólapra másolhatod, ami után bármelyik dokumentumba beillesztheted. 
+          A beillesztés helyét a pillanatnyi egér/toll pozíció adja meg.
+        - Az F7 gombbal tetszőleges szögben elforgathatod a kijelölést. 
+          A Ctrl+F7-el pedig az utolsó forgatás szögével. Az '1','0' gombok 90 
+          fokkal, a '8' gomb 180 fokkal forgat a 'V' és 'H' gombok függőlegesen
+          illetve vízszintesen tükrözik a kijelölt területet.
+    - Képernyő részlet kivágás ('képernyőfotó') az F4 gombbal éa bal egérgombos
+      kijelöléssel.
+    - a látható terület képként is elmenthető
+    
+    Nyílt forráskódú (ld. Copyright)
+        felhasználtam néhány ikont [PikaJian's Whitepad projectjéből](https://github.com/PikaJian)
+        de semmilyen kódot nem
+        A 'Quadtree' kód viszont [PVigier](https://github.com/pvigier/Quadtree)
+        A program nyelve C++
+    Visual Studio és Qt projekt fájlokat adok
+
+ * A program lefordítása
+ 
+    Qt 5.15.2 -vel kell fordítani (Qt 6.x-el nem próbáltam)
+  - Microsoft Windows 10 és 11 alatt a Microsoft Visual Studio 2019/2022-tel fordítható, amihez
+    a [Qt VS Tools](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123)
+    kiterjesztést használtam
+  - Linuxon a PRO fájlokat kell használni
+  
+ * Telepítés
+    
+    A programot nem kell telepíteni. A parancsfájlokat (FalconBoar.exe, FalconViewer.exe) és az ikon fájlt
+    (FalconBoard.ico), illetve, amennyiben ezek nincsenk fent a rendszerben a Qt (és Windows alatt a Microsoft
+     redistributeable csomagot) be kell másolni egy tetszőleges mappába és egy parancsikont kell létrehozni
+     az Asztalon. A program állapotát a felhasználó saját könyvtárában (Windows: a felhasználó
+     *AppData\Local\FalconBoard* mappája, Linux a felhasználó könyvtárában levő rejtett *.falconBoard* mappába)
+     elhelyezett .ini fájlban van elmentve.)
+ 
+ * Eltávolítás
+ 
+    Töröld le a program mappát és ha későbbre nem kell, az itt megadott saját mappákat is.
+  
+ * Programverziók a GitHub-on
+    Mindegyikhez két ZIP fájl tartozik. Az egyikben ('FalconBoard_vX.Y.Z_Executables_Only.Zip')
+    csak a futtatható programok és az ikon fájl, a másikban ('FalconBoard_vX.Y.Z_Release.ZIP')
+    az összes fájl benne van. Az utóbbira csak új telepítés esetén, illetve akkor van szükség, 
+    ha a program fő verziószáma változik. Egyszerűen felül ekell velük írni a régebbit.
+
+

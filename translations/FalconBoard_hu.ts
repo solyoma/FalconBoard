@@ -4,21 +4,21 @@
 <context>
     <name>DrawArea</name>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="284"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="285"/>
         <source>&apos;%1&apos;
 Invalid file</source>
         <translation>&apos;%1&apos;
 Nem FalconBoard fájl</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="286"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="287"/>
         <source>File
 &apos;%1&apos;
  not found</source>
         <translation>A &apos;%1&apos;\nNevű fájl nem található</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="288"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="289"/>
         <source>File read problem. %1 records read. Please save the file to correct this error</source>
         <translation>File olvasási hiba. Eddig %1 rekordot olvastam be. Mentsd el a fájlt a hiba kijavításához!</translation>
     </message>
@@ -27,13 +27,13 @@ Nem FalconBoard fájl</translation>
         <translation type="vanished">FalconBoard - Hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2154"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2157"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation>Erőforrás lefoglalási hiba. Nincs elég memória?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2157"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2160"/>
         <source>Can&apos;t find printer</source>
         <translation>Nem találom a nyomtatót</translation>
     </message>
@@ -42,27 +42,27 @@ Not enough memory?</source>
         <translation type="vanished">FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="755"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="758"/>
         <source>With this pen width drawing would be outside of &quot;paper&quot;</source>
         <translation>Ezzel a tolllal a rajz a &quot;papíron&quot; kívül lenne</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2160"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2163"/>
         <source>Print error</source>
         <translation>Nyomtatási hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2163"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2166"/>
         <source>Print cancelled</source>
         <translation>Megszakítottad a nyomtatást</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2725"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2728"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 | Kijelölés: x:%6, y:%7, szél.:%8, mag.:%9</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2730"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2733"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 </translation>
     </message>
@@ -70,43 +70,43 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="515"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="528"/>
         <source>%1...</source>
         <translation>%1...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="563"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="576"/>
         <source>Pen Width:</source>
         <translation>Toll vastagság:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="577"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="590"/>
         <source>Grid size:</source>
         <translation>Rács mérete:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="634"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="647"/>
         <source>Falconboard - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="634"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="647"/>
         <source>Too many open files</source>
         <translation>Túl sok fájl - nem tudok többet megnyitni</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="724"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="737"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation>&lt;i&gt;%1&lt;/i&gt; megváltozott. Elmentsem a változásokat?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1091"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1104"/>
         <source>C&amp;lear list</source>
         <translation>Lista &amp;Törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1259"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1272"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
@@ -117,62 +117,62 @@ Do you want to save your changes?</source>
  Ezt bármikor megváltoztathatod a &lt;i&gt;Lehetőségek/Lapszélesség korlátozása&lt;/i&gt; menüben.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1266"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1279"/>
         <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
  You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
         <translation>Lekorlátozzam a lap vízszintes méretét a&apos; Lapbeállítás&apos; menüben megadott szélességre?
 Ezt bármikor megváltoztathatod a &apos;Lehetőségek/Lapszélesség korlátozása&apos;  menüben</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1280"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1293"/>
         <source>FalconBoard - Import</source>
         <translation>FalconBoard - Importálás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1350"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1363"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1356"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1369"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation>Valószínűleg túl sok fájlt próbáltál megnyitni! Csak az első %1 darab még nem betöltött fájlt lehet betölteni.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1412"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1554"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1425"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1567"/>
         <source>Load Data</source>
         <translation>Adatok betöltése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1414"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1556"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1427"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1569"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation>FalconBoard fájl (*.mwb);;Minden fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1451"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1464"/>
         <source>FalconBoard - Go to Page</source>
         <translation>FalconBoard - Ugrás adott oldalra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1451"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1464"/>
         <source>Page:</source>
         <translation>Oldal:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1609"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1622"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation>Nyilt forráskódú tantermi tábla alkalmazás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1611"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1624"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt;&lt;p&gt;A QuadTree kódot innen vettem:&lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2165"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2178"/>
         <source>export</source>
         <translation>export</translation>
     </message>
@@ -182,38 +182,38 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="vanished">FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1503"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1516"/>
         <source>Please restart the program to change the language!</source>
         <translation>Indítsd újra programot anyelvváltáshoz!</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1537"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1594"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1550"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1607"/>
         <source>Save As</source>
         <translation>Mentés másként</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1538"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1551"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation>FalconBoard fájlok (*.mwb);; Mindenl Fájl (*))</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1572"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1585"/>
         <source>Open Background Image</source>
         <translation>Háttérkép megnyitása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1596"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1609"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation>%1 Fájlok (*.%2);;Mindenl Fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1608"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1621"/>
         <source>About FalconBoard</source>
         <translation>FalconBoard - Névjegy</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1610"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1623"/>
         <source>&lt;p&gt;Version </source>
         <translation>&lt;p&gt;Verzió </translation>
     </message>
@@ -222,12 +222,12 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="obsolete">&lt;p&gt;© A. Sólyom (2020-21)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt; {2020)?}</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1754"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1767"/>
         <source>falconBoard - Grid spacing</source>
         <translation>FalconBoard - rácsméret</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1755"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1768"/>
         <source>Spacing in pixels:</source>
         <translation>A távolság pixelben:</translation>
     </message>
@@ -1591,75 +1591,110 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
         <translation>FalconBoard - Toll szín definiálás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="39"/>
+        <location filename="../FalconBoard/pencolors.ui" line="23"/>
+        <source>You can use a different set of 2 x 4 colors in each document. 
+The color for Pen #1 is always black (light mode) and white (dark modes) and cannot be redefined. 
+When you create a new document it inherits pen colors from the last active document, but 
+you can select any saved color scheme for it any time in this dialog box</source>
+        <translation>Különböző színkészleteket használhatsz minden dokumentumban.
+Az első toll színe azonban mindig fekete (világos módban) és fehér (sötét módban)
+Az új dokumentumok öröklik az aktív dokumentum tollkészletét, de
+bármilyen elmentett színkombinációt kiválaszthatsz helyette itt</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pencolors.ui" line="42"/>
         <source>Light mode Pen colors</source>
         <translation>Vulágos módú színek</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="57"/>
-        <location filename="../FalconBoard/pencolors.ui" line="258"/>
+        <location filename="../FalconBoard/pencolors.ui" line="60"/>
+        <location filename="../FalconBoard/pencolors.ui" line="271"/>
         <source>Pen #</source>
         <translation>Toll</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="79"/>
-        <location filename="../FalconBoard/pencolors.ui" line="280"/>
+        <location filename="../FalconBoard/pencolors.ui" line="82"/>
+        <location filename="../FalconBoard/pencolors.ui" line="293"/>
         <source>Color Name</source>
         <translation>Szín neve</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="101"/>
-        <location filename="../FalconBoard/pencolors.ui" line="302"/>
+        <location filename="../FalconBoard/pencolors.ui" line="104"/>
+        <location filename="../FalconBoard/pencolors.ui" line="315"/>
         <source>Color</source>
         <translation>Szín</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="111"/>
-        <location filename="../FalconBoard/pencolors.ui" line="312"/>
+        <location filename="../FalconBoard/pencolors.ui" line="114"/>
+        <location filename="../FalconBoard/pencolors.ui" line="325"/>
         <source>2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="134"/>
-        <location filename="../FalconBoard/pencolors.ui" line="164"/>
-        <location filename="../FalconBoard/pencolors.ui" line="194"/>
-        <location filename="../FalconBoard/pencolors.ui" line="214"/>
-        <location filename="../FalconBoard/pencolors.ui" line="335"/>
-        <location filename="../FalconBoard/pencolors.ui" line="365"/>
-        <location filename="../FalconBoard/pencolors.ui" line="395"/>
-        <location filename="../FalconBoard/pencolors.ui" line="425"/>
+        <location filename="../FalconBoard/pencolors.ui" line="137"/>
+        <location filename="../FalconBoard/pencolors.ui" line="167"/>
+        <location filename="../FalconBoard/pencolors.ui" line="197"/>
+        <location filename="../FalconBoard/pencolors.ui" line="217"/>
+        <location filename="../FalconBoard/pencolors.ui" line="348"/>
+        <location filename="../FalconBoard/pencolors.ui" line="378"/>
+        <location filename="../FalconBoard/pencolors.ui" line="408"/>
+        <location filename="../FalconBoard/pencolors.ui" line="438"/>
         <source>...</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="141"/>
-        <location filename="../FalconBoard/pencolors.ui" line="342"/>
+        <location filename="../FalconBoard/pencolors.ui" line="144"/>
+        <location filename="../FalconBoard/pencolors.ui" line="355"/>
         <source>3</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="171"/>
-        <location filename="../FalconBoard/pencolors.ui" line="372"/>
+        <location filename="../FalconBoard/pencolors.ui" line="174"/>
+        <location filename="../FalconBoard/pencolors.ui" line="385"/>
         <source>4</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="201"/>
-        <location filename="../FalconBoard/pencolors.ui" line="402"/>
+        <location filename="../FalconBoard/pencolors.ui" line="204"/>
+        <location filename="../FalconBoard/pencolors.ui" line="415"/>
         <source>5</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="240"/>
+        <location filename="../FalconBoard/pencolors.ui" line="253"/>
         <source>Dark mode Pen colors</source>
         <translation>Sötét módú színek</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolors.ui" line="435"/>
+        <location filename="../FalconBoard/pencolors.ui" line="475"/>
+        <source>Name of color scheme</source>
+        <translation>Színkombináció</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pencolors.ui" line="488"/>
+        <source>Select Pen Color Scheme</source>
+        <translation>Válassz egy színkombinációt</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pencolors.ui" line="492"/>
+        <source>Actual pen colors</source>
+        <translation>Jelenlegi toll színek</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pencolors.ui" line="497"/>
+        <source>Default pen colors</source>
+        <translation>Alapértelmezett toll színek</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pencolors.ui" line="505"/>
+        <source>Save</source>
+        <translation>Elmentés</translation>
+    </message>
+    <message>
         <source>You can use a different set of 2 x 4 colors in each document. 
 The color for Pen #1 is always black (light mode) and white (dark modes) and cannot be redefined. 
 When you create a new document it inherits pen colors from the last active document.</source>
-        <translation>Különböző színkészleteket használhatsz minden dokumentumban.
+        <translation type="vanished">Különböző színkészleteket használhatsz minden dokumentumban.
 Az első toll színe azonban mindig fekete (világos módban) és fehér (sötét módban)
 Az új dokumentumok öröklik az aktív dokumentum tollkészletét.</translation>
     </message>
@@ -1698,7 +1733,7 @@ Az új dokumentumok öröklik az aktív dokumentum tollkészletét.</translation
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="684"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="697"/>
         <source>Save Visi&amp;ble As...</source>
         <translation>&amp;Látható mentése más néven...</translation>
     </message>
@@ -1735,31 +1770,31 @@ Az új dokumentumok öröklik az aktív dokumentum tollkészletét.</translation
     </message>
     <message>
         <location filename="../FalconBoard/common.cpp" line="96"/>
-        <location filename="../FalconBoard/common.cpp" line="210"/>
+        <location filename="../FalconBoard/common.cpp" line="215"/>
         <source>&amp;Red</source>
         <translation>&amp;Piros</translation>
     </message>
     <message>
         <location filename="../FalconBoard/common.cpp" line="97"/>
-        <location filename="../FalconBoard/common.cpp" line="211"/>
+        <location filename="../FalconBoard/common.cpp" line="216"/>
         <source>&amp;Green</source>
         <translation>&amp;Zöld</translation>
     </message>
     <message>
         <location filename="../FalconBoard/common.cpp" line="98"/>
-        <location filename="../FalconBoard/common.cpp" line="212"/>
+        <location filename="../FalconBoard/common.cpp" line="217"/>
         <source>&amp;Blue</source>
         <translation>&amp;Kék</translation>
     </message>
     <message>
         <location filename="../FalconBoard/common.cpp" line="99"/>
-        <location filename="../FalconBoard/common.cpp" line="213"/>
+        <location filename="../FalconBoard/common.cpp" line="218"/>
         <source>&amp;Purple</source>
         <translation>&amp;Bíbor</translation>
     </message>
     <message>
         <location filename="../FalconBoard/common.cpp" line="99"/>
-        <location filename="../FalconBoard/common.cpp" line="213"/>
+        <location filename="../FalconBoard/common.cpp" line="218"/>
         <source>&amp;Yellow</source>
         <translation>&amp;Sárga</translation>
     </message>
@@ -1798,7 +1833,7 @@ Az új dokumentumok öröklik az aktív dokumentum tollkészletét.</translation
         <translation>FalconBoard Megjelenítő</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="109"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="121"/>
         <source>Untitled</source>
         <translation>Új fájl</translation>
     </message>
