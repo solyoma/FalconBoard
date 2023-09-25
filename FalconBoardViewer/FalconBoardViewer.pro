@@ -22,6 +22,7 @@ HEADERS += \
 	../FalconBoard/myevent.h \
 	../FalconBoard/myprinter.h \
 	../FalconBoard/pagesetup.h \
+	../FalconBoard/pencolorset.h \
 	../FalconBoard/pencolors.h \
 	../FalconBoard/printprogress.h \
 	../FalconBoard/quadtree.h \
@@ -38,6 +39,7 @@ SOURCES += \
 	../FalconBoard/myprinter.cpp \
 	../FalconBoard/pagesetup.cpp \
 	../FalconBoard/pencolors.cpp \
+	../FalconBoard/pencolorset.cpp \
 	../FalconBoard/screenshotTransparency.cpp \
 	../FalconBoard/snipper.cpp
 FORMS += \

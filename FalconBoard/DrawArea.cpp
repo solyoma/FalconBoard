@@ -2075,6 +2075,7 @@ void DrawArea::SlotForPenColorRedefined(const DrawColors& drwclr)
 	_history->drawColors = drwclr;
 	_history->AddPenColorChange(drwclr);	// sets them into 'globalDrawColors'
 	_Redraw();
+	emit CanUndo(true);
 	emit SignalPenColorChanged();
 }
 

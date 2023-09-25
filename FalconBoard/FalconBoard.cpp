@@ -1987,8 +1987,7 @@ void FalconBoard::on_actionDefinePenColors_triggered()
     PenColorsDialog *pcdg = new PenColorsDialog(this);
     if (pcdg->exec() == QDialog::Accepted)
     {
-        DrawColors newc(globalDrawColors);
-        newc.Initialize();
+        DrawColors newc(globalDrawColors);  // current colors
         if (pcdg->GetChanges(newc))
         {
             emit PenColorChangedSignal(newc);
@@ -2163,7 +2162,8 @@ void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 void FalconBoard::SlotForPenColorChanged()      // called from _drawArea after the pen color is redefined
 {
     _SetupIconsForPenColors(_screenMode, true);
-    _SetResetChangedMark(-1);
+//    _SetResetChangedMark(-1);
+
 //    _drawArea->setFocus();
 }
 

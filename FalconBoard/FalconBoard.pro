@@ -23,6 +23,7 @@ HEADERS += \
 	./myprinter.h \
 	./pagesetup.h \
 	./pencolors.h \
+	./pencolorset.h \
 	./printprogress.h \
 	./quadtree.h \
 	./rotateinput.h \
@@ -39,6 +40,7 @@ SOURCES += \
 	./myprinter.cpp \
 	./pagesetup.cpp \
 	./pencolors.cpp \
+	./pencolorset.cpp \
 	./screenshotTransparency.cpp \
 	./snipper.cpp
 FORMS += ./FalconBoard.ui \
