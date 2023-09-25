@@ -20,7 +20,7 @@ class PenColorsDialog : public QDialog
 		QString names[4][2];
 
 		void SetupFrom(const DrawColors& dc, QString schemeName);
-		void CopyInto(DrawColors& dc);
+		//void CopyInto(DrawColors& dc);
 	} _data;
 	QVector<Data> _schemes;
 public:
@@ -36,7 +36,7 @@ private:
 	Ui::PenColorDialogClass ui;
 
 	int _ReadData(bool overWriteActual);	// returns count of stored data
-	void _SetupFrom(int which);	// texts and buttons which < 0 => use actual data, else the i-th stored one
+	void _SetupFrom(int which);				// texts and buttons which < 0 => use actual data, else the i-th stored one
 	QString _makeStyle(int whichPen, int dark);	// uses 'data', set from 'schemes'
 	void _SelectColor(int row, int col);
 

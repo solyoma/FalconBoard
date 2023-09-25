@@ -282,11 +282,11 @@ int DrawArea::_LoadCommon()
 
 	QString qs = _history->Name(); //  .mid(_history->Name().lastIndexOf('/') + 1);
 	if (!res)
-		QMessageBox::about(this, tr(WindowTitle), QString(tr("'%1'\nInvalid file")).arg(qs));
+		QMessageBox::about(this, tr(WindowTitle), tr("'%1'\nInvalid file").arg(qs));
 	else if (res == -1)
-		QMessageBox::about(this, tr(WindowTitle), QString(tr("File\n'%1'\n not found")).arg(qs));
+		QMessageBox::about(this, tr(WindowTitle), tr("File\n'%1'\n not found").arg(qs));
 	else if (res < 0)    // i.e. < -1
-		QMessageBox::about(this, tr(WindowTitle), QString(tr("File read problem. %1 records read. Please save the file to correct this error")).arg(-res - 2));
+		QMessageBox::about(this, tr(WindowTitle), tr("File read problem. %1 records read. Please save the file to correct this error").arg(-res - 2));
 
 	return res;
 }
@@ -2725,12 +2725,12 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	{
 		QRectF r = _rubberBand->geometry();
 		r.translate(_topLeft);
-		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9")).
+		qs = tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9").
 			arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
 			arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());
 	}
 	else
-		qs = QString(tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ")).arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
+		qs = tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ").arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
 	emit TextToToolbar(qs);
 }
 

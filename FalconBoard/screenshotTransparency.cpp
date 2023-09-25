@@ -40,5 +40,5 @@ void ScreenShotTransparencyDialog::GetResult(QColor& trcolor, bool& usetr,qreal 
 
 void ScreenShotTransparencyDialog::on_hsFuzzyness_valueChanged(int value)
 {
-	ui.lblFuzzyness->setText(QString(tr("Fuzzyness: %1")).arg((qreal)value / 100.0, 7, 'g', 2));
+	ui.lblFuzzyness->setText(tr("Fuzzyness: %1").arg((qreal)value / 100.0, 7, 'g', 2));
 }

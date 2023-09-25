@@ -318,7 +318,7 @@ private:
 	{
 		if (_drawArea->IsModified())
 		{
-			QString cs = QString(tr("Do you want to save the document before %1?\n\n(You may set automatic save in the Options menu.)")).arg(s);
+			QString cs = tr("Do you want to save the document before %1?\n\n(You may set automatic save in the Options menu.)").arg(s);
 			if (ui.actionAutoSaveBeforePrintOrExport->isChecked() ||
 				(QMessageBox::question(this, tr("FalconBoard - Question"), cs) == QMessageBox::Yes))
 			{

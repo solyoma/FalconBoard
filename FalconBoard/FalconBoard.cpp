@@ -734,8 +734,8 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onClose)
     if (!isAutoSaveSet || mustAsk || isUntitled)
     {
         ret = QMessageBox::warning(this, tr(WindowTitle),
-            QString(tr("<i>%1</i> have been modified.\n"
-                "Do you want to save your changes?")).arg(saveName.isEmpty() ? _NextUntitledName() : saveName),
+            tr("<i>%1</i> have been modified.\n"
+                "Do you want to save your changes?").arg(saveName.isEmpty() ? _NextUntitledName() : saveName),
             QMessageBox::Save | QMessageBox::No
             | QMessageBox::Cancel);
 
@@ -1513,7 +1513,7 @@ void FalconBoard::_sa_actionLanguage_triggered(int which)
     // TODO: language change w.o. restart
     if (which != _actLanguage)
     {
-        QMessageBox::warning(this, FB_WARNING, QString(tr("Please restart the program to change the language!")).arg(which));
+        QMessageBox::warning(this, FB_WARNING, tr("Please restart the program to change the language!").arg(which));
         _actLanguage = which;
     }
 }
@@ -1619,8 +1619,8 @@ void FalconBoard::SaveVisibleAsTriggered()
 void FalconBoard::on_actionAbout_triggered()
 {
     QMessageBox::about(this, tr("About FalconBoard"),
-        QString(tr("Open source Whiteboard/blackboard application")+
-            tr("<p>Version ")+ sVersion+ "</p>")+
+        tr("Open source Whiteboard/blackboard application")+
+            tr("<p>Version ") + sVersion + QString("</p>")+
             tr("<p>© A. Sólyom (2020-22)</p><br>"
             "<p>https://github.com/solyoma/FalconBoard</p>"
             "<p>Based on Qt's <b>Scribble</b> example.</p>"

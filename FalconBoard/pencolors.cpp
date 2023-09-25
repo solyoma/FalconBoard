@@ -9,9 +9,9 @@ static const QString pgbase = "pen";
 static const inline QString __ItemName(int grp, int pen, const char* pn)
 {
 	if (pen)
-		return QString("grp%1pen%2_%3").arg(grp+1).arg(pen).arg(pn);
+		return QString("grp%1pen%2_%3").arg(grp).arg(pen).arg(pn);
 	else	// remove title
-		return QString("grp%1_%2").arg(grp+1).arg(pn);
+		return QString("grp%1_%2").arg(grp).arg(pn);
 }
 
 static inline void __Separate(const QString &from, QString& s1, QString& s2)
@@ -85,23 +85,24 @@ int PenColorsDialog::_ReadData(bool overWriteActual)
 	_schemes.clear();	// fresh start
 	if (ui.cbSelectScheme->count() > 2)
 	{
+		_busy = true;
 		int i = ui.cbSelectScheme->count();
 		while(i > 2)
 			ui.cbSelectScheme->removeItem(--i);
+		ui.cbSelectScheme->setCurrentIndex(1);	// to actual colors
+		_busy = false;
 	}
 
 	// setup _schemes
 	Data tmp;
 	DrawColors dc;
 	dc.Initialize();			// defaults
-	tmp.SetupFrom(dc, "Default pen colors");
+	tmp.SetupFrom(dc, tr("Default pen colors"));
 	_schemes.push_back(tmp);	// index #0
 
+	tmp.SetupFrom(globalDrawColors, tr("Actual pen colors"));
 	if (overWriteActual)
-	{
-		tmp.SetupFrom(globalDrawColors, "Actual pen colors");
 		_data = tmp;
-	}
 	else
 		tmp = _data;
 
@@ -113,31 +114,31 @@ int PenColorsDialog::_ReadData(bool overWriteActual)
 	int cntRead = 0;
 	if (n)
 	{
-		for (int grp = 0; grp < n; ++grp)
+		for (int grp = 1; grp <= n; ++grp)
 		{
-			tmp.SetupFrom(dc, "dummy");	// only colors saved are restored
+			tmp.SetupFrom(dc, "dummy");	// default pen colors were not saved, nor restored
 			// the others remain default
 			tmp.title = s->value(__ItemName(grp, 0, "t"), "").toString();
 			if (!tmp.title.isEmpty())
 			{
 				++cntRead;
-				for (int pen = 2; pen < PEN_COUNT; ++pen)
+				for (int pen = 0; pen < PEN_COUNT-2; ++pen)
 				{
-					QString qs = s->value(__ItemName(grp, pen, "c"), "").toString(), qs1, qs2;
+					QString qs = s->value(__ItemName(grp, pen+2, "c"), "").toString(), qs1, qs2;
 					if (!qs.isEmpty())
 					{
 						__Separate(qs, qs1, qs2);
 						if (!qs1.isEmpty())
-							tmp.colors[grp][0] = qs1;
+							tmp.colors[pen][0] = qs1;
 						if (!qs2.isEmpty())
-							tmp.colors[grp][1] = qs2;
+							tmp.colors[pen][1] = qs2;
 
-						qs = s->value(__ItemName(grp, pen, "n")).toString();
+						qs = s->value(__ItemName(grp, pen+2, "n")).toString();
 						__Separate(qs, qs1, qs2);
 						if (!qs1.isEmpty())
-							tmp.names[grp][0] = qs1;
+							tmp.names[pen][0] = qs1;
 						if (!qs2.isEmpty())
-							tmp.names[grp][1] = qs2;
+							tmp.names[pen][1] = qs2;
 					}
 				}
 				_schemes.push_back(tmp);
@@ -174,7 +175,7 @@ QString PenColorsDialog::_makeStyle (int whichPen, int dark)
 
 void PenColorsDialog::_SelectColor(int row, int dark)
 {
-	QColor newc = QColorDialog::getColor(_data.colors[row][dark], this, QString(tr("FalconBoard - Select new pen color for Color #%1")).arg(row + 2));
+	QColor newc = QColorDialog::getColor(_data.colors[row][dark], this, tr("FalconBoard - Select new pen color for Color #%1").arg(row + 2));
 	if (newc.isValid())
 	{
 		_busy = true;
@@ -246,18 +247,39 @@ void PenColorsDialog::on_btnSaveScheme_pressed()
 	PenColorSetDialog *pdlg = new PenColorSetDialog(qs, this);
 	if (pdlg->exec() && !(qs = pdlg->text()).isEmpty())
 	{
-		int cnt = _ReadData(false)+1;		// new data will be appended
+		_data.title = qs;
+		int selected[PEN_COUNT-2] = { 0 }, cntChanged=0;	// only save where there's a difference
+		for (int i = 0; i < PEN_COUNT - 2; ++i)		// between the actual name or color and the default
+		{
+			if (_data.colors[i][0] != _schemes[0].colors[i][0] ||
+				_data.colors[i][1] != _schemes[0].colors[i][1] ||
+				_data.names[i][0]  != _schemes[0].names[i][0]  ||
+				_data.names[i][1]  != _schemes[0].names[i][1] 	 )
+			{
+				selected[i] = 1;
+				++cntChanged;
+			}
+		}
+
+		int cnt = _schemes.size() - 1;		// new data will be appended
 		QSettings* s = FBSettings::Open();
 		s->beginGroup(PENGROUP);
+		s->setValue(PENGROUPCOUNT, cnt);
 		s->setValue(__ItemName(cnt, 0, "t"), _data.title);
-		for (int i = 0; i < PEN_COUNT - 2; ++i)
+		if (cntChanged)
 		{
-			s->setValue(__ItemName(cnt, i, "c"), __Merge(_data.colors[i][0].name(), _data.colors[i][1].name()));
-			s->setValue(__ItemName(cnt, i, "c"), __Merge(_data.names[i][0], _data.names[i][1]));
+			for (int i = 0; i < PEN_COUNT - 2; ++i)
+			{
+				if (selected[i])
+				{
+					s->setValue(__ItemName(cnt, i + 2, "c"), __Merge(_data.colors[i][0].name(), _data.colors[i][1].name()));
+					s->setValue(__ItemName(cnt, i + 2, "n"), __Merge(_data.names[i][0], _data.names[i][1]));
+				}
+			}
 		}
 		s->endGroup();
 		FBSettings::Close();
 	}
-	else
-			_ReadData(false);
+
+	_ReadData(false);
 }

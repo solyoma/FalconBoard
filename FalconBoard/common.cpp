@@ -462,5 +462,7 @@ QString FBSettings::Name()
 
 QSettings* FBSettings::Open()
 {
-    return _ps = new QSettings(Name(), QSettings::IniFormat);
+    _ps = new QSettings(Name(), QSettings::IniFormat);
+    _ps->setIniCodec("UTF-8");
+    return _ps;
 }
