@@ -125,13 +125,11 @@ struct FalconPen
 //----------------------------- FalconPens -------------------
 class FalconPens : public std::vector<FalconPen>
 {
-    QCursor _pointers[PEN_COUNT];
+//    QCursor _pointers[PEN_COUNT];
     bool _darkMode = false;     // use SetDarkMode to set up
 
-    QIcon _RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB);
-    void _SetupEraser();
-    void _PreparePointerFor(FalconPenKind pk);
-    void _PreparePointers();
+    QIcon _RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB) const;
+    QCursor _SetupEraser() const;
 public:
     FalconPens() { resize(PEN_COUNT); }
     void Initialize();

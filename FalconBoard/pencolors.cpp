@@ -68,7 +68,7 @@ PenColorsDialog::~PenColorsDialog()
 bool PenColorsDialog::GetChanges(DrawColors& drcls) const
 {
 	int changeCount = 0;
-	drcls.SetupPenAndCursor(penBlack, _data.colors[1][0], _data.colors[1][1], pe[1][0]->text(), pe[1][1]->text());
+	drcls.SetupPenAndCursor(penBlack, drcls.Color(penBlack,false), drcls.Color(penBlack,true));
 	for (int i = 0; i < PEN_COUNT - 2; ++i)
 	{
 		if ((_data.colors[i][0] != drcls.Color((FalconPenKind)(i + 2), 0)) ||

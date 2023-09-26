@@ -1079,8 +1079,10 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "  margin: 2px;\n"
             "  border: 2px solid" + _sGridColor + ";"
             "\n}\n"
-            "QPushButton:hover, QToolButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n"
-
+            "QPushButton:hover, QToolButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n" 
+            "QToolButton:hover {\n  "
+            "  border:1px solid " + _sTabBarActiveTextColor + ";\n"
+            "}\n"
             "QStatusBar, QToolBar {\n"
             " background-color:" + _sToolBarColor + ";\n"
             "}\n"

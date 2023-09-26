@@ -109,7 +109,7 @@ FalconPens& FalconPens::operator=(const FalconPens& o)
     for (int i = penRed; i < penLastNotUseThis; ++i)
     {
         (*this)[(FalconPenKind)i] = o[(FalconPenKind)i];
-        _pointers[i] = o._pointers[i];
+    //    _pointers[i] = o._pointers[i];
     }
     return *this;
 }
@@ -140,7 +140,6 @@ bool FalconPens::SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName
         else
             (*this)[(size_t)pk] = pen;
 
-        _PreparePointerFor(pk);
     }
     return true;
 }
@@ -166,7 +165,23 @@ QColor FalconPens::Color(FalconPenKind pk, int dark) const
 
 QCursor FalconPens::Pointer(FalconPenKind pk) const
 {
-    return _pointers[(int)pk];
+    if (pk == penEraser)
+        return _SetupEraser();
+
+    QColor color = Color(pk);
+    constexpr int SIZE = 32;    //px
+    QPixmap pm(SIZE, SIZE);
+    pm.fill(Qt::transparent);
+    QPainter painter(&pm);
+
+    // DEBUG
+    qDebug("pen %d, mode:%s, color:%s %s,- %ld", int(pk), _darkMode ? "dark" : "light", color.name().toStdString().c_str(), __FILE__, __LINE__);
+
+    painter.setPen(QPen(color, 2, Qt::SolidLine));
+    painter.drawLine(QPoint(0, SIZE / 2), QPoint(SIZE - 1, SIZE / 2));
+    painter.drawLine(QPoint(SIZE / 2, 0), QPoint(SIZE / 2, SIZE - 1));
+
+    return QCursor(pm);
 }
 
 const QString& FalconPens::ActionText(FalconPenKind pk, int dark) const
@@ -210,7 +225,6 @@ bool FalconPens::FromSettings(QSettings* s) // may be overwritten in ".mwb" file
             {
                 FalconPen* pen = &(*this)[(int)pk];
                 pen->SetDefaultColors(pen->lightColor, pen->darkColor);
-                _PreparePointerFor(pk);
             }
         };
     // always B&W ! setit(penBlack, "BLACK", "black,white", "black,black");
@@ -383,7 +397,7 @@ QString DrawColors::ActionText(FalconPenKind pk, int dark) const
     return _pens.ActionText(pk, dark);
 }
 
-QIcon FalconPens::_RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB)
+QIcon FalconPens::_RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB) const
 {
     QPixmap pm, pmW, pmB;
     pmW = pmB = pm = sourceIcon.pixmap(64, 64);
@@ -402,39 +416,12 @@ QIcon FalconPens::_RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB)
     }
     return QIcon(pmW);
 }
-void FalconPens::_SetupEraser()
+
+QCursor FalconPens::_SetupEraser() const
 {
     QIcon icon = _RecolorIcon(QIcon(":/FalconBoard/Resources/eraser.png"), _darkMode ? Qt::black : Qt::white, _darkMode ? Qt::white : Qt::black);
     QPixmap pm = icon.pixmap(64, 64);
-    _pointers[(int)penEraser] = QCursor(pm);
-}
-
-void FalconPens::_PreparePointerFor(FalconPenKind pk)
-{
-    if (pk == penNone)
-        return;
-    if (pk == penEraser)
-    {
-        _SetupEraser();
-        return;
-    }
-    QColor color = Color(pk);
-    constexpr int SIZE = 32;    //px
-    int n = (int)pk;
-    QPixmap pm(SIZE, SIZE);
-    pm.fill(Qt::transparent);
-    QPainter painter(&pm);
-
-    painter.setPen(QPen(color, 2, Qt::SolidLine));
-    painter.drawLine(QPoint(0, SIZE / 2), QPoint(SIZE - 1, SIZE / 2));
-    painter.drawLine(QPoint(SIZE / 2, 0), QPoint(SIZE / 2, SIZE - 1));
-    _pointers[n] = QCursor(pm);
-}
-
-void FalconPens::_PreparePointers()
-{
-    for(int i = penRed; i < penLastNotUseThis; ++i)
-        _PreparePointerFor((FalconPenKind)i);
+    return /*_pointers[(int)penEraser] =*/ QCursor(pm);
 }
 
 //----------------------------- FBSettings -------------------
