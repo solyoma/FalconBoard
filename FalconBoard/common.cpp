@@ -104,6 +104,8 @@ FalconPens& FalconPens::operator=(const FalconPens& o)
     if (empty())
         Initialize();
 
+    _darkMode = o._darkMode;
+
     for (int i = penRed; i < penLastNotUseThis; ++i)
     {
         (*this)[(FalconPenKind)i] = o[(FalconPenKind)i];

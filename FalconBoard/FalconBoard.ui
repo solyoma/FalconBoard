@@ -172,10 +172,10 @@
     <addaction name="menuGrid"/>
     <addaction name="actionLimitPaperWidth"/>
     <addaction name="actionShowPageGuides"/>
-    <addaction name="separator"/>
     <addaction name="actionAllowMultipleProgramInstances"/>
-    <addaction name="actionScreenshotTransparency"/>
+    <addaction name="separator"/>
     <addaction name="actionDefinePenColors"/>
+    <addaction name="actionScreenshotTransparency"/>
     <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>

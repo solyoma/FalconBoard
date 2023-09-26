@@ -271,15 +271,19 @@ private:
 #endif
 
 	QString _sBackgroundColor = "#FFFFFF",
-			_sBackgroundHighLigtColor="#D8EAF9",
+			_sBackgroundHighlightColor="#D8EAF9",
+			_sDisabledColor = "#ccccc",
+			_sEditBackgroundColor="#FFFFFF",
+			_sEditTextColor = "#000000",
+			_sGridColor = "#d0d0d0",
+		    _sPageGuideColor = "#fcd475",
 			_sSelectedBackgroundColor="#FFF",
 			_sUnselectedBackgroundColor="#d0d0d0",
 			_sTextColor = "#000000",
-			_sDisabledColor = "#ccccc",
-			_sToolBarColor = "#cccccc";
+			_sToolBarColor = "#cccccc",
+			_sTabBarActiveTextColor = "#FFA0A0",
+			_sTabBarInactiveTextColor = "#808080";
 
-	QString _sGridColor = "#d0d0d0",
-		    _sPageGuideColor = "#fcd475";
 	bool _useScreenshotTransparency = false;
 	qreal _transparencyFuzzyness = 0.0;
 	QColor _screenshotTransparencyColor;
@@ -297,7 +301,7 @@ private:
 #endif
 	QIcon _ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB = QColor());
 	void _LoadIcons();
-	void _SetupIconsForPenColors(ScreenMode sm, bool forAll = true, DrawColors *fromColors = nullptr);		// depend on mode, forAll: to black and eraser too?
+	void _SetupIconsForPenColors(ScreenMode sm, DrawColors *fromColors = nullptr);		// depend on mode
 
 	void _LoadFiles(QStringList fileNames);
 	void _SaveLastDirectory(QString fileName);

@@ -81,10 +81,10 @@ void FalconBoard::_RemoveMenus()
                                                     //11:   separator
     pMenu->removeAction(pMenu->actions()[10]);      //10: Load Background Image 
     pMenu->removeAction(pMenu->actions()[9]);       // 9:   separator
-    pMenu->removeAction(pMenu->actions()[8]);       // 8: define pen colors
-    pMenu->removeAction(pMenu->actions()[7]);       // 7: Screenshot Transparency
-                                                    // 6: Allow multiple program instances
-                                                    // 5:   separator
+    pMenu->removeAction(pMenu->actions()[8]);       // 8: Screenshot Transparency
+    pMenu->removeAction(pMenu->actions()[7]);       // 7: Define pen colors
+                                                    // 6:   separator
+                                                    // 5: Allow multiple program instances
                                                     // 4: Show page guides
     pMenu->removeAction(pMenu->actions()[3]);       // 3: paper width
     pMenu->removeAction(pMenu->actions()[2]);       // 2: grid options
@@ -490,7 +490,7 @@ void FalconBoard::_LoadIcons()
     _iconScreenShot = QIcon(":/FalconBoard/Resources/screenshot.png");
 }
 
-void FalconBoard::_SetupIconsForPenColors(ScreenMode sm, bool forAll, DrawColors *pdrclr)
+void FalconBoard::_SetupIconsForPenColors(ScreenMode sm, DrawColors *pdrclr)
 {
     if (!pdrclr)
         pdrclr = &globalDrawColors;
@@ -498,11 +498,8 @@ void FalconBoard::_SetupIconsForPenColors(ScreenMode sm, bool forAll, DrawColors
 //    globalDrawColors.SetDarkMode(sm != smSystem);
 
 #ifndef _VIEWER
-    if (forAll)
-    {
         ui.action_Black->setIcon(_ColoredIcon(_iconPen, globalDrawColors.Color(penBlack)));
         ui.action_Black->setText(globalDrawColors.ActionText(penBlack));
-    }
 
     ui.action_Red->setIcon(_ColoredIcon(_iconPen,   pdrclr->Color(penRed)));
     ui.action_Red->setText(pdrclr->ActionText(penRed));
@@ -953,7 +950,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "undo"          // 7
     };
 
-    _SetupIconsForPenColors(mode, true);      // pen selection
+    _SetupIconsForPenColors(mode);      // pen selection
 
     switch (mode)
     {
@@ -970,9 +967,11 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.actionSave   ->setIcon(_iconSave   );
             ui.action_Screenshot->setIcon(_iconScreenShot);
             _sBackgroundColor = "#FFFFFF";
-            _sBackgroundHighLigtColor = "#D8EAF9";
+            _sBackgroundHighlightColor = "#D8EAF9";
             _sSelectedBackgroundColor = "#007acc",
             _sUnselectedBackgroundColor = "#d0d0d0",
+            _sEditBackgroundColor = "#FFFFFF",
+            _sEditTextColor = "#000000",
             _sTextColor = "#000000";
             _sDisabledColor = "#AAAAAA";
             _sGridColor = "#d0d0d0";
@@ -992,8 +991,10 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#282828";
             _sSelectedBackgroundColor = "#007acc";
-            _sBackgroundHighLigtColor = "#D8EAF9";
-            _sUnselectedBackgroundColor = "#202020";
+            _sBackgroundHighlightColor = "#D8EAF9";
+            _sUnselectedBackgroundColor = "#303030";
+            _sEditBackgroundColor = "#555",
+            _sEditTextColor = "#ffffff",
             _sTextColor = "#E1E1E1";
             _sDisabledColor = "#AAAAAA";
             _sGridColor = "#202020";
@@ -1013,9 +1014,11 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, QColor(Qt::white)));
             ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#000000";
-            _sBackgroundHighLigtColor = "#D8EAF9";
+            _sBackgroundHighlightColor = "#D8EAF9";
             _sSelectedBackgroundColor = "#007acc";
             _sUnselectedBackgroundColor = "#101010";
+            _sEditBackgroundColor = "#FFFFFF",
+            _sEditTextColor = "#000000",
             _sTextColor = "#CCCCCC";
             _sDisabledColor = "#888888";
             _sGridColor = "#202020";
@@ -1030,35 +1033,85 @@ void FalconBoard::_SetupMode(ScreenMode mode)
         ss = "* {\n" 
                   "  background-color:" + _sBackgroundColor + ";\n"
                   "  color:" + _sTextColor + ";\n"
-             "}\n"
-             "QMenuBar::item, "
-             "QMenu::separator, "
-             "QMenu::item {\n"
-             "  color:" + _sTextColor + ";\n"
-             "}\n"
-             "QMenuBar::item:selected,\n"
-             "QMenu::item:selected {\n"
-             "  color:"+_sBackgroundColor + ";\n"
-             "  background-color:" + _sTextColor + ";\n"
-             "}\n"
-             "QMenu::item:disabled {\n"
-             "  color:"+ _sDisabledColor + ";\n"
-             "}\n"
-             "QStatusBar, QToolBar {\n"
-             " background-color:" + _sToolBarColor + ";\n"
-             "}\n"
-             "QTabBar::tab {\n"
-             " color:" + _sTextColor + ";\n"
-             " background-color:"+ _sUnselectedBackgroundColor+";\n"
-             " selection-background-color:"+ _sSelectedBackgroundColor+";\n"
-             "}\n"
-             "QTabBar::tab:selected {\n background-color:" + _sSelectedBackgroundColor + ";\n"
-             "}\n"
-             "QToolTip {\n background-color:"+_sTextColor+";\n color:"+_sBackgroundColor+";\n"
-             "}\n"
+            "}\n"
+
+            "QComboBox {"
+                "  background-color:" + _sEditBackgroundColor + ";\n"
+                "  color:" + _sEditTextColor + ";\n"
+            "}\n"
+
+            "QMenu::separator {  height:1px;\n  margin:1px 3px;\n  background:" + _sTextColor + "\n}\n"
+            "QMenuBar::item, "
+            "QMenu::item {\n"
+            "  color:" + _sTextColor + ";\n"
+            "}\n"
+            "QMenuBar::item:selected,\n"
+            "QMenu::item:selected {\n"
+            "  color:"+_sBackgroundColor + ";\n"
+            "  background-color:" + _sTextColor + ";\n"
+            "}\n"
+            "QMenu::item:disabled {\n"
+            "  color:"+ _sDisabledColor + ";\n"
+            "}\n"
+
+            "QLineEdit {\n"
+            "  background-color:" + _sEditBackgroundColor + ";\n"
+            "  color:"+_sEditTextColor + ";\n"
+            "  border: 1px solid"+_sGridColor+";\n"
+            "  border-radius:4px;"
+            "  padding:1px 2px;\n"
+            "}\n"
+
+            "QGroupBox{\n"
+            "  margin-top:2em;"
+            "  border: 1px solid"+_sBackgroundHighlightColor+";\n"
+            "  border-radius:4px;\n"
+            "}\n"
+            "QGroupBox::title {\n"
+            "  subcontrol-origin: margin;\n"
+            "  subcontrol-position: 50%;\n"
+            "  padding:4px;\n"
+//            "  margin-top:2em;"
+            "}\n"
+
+            "QPushButton, QToolButton {\n"
+            "  padding: 2px;\n"
+            "  margin: 2px;\n"
+            "  border: 2px solid" + _sGridColor + ";"
+            "\n}\n"
+            "QPushButton:hover, QToolButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n"
+
+            "QStatusBar, QToolBar {\n"
+            " background-color:" + _sToolBarColor + ";\n"
+            "}\n"
+
+            "QTabBar::tab {\n"
+            "  color:" + _sTabBarActiveTextColor + ";\n"
+            "  background-color:" + _sUnselectedBackgroundColor+";\n"
+            "  selection-background-color:"+ _sSelectedBackgroundColor+";\n"
+            "}\n"
+            "QTabBar::tab{\n"
+            "  border-top-left-radius: 4px;\n"
+            "  border-top-right-radius: 4px;\n"
+            "  min-width: 60px;"
+            "  padding: 2px 4px;\n"
+            "  border:1px solid " + _sTabBarActiveTextColor + ";\n"
+            "}\n"
+            "QTabBar::tab:!selected{"
+            "  margin-top: 2px;"
+            "  border:1px solid " + _sTabBarInactiveTextColor + ";\n"
+            "}"
+            "QTabBar:selected {\n"
+            "  background-color:" + _sSelectedBackgroundColor + ";\n"
+            "  color:"+_sBackgroundColor+";\n"
+            "}\n"
+
+            "QToolTip {\n background-color:"+_sTextColor+";\n color:"+_sBackgroundColor+";\n"
+            "}\n"
         ;
 
     ((QApplication*)(QApplication::instance()))->setStyleSheet(ss); // so it cascades down to all sub windows/dialogs, etc
+
 
     _drawArea->SetMode(mode != smSystem, _sBackgroundColor, _sGridColor, _sPageGuideColor);
 }
@@ -1695,7 +1748,7 @@ void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
     {
         _drawArea->SwitchToHistory(index, true);
         _SetWindowTitle(_drawArea->HistoryName());
-        _SetupIconsForPenColors(_screenMode, false);   // don't touch black pen
+        _SetupIconsForPenColors(_screenMode);   // don't touch black pen
     }
     ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
     _nLastTab = index;
@@ -2161,7 +2214,7 @@ void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 
 void FalconBoard::SlotForPenColorChanged()      // called from _drawArea after the pen color is redefined
 {
-    _SetupIconsForPenColors(_screenMode, true);
+    _SetupIconsForPenColors(_screenMode);
 //    _SetResetChangedMark(-1);
 
 //    _drawArea->setFocus();

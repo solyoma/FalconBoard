@@ -2368,6 +2368,8 @@ void DrawArea::Undo()               // must draw again all underlying drawables
 		if (phi && phi->type == HistEvent::hePenColorChanged)	// must come after undo so that globalDrawColors is set
 			emit SignalPenColorChanged();
 
+		phi = _history->LastItem();	// after undo
+
 		if (_history->CanUndo())
 			_SetTopLeftFromItem(phi);
 
