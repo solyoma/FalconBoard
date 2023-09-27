@@ -7,7 +7,8 @@
 #include <QToolButton>
 
 #include  "common.h"
-#include "ui_pencolors.h"
+#include "ui_pencolorsdialog.h"
+#include "ui_pencolorsdialog.h"
 
 class PenColorsDialog : public QDialog
 {

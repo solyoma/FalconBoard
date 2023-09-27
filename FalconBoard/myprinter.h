@@ -39,7 +39,7 @@ public:
     // colors and others: set these before print in drawarea
     QColor  backgroundColor = "#FFFFFF",
             gridColor       = "#D0D0D0";
-    QImage* pBackgroundImage;
+    QImage* pBackgroundImage = nullptr;
     int nGridSpacingX       = 64,    // in dots/pixels
         nGridSpacingY       = 64;
     bool gridIsFixed        = true;

@@ -1,13 +1,5 @@
 #include "pencolorset.h"
 
-static const inline QString __ItemName(int grp, int pen, const char* pn)
-{
-	if (pen)
-		return QString("grp%1pen%2_%3").arg(grp + 1).arg(pen).arg(pn);
-	else	// remove title
-		return QString("grp%1_%2").arg(grp + 1).arg(pn);
-}
-
 PenColorSetDialog::PenColorSetDialog(QString actName, QWidget* parent)
 {
 	ui.setupUi(this);
@@ -19,7 +11,7 @@ PenColorSetDialog::PenColorSetDialog(QString actName, QWidget* parent)
 		QString title;
 		for (int j = 0; j < n; ++j)
 		{
-			title = s->value(__ItemName(j, 0, "t"), "").toString();
+			title = s->value(FalconPens::ItemName(j, 0, "t"), "").toString();
 			if (!title.isEmpty())
 				ui.lstwNames->addItem(title);
 		}
@@ -33,7 +25,7 @@ PenColorSetDialog::PenColorSetDialog(QString actName, QWidget* parent)
 
 void PenColorSetDialog::on_edtName_textChanged(const QString &text)
 {
-	// ??? ui.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!text.isEmpty());
+	
 }
 
 void PenColorSetDialog::on_lstwNames_currentRowChanged(int index)
@@ -51,13 +43,13 @@ void PenColorSetDialog::on_btnRemoveScheme_pressed()
 		int ci = ui.lstwNames->currentIndex().row();
 		QString title = ui.lstwNames->item(ci)->text();
 		for (ci = 0; ci < n; ++ci)
-			if (s->value(__ItemName(ci, 0, "t"), "").toString() == title)
+			if (s->value(FalconPens::ItemName(ci, 0, "t"), "").toString() == title)
 			{
-				s->remove(__ItemName(ci, 0, "t"));
+				s->remove(FalconPens::ItemName(ci, 0, "t"));
 				for (int j = 2; j < PEN_COUNT; ++j)
 				{
-					s->remove(__ItemName(ci, j, "c"));
-					s->remove(__ItemName(ci, j, "n"));
+					s->remove(FalconPens::ItemName(ci, j, "c"));
+					s->remove(FalconPens::ItemName(ci, j, "n"));
 				}
 				break;
 			}
@@ -73,4 +65,12 @@ void PenColorSetDialog::on_btnRemoveAllSchemes_pressed()
 	FBSettings::Close();
 	ui.btnRemoveScheme->setEnabled(false);
 	ui.btnRemoveAllSchemes->setEnabled(false);
+}
+
+void PenColorSetDialog::on_btnRemoveDefault_pressed()
+{
+	QSettings* s = FBSettings::Open();
+	s->remove(DEFPENGROUP);
+	FBSettings::Close();
+	reject();
 }

@@ -122,7 +122,8 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 
 	ui.setupUi(this);
 
-    globalDrawColors.Initialize();    // set up colors and pointers
+    globalDrawColors.DefaultsFromSettings();    // set up default colors
+    globalDrawColors.Initialize();              // set up all other colors from defaults
 
     historyList.SetupClipBoard();
 

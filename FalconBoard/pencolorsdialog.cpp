@@ -1,35 +1,10 @@
 #include <QColorDialog>
 #include <QMessageBox>
 #include "config.h"
-#include "pencolors.h"
+#include "pencolorsdialog.h"
 #include "pencolorset.h"
 
 static const QString pgbase = "pen";
-
-static const inline QString __ItemName(int grp, int pen, const char* pn)
-{
-	if (pen)
-		return QString("grp%1pen%2_%3").arg(grp).arg(pen).arg(pn);
-	else	// remove title
-		return QString("grp%1_%2").arg(grp).arg(pn);
-}
-
-static inline void __Separate(const QString &from, QString& s1, QString& s2)
-{
-	QStringList qsl = from.split(',');
-	s1.clear(), s2.clear();
-	if (qsl.size() > 1)
-	{
-		s1 = qsl.at(0);
-		s2 = qsl.at(1);
-	}
-	else if (qsl.size())
-		s1 = from;
-}
-static inline QString __Merge(const  QString& s1, const QString& s2)
-{
-	return s1 + "," + s2;
-}
 
 void PenColorsDialog::Data::SetupFrom(const DrawColors& dc, QString schemeName)
 {
@@ -97,7 +72,7 @@ int PenColorsDialog::_ReadData(bool overWriteActual)
 	// setup _schemes
 	Data tmp;
 	DrawColors dc;
-	dc.Initialize();			// defaults
+	dc.Initialize();			// from defaults
 	tmp.SetupFrom(dc, tr("Default pen colors"));
 	_schemes.push_back(tmp);	// index #0
 
@@ -119,23 +94,23 @@ int PenColorsDialog::_ReadData(bool overWriteActual)
 		{
 			tmp.SetupFrom(dc, "dummy");	// default pen colors were not saved, nor restored
 			// the others remain default
-			tmp.title = s->value(__ItemName(grp, 0, "t"), "").toString();
+			tmp.title = s->value(FalconPens::ItemName(grp, 0, "t"), "").toString();
 			if (!tmp.title.isEmpty())
 			{
 				++cntRead;
 				for (int pen = 0; pen < PEN_COUNT-2; ++pen)
 				{
-					QString qs = s->value(__ItemName(grp, pen+2, "c"), "").toString(), qs1, qs2;
+					QString qs = s->value(FalconPens::ItemName(grp, pen+2, "c"), "").toString(), qs1, qs2;
 					if (!qs.isEmpty())
 					{
-						__Separate(qs, qs1, qs2);
+						FalconPens::Separate(qs, qs1, qs2);
 						if (!qs1.isEmpty())
 							tmp.colors[pen][0] = qs1;
 						if (!qs2.isEmpty())
 							tmp.colors[pen][1] = qs2;
 
-						qs = s->value(__ItemName(grp, pen+2, "n")).toString();
-						__Separate(qs, qs1, qs2);
+						qs = s->value(FalconPens::ItemName(grp, pen+2, "n")).toString();
+						FalconPens::Separate(qs, qs1, qs2);
 						if (!qs1.isEmpty())
 							tmp.names[pen][0] = qs1;
 						if (!qs2.isEmpty())
@@ -246,9 +221,9 @@ void PenColorsDialog::on_btnSaveScheme_pressed()
 	int ix = ui.cbSelectScheme->currentIndex();
 	QString qs = ix > 0 && ix != 1 ? ui.cbSelectScheme->currentText() : QString();
 	PenColorSetDialog *pdlg = new PenColorSetDialog(qs, this);
-	if (pdlg->exec() && !(qs = pdlg->text()).isEmpty())
+	if (pdlg->exec()/* && !(qs = pdlg->text()).isEmpty()*/)
 	{
-		_data.title = qs;
+		_data.title = qs = pdlg->text();
 		int selected[PEN_COUNT-2] = { 0 }, cntChanged=0;	// only save where there's a difference
 		for (int i = 0; i < PEN_COUNT - 2; ++i)		// between the actual name or color and the default
 		{
@@ -264,21 +239,33 @@ void PenColorsDialog::on_btnSaveScheme_pressed()
 
 		int cnt = _schemes.size() - 1;		// new data will be appended
 		QSettings* s = FBSettings::Open();
-		s->beginGroup(PENGROUP);
-		s->setValue(PENGROUPCOUNT, cnt);
-		s->setValue(__ItemName(cnt, 0, "t"), _data.title);
-		if (cntChanged)
+		if (qs.isEmpty())					// defaults
 		{
-			for (int i = 0; i < PEN_COUNT - 2; ++i)
+			if (cntChanged)					// always save all pens as default
 			{
-				if (selected[i])
-				{
-					s->setValue(__ItemName(cnt, i + 2, "c"), __Merge(_data.colors[i][0].name(), _data.colors[i][1].name()));
-					s->setValue(__ItemName(cnt, i + 2, "n"), __Merge(_data.names[i][0], _data.names[i][1]));
-				}
+				for (int i = 0; i < PEN_COUNT - 2; ++i)
+					globalDrawColors.SetDefaultPen((FalconPenKind)(i+2),_data.colors[i][0], _data.colors[i][1], _data.names[i][0], _data.names[i][1]);
+				globalDrawColors.DefaultsToSettings();
 			}
 		}
-		s->endGroup();
+		else
+		{
+			s->beginGroup(PENGROUP);
+			s->setValue(PENGROUPCOUNT, cnt);
+			s->setValue(FalconPens::ItemName(cnt, 0, "t"), _data.title);
+			if (cntChanged)
+			{
+				for (int i = 0; i < PEN_COUNT - 2; ++i)
+				{
+					if (selected[i])
+					{
+						s->setValue(FalconPens::ItemName(cnt, i + 2, "c"), FalconPens::Merge(_data.colors[i][0].name(), _data.colors[i][1].name()));
+						s->setValue(FalconPens::ItemName(cnt, i + 2, "n"), FalconPens::Merge(_data.names[i][0], _data.names[i][1]));
+					}
+				}
+			}
+			s->endGroup();
+		}
 		FBSettings::Close();
 	}
 

@@ -153,7 +153,7 @@
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>AdvApi32.Lib;%(AdditionalDependencies);</AdditionalDependencies>
+      <AdditionalDependencies>%(AdditionalDependencies);</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -190,7 +190,7 @@
     <ClCompile Include="DrawArea.cpp" />
     <ClCompile Include="history.cpp" />
     <ClCompile Include="pagesetup.cpp" />
-    <ClCompile Include="pencolors.cpp" />
+    <ClCompile Include="pencolorsdialog.cpp" />
     <ClCompile Include="pencolorset.cpp" />
     <ClCompile Include="screenshotTransparency.cpp" />
     <ClCompile Include="snipper.cpp" />
@@ -205,7 +205,7 @@
     <QtUic Include="FalconBoard.ui" />
     <QtUic Include="helpdialog.ui" />
     <QtUic Include="pagesetup.ui" />
-    <QtUic Include="pencolors.ui" />
+    <QtUic Include="pencolorsdialog.ui" />
     <QtUic Include="pencolorset.ui" />
     <QtUic Include="printprogress.ui" />
     <QtUic Include="rotateinput.ui" />
@@ -224,7 +224,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="drawables.h" />
-    <QtMoc Include="pencolors.h" />
+    <QtMoc Include="pencolorsdialog.h" />
     <QtMoc Include="pencolorset.h" />
     <ClInclude Include="quadtree.h" />
     <QtMoc Include="rotateinput.h" />

@@ -101,14 +101,26 @@ struct FalconPen
     {
         if (!sLName.isEmpty())
             lightName = sLName;
-        if(!sDName.isEmpty())
+        if (!sDName.isEmpty())
             darkName = sDName;
     }
 
-    FalconPen(const FalconPen &o) : 
-        kind(o.kind), lightColor(o.lightColor), darkColor(o.darkColor), 
+    FalconPen(const FalconPen& o) :
+        kind(o.kind), lightColor(o.lightColor), darkColor(o.darkColor),
         lightName(o.lightName), darkName(o.darkName),
         defaultLightColor(o.defaultLightColor), defaultDarkColor(o.defaultDarkColor) {}
+
+    FalconPen& operator=(const FalconPen& o)
+    {
+        kind = o.kind; 
+        lightColor = o.lightColor; 
+        darkColor = o.darkColor;
+        lightName = o.lightName; 
+        darkName = o.darkName;
+        defaultLightColor = o.defaultLightColor; 
+        defaultDarkColor = o.defaultDarkColor;
+        return *this;
+    }
 
     bool IsChanged() const
     {
@@ -125,21 +137,22 @@ struct FalconPen
 //----------------------------- FalconPens -------------------
 class FalconPens : public std::vector<FalconPen>
 {
-//    QCursor _pointers[PEN_COUNT];
     bool _darkMode = false;     // use SetDarkMode to set up
 
     QIcon _RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB) const;
     QCursor _SetupEraser() const;
 public:
     FalconPens() { resize(PEN_COUNT); }
-    void Initialize();
-
     FalconPens(const FalconPens& o) { *this = o; }
     FalconPens& operator=(const FalconPens& o);
 
+    static const QString ItemName(int grp, int pen, const char* penName);
+    static void Separate(const QString& from, QString& s1, QString& s2);
+    static QString Merge(const  QString& s1, const QString& s2);
+
     bool SetDarkMode(bool dark);
-    bool SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName, bool setDefaults);  // and pointer
-    bool SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName);
+    bool SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName, bool setDefaultColors);  // and pointer
+    bool SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName, bool setDefaultColors);
 
     QColor Color(FalconPenKind pk, int dark = -1) const;  //-1: use _darkMode
     QCursor Pointer(FalconPenKind pk) const;
@@ -147,15 +160,13 @@ public:
     void SetActionText(FalconPenKind pk, QString text, int dark = -1);
 
     bool IsAnyPensChanged();
-
-    bool FromSettings(QSettings* s);
-    bool ToSettings(QSettings* s) const;
 };
 
 //----------------------------- DrawColors -------------------
 class DrawColors
 {
     bool _dark = false;
+    static FalconPens _defaultPens;
     FalconPens _pens;     // no color for 'penNone'
     FalconPenKind _pkActual = penNone;
 public:
@@ -164,7 +175,10 @@ public:
 
     DrawColors& operator= (const DrawColors& o);
 
-    void Initialize() { _pens.Initialize(); }
+    void Initialize() // call after the GUI is initialized! 
+    { 
+        _pens = _defaultPens; 
+    }
 
     bool SameColors(const DrawColors& o);
     QColor  Color(FalconPenKind pk = penNone, int dark=-1) const;       // penNone and dark < 0 for actual pen
@@ -178,12 +192,12 @@ public:
     void SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColorUserName=QString(), QString sDarkColorUserName=QString());
     void SetActionText(FalconPenKind pk, QString text, bool dark);  // used from 'pencolors'
         // global pen colors
-    bool ToSettings(QSettings* s);
-    bool FromSettings(QSettings* s);
+    void SetDefaultPen(FalconPenKind pk, QColor lc, QColor dc, QString &ln, QString &dn);
+    bool DefaultsToSettings() const;
+    bool DefaultsFromSettings();
         // pen colors for files read
     bool ReadPen(QDataStream& ifs);    // only call if drawable type is dtPen! first data to be read is pen kind
     QDataStream& SavePen(QDataStream& ifs, FalconPenKind pk);    // only saved if pen is changed saves dtPen as first type
-    void SetPens(FalconPens &pens);             // used when history changed Don't forget to change the corresponding actions in 'FalconBoard.cpp'
 };
 extern DrawColors globalDrawColors;
 

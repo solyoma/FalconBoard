@@ -1198,7 +1198,7 @@ public:
                                         // pimage must be set for dtScreenShot
     int AddDrawable(DrawableType dType, QPixmap *pimage=nullptr, FalconPenKind penKind = penBlack, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false)
     {
-        int ivi;    // _pZorderStore must exist
+        int ivi=-1;    // _pZorderStore must exist
 
         switch (dType)
         {
@@ -1349,7 +1349,7 @@ public:
         else
         {
             int i;
-            DrawableItem* pdrw;
+            DrawableItem* pdrw=nullptr;
             for (i = 0; i < iv.size(); ++i)
             {
                 pdrw = _items[iv.at(i)];

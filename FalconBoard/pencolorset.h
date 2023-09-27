@@ -24,5 +24,6 @@ private slots:
 	void on_lstwNames_currentRowChanged(int index);
 	void on_btnRemoveScheme_pressed();
 	void on_btnRemoveAllSchemes_pressed();
+	void on_btnRemoveDefault_pressed();
 };
 #endif

@@ -75,6 +75,7 @@ constexpr const char
 	*PENSIZES = "pensizes",		// e.g. "30, 3,3,3,3,3,3" - pen width in pixels for eraser, black, red, green, blue, yellow
 		// pen color group
 	*PENGROUP = "Pens",
+	*DEFPENGROUP = "Default Pens",
 	*PENGROUPCOUNT = "count",
 
 	*end_of_config = nullptr;

@@ -22,8 +22,8 @@ HEADERS += \
 	../FalconBoard/myevent.h \
 	../FalconBoard/myprinter.h \
 	../FalconBoard/pagesetup.h \
+	../FalconBoard/pencolorsdialog.h \
 	../FalconBoard/pencolorset.h \
-	../FalconBoard/pencolors.h \
 	../FalconBoard/printprogress.h \
 	../FalconBoard/quadtree.h \
 	../FalconBoard/screenshotTransparency.h \
@@ -38,7 +38,7 @@ SOURCES += \
 	../FalconBoard/main.cpp \
 	../FalconBoard/myprinter.cpp \
 	../FalconBoard/pagesetup.cpp \
-	../FalconBoard/pencolors.cpp \
+	../FalconBoard/pencolorsdialog.cpp \
 	../FalconBoard/pencolorset.cpp \
 	../FalconBoard/screenshotTransparency.cpp \
 	../FalconBoard/snipper.cpp
@@ -46,7 +46,10 @@ FORMS += \
 	../FalconBoard/FalconBoard.ui \
 	../FalconBoard/helpdialog.ui \
 	../FalconBoard/pagesetup.ui \
+	../FalconBoard/pencolorsdialog.ui \
+	../FalconBoard/pencolorset.ui \
 	../FalconBoard/printprogress.ui \
+	../FalconBoard/rotateinput.ui \
 	../FalconBoard/screenshotTransparency.ui
 RESOURCES += ../FalconBoard/FalconBoard.qrc
 INCLUDEPATH += . ../FalconBoard

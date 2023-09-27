@@ -27,7 +27,7 @@
 
 #ifndef _VIEWER
 	#include "snipper.h"
-	#include "pencolors.h"
+	#include "pencolorsdialog.h"
 #endif
 #include "ui_FalconBoard.h"
 

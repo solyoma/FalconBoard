@@ -8,7 +8,7 @@ quint32 file_version_loaded = 0;	// aasuume old file, no grid data in _history->
 MyPageSizes myPageSizes;
 DrawColors globalDrawColors;
 MyScreenSizes myScreenSizes;
-
+FalconPens DrawColors::_defaultPens;
 
 MyPageSizes::MyPageSizes()
 {
@@ -76,6 +76,31 @@ MyScreenSizes::MyScreenSizes()
 }
 
 // ******************* FalconPens ***********************************
+void FalconPens::Separate(const QString& from, QString& s1, QString& s2)
+{
+    QStringList qsl = from.split(',');
+    s1.clear(), s2.clear();
+    if (qsl.size() > 1)
+    {
+        s1 = qsl.at(0);
+        s2 = qsl.at(1);
+    }
+    else if (qsl.size())
+        s1 = from;
+}
+inline QString FalconPens::Merge(const  QString& s1, const QString& s2)
+{
+    return s1 + "," + s2;
+}
+
+const QString FalconPens::ItemName(int grp, int pen, const char* penName)
+{
+    if (pen)
+        return QString("grp%1pen%2_%3").arg(grp).arg(pen).arg(penName);
+    else	// remove title
+        return QString("grp%1_%2").arg(grp).arg(penName);
+}
+
 const char       // DEFAULTS
 *PEN_DEFAULT_LIGHT_RED        = "#FF0000",
 *PEN_DEFAULT_LIGHT_GREEN      = "#007D1A",
@@ -87,30 +112,15 @@ const char       // DEFAULTS
 *PEN_DEFAULT_DARK_BLUE        = "#82DBFC",
 *PEN_DEFAULT_DARK_YELLOW      = "#FFFF00";
 
-void FalconPens::Initialize()    // Set defaults. Call AFTER the GUI applcation created!
-{
-    SetupPen(penEraser, Qt::white, Qt::white, QObject::tr("&Eraser"), QObject::tr("&Eraser"),true);            // eraser must come first
-
-    SetupPen(penBlack,  Qt::black   , Qt::white     , QObject::tr("Blac&k" ), QObject::tr("&White" ),true);
-
-    SetupPen(penRed,    PEN_DEFAULT_LIGHT_RED      , PEN_DEFAULT_DARK_RED     , QObject::tr("&Red"   ), QObject::tr("&Red"   ), true);
-    SetupPen(penGreen,  PEN_DEFAULT_LIGHT_GREEN    , PEN_DEFAULT_DARK_GREEN   , QObject::tr("&Green" ), QObject::tr("&Green" ), true);
-    SetupPen(penBlue,   PEN_DEFAULT_LIGHT_BLUE     , PEN_DEFAULT_DARK_BLUE    , QObject::tr("&Blue"  ), QObject::tr("&Blue"  ), true);
-    SetupPen(penYellow, PEN_DEFAULT_LIGHT_YELLOW   , PEN_DEFAULT_DARK_YELLOW  , QObject::tr("&Purple"), QObject::tr("&Yellow"), true);
-}
-
 FalconPens& FalconPens::operator=(const FalconPens& o)
 {
     if (empty())
-        Initialize();
+        return *this;
 
     _darkMode = o._darkMode;
 
-    for (int i = penRed; i < penLastNotUseThis; ++i)
-    {
+    for (int i = 0; i < penLastNotUseThis; ++i)
         (*this)[(FalconPenKind)i] = o[(FalconPenKind)i];
-    //    _pointers[i] = o._pointers[i];
-    }
     return *this;
 }
 
@@ -121,10 +131,10 @@ bool FalconPens::SetDarkMode(bool dark)
     return res;
 }
 
-bool FalconPens::SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName, bool setDefaults)
+bool FalconPens::SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName, bool setDefaultColors)
 {
     FalconPen pen(pk, lc, dc, sLName, sDName);
-    if (setDefaults)
+    if (setDefaultColors)
     {
         pen.SetDefaultColors(pen.lightColor, pen.darkColor);
     }
@@ -144,7 +154,7 @@ bool FalconPens::SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName
     return true;
 }
 
-bool FalconPens::SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName)
+bool FalconPens::SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName, bool setDefaultColors)
 {
     QStringList sc, sn;       // light,dark color and name
     sc = lc_dc.split(',');    
@@ -152,7 +162,7 @@ bool FalconPens::SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName)
     if (sc.size() != 2 || sn.size() != 2)   // wrong data: do not change
         return false;
 
-    return SetupPen(pk, sc[0], sc[1], sn[0], sn[1], false);         // ???
+    return SetupPen(pk, sc[0], sc[1], sn[0], sn[1], setDefaultColors);
 }
 
 QColor FalconPens::Color(FalconPenKind pk, int dark) const
@@ -211,59 +221,6 @@ bool FalconPens::IsAnyPensChanged()
         if ((*this)[i].IsChanged())
             return true;
     return false;
-}
-
-bool FalconPens::FromSettings(QSettings* s) // may be overwritten in ".mwb" files
-{
-    QStringList sc, sN; 
-
-    auto setit = [&](FalconPenKind pk, QString key, QString sDLc, QString sDLd, QString sDLn, QString sDDn)
-        {
-            key = QStringLiteral("PEN_") + key;
-            QString nameKey = key + QStringLiteral("_NAME");
-            if (SetupPen(pk, s->value(key, sDLc).toString(), s->value(key, sDLd).toString(), s->value(nameKey, sDLn).toString(), s->value(key, sDDn).toString(), true))
-            {
-                FalconPen* pen = &(*this)[(int)pk];
-                pen->SetDefaultColors(pen->lightColor, pen->darkColor);
-            }
-        };
-    // always B&W ! setit(penBlack, "BLACK", "black,white", "black,black");
-    setit(penRed,   "RED",   PEN_DEFAULT_LIGHT_RED   , PEN_DEFAULT_DARK_RED   , QObject::tr("&Red"   ),QObject::tr("&Red"   ) );
-    setit(penGreen, "GREEN", PEN_DEFAULT_LIGHT_GREEN , PEN_DEFAULT_DARK_GREEN , QObject::tr("&Green" ),QObject::tr("&Green" ) );
-    setit(penBlue,  "BLUE",  PEN_DEFAULT_LIGHT_BLUE  , PEN_DEFAULT_DARK_BLUE  , QObject::tr("&Blue"  ),QObject::tr("&Blue"  ) );
-    setit(penYellow,"YELLOW",PEN_DEFAULT_LIGHT_YELLOW, PEN_DEFAULT_DARK_YELLOW, QObject::tr("&Purple"),QObject::tr("&Yellow") );
-
-    return true;
-}
-
-bool FalconPens::ToSettings(QSettings* s) const
-{
-#ifndef _VIEWER
-    // never save black pen, it is the same always
-    auto saveit = [&](FalconPenKind pk, QString key)
-        {
-            key = QStringLiteral("PEN_") + key;
-            QString nameKey = key + QStringLiteral("_NAME");
-
-            const FalconPen* pen = &(*this)[pk];
-            if (pen->IsChanged())
-            {
-                s->setValue(key, pen->lightColor.name() + "," + pen->darkColor.name());
-                s->setValue(nameKey, pen->lightName+ "," + pen->darkName);
-            }
-            else
-            {
-                s->remove(key);
-                s->remove(nameKey);
-            }
-        };
-    saveit(penRed,   "RED"   );
-    saveit(penGreen, "GREEN" );
-    saveit(penBlue,  "BLUE"  );
-    saveit(penYellow,"YELLOW");
-#endif
-
-    return true;
 }
 //----------------------------- DrawColors -------------------
 
@@ -363,14 +320,60 @@ void DrawColors::SetActionText(FalconPenKind pk, QString text, bool dark)
     _pens.SetActionText(pk, text, dark);
 }
 
-bool DrawColors::ToSettings(QSettings* s)
+void DrawColors::SetDefaultPen(FalconPenKind pk, QColor lc, QColor dc, QString& ln, QString& dn)
 {
-    return _pens.ToSettings(s);
+    _defaultPens.SetupPen(pk, lc, dc, ln, dn, true);
 }
 
-bool DrawColors::FromSettings(QSettings* s)
+bool DrawColors::DefaultsToSettings() const
 {
-    return _pens.FromSettings(s);
+#ifndef _VIEWER
+    // never save black pen, it is the same always
+    QSettings* s = FBSettings::Open();
+    s->beginGroup(DEFPENGROUP);
+    for (int i = 2; i < PEN_COUNT; ++i)
+    {
+        s->setValue(QString("pen%1_c").arg(i), FalconPens::Merge(_defaultPens.Color((FalconPenKind)i,0).name(), _defaultPens.Color((FalconPenKind)i, 1).name()));
+        s->setValue(QString("pen%1_n").arg(i), FalconPens::Merge(_defaultPens.ActionText((FalconPenKind)i, 0), _defaultPens.ActionText((FalconPenKind)i, 1)));
+    }
+    s->endGroup();
+#endif
+    FBSettings::Close();
+
+    return true;
+}
+
+bool DrawColors::DefaultsFromSettings()
+{
+    _defaultPens.SetupPen(penEraser, Qt::white, Qt::white, QObject::tr("&Eraser"), QObject::tr("&Eraser"), true);            // eraser must come first
+
+    _defaultPens.SetupPen(penBlack, Qt::black, Qt::white, QObject::tr("Blac&k"), QObject::tr("&White"), true);
+
+    QSettings* s = FBSettings::Open();
+    QStringList groups = s->childGroups();
+    if (groups.contains(DEFPENGROUP))       // defaults are present
+    {
+        s->beginGroup(DEFPENGROUP);
+        for (int pen = 2; pen < PEN_COUNT; ++pen)
+        {
+            QString qsColors = s->value(QString("pen%1_c").arg(pen), "").toString(), qsNames;
+            if (!qsColors.isEmpty())
+            {
+                qsNames = s->value(QString("pen%1_n").arg(pen),"").toString();
+                _defaultPens.SetupPen((FalconPenKind)pen, qsColors, qsNames, true);
+            }
+        }
+        s->endGroup();
+    }
+    else
+    {
+        _defaultPens.SetupPen(penRed, PEN_DEFAULT_LIGHT_RED, PEN_DEFAULT_DARK_RED, QObject::tr("&Red"), QObject::tr("&Red"), true);
+        _defaultPens.SetupPen(penGreen, PEN_DEFAULT_LIGHT_GREEN, PEN_DEFAULT_DARK_GREEN, QObject::tr("&Green"), QObject::tr("&Green"), true);
+        _defaultPens.SetupPen(penBlue, PEN_DEFAULT_LIGHT_BLUE, PEN_DEFAULT_DARK_BLUE, QObject::tr("&Blue"), QObject::tr("&Blue"), true);
+        _defaultPens.SetupPen(penYellow, PEN_DEFAULT_LIGHT_YELLOW, PEN_DEFAULT_DARK_YELLOW, QObject::tr("&Purple"), QObject::tr("&Yellow"), true);
+    }
+    FBSettings::Close();
+    return true;
 }
 
 QColor DrawColors::Color(FalconPenKind pk, int dark) const
