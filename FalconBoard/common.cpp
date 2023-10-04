@@ -88,7 +88,7 @@ void FalconPens::Separate(const QString& from, QString& s1, QString& s2)
     else if (qsl.size())
         s1 = from;
 }
-inline QString FalconPens::Merge(const  QString& s1, const QString& s2)
+QString FalconPens::Merge(const  QString& s1, const QString& s2)
 {
     return s1 + "," + s2;
 }

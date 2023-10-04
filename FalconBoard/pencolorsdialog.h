@@ -8,7 +8,6 @@
 
 #include  "common.h"
 #include "ui_pencolorsdialog.h"
-#include "ui_pencolorsdialog.h"
 
 class PenColorsDialog : public QDialog
 {

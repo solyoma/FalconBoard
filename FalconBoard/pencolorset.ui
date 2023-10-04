@@ -117,7 +117,7 @@
    <item row="3" column="0" colspan="2">
     <widget class="QPushButton" name="btnRemoveDefault">
      <property name="toolTip">
-      <string>Remove redefined default sscheme.
+      <string>Remove redefined default scheme.
 Other schemes remain intact.</string>
      </property>
      <property name="text">
