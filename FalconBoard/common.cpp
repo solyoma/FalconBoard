@@ -185,7 +185,7 @@ QCursor FalconPens::Pointer(FalconPenKind pk) const
     QPainter painter(&pm);
 
     // DEBUG
-    qDebug("pen %d, mode:%s, color:%s %s,- %ld", int(pk), _darkMode ? "dark" : "light", color.name().toStdString().c_str(), __FILE__, __LINE__);
+    //qDebug("pen %d, mode:%s, color:%s %s,- %ld", int(pk), _darkMode ? "dark" : "light", color.name().toStdString().c_str(), __FILE__, __LINE__);
 
     painter.setPen(QPen(color, 2, Qt::SolidLine));
     painter.drawLine(QPoint(0, SIZE / 2), QPoint(SIZE - 1, SIZE / 2));

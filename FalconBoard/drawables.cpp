@@ -1185,8 +1185,7 @@ void DrawableScreenShot::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, c
 {
 	if (drawStarted)
 	{
-
-//		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea)); // this painter paints on screenshot layer!
+		painter->setClipRect(clipR.translated(-topLeftOfVisibleArea));
 		painter->drawPixmap(_rotatedArea.boundingRect().topLeft() - topLeftOfVisibleArea, Image());
 	}
 	else

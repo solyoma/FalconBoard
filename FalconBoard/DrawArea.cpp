@@ -758,7 +758,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					QMessageBox::warning(this, FB_WARNING, tr("With this pen width drawing would be outside of \"paper\""));
 				else
 				{
-					if(sizeDelta < 0)	// no shrinking or rubberBand, bu tshrink rectangle
+					if(sizeDelta < 0)	// no shrinking or rubberBand, but shrink rectangle
 						r.adjust(-sizeDelta, -sizeDelta, sizeDelta, sizeDelta);
 					else
 						_rubberRect = r; //  .adjust(-margin, -margin, margin, margin);	// will also resizes _rubberRect
@@ -768,7 +768,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					QPainter* painter = _GetPainter(_pActCanvas);
 					_lastRectangleItem.Draw(painter, _topLeft, _clippingRect);
 					delete painter;
-					update(_rubberRect.toRect());
+					update(r.adjusted(-_penWidth,-_penWidth,_penWidth,_penWidth).toRect());
 
 					_firstPointC = _lastPointC = _lastRectangleItem.GetLastDrawnPoint();
 
@@ -1479,8 +1479,9 @@ void DrawArea::paintEvent(QPaintEvent* event)
 		while (pimg)                                            // image layer
 		{
 			QRectF intersectRect = pimg->AreaOnCanvas(_clippingRect);      // absolute
-			pimg->Draw(&painter, _topLeft, intersectRect);
-						//painter.drawPixmap(intersectRect.translated(-_topLeft), pimg->Image(), intersectRect.translated(-pimg->startPos));
+			if (!intersectRect.isEmpty() && !intersectRect.isNull())
+				pimg->Draw(&painter, _topLeft, intersectRect);
+				//painter.drawPixmap(intersectRect.translated(-_topLeft), pimg->Image(), intersectRect.translated(-pimg->startPos));
 			pimg = _history->NextVisibleScreenShot();
 		}
 	}
