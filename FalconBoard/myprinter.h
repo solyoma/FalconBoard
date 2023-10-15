@@ -114,12 +114,7 @@ public:
 
         QRectF tr = TargetRectInDots(false);        // inside margins
         if (tr.isValid())
-        {
-            if (PageParams::flags & landscapeModeFlag)
                 PageParams::screenPageHeight = tr.height() / tr.width() * PageParams::screenPageWidth;
-            else
-                PageParams::screenPageHeight = tr.width() / tr.height() * PageParams::screenPageWidth;
-        }
     }
 private:
     QRectF _printAreaInInches;       // full print (not screen) page in inches
