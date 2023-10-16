@@ -307,6 +307,7 @@ int DrawArea::Load()
 	if (res && res != -1)    // TODO send message if read error
 	{
 		_topLeft = QPointF(0, 0);
+		_clippingRect = _canvasRect;
 		_Redraw();
 	}
 	emit CanUndo(false);    // no undo or redo after open file
@@ -419,8 +420,8 @@ void DrawArea::AddScreenShotImage(QPixmap& animage)
 	
 	if (x < 0) x = 0;
 	if (y < 0) y = 0;
-	// for a screenshot startPos is the center of the image!
-	bimg.startPos = QPointF(x+animage.width()/2.0, y+animage.height()/2.0) + _topLeft;
+	// for a screenshot refPoint is the center of the image!
+	bimg.refPoint = QPointF(x+animage.width()/2.0, y+animage.height()/2.0) + _topLeft;
 	bimg.SetImage(animage);
 	HistoryItem *phi = _history->AddDrawableItem(bimg);
 
@@ -609,7 +610,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			QPainter* painter = _GetPainter(_pActCanvas);
 			_lastDrawableCross.Draw(painter, _topLeft, _clippingRect);
 			delete painter;
-			_firstPointC = _lastPointC = _lastDrawableCross.startPos;;
+			_firstPointC = _lastPointC = _lastDrawableCross.refPoint;;
 
 			(void)_history->AddDrawableItem(_lastDrawableCross);
 			_history->AddToSelection(-1);
@@ -1481,7 +1482,7 @@ void DrawArea::paintEvent(QPaintEvent* event)
 			QRectF intersectRect = pimg->AreaOnCanvas(_clippingRect);      // absolute
 			if (!intersectRect.isEmpty() && !intersectRect.isNull())
 				pimg->Draw(&painter, _topLeft, intersectRect);
-				//painter.drawPixmap(intersectRect.translated(-_topLeft), pimg->Image(), intersectRect.translated(-pimg->startPos));
+				//painter.drawPixmap(intersectRect.translated(-_topLeft), pimg->Image(), intersectRect.translated(-pimg->refPoint));
 			pimg = _history->NextVisibleScreenShot();
 		}
 	}
@@ -1605,7 +1606,7 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
 	_lastScribbleItem.SetPenKind(_actPenKind);
 //	_lastScribbleItem.SetPenColor();
 	_lastScribbleItem.penWidth = _actPenWidth;
-	_lastScribbleItem.startPos = _lastPointC + _topLeft;
+	_lastScribbleItem.refPoint = _lastPointC + _topLeft;
 	_lastScribbleItem.zOrder = _history->GetZorder(false);
 	if (_lastPointC.x() >= 0)    // else no last point yet
 		_lastScribbleItem.Add(_lastPointC + _topLeft, true, true);		// reset then add first new point

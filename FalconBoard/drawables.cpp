@@ -502,7 +502,7 @@ DrawableItem& DrawableItem::operator=(const DrawableItem& other)
 	//penWidth = other.penWidth;
 
 	dtType = other.dtType;
-	startPos = other.startPos;
+	refPoint = other.refPoint;
 	zOrder = other.zOrder;
 	rot = other.rot;
 	isVisible = other.isVisible;
@@ -587,9 +587,9 @@ void DrawableItem::RemoveLastEraserStroke(EraserData* andStoreHere)
 
 void DrawableItem::Translate(QPointF dr, qreal minY)	// where translating topLeft is enough
 {
-	if (startPos.y() > minY)
+	if (refPoint.y() > minY)
 	{
-		startPos += dr;
+		refPoint += dr;
 		for (auto &e : erasers)
 			e.eraserStroke.translate(dr);
 	}
@@ -615,7 +615,7 @@ void DrawableItem::_RotateErasers(MyRotation rot, QPointF center)
 
 void DrawableItem::Rotate(MyRotation arot, QPointF & center)
 {
-	arot.RotateSinglePoint(startPos, center, penWidth);	// may show warning and not change startPos
+	arot.RotateSinglePoint(refPoint, center, penWidth);	// may show warning and not change refPoint
 	rot.AddRotation(arot);
 }
 
@@ -624,7 +624,7 @@ void DrawableItem::Rotate(MyRotation arot, QPointF & center)
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 {
-	ofs << (int)di.dtType << di.startPos << (int)di.PenKind() /*<< di.PenColor()*/ << di.penWidth << di.rot;
+	ofs << (int)di.dtType << di.refPoint << (int)di.PenKind() /*<< di.PenColor()*/ << di.penWidth << di.rot;
 	ofs << di.erasers.size();
 	MyRotation arot = di.rot;
 	arot.InvertAngle();		// for erasers
@@ -659,8 +659,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 	if (n >= (int)DrawableType::dtNonDrawableStart)
 		return ifs;
 
-	ifs >> di.startPos;
-	di.startPos += {0, DrawableItem::yOffset};
+	ifs >> di.refPoint;
+	di.refPoint += {0, DrawableItem::yOffset};
 	ifs >> n;
 	di.SetPenKind((FalconPenKind)n);
 	ifs /*>> di.penColor*/ >> di.penWidth >> di.rot;
@@ -731,7 +731,7 @@ void DrawableCross::Translate(QPointF dr, qreal minY)
 
 	if (y >= minY)				// if even the smallest y is below minY
 	{
-		startPos += dr;
+		refPoint += dr;
 		_ltrb.translate(dr);
 		_lbrt.translate(dr);
 	}
@@ -744,7 +744,7 @@ void DrawableCross::Rotate(MyRotation arot, QPointF & center)
 		arot.RotateLine(_lbrt, center, true))
 	{
 		_ltrb = l;	// maybe ltrb could be rotated, but lbrt not then we are protected
-		arot.RotateSinglePoint(startPos, center, true);
+		arot.RotateSinglePoint(refPoint, center, true);
 		_RotateErasers(arot, center);
 		rot.AddRotation(arot);
 	}
@@ -764,8 +764,8 @@ void DrawableCross::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const 
 void DrawableCross::_Setup()
 {
 	qreal dlen = length / sqrt(2);
-	_ltrb = QLine(startPos.x() - dlen, startPos.y() - dlen, startPos.x() + dlen, startPos.y() + dlen);
-	_lbrt = QLine(startPos.x() - dlen, startPos.y() + dlen, startPos.x() + dlen, startPos.y() - dlen);
+	_ltrb = QLine(refPoint.x() - dlen, refPoint.y() - dlen, refPoint.x() + dlen, refPoint.y() + dlen);
+	_lbrt = QLine(refPoint.x() - dlen, refPoint.y() + dlen, refPoint.x() + dlen, refPoint.y() - dlen);
 }
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableCross& di)
@@ -782,7 +782,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableCross& di)	  // call AFTER hea
 	{
 		MyRotation aRot = di.rot;
 		di.rot = MyRotation();
-		di.Rotate(aRot, di.startPos);
+		di.Rotate(aRot, di.refPoint);
 	}
 	return ifs;
 }
@@ -791,7 +791,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableCross& di)	  // call AFTER hea
 // DrawableEllipse
 //=====================================
 DrawableEllipse::DrawableEllipse(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
-		rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtEllipse, rect.topLeft(), zOrder, penKind, penWidth), _rotatedRect(rect) {}
+		rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtEllipse, rect.center(), zOrder, penKind, penWidth), _rotatedRect(rect) {}
 DrawableEllipse::DrawableEllipse(const DrawableEllipse& o) { *this = o; }
 DrawableEllipse::DrawableEllipse(DrawableEllipse&& o) noexcept { *this = o; }
 DrawableEllipse& DrawableEllipse::operator=(const DrawableEllipse& di)
@@ -833,19 +833,23 @@ void DrawableEllipse::Translate(QPointF dr, qreal minY)
  * TASK:	rotates ellipse in a rectangle
  * PARAMS:	arot - rotation to perform
  *			center - rotate around this point
+ * EXPECTS: the original rectangle is rotated
  * GLOBALS:
  * RETURNS: nothing, ellipse is rotated 
- * REMARKS: - When rotated by a degree of integer times 90
+ * REMARKS: - Always rotates original ellipse
+ *			- When rotated by a degree of integer times 90
  *			  only the rectangle is rotated
  *			- for all other angles the ellipse is rasterized into '_points'
+ *			- refPoint is adjusted to be again the center of the rotated
+ *			  ellipse
  *------------------------------------------------------------*/
-void DrawableEllipse::Rotate(MyRotation arot, QPointF& center)
+void DrawableEllipse::Rotate(MyRotation arot, QPointF& centerOfRotation)
 {
 	MyRotation tmpr = rot;		// previous rotation
 	QRectF r = rect;			// original rectangle. Modified if rotated by any multiple of 90
 
 	tmpr.AddRotation(arot);		// check if rotation is possible before doing any changes
-	if (!tmpr.RotateRect(r, center))
+	if (!tmpr.RotateRect(r, centerOfRotation))
 		return;
 
 	rot = tmpr;					// set new rotation
@@ -859,11 +863,11 @@ void DrawableEllipse::Rotate(MyRotation arot, QPointF& center)
 	else
 	{
 		_ToPolygonF();
-		tmpr.RotatePoly(_points, center, true);
+		tmpr.RotatePoly(_points, centerOfRotation, true);
 		_rotatedRect = _points.boundingRect();
 	}
-	startPos = _rotatedRect.topLeft();
-	_RotateErasers(arot, center);	// erasers are stored rotated so only apply last rotation to them
+	refPoint = _rotatedRect.center();
+	_RotateErasers(arot, centerOfRotation);	// erasers are stored rotated so only apply last rotation to them
 }
 
 void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
@@ -908,8 +912,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER h
 //=====================================
 
 
-DrawableLine::DrawableLine(QPointF startPos, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth) : 
-	endPoint(endPoint), DrawableItem(DrawableType::dtLine, startPos, zOrder, penKind, penWidth)
+DrawableLine::DrawableLine(QPointF refPoint, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth) : 
+	endPoint(endPoint), DrawableItem(DrawableType::dtLine, refPoint, zOrder, penKind, penWidth)
 {
 
 }
@@ -942,7 +946,7 @@ DrawableLine& DrawableLine::operator=(const DrawableLine&& ol)
 
 void DrawableLine::Translate(QPointF dr, qreal minY)
 {
-	if (startPos.y() > minY)
+	if (refPoint.y() > minY)
 	{
 		DrawableItem::Translate(dr, minY);
 		endPoint += dr;
@@ -954,7 +958,7 @@ void DrawableLine::Rotate(MyRotation arot, QPointF &center)
 	_RotateErasers(arot, center);
 	QPointF s, e;
 
-	s = startPos; s -= center;
+	s = refPoint; s -= center;
 	e = endPoint; e -= center;
 		// first rotation
 	QLineF line(s, e);
@@ -977,14 +981,14 @@ void DrawableLine::Rotate(MyRotation arot, QPointF &center)
 		s.setY(-s.y());
 		e.setY(-e.y());
 	}
-	startPos = s + center;
+	refPoint = s + center;
 	endPoint = e + center;
 	rot.AddRotation(arot);
 }
 
 bool DrawableLine::PointIsNear(QPointF p, qreal distance) const
 {
-	return __IsLineNearToPoint(startPos, endPoint, p, distance);
+	return __IsLineNearToPoint(refPoint, endPoint, p, distance);
 }
 
 void DrawableLine::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)
@@ -992,7 +996,7 @@ void DrawableLine::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const Q
 	if (drawStarted)
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), QColor());
-		painter->drawLine(startPos-topLeftOfVisibleArea, endPoint-topLeftOfVisibleArea);
+		painter->drawLine(refPoint-topLeftOfVisibleArea, endPoint-topLeftOfVisibleArea);
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
@@ -1088,7 +1092,7 @@ void DrawableRectangle::Rotate(MyRotation arot, QPointF & center)
 		tmpr.RotatePoly(_points, center, true);
 		_rotatedRect = _points.boundingRect();
 	}
-	startPos = _rotatedRect.topLeft();
+	refPoint = _rotatedRect.topLeft();
 	_RotateErasers(arot, center);	// erasers are stored rotated so only apply last rotation to them
 
 }
@@ -1138,7 +1142,7 @@ void DrawableScreenShot::SetImage(QPixmap& animage)
 {
 	_image = animage;
 	QSize size = _image.size();
-	_rotatedArea = QRectF(startPos - QPointF(size.width()/2.0, size.height()/2.0), size); // non rotated area this time
+	_rotatedArea = QRectF(refPoint - QPointF(size.width()/2.0, size.height()/2.0), size); // non rotated area this time
 }
 
 QRectF DrawableScreenShot::Area() const
@@ -1156,7 +1160,7 @@ void DrawableScreenShot::Translate(QPointF dr, qreal minY)
 	QRectF r = _rotatedArea.boundingRect();
 	if (r.top() > minY)
 	{
-		DrawableItem::Translate(dr, minY);	// translates startPos
+		DrawableItem::Translate(dr, minY);	// translates refPoint
 		_rotatedArea.translate(dr);
 	}
 }
@@ -1168,7 +1172,7 @@ void DrawableScreenShot::Rotate(MyRotation arot, QPointF &center)
 	arot.RotatePoly(_rotatedArea, center, true);
 	rot.AddRotation(arot);
 	_rotatedImage = _image;
-	rot.RotatePixmap(_rotatedImage, startPos, center, true);
+	rot.RotatePixmap(_rotatedImage, refPoint, center, true);
 	if (rot.HasSimpleRotation())
 	{
 		if (abs(rot.angle) < eps)

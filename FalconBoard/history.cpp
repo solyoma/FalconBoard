@@ -622,16 +622,16 @@ HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& d
 				QPointF dist;
 				pdrC = (DrawableCross*)&dri;
 				dist = { pdrC->length / sqrt(2), pdrC->length / sqrt(2) };
-				QRectF rect(pdrC->startPos - dist, pdrC->startPos + dist);
+				QRectF rect(pdrC->refPoint - dist, pdrC->refPoint + dist);
 				eraserStroke.append(rect.topLeft());
 				eraserStroke.append(rect.bottomRight());
-				eraserStroke.append(pdrC->startPos);
+				eraserStroke.append(pdrC->refPoint);
 				eraserStroke.append(rect.bottomLeft());
 				eraserStroke.append(rect.topRight());
 			}
 			break;
 		case DrawableType::dtDot:
-			eraserStroke.append(dri.startPos);
+			eraserStroke.append(dri.refPoint);
 			break;
 		case DrawableType::dtEllipse:
 			pdrE = (DrawableEllipse*)&dri;
@@ -639,7 +639,7 @@ HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& d
 			eraserStroke = myPath.toFillPolygon();
 			break;
 		case DrawableType::dtLine:
-			eraserStroke.append(((DrawableLine&)dri).startPos);
+			eraserStroke.append(((DrawableLine&)dri).refPoint);
 			eraserStroke.append(((DrawableLine&)dri).endPoint);
 			break;
 		case DrawableType::dtRectangle:
@@ -1183,7 +1183,7 @@ int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// retu
 		{
 			int x, y, zo;
 			ifs >> dsImg.zOrder >> x >> y;
-			dsImg.startPos = QPoint(x, y);
+			dsImg.refPoint = QPoint(x, y);
 
 			QPixmap pxm;
 			ifs >> pxm;
@@ -1217,7 +1217,7 @@ int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// retu
 				ifs >> x >> y;
 				dScrb.Add(x, y);
 			}
-			dScrb.startPos = dScrb.points[0];
+			dScrb.refPoint = dScrb.points[0];
 
 			if (dScrb.points.size() == 2)
 			{
@@ -1391,7 +1391,7 @@ HistoryItem* History::AddDrawableItem(DrawableItem& itm)
 			DrawableItem* pdrwi = _drawables[phdi->indexOfDrawable];
 			if (pdrwi->dtType == DrawableType::dtDot)	// remove dot that was a start of a line
 			{
-				if (pdrwi->startPos == itm.startPos)
+				if (pdrwi->refPoint == itm.refPoint)
 				{
 					_drawables.Remove(phdi->indexOfDrawable);	// there'll be a gap in zOrders :)
 					delete pitem;

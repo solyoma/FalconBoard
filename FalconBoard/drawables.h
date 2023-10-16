@@ -234,8 +234,9 @@ struct DrawableItem : public DrawablePen
                                 // over the points of the drawable
 
     DrawableType dtType = DrawableType::dtNone;
-    QPointF startPos;       // position of first point relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
-                            // DOES NOT always correspond to top left of area of the drawable!
+    QPointF refPoint;       // position of reference point relative to logical (0,0) of 'paper roll' 
+                            // (widget coord: topLeft + DrawArea::_topLeft is used) 
+                            // May be the first point or top left of area or the center point of the drawable!
     MyRotation rot;         // used to store the actual state of the rotations and check if rotation is possible
     int   zOrder = -1;      // not saved on disk. Drawables are saved from lowest zOrder to highest zOrder
     bool  isVisible = true;                              // not saved in file
@@ -255,7 +256,7 @@ struct DrawableItem : public DrawablePen
 
 
     DrawableItem() = default;
-    DrawableItem(DrawableType dt, QPointF startPos, int zOrder = -1, FalconPenKind penKind = penBlack, qreal penWidth = 1.0) : dtType(dt), startPos(startPos), zOrder(zOrder), DrawablePen(penKind, penWidth) {}
+    DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlack, qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) {}
     DrawableItem(const DrawableItem& other) { *this = other; }
     virtual ~DrawableItem()
     {
@@ -271,7 +272,7 @@ struct DrawableItem : public DrawablePen
     virtual bool IsFilled() const { return false; }
     virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is near the lines or for filled items: inside it
     {
-        p -= startPos;
+        p -= refPoint;
         return p.x() * p.x() + p.y() * p.y() < distance * distance;
     }
 
@@ -282,7 +283,7 @@ struct DrawableItem : public DrawablePen
     }
     virtual QPointF GetLastDrawnPoint() const
     {
-        return startPos;
+        return refPoint;
     }
     virtual void Translate(QPointF dr, qreal minY);            // only if not deleted and top is > minY. Override this only for scribbles
 
@@ -307,7 +308,7 @@ struct DrawableItem : public DrawablePen
         {
             // draw normally using 'painter',clipR (if valid) and 'topLeftOfVisibleArea'
             SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea));
-            QPointF pt = startPos - topLeftOfVisibleArea;
+            QPointF pt = refPoint - topLeftOfVisibleArea;
             painter->drawPoint(pt);
             // this example draws a single point (good for DrawableDot)
         }
@@ -385,7 +386,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di);
             //----------------------------------------------------
             // ------------------- Drawable Cross -------------
             //----------------------------------------------------
-struct DrawableCross : public DrawableItem
+struct DrawableCross : public DrawableItem      // refPoint is the center
 {
     qreal length=10;                 // total length of lines intersecting at 90
 
@@ -426,7 +427,7 @@ struct DrawableDot : public DrawableItem
     QRectF Area() const override    // includes half od pen width+1 pixel
     { 
         qreal d = penWidth / 2.0 + 1.0;
-        return QRectF(startPos - QPointF(d, d), QSize(2*d, 2*d) ); 
+        return QRectF(refPoint - QPointF(d, d), QSize(2*d, 2*d) ); 
     }
     // in base class bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
 };
@@ -437,7 +438,7 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableDot& di);  // call AFTER
             // ------------------- Drawable Ellipse -------------
             //----------------------------------------------------
 
-struct DrawableEllipse : public DrawableItem
+struct DrawableEllipse : public DrawableItem    // refPoint is the center
 {
     QRectF rect;                // determines the two axes and the center of the ellipse
     bool isFilled=false;        // whether closed polygon (ellipse or rectangle) is filled
@@ -454,15 +455,15 @@ struct DrawableEllipse : public DrawableItem
     DrawableEllipse &operator=(DrawableEllipse&& o) noexcept;
 
     void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
-    QRectF Area() const override // includes half od pen width+1 pixel
+    void Rotate(MyRotation rot, QPointF &centerOfRotation) override;    // alpha used only for 'rotAngle'
+    QRectF Area() const override // includes half of pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
         return _rotatedRect.adjusted(-d,-d,d,d); 
     }
     QPointF GetLastDrawnPoint() const override
     {
-        return  startPos + QPointF(_rotatedRect.width(), _rotatedRect.height() / 2.0);
+        return  refPoint + QPointF(_rotatedRect.width(), _rotatedRect.height() / 2.0);
     }
 
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellipse: inside it
@@ -527,7 +528,7 @@ struct DrawableLine : public DrawableItem
     {
         dtType = DrawableType::dtLine;
     }
-    DrawableLine(QPointF startPos, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth);
+    DrawableLine(QPointF refPoint, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth);
     DrawableLine(const DrawableLine& ol);
     DrawableLine(DrawableLine&& ol);
     ~DrawableLine() {}
@@ -537,7 +538,7 @@ struct DrawableLine : public DrawableItem
     void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
-        QRectF rect = QRectF(startPos, QSize((endPoint - startPos).x(), (endPoint - startPos).y()) ).normalized();
+        QRectF rect = QRectF(refPoint, QSize((endPoint - refPoint).x(), (endPoint - refPoint).y()) ).normalized();
         qreal d = penWidth / 2.0 + 1.0;
         return rect.adjusted(-d, -d, d, d);
     }
@@ -624,7 +625,7 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableRectangle& di);  // call
             // ------------------- Drawable Screenshot -------------
             //----------------------------------------------------
  /*-------------------------------------------------------*/
-struct DrawableScreenShot : public DrawableItem     // for a screenshot startPos is the center of the image!
+struct DrawableScreenShot : public DrawableItem     // for a screenshot refPoint is the center of the image!
 {
     DrawableScreenShot() : DrawableItem()
     {
@@ -636,7 +637,7 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot startPos
     }
     DrawableScreenShot(QPointF topLeft, int zOrder, const QPixmap &image) : DrawableItem(DrawableType::dtScreenShot, topLeft, zOrder), _image(image) 
     {
-        _rotatedArea = QRectF(startPos, image.size());
+        _rotatedArea = QRectF(refPoint, image.size());
     }
     ~DrawableScreenShot() = default;
 
@@ -657,7 +658,7 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot startPos
     void Rotate(MyRotation rot, QPointF &center);
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is inside the image
     {
-        QRectF rect = QRectF(startPos - QPointF(_image.size().width() / 2, _image.size().height() / 2), _image.size());
+        QRectF rect = QRectF(refPoint - QPointF(_image.size().width() / 2, _image.size().height() / 2), _image.size());
         if (fabs(rot.angle) > eps && !rot.HasSimpleRotation())
         {
             QTransform tr;
