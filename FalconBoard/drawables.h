@@ -96,7 +96,7 @@ QuadArea AreaForQRect(QRectF rect);
             //----------------------------------------------------
 // Rotations and flips are not kommutative. However a flip followed by a rotation
 // with an angle is the same as a rotation of -1 times the anngle followed by the same
-// flip. each flip is its own inverse and two different consecutevie flips are
+// flip. each flip is its own inverse and two different consecuteve flips are
 // equivalent to a rotation with 180 degrees 
 struct MyRotation
 {
@@ -107,8 +107,9 @@ struct MyRotation
         rotFlipH, rotFlipV         // these leave the top left corner in place
     };
 
-    qreal angle = 0.0;        // (in degrees) rotate by this (absolute for ellipse and rectangle) relative to prev. state to others
-    Type flipType = flipNone; // after rotated flip by this (may only be a flip or flipNone for no flip)
+    qreal center;               // of the rotated drawable
+    qreal angle = 0.0;          // (in degrees) rotate by this (absolute for ellipse and rectangle) relative to prev. state to others
+    Type flipType = flipNone;   // after rotated flip by this (may only be a flip or flipNone for no flip)
 
     static constexpr qreal AngleForType(Type myrot);
     static constexpr Type TypeForAngle(qreal angle);
@@ -229,19 +230,21 @@ public:
             //----------------------------------------------------
 struct DrawableItem : public DrawablePen
 {
-    static bool drawStarted;
+    static bool drawStarted;    // when unset then Draw() will call DrawWithErasers(), which sets this then
+                                // calls Draw() to draw the drawable. When Draw() returns erasers are drawn
+                                // over the points of the drawable
 
     DrawableType dtType = DrawableType::dtNone;
     QPointF startPos;       // position of first point relative to logical (0,0) of 'paper roll' (widget coord: topLeft + DrawArea::_topLeft is used) 
-                            // DOES NOT always correspond to top left of area!
+                            // DOES NOT always correspond to top left of area of the drawable!
     MyRotation rot;         // used to store the actual state of the rotations and check if rotation is possible
-    int   zOrder = -1;      // not saved. Drawables are saved from lowest zOrder to highest zOrder
-    bool  isVisible = true;                              // not saved
+    int   zOrder = -1;      // not saved on disk. Drawables are saved from lowest zOrder to highest zOrder
+    bool  isVisible = true;                              // not saved in file
     static qreal  yOffset;  // add this to every coordinates read including erasers
     // eraser strokes for a drawables. Oonly those parts of the eraser stroke that intersects the bounding rectangle of the
     // drawable plus an eraser pen width/2 wide margin are saved here. When drawing the drawable eraser strokes are
     // clipped to the bounding box of the drawable plus half of the pen width for scribbles rectangles and ellipses.
-    // drawables completely under eraser should not be saved (TODO?)
+    // TODO: drawables completely under eraser should not be saved, erased part should not be considered part of drawable
     struct EraserData
     {
         int eraserPenWidth = 30;
@@ -313,7 +316,7 @@ struct DrawableItem : public DrawablePen
             DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
     }
     /*=============================================================
-     * TASK:    common draw functions for every subclass
+     * TASK:    common (not overridden) function for every subclass
      * PARAMS:  same one as for Draw()
      * GLOBALS: drawStarted
      * RETURNS:

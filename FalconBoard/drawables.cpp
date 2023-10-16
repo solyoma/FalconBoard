@@ -831,14 +831,13 @@ void DrawableEllipse::Translate(QPointF dr, qreal minY)
 
 /*=============================================================
  * TASK:	rotates ellipse in a rectangle
- * PARAMS:	arot - rotation to performe
- *			center - rotate around the center of this
- *			rectangle
+ * PARAMS:	arot - rotation to perform
+ *			center - rotate around this point
  * GLOBALS:
- * RETURNS: nothing, ellipse is rotated by a multiple of 90 degrees
+ * RETURNS: nothing, ellipse is rotated 
  * REMARKS: - When rotated by a degree of integer times 90
  *			  only the rectangle is rotated
- *			- all other angles use the _points array
+ *			- for all other angles the ellipse is rasterized into '_points'
  *------------------------------------------------------------*/
 void DrawableEllipse::Rotate(MyRotation arot, QPointF& center)
 {

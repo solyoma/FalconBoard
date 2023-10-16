@@ -1505,7 +1505,7 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 	// /DEBUG
 	int h = height();
 	int w = width();
-	if (_limited && _topLeft.x() + w > PageParams::screenPageWidth)
+	if (_limited && _topLeft.x() && _topLeft.x() + w > PageParams::screenPageWidth)
 	{
 		QPointF dr = QPointF((_topLeft.x() + w - PageParams::screenPageWidth), 0);
 		_ShiftOrigin(dr);
