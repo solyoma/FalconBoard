@@ -95,8 +95,8 @@ QuadArea AreaForQRect(QRectF rect);
             // ------------------- MyRotation::Type -------------
             //----------------------------------------------------
 // Rotations and flips are not kommutative. However a flip followed by a rotation
-// with an angle is the same as a rotation of -1 times the anngle followed by the same
-// flip. each flip is its own inverse and two different consecuteve flips are
+// with an angle is the same as a rotation of -1 times the angle followed by the same
+// flip. each flip is its own inverse and two different consecutive flips are
 // equivalent to a rotation with 180 degrees 
 struct MyRotation
 {
@@ -107,7 +107,6 @@ struct MyRotation
         rotFlipH, rotFlipV         // these leave the top left corner in place
     };
 
-    qreal center;               // of the rotated drawable
     qreal angle = 0.0;          // (in degrees) rotate by this (absolute for ellipse and rectangle) relative to prev. state to others
     Type flipType = flipNone;   // after rotated flip by this (may only be a flip or flipNone for no flip)
 
@@ -203,7 +202,7 @@ public:
 
     QColor PenColor() const 
     { 
-        QColor penColor = globalDrawColors.Color();
+        QColor penColor = globalDrawColors.Color(_penKind);
         return penColor; 
     }
     constexpr FalconPenKind PenKind() const { return _penKind; }

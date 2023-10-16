@@ -1517,8 +1517,8 @@ void DrawArea::resizeEvent(QResizeEvent* event)
 	{
 		int newWidth = qMax(w + 128, _pActCanvas->width());
 		int newHeight = qMax(h + 128, _pActCanvas->height());
-		_ResizeImage(_pActCanvas, QSize(newWidth, newHeight), true);
-		_ResizeImage(_pOtherCanvas, QSize(newWidth, newHeight), true);
+		_ResizeCanvas(_pActCanvas, QSize(newWidth, newHeight), true);
+		_ResizeCanvas(_pOtherCanvas, QSize(newWidth, newHeight), true);
 		if (_history)
 			_history->SetClippingRect(QRectF(_topLeft, QSize(newWidth, newHeight)));
 
@@ -2022,22 +2022,22 @@ void DrawArea::_DrawAllPoints(DrawableItem* pscrbl)
 	_lastPointC = pscrbl->GetLastDrawnPoint();
 }
 
-void DrawArea::_ResizeImage(QImage* image, const QSize& newSize, bool isTransparent)
+void DrawArea::_ResizeCanvas(QImage* canvas, const QSize& newSize, bool isTransparent)
 {
-	if (image->size() == newSize)
+	if (canvas->size() == newSize)
 		return;
 
 	QImage newImage(newSize, QImage::Format_ARGB32);
 
 	QColor color = isTransparent ? Qt::transparent : _backgroundColor;
 	newImage.fill(color);
-	if (!image->isNull())
+	if (!canvas->isNull())
 	{
 		QPainter painter(&newImage);
 		painter.setCompositionMode(QPainter::CompositionMode_Source);
-		painter.drawImage(QPointF(0, 0), *image);
+		painter.drawImage(QPointF(0, 0), *canvas);
 	}
-	*image = newImage;
+	*canvas = newImage;
 }
 
 void DrawArea::ClearHistory()

@@ -375,7 +375,7 @@ private:
     void _DrawLineTo(QPointF endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
                                          // returns true if new _lastPointC should be saved, otherwise line was not drawn yet
     void _DrawAllPoints(DrawableItem* pscrbl);
-    void _ResizeImage(QImage* image, const QSize& newSize, bool isTransparent);
+    void _ResizeCanvas(QImage* image, const QSize& newSize, bool isTransparent);
 
     bool _ReplotDrawableItem(DrawableItem* pscrbl); 
     void _SetCanvasAndClippingRect();
