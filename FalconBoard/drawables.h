@@ -116,17 +116,18 @@ struct MyRotation
     {
         return typ == flipNone || typ == rotFlipH || typ == rotFlipV;
     }
+
     inline constexpr bool IsPureRotation() const
     {
         return flipType == flipNone;
     }
     inline bool HasSimpleRotation() const
     {
-        return abs(fmod(angle, 90.0)) < eps;
+        return EqZero(fmod(angle, 90.0));
     }
     inline bool HasNoRotation() const
     {
-        return fabs(angle) < eps;
+        return EqZero(angle);
     }
 
     inline void Reset() { angle = 0.0; flipType = flipNone; }
@@ -169,7 +170,6 @@ struct MyRotation
     bool IsNull() const { return !angle && flipType == flipNone; }
  private:
     QTransform _tr;
-    void _CantRotateWarning() const;
     void _SetRot(qreal alpha);
 };
 QDataStream& operator<<(QDataStream& ofs, const MyRotation& mr);
@@ -285,9 +285,23 @@ struct DrawableItem : public DrawablePen
     {
         return refPoint;
     }
-    virtual void Translate(QPointF dr, qreal minY);            // only if not deleted and top is > minY. Override this only for scribbles
+    virtual bool CanTranslate(const QPointF dp) const
+    { 
+        QPointF p = refPoint + dp;
+        return p.x() >=0 && p.y() >= 0;
+    }
+    virtual bool CanRotate(MyRotation rot, const QPointF center) const
+    {
+        QPointF pt = refPoint - center;
+        QTransform tr;
+        tr.rotate(rot.angle);
+        pt = tr.map(pt) + center;
+        return pt.x() >= 0 && pt.y() >= 0;
+    }
 
-    virtual void Rotate(MyRotation rot, QPointF &center);    // alpha used only for 'rotAngle'
+    virtual bool Translate(QPointF dr, qreal minY);            // only if not deleted and top is > minY. Override this only for scribbles
+
+    virtual bool Rotate(MyRotation rot, QPointF center);    // alpha used only for 'rotAngle'
     /*=============================================================
      * TASK: Function to override in all subclass
      * PARAMS:  painter              - existing painter
@@ -398,8 +412,10 @@ struct DrawableCross : public DrawableItem      // refPoint is the center
     DrawableCross(QPointF pos, qreal len, int zorder, FalconPenKind penKind, qreal penWidth);
     DrawableCross(const DrawableCross& o) = default;
     ~DrawableCross() = default;
-    void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY. Override this only for scribbles
-    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
+    bool CanTranslate(const QPointF dr) const override;
+    bool CanRotate(MyRotation rot, QPointF center) const override;
+    bool Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY. Override this only for scribbles
+    bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
     virtual MyRotation::Type RotationType() { return MyRotation::flipNone;  /* yet */ }
     QRectF Area() const override;    // includes half of pen width+1 pixel
     void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR) override;
@@ -448,14 +464,20 @@ struct DrawableEllipse : public DrawableItem    // refPoint is the center
         dtType = DrawableType::dtEllipse;
     }
     DrawableEllipse(QRectF rect, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);
+    DrawableEllipse(QPointF refPoint, qreal radius, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);    // circle
+    DrawableEllipse(QPointF refPoint, qreal a, qreal b, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false); // ellipse with principlal half-axes a and b;
     DrawableEllipse(const DrawableEllipse& o);
     DrawableEllipse(DrawableEllipse&& o) noexcept;
     ~DrawableEllipse() = default;
     DrawableEllipse &operator=(const DrawableEllipse& o);
     DrawableEllipse &operator=(DrawableEllipse&& o) noexcept;
 
-    void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QPointF &centerOfRotation) override;    // alpha used only for 'rotAngle'
+    inline bool IsCircle() const { return rect.width() == rect.height(); }
+    bool CanTranslate(const QPointF dr) const override;
+    bool CanRotate(MyRotation rot, QPointF center) const override;
+
+    bool Translate(QPointF dr, qreal minY) override;                   // only if not deleted and top is > minY
+    bool Rotate(MyRotation rot, QPointF centerOfRotation) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override // includes half of pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -475,7 +497,7 @@ struct DrawableEllipse : public DrawableItem    // refPoint is the center
         // first, if ellipse is rotated, rotate point by -angle 
         // into the original (unrotated) ellipse based coord system
         // flips don't matter
-        if (fabs(rot.angle) > eps)
+        if (!EqZero(rot.angle))
         {
             QTransform tr;
             tr.rotate(-rot.angle);
@@ -534,8 +556,10 @@ struct DrawableLine : public DrawableItem
     ~DrawableLine() {}
     DrawableLine& operator=(const DrawableLine& ol);
     DrawableLine& operator=(const DrawableLine&& ol);
-    void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
+    bool CanTranslate(const QPointF dr) const override;
+    bool CanRotate(MyRotation rot, QPointF center) const override;
+    bool Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
+    bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
         QRectF rect = QRectF(refPoint, QSize((endPoint - refPoint).x(), (endPoint - refPoint).y()) ).normalized();
@@ -572,8 +596,10 @@ struct DrawableRectangle : public DrawableItem
     DrawableRectangle& operator=(const DrawableRectangle& di);
     DrawableRectangle& operator=(DrawableRectangle&& di) noexcept;
 
-    void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
+    bool CanTranslate(const QPointF dr) const override;
+    bool CanRotate(MyRotation rot, QPointF center) const override;
+    bool Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
+    bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -589,7 +615,7 @@ struct DrawableRectangle : public DrawableItem
         if (!_rotatedRect.contains(p))
             return false;
 
-        if(fabs(rot.angle) < eps && !rot.HasSimpleRotation() )
+        if(!EqZero(rot.angle) && !rot.HasSimpleRotation() )
             rot.RotateSinglePoint(p, _rotatedRect.center(), true);
 
         if (isFilled)
@@ -654,12 +680,15 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot refPoint
     // isNull() true when no intersection with canvasRect
     QRectF AreaOnCanvas(const QRectF& canvasRect) const;
 
-    void Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QPointF &center);
+    bool CanTranslate(const QPointF dr) const override;
+    bool CanRotate(MyRotation rot, QPointF center) const override;
+
+    bool Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
+    bool Rotate(MyRotation rot, QPointF center);
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is inside the image
     {
         QRectF rect = QRectF(refPoint - QPointF(_image.size().width() / 2, _image.size().height() / 2), _image.size());
-        if (fabs(rot.angle) > eps && !rot.HasSimpleRotation())
+        if (!EqZero(rot.angle) && !rot.HasSimpleRotation())
         {
             QTransform tr;
             tr.rotate(-rot.angle);
@@ -723,10 +752,11 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 
     bool Intersects(const QRectF& arect) const;
 
+    bool CanTranslate(const QPointF dr) const override;
+    bool CanRotate(MyRotation rot, QPointF center) const override;
 
-
-    void Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
-    void Rotate(MyRotation rot, QPointF &center) override;    // alpha used only for 'rotAngle'
+    bool Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
+    bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override // includes half od pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
@@ -784,7 +814,7 @@ struct DrawableText : public DrawableItem
 
     void setFont(QString font) { fontAsString = font; }
 
-//    void Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
+//    bool Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
 //    void Rotate(MyRotation rot, QRectF center, qreal alpha=0.0) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override { return QRectF();  /* TODO ??? */ }
     bool PointIsNear(QPointF p, qreal distance) const override // true if the point is near the circumference or for filled ellpse: inside it
@@ -868,7 +898,6 @@ struct QuadTreeDelegate
     }
     IntVector GetValues(const DrawableItemList* pItems, const QRectF& area) const
     {
-        extern QuadArea AreaForQRect(QRectF rect);
         return GetValues(pItems, AreaForQRect(area));
 
     }
@@ -1333,6 +1362,8 @@ public:
 
         QRectF rect(point.x() - 5, point.y() - 5, 10, 10);
         IntVector iv = ListOfItemIndicesInRect(rect);
+        if (iv.isEmpty())
+            return res.index; // -1
 
         if (type == DrawableType::dtNone)
         {
@@ -1394,9 +1425,9 @@ public:
 
         _items.erase(_items.begin() + which);   // remove after not in use
     }
-    void TranslateDrawable(int index, QPointF dr, qreal minY)
+    bool TranslateDrawable(int index, QPointF dr, qreal minY)
     {
-        (*this)[index]->Translate(dr, minY);
+        return (*this)[index]->Translate(dr, minY);
 
     }
     void RotateDrawable(int index, MyRotation rot, QPointF &center)    // alpha used only for 'rotAngle'

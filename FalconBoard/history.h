@@ -507,6 +507,7 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _LoadV1(QDataStream &ifs, qint32 version);          // load version 1.X files
     int _LoadV2(QDataStream &ifs, qint32 version_loaded);   // load version 2.X files
 
+    void _CantRotateWarning() const;
 public:
     GridOptions gridOptions;
 
@@ -533,9 +534,15 @@ public:
     }
 
     int GetZorder(bool isscreenshot, bool increment=true) { return _zorderStore.GetZorder(isscreenshot, increment); }
-    DrawableList* Drawables()  { return &_drawables; }
+    constexpr DrawableList* Drawables()  { return &_drawables; }
     DrawableItem* Drawable(int i) { return _drawables[i]; }
-    DrawableIndexVector SelectedDrawables() const { return _driSelectedDrawables; }
+    constexpr const DrawableIndexVector &SelectedDrawables() const 
+    { 
+        return _driSelectedDrawables; 
+    }
+
+    bool CanRotateSelected(MyRotation rot);
+    bool RotateSelected(MyRotation rot);
 
     constexpr QPointF TopLeft() const { return _topLeft; }
     void SetTopLeft(QPointF& topLeft) { _topLeft = topLeft; }
@@ -562,10 +569,6 @@ public:
     int CountOfVisible(); // visible 
     int CountButScreenShots();
     int SelectedSize() const { return _driSelectedDrawables.size(); }
-    DrawableIndexVector& SelectedItemsList() 
-    { 
-        return _driSelectedDrawables; 
-    }
 
     QString Name() const 
     { 
@@ -617,7 +620,7 @@ public:
     QPointF BottomRightLimit(QSize screenSize);      // returns bottom right coordinate of last visible item
 
 //--------------------- Add Items ------------------------------------------
-    int AddExistingDrawableItem(DrawableItem* pdrh);  // only add drawable Items here
+    //int AddExistingDrawableItem(DrawableItem* pdrh);  // only add drawable Items here
     HistoryItem* AddClearRoll();
     HistoryItem* AddClearVisibleScreen();
     HistoryItem* AddClearDown();
@@ -658,7 +661,6 @@ public:
     void CollectDeleted(HistoryDeleteItems* phd);   // used when a sprite paste is undone
 
     const QRectF BoundingRect() const { return _selectionRect; }
-    const DrawableIndexVector& Selected() const { return _driSelectedDrawables;  }
 };
 
             //--------------------------------------------

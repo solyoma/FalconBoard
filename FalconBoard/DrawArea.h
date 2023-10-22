@@ -357,7 +357,7 @@ private:
 
     void _InitiateDrawingIngFromLastPos();   // from _lastPoint
     void _InitiateDrawing(MyPointerEvent* event);
-    bool _CanRotate(MyRotation rot);    // items inside _history->SelectionRect()
+    //bool _CanRotate(MyRotation rot);    // items inside _history->SelectionRect()
 #endif
     int _LoadCommon();
     int _AppendCommon(QString & fileName);

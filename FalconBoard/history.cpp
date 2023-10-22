@@ -50,7 +50,7 @@ bool HistoryItem::operator<(const HistoryItem& other)
 // expects a complete subclass cast as DrawableItem and adds a copy of it
 HistoryDrawableItem::HistoryDrawableItem(History* pHist, DrawableItem& dri) : HistoryItem(pHist, HistEvent::heDrawable)
 {
-	DrawableItem* _pDrawable;
+	DrawableItem* _pDrawable=nullptr;
 	switch (dri.dtType)
 	{
 		case DrawableType::dtDot:		_pDrawable = new DrawableDot(dynamic_cast<DrawableDot&>(dri));				break;
@@ -538,14 +538,13 @@ int HistoryRotationItem::Undo()
 
 int HistoryRotationItem::Redo()
 {
-	QRectF area;
-	center = encRect.center();
-	for (auto dri : driSelectedDrawables)
+	center = pHist->SelectionRect().center();
+	if (!pHist->RotateSelected(rot))
 	{
-		pHist->Rotate(dri, rot, center);
-		area = area.united(pHist->Drawable(dri)->Area());
+		encRect = QRectF();
+		return 0;
 	}
-	encRect = area;
+	encRect = pHist->SelectionRect();
 	return 0;
 }
 
@@ -706,7 +705,7 @@ int HistoryEraserStrokeItem::Redo()
 HistoryPenWidthChangeItem::HistoryPenWidthChangeItem(History* pHist, qreal changeWidthBy) :
 	dw(changeWidthBy), HistoryItem(pHist, HistEvent::hePenWidthChange)
 {
-	affectedIndexList = pHist->Selected();
+	affectedIndexList = pHist->SelectedDrawables();
 	if (affectedIndexList.isEmpty())				// will not be used or saved in callers!
 		return;
 	Redo();
@@ -860,6 +859,44 @@ int History::CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize)	// p
 		return -1;
 	QuadArea area(px * pageSize.width(), py * pageSize.height(), pageSize.width(), pageSize.height());
 	return _drawables.Count(area);
+}
+
+void History::_CantRotateWarning() const
+{
+	QMessageBox::warning(nullptr, QObject::tr("FalconG - Warning"), QObject::tr("Can't rotate, as part of rotated area would be outside 'paper'"));
+}
+
+bool History::CanRotateSelected(MyRotation rot)
+{
+	if (rot.IsNull())	// no rotation or reflection
+		return true;
+
+	QPointF center = _selectionRect.center();
+	for (auto dri : _driSelectedDrawables)
+		if (!_drawables[dri]->CanRotate(rot, center))
+			return false;
+	return true;
+}
+
+bool History::RotateSelected(MyRotation rot)	 // if it can and it does then
+{																 // calculate new selection area
+	if (rot.IsNull())	// no rotation or reflection
+		return true;
+	if(!CanRotateSelected(rot))
+	{
+		_CantRotateWarning();
+		return false;
+	}
+
+	QPointF center = _selectionRect.center();
+	_selectionRect = QRectF();
+	for (auto dri : _driSelectedDrawables)
+	{
+		DrawableItem* pdri = _drawables[dri];
+		pdri->Rotate(rot, center);
+		_selectionRect = _selectionRect.united(pdri->Area());
+	}
+	return true;
 }
 
 /*=============================================================
@@ -1275,7 +1312,7 @@ int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// retu
 int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 {
 // z order counters are reset
-	DrawableItem * pdrwh;
+	DrawableItem * pdrwh=nullptr;
 	DrawableDot dDot;
 	DrawableCross dCross;
 	DrawableEllipse dEll;
@@ -1307,7 +1344,7 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 			default: break;
 		}
 		globalDrawColors = drawColors;
-		if((int)di.dtType < (int)DrawableType::dtNonDrawableStart)	// only add drawables
+		if(pdrwh && (int)di.dtType < (int)DrawableType::dtNonDrawableStart)	// only add drawables
 			(void)AddDrawableItem(*pdrwh);		// this will set its zOrder too
 		di.erasers.clear();
 	}
@@ -1520,10 +1557,14 @@ HistoryItem* History::AddRotationItem(MyRotation rot)
 {									   // only called when rotation was possible, no need to check here
 	if (!_driSelectedDrawables.size() )
 		return nullptr;          // do not add an empty list or a non rotatable region
-
+												// this performs the rotation	
 	HistoryRotationItem* phss = new HistoryRotationItem(this, rot, _selectionRect, _driSelectedDrawables);
-	if (phss)
-		_selectionRect = phss->encRect;
+	if (phss->encRect.isNull())
+	{
+		delete phss;
+		return nullptr;
+	}
+	_selectionRect = phss->encRect;
 	return _AddItem(phss);
 }
 

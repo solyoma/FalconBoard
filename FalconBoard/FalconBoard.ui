@@ -156,8 +156,8 @@
      <property name="title">
       <string>Grid options</string>
      </property>
-     <addaction name="actionFixedGrid"/>
      <addaction name="actionGridSize"/>
+     <addaction name="actionFixedGrid"/>
     </widget>
     <widget class="QMenu" name="actionLanguages">
      <property name="enabled">
@@ -737,6 +737,9 @@
    <property name="toolTip">
     <string>Right button to draw enclosing rectangle, Hold down Shift for a circle</string>
    </property>
+   <property name="shortcut">
+    <string>C</string>
+   </property>
   </action>
   <action name="actionRectangle">
    <property name="enabled">
@@ -747,6 +750,9 @@
    </property>
    <property name="toolTip">
     <string>Right button to draw rectangle, Hold down Shift for a square</string>
+   </property>
+   <property name="shortcut">
+    <string>R</string>
    </property>
   </action>
   <action name="actionRotate180">
@@ -796,6 +802,9 @@
    <property name="text">
     <string>Mark Center point of selection</string>
    </property>
+   <property name="shortcut">
+    <string>.</string>
+   </property>
   </action>
   <action name="actionDrawFilledEllipse">
    <property name="enabled">
@@ -803,6 +812,9 @@
    </property>
    <property name="text">
     <string>Draw a filled Ellipse or Circle</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+C</string>
    </property>
   </action>
   <action name="actionDrawFilledRectangle">
@@ -812,6 +824,9 @@
    <property name="text">
     <string>Draw a Filled Rectangle</string>
    </property>
+   <property name="shortcut">
+    <string>Shift+R</string>
+   </property>
   </action>
   <action name="actionXToCenterPoint">
    <property name="enabled">
@@ -819,6 +834,9 @@
    </property>
    <property name="text">
     <string>'X' to Center point of selection</string>
+   </property>
+   <property name="shortcut">
+    <string>X</string>
    </property>
   </action>
   <action name="actionRotate">

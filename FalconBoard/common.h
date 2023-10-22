@@ -25,8 +25,7 @@ const QString sWindowTitle =
 #endif
 
 using IntVector = QVector<int>;
-const qreal eps = 1e-4;         // for 0 test of double
-inline constexpr qreal EqZero(qreal a) { return qAbs(a) < eps; }
+inline constexpr qreal EqZero(qreal a) { return qFuzzyIsNull(qAbs(a)); }
 
 const int MAX_DRAWABLE_ID  = 0x7F;
 

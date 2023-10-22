@@ -393,7 +393,7 @@ void DrawArea::GotoPage(int page)
 
 void DrawArea::SetMode(bool darkMode, QString backgroundColor, QString sGridColor, QString sPageGuideColor)
 {
-	qDebug("	Set mode to %s, %s:%d", darkMode ? "dark" : "light", __FILE__, __LINE__);
+	//qDebug("	Set mode to %s, %s:%d", darkMode ? "dark" : "light", __FILE__, __LINE__);
 	_backgroundColor = backgroundColor;
 	_gridColor = sGridColor;
 	_pageGuideColor = sPageGuideColor;
@@ -569,17 +569,22 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 
 #if !defined _VIEWER && defined _DEBUG
-	bool redraw = false;
-	if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::ShiftModifier)))
-		_pencilmode = !_pencilmode, redraw=true;
-	if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::AltModifier)))
-	{                           // toggle debug mode
-		_debugmode = !_debugmode;
-		isDebugMode = _debugmode;	// isDebugMode is a global in drawables.cpp
-		redraw = true;
+	{
+		bool redraw = false;
+		if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::ShiftModifier)))
+		{
+			_pencilmode = !_pencilmode, redraw = true;
+			redraw = true;
+		}
+		if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::AltModifier)))
+		{                           // toggle debug mode
+			_debugmode = !_debugmode;
+			isDebugMode = _debugmode;	// isDebugMode is a global in drawables.cpp
+			redraw = true;
+		}
+		if (redraw)
+			_Redraw(true); 
 	}
-	if(redraw)
-		_Redraw();
 #endif
 
 	if (!_scribbling && !_pendown && key == Qt::Key_Space && !event->isAutoRepeat())
@@ -727,7 +732,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					default: rot = MyRotation::flipNone; break;
 				}
 				//QRectF rr = _rubberRect;
-				if(!rot.IsNull() && _CanRotate(rot) && _history->AddRotationItem(rot) ) // items in _driSelectedDrawables, using History::_SelectionRect (== _rubberRect)
+				if(!rot.IsNull() && _history->AddRotationItem(rot) ) // items in _driSelectedDrawables, using History::_SelectionRect (== _rubberRect)
 				{
 					_rubberRect = _history->SelectionRect().translated(-_topLeft);
 					_rubberBand->setGeometry(_rubberRect.toRect());
@@ -1629,13 +1634,12 @@ void DrawArea::_InitiateDrawing(MyPointerEvent* event)
 	_InitiateDrawingIngFromLastPos();
 }
 
-bool DrawArea::_CanRotate(MyRotation rot)
-{
-	if(!_history || !_history->SelectedSize())
-		return false;
-	QRectF r = _history->SelectionRect();
-	return rot.RotateRect(r, r.center(), false);
-}
+//bool DrawArea::_CanRotate(MyRotation rot)
+//{
+//	if(!_history || !_history->SelectedSize())
+//		return false;
+//	return _history->CanRotateSelected(rot);
+//}
 
 
 /*=============================================================
@@ -2346,6 +2350,11 @@ bool DrawArea::_ReplotDrawableItem(DrawableItem* pdrwi)
 		return false;
 
 	QPainter painter(_pActCanvas);
+	if (_pencilmode)
+	{
+		QPen pen(_PenColor(), 1);
+		painter.setPen(pen);
+	}
 	pdrwi->Draw(&painter, _topLeft, _clippingRect);
 
 	return true;
@@ -2736,6 +2745,11 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	}
 	else
 		qs = tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ").arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
+	if (_pencilmode)
+		qs += " | PM";
+	if (isDebugMode)
+		qs += " | DM";
+
 	emit TextToToolbar(qs);
 }
 
@@ -2830,7 +2844,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 
 Sprite* DrawArea::_SpriteFromLists()
 {
-	Sprite* pSprite = new Sprite(_history, historyList.CopiedRect(), _history->SelectedItemsList() );
+	Sprite* pSprite = new Sprite(_history, historyList.CopiedRect(), _history->SelectedDrawables() );
 	return _PrepareSprite(pSprite, _lastCursorPos, historyList.CopiedRect().translated(_lastCursorPos), false, true);
 }
 
