@@ -2747,7 +2747,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 		qs = tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ").arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
 	if (_pencilmode)
 		qs += " | PM";
-	if (isDebugMode)
+	if (_debugmode)
 		qs += " | DM";
 
 	emit TextToToolbar(qs);
