@@ -941,12 +941,6 @@ bool DrawableEllipse::Rotate(MyRotation arot, QPointF centerOfRotation)
 	rot = tmpr;					// set new rotation
 	_points.clear();
 
-	//if (IsCircle())			// only rotate 
-	//{
-	//	rot.Reset();
-	//	_rotatedRect = rect;
-	//}
-	//else 
 	if (tmpr.HasNoRotation() || tmpr.HasSimpleRotation())
 	{
 		_rotatedRect = rect = r;
@@ -982,9 +976,10 @@ void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, cons
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableEllipse& di) // topmost 
 {
-	ofs << di.rect << di.isFilled;	// always save non-rotated rectangle + rotation +flip
-	return ofs;
+	QPointF dp = di.refPoint - di.rect.center();
+	ofs << di.rect.translated(dp) << di.isFilled;	// always save not rotated rectangle and rotation info
 
+	return ofs;
 }
 
 QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER header is read in
@@ -1002,7 +997,6 @@ QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER h
 //=====================================
 // DrawableLine
 //=====================================
-
 
 DrawableLine::DrawableLine(QPointF refPoint, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth) : 
 	endPoint(endPoint), DrawableItem(DrawableType::dtLine, refPoint, zOrder, penKind, penWidth)
@@ -1193,11 +1187,6 @@ bool DrawableRectangle::Rotate(MyRotation arot, QPointF center)
 	tmpr.AddRotation(arot);		// check if rotation is possible before doing any changes
 	if (!tmpr.RotateRect(r, center))
 		return false;
-	// DEBUG
-	//QPointF rp = refPoint;
-	//tmpr.RotateSinglePoint(rp, center);
-	//qDebug("refPoint: (%g,%g), center:(%g,%g), rotated refPoint: (%g,%g)", refPoint.x(), refPoint.y(), center.x(), center.y(), rp.x(), rp.y());
-	// /DEBUG
 
 	rot = tmpr;					// set new rotation
 	_points.clear();
@@ -1241,7 +1230,9 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableRectangle& di) // DrawableItem part already saved
 {
-	ofs << di.rect << di.isFilled;	// always save not rotated rectangle and rotation info
+	QPointF dp = di.refPoint - di.rect.center();
+	ofs << di.rect.translated(dp) << di.isFilled;	// always save not rotated rectangle and rotation info
+
 	return ofs;
 
 }

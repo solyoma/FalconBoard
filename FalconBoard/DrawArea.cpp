@@ -722,7 +722,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					case Qt::Key_F7:	if(userRotationAngle == 0 || !_mods.testFlag(Qt::ShiftModifier))
 										{
 											RotateInputDialog *prd = new RotateInputDialog(this, userRotationAngle);
-											prd->exec();
+											if (!prd->exec())
+												userRotationAngle = 0; // no rotation on cancel
 											delete prd;
 										}  
 										rot = userRotationAngle; 
