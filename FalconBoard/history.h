@@ -284,6 +284,20 @@ struct HistoryReColorItem : public HistoryItem
             //      HistoryInsertVertSpace
             //--------------------------------------------
 
+struct HistoryMoveItems : public HistoryItem
+{
+    QPointF dr; // displacement
+    DrawableIndexVector movedItemList;   // absolute indexes of drawable elements in 'pHist->_drawables'
+
+    HistoryMoveItems(History* pHist, QPointF displacement, DrawableIndexVector &selection); // uses _
+    HistoryMoveItems(const HistoryMoveItems& other);
+    HistoryMoveItems& operator=(const HistoryMoveItems& other);
+
+    int Undo() override;
+    int Redo() override;
+    QRectF Area() const override;
+};
+
 struct HistoryInsertVertSpace : public HistoryItem
 {
     int y = 0, heightInPixels = 0;
@@ -624,18 +638,20 @@ public:
     HistoryItem* AddClearRoll();
     HistoryItem* AddClearVisibleScreen();
     HistoryItem* AddClearDown();
+    HistoryItem* AddCopiedItems(QPointF topLeft, Sprite *pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
+    HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _driSelectedDrawables a
     HistoryItem* AddDrawableItem(DrawableItem& dri);
     HistoryItem* AddEraserItem(DrawableItem& dri);  // add to all scribbles which it intersects
-    HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _driSelectedDrawables a
-    HistoryItem* AddCopiedItems(QPointF topLeft, Sprite *pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
-    HistoryItem* AddRecolor(FalconPenKind pk);
     HistoryItem* AddInsertVertSpace(int y, int heightInPixels);       // height < 0: delete space
+    HistoryItem* AddMoveItems(QPointF displacement);
+    HistoryItem* AddPenColorChange(const DrawColors& drwclr);
+    HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
+    HistoryItem* AddRecolor(FalconPenKind pk);
     HistoryItem* AddRotationItem(MyRotation rot);
     HistoryItem* AddRemoveSpaceItem(QRectF &rect);
     HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
-    HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
-    HistoryItem* AddPenColorChange(const DrawColors& drwclr);
     // --------------------- drawing -----------------------------------
+    bool MoveItems(QPointF displacement, const DrawableIndexVector& driv);  // returns false when move is not possible
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void Rotate(int drawableIndex, MyRotation withRotation, QPointF center);
     void InserVertSpace(int y, int heightInPixels);

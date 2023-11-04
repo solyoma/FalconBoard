@@ -455,6 +455,45 @@ QRectF HistoryReColorItem::Area() const { return boundingRectangle; }
 
 //---------------------------------------------------
 
+HistoryMoveItems::HistoryMoveItems(History* pHist, QPointF displacement, DrawableIndexVector& selection) :
+	HistoryItem(pHist, HistEvent::heMoveItems), dr(displacement), movedItemList(selection)
+{
+	Redo();
+}
+
+HistoryMoveItems::HistoryMoveItems(const HistoryMoveItems& other) : HistoryItem(other)
+{
+	*this = other;
+}
+HistoryMoveItems& HistoryMoveItems::operator=(const HistoryMoveItems& other)
+{
+	pHist = other.pHist;
+	dr = other.dr;
+	movedItemList = other.movedItemList;
+	return *this;
+}
+
+int  HistoryMoveItems::Undo()
+{
+	pHist->MoveItems(-dr, movedItemList);
+	return 1;
+}
+
+int  HistoryMoveItems::Redo()
+{
+	pHist->MoveItems(dr, movedItemList);
+	return 0;
+}
+QRectF HistoryMoveItems::Area() const
+{
+	QRectF rect;
+	for (auto& a : movedItemList)
+		rect = rect.united(pHist->Drawable(a)->Area());
+	return rect;
+}
+
+//---------------------------------------------------
+
 HistoryInsertVertSpace::HistoryInsertVertSpace(History* pHist, int top, int pixelChange) :
 	HistoryItem(pHist, HistEvent::heVertSpace), y(top), heightInPixels(pixelChange)
 {
@@ -1553,6 +1592,12 @@ HistoryItem* History::AddInsertVertSpace(int y, int heightInPixels)
 	return _AddItem(phi);
 }
 
+HistoryItem* History::AddMoveItems(QPointF displacement)
+{
+	HistoryMoveItems* phmv = new HistoryMoveItems(this, displacement, _driSelectedDrawables);
+	return _AddItem(phmv);
+}
+
 HistoryItem* History::AddRotationItem(MyRotation rot)
 {									   // only called when rotation was possible, no need to check here
 	if (!_driSelectedDrawables.size() )
@@ -1604,6 +1649,13 @@ HistoryItem* History::AddPenColorChange(const DrawColors& newdc)
 }
 
 //********************************************************************* History ***********************************
+
+bool History::MoveItems(QPointF displacement, const DrawableIndexVector& driv)
+{
+	if (driv.isEmpty())
+		return false;
+	return _drawables.MoveItems(displacement, driv);
+}
 
 void History::Rotate(HistoryItem* forItem, MyRotation withRotation)
 {

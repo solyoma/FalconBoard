@@ -596,7 +596,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 	else // if (event->spontaneous())
 	{
 #ifndef _VIEWER
-		// key presses for both rubberBand and no rubberBand cituations
+		// key presses for both rubberBand and no rubberBand situations
 		bool bPaste = // _itemsCopied &&
 			((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
 				(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
@@ -689,8 +689,37 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_itemsCopied = true;        // never remove selected list
 			}
 
+			if (bMovementKeys && _mods.testFlag(Qt::ControlModifier))
+			{
+				QPointF dr;	// _totalMoves must be empty here!
+				qreal step = 1;
+				static int cntRepetition = 0;
+				if (!event->isAutoRepeat())
+					cntRepetition = 0;
+				else
+				{
+					step += ++cntRepetition / 5.0;
+
+					qDebug("%s:%d repetition:%d. Step:%g", __FILE__,__LINE__,cntRepetition,step);
+				}
+				switch (key)
+				{
+					case Qt::Key_Up: dr = QPointF(0, -step); break;
+					case Qt::Key_Right:dr = QPointF(step, 0); break;
+					case Qt::Key_Down: dr = QPointF(0, step); break;
+					case Qt::Key_Left: dr = QPointF(-step, 0); break;
+					default: break;
+				}
+				if (_history->MoveItems(dr, _history->SelectedDrawables()))
+				{
+					_totalMoves += dr;
+					_rubberRect.adjust(dr.x(), dr.y(),dr.x(),dr.y());
+					_rubberBand->setGeometry(_rubberRect.toRect());
+					_Redraw();
+				}
+			}
 			// if !bCollected then history's _selectedList is empty, but the rubberRect is set into _selectionRect
-			if ((bCut || bDelete) && bCollected)
+			else if ((bCut || bDelete) && bCollected)
 			{
 				_history->AddDeleteItems();
 				HideRubberBand(true);
@@ -855,7 +884,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_Redraw();
 			}
 		}
-		else if (bMovementKeys)
+		else if (bMovementKeys && !_mods.testFlag(Qt::ControlModifier))
 		{
 			int stepSize = _mods.testFlag(Qt::ControlModifier) ? LargeStep : (_mods.testFlag(Qt::ShiftModifier) ? SmallStep : NormalStep);
 			if (key == Qt::Key_PageUp)
@@ -891,6 +920,15 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 void DrawArea::keyReleaseEvent(QKeyEvent* event)
 {
 	Qt::KeyboardModifiers newmods = event->modifiers();
+
+	if (!_totalMoves.isNull() && (!newmods.testFlag(Qt::ControlModifier) ) )
+	{
+		qDebug("%s:%d key up total:(%g,%g)", __FILE__, __LINE__, _totalMoves.x(), _totalMoves.y());
+		_history->MoveItems(-_totalMoves, _history->SelectedDrawables());	// undo movement as reapplied when we add to history
+		_history->AddMoveItems(_totalMoves);
+		_totalMoves = QPointF();
+	}
+
 	if (_mods.testFlag(Qt::ShiftModifier) && !newmods.testFlag(Qt::ShiftModifier))
 	{
 		_drawStarted = false;

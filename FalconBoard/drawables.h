@@ -33,6 +33,7 @@ enum class HistEvent {
     heNone,
     heDrawable,             // these can be saved on disk, when they are visible
         // these are not saved
+    heAppendFiles,          // file(s) appended to current data
     heBackgroundLoaded,     // an image loaded into _background
     heBackgroundUnloaded,   // image unloaded from background
     heClearCanvas,          // visible image erased
@@ -43,11 +44,11 @@ enum class HistEvent {
                             // last one is at index 'lastScribbleIndex'
                             // Undo: set _indexLastScribbleItem to that given in previous history item
                             // Redo: set _indexLastScribbleItem to 'lastScribbleIndex'
-    heRecolor,              // save old color, set new color
-    heRotation,             // items rotated
+    heMoveItems,
     hePenWidthChange,       // change pen widths for all drawables selected
     hePenColorChanged,      // redefine pen colors
-    heAppendFiles,          // file(s) appended to current data
+    heRecolor,              // save old color, set new color
+    heRotation,             // items rotated
     heSpaceDeleted,         // empty space is deleted
     heVertSpace,            // insert vertical space
                 };
@@ -1424,6 +1425,15 @@ public:
             _pQTree->Remove(which);                 // uses _pItems[which]
 
         _items.erase(_items.begin() + which);   // remove after not in use
+    }
+    bool MoveItems(QPointF dr, const DrawableIndexVector& drl)
+    {
+        for (auto& a : drl)
+            if (!(*this)[a]->CanTranslate(dr))
+                return false;
+        for (auto& a : drl)
+            (*this)[a]->Translate(dr,-1);
+        return true;
     }
     bool TranslateDrawable(int index, QPointF dr, qreal minY)
     {

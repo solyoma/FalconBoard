@@ -233,13 +233,15 @@ private:
         _screenHeight = 1080;
     bool _limited = false;          // true: page width is fixed (= screen width)
     float _ppi = 96;                // pixels per screen inches
-        // printer
-    MyPrinterData _prdata;
+        
+    MyPrinterData _prdata;          // printer
     MyPrinter* _printer = nullptr;
 
             // key states used
     bool    _spaceBarDown = false;  // when true canvas is moved with the mouse or the pen
     Qt::KeyboardModifiers _mods;
+    QPointF _totalMoves;            // when the Ctrl+arrow keys are kept pressed accumulated displacements are collected here
+                                    // new history displacement is only added when either the Ctrl key or the muvement key is released
 
     bool    _drawStarted = false;   // calculate start vector
     bool    _isHorizontal = true;          // when _shiftKeyDown, calculated from first 2 point: (y1-y0 > x1-x0,) +> vertical, etc
