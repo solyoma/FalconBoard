@@ -58,3 +58,5 @@ FalconBoard/*.json
 *.pdf
 *.json
 *temp*
+*.stash
+*~
