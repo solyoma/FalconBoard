@@ -884,7 +884,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_Redraw();
 			}
 		}
-		else if (bMovementKeys && !_rubberBand)
+		else if (bMovementKeys && (!_rubberBand || _rubberBand && !_mods.testFlag(Qt::ControlModifier)) )
 		{
 			int stepSize = _mods.testFlag(Qt::ControlModifier) ? LargeStep : (_mods.testFlag(Qt::ShiftModifier) ? SmallStep : NormalStep);
 			if (key == Qt::Key_PageUp)
