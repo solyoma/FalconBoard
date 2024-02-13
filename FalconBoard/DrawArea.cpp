@@ -2933,7 +2933,8 @@ void DrawArea::_PasteSprite()
 
 void DrawArea::_AddCopiedItems(QPointF pos, Sprite* ps)
 {
-	_history->AddCopiedItems(pos + _topLeft, ps);    // add at window relative position: top left = (0,0)
+	QPointF pt = pos+_topLeft;
+	_history->AddCopiedItems(pt, ps);    // add at window relative position: top left = (0,0)
 	QRectF selRect = _history->SelectionRect();
 	QRectF updateRect = ps ? ps->rect.translated(pos) : selRect.translated(pos - selRect.topLeft());    // original rectangle
 	update(updateRect.toRect());

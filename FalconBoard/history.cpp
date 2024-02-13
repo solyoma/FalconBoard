@@ -2041,7 +2041,7 @@ void HistoryList::CopyToClipboard()
 	data << _copiedRect;
 	data << _copiedItems.Items().size();
 	for (auto sr : _copiedItems.Items())
-		data << sr;
+		data << *sr;
 
 	QMimeData* mimeData = new QMimeData;
 	_copyGUID = QUuid().createUuid();
@@ -2073,26 +2073,51 @@ void HistoryList::GetFromClipboard()
 	if (s.isEmpty() || s.left(19) != "fBClipBoardDataV2.0")
 		return;
 
-	if (_copyGUID != s.mid(19))	// new clipboard data
-	{
+	if (_copyGUID != s.mid(19))	// new clipboard data, otherwise just copied those to _copiedItems
+	{							// and there's no need to get it again from the clipboard
 		_copyGUID = s.mid(19);
 
 		_copiedItems.Clear();
 		QByteArray pclipData = pMime->data(formats[formatIndex]);
 		QDataStream data(pclipData);		  // uses internal QBuffer
 
-		DrawableItem dri;
 
 		QString qs;
 		int cnt;
 
 		data >> _copiedRect;
 		data >> cnt;
+
+		DrawableItem* pdrwh = nullptr;
+		DrawableDot dDot;
+		DrawableCross dCross;
+		DrawableEllipse dEll;
+		DrawableLine dLin;
+		DrawableRectangle dRct;
+		DrawableScribble dScrb;
+		DrawableText dTxt;
+		DrawableScreenShot dsImg;
+
+		DrawableItem dri;
 		while (cnt--)
 		{
-			data >> dri.dtType;	
-			data >> dri;			// this must be called after type was read
-			_copiedItems.AddDrawable(&dri);
+			data >> dri;	// reads type and common data,including erasers
+
+			switch (dri.dtType)
+			{
+				case DrawableType::dtCross:			(DrawableItem&)dCross= dri; data >> dCross	;pdrwh = new DrawableCross(dCross)		;break;
+				case DrawableType::dtDot:			(DrawableItem&)dDot  = dri; data >> dDot	;pdrwh = new DrawableDot(dDot)			;break;
+				case DrawableType::dtEllipse:		(DrawableItem&)dEll  = dri; data >> dEll	;pdrwh = new DrawableEllipse(dEll)		;break;
+				case DrawableType::dtLine:			(DrawableItem&)dLin  = dri; data >> dLin	;pdrwh = new DrawableLine(dLin)			;break;
+				case DrawableType::dtRectangle:		(DrawableItem&)dRct  = dri; data >> dRct	;pdrwh = new DrawableRectangle(dRct)	;break;
+				case DrawableType::dtScreenShot:	(DrawableItem&)dsImg = dri; data >> dsImg	;pdrwh = new DrawableScreenShot(dsImg)	;break;
+				case DrawableType::dtScribble:		(DrawableItem&)dScrb = dri; data >> dScrb	;pdrwh = new DrawableScribble(dScrb)	;break;
+				case DrawableType::dtText:			(DrawableItem&)dTxt  = dri; data >> dTxt	;pdrwh = new DrawableText(dTxt)			;break;
+				default: break;
+			}
+			if (pdrwh && (int)dri.dtType < (int)DrawableType::dtNonDrawableStart)	// only add drawables
+				_copiedItems.AddDrawable(pdrwh);
+			dri.erasers.clear();
 		}
 	}
 }

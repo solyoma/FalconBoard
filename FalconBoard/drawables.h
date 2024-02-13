@@ -53,7 +53,7 @@ enum class HistEvent {
     heVertSpace,            // insert vertical space
                 };
 
-enum class DrawableType {
+enum class DrawableType : int {
     dtNone,
     dtCross,            // an X as a marker
     dtDot,              // single dot
@@ -966,7 +966,7 @@ public:
             //----------------------------------------------------
 class DrawableList
 {                                     
-    DrawableItemList _items,
+    DrawableItemList _items,              // pointers to drawables in memory
                      _redoItems;
 
     QuadTreeDelegate* _pQTree = nullptr;  // contains indices in _pItems, NOT created and not deleted in this class

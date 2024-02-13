@@ -702,6 +702,7 @@ public:
         // called to initialize pointers to  data in 'DrawArea'
     const DrawableList& CopiedItems() const { return _copiedItems;  }
     QRectF const CopiedRect() const { return _copiedRect; }
+    inline History* PActHistory() { return (*this)[_actualHistoryIndex]; }
     History*& operator[](int index)     // will throw if index < 0 && _actualHistoryIndex < 0
     {
         if (index < 0)
@@ -713,8 +714,9 @@ public:
 		}
     }
 
-    void CopyToClipboard();    // uses _pCopiedItems and _pCopiedImages so these must be setup first
-    void GetFromClipboard(); // only if the clipboard data is not the same as data in memory gets data from clipboard
+    void CopyToClipboard();     // uses _pCopiedItems and _pCopiedImages so these must be setup first
+    void GetFromClipboard();    // when clipboard data already in memory returns the copied sata
+                                // else return a list of newly allocated drawables from clipboard
 };
 
 QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness = 0.0, Qt::MaskMode mode = Qt::MaskInColor);
