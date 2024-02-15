@@ -430,12 +430,12 @@ bool MyRotation::RotateLine(QLineF& line, QPointF center, bool noCheck)
 	if (flipType == rotFlipH)
 	{
 		l.setP1(QPointF(-l.p1().x(), l.p1().y()));
-		l.setP2(QPointF(-l.p1().x(), l.p1().y()));
+		l.setP2(QPointF(-l.p2().x(), l.p2().y()));
 	}
 	else if (flipType == rotFlipV)
 	{
 		l.setP1(QPointF(l.p1().x(), -l.p1().y()));
-		l.setP2(QPointF(l.p1().x(), -l.p1().y()));
+		l.setP2(QPointF(l.p2().x(), -l.p2().y()));
 	}
 	l.translate(center);
 	if (noCheck || (l.p1().x() >= 0 && l.p1().y() >= 0 && l.p2().x() >= 0 && l.p2().y() >= 0))
