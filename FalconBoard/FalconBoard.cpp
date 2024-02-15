@@ -1196,6 +1196,9 @@ void FalconBoard::_SetWindowTitle(QString qs)
         qs = sWindowTitle;
     else
         qs = sWindowTitle + QString(" - %1").arg(qs);
+#ifdef _DEBUG
+    qs += QString("- Debug version");
+#endif
     setWindowTitle(qs);
 }
 

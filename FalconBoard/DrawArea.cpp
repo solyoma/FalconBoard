@@ -1318,7 +1318,7 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 }
 
 /*=============================================================
- * TASK:	MyButtonreleaseEvent
+ * TASK:	MyButtonReleaseEvent
  * PARAMS:
  * GLOBALS:
  * RETURNS:

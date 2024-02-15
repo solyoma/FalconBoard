@@ -1539,37 +1539,44 @@ HistoryItem* History::AddCopiedItems(QPointF topLeft, Sprite* pSprite)			   // t
   // ------------add bottom item
 
 	HistoryDeleteItems* phd = nullptr;
+	bool mustUseEnvelop = pCopiedItems->Size() > 1 || (pSprite && pSprite->itemsDeleted);
 	if (pSprite && pSprite->itemsDeleted)	// then on top of _items there is a HistoryDeleteItems
 	{										// which has to be moved above the past bottom item
 		phd = (HistoryDeleteItems*)_items[_items.size() - 1];	// pointer to HistoryDeleteItems
 		_items.pop_back();
 	}
-	// -------------- add the bottom item --------
+	// -------------- add the bottom item but only for more than one item, or one with deleted items --------
 	int indexOfBottomItem = _items.size();
-	HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, indexOfBottomItem, pCopiedItems->Size());
-	_AddItem(pb);
-	if (pSprite)
+	if (mustUseEnvelop)
 	{
-		pb->moved = pSprite->itemsDeleted ? 1 : 0;
-		_AddItem(phd);
+		HistoryPasteItemBottom* pb = new HistoryPasteItemBottom(this, indexOfBottomItem, pCopiedItems->Size());
+		_AddItem(pb);
+		if (pSprite)
+		{
+			pb->moved = pSprite->itemsDeleted ? 1 : 0;
+			_AddItem(phd);
+		}
 	}
-
+	HistoryDrawableItem* p = nullptr;
 	//----------- add drawables
 	for (auto &si : pCopiedItems->Items() )
 	{
 		si->Translate(topLeft, -1);		// transforms original item
 		si->zOrder = -1;	// so it will be on top
-		HistoryDrawableItem* p = new HistoryDrawableItem(this, *si);	   // just a copy, si's data remains where it was
+		p = new HistoryDrawableItem(this, *si);	   // just a copy, si's data remains where it was
 		_AddItem(p);
 		si->Translate(-topLeft, -1);	// transform back original item
 	}
 	// ------------Add Paste top marker item
-	QRectF rect = pCopiedRect->translated(topLeft);
-	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->Size(), rect);
-	if (pSprite)
-		pt->moved = pSprite->itemsDeleted ? 1 : 0;		// mark it moved
-
-	return _AddItem(pt);
+	if (mustUseEnvelop)
+	{
+		QRectF rect = pCopiedRect->translated(topLeft);
+		HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, indexOfBottomItem, pCopiedItems->Size(), rect);
+		if (pSprite)
+			pt->moved = pSprite->itemsDeleted ? 1 : 0;		// mark it moved
+		return _AddItem(pt);
+	}
+	return p;	// last added item
 }
 
 HistoryItem* History::AddRecolor(FalconPenKind pk)
@@ -2066,8 +2073,23 @@ void HistoryList::GetFromClipboard()
 			formatIndex = i;
 			break;
 		}
-	if (formatIndex < 0)	// not our data
+
+	if (formatIndex < 0)	// not our data Maybe an image
+	{
+		QImage img = _pClipBoard->image();
+		if (!img.isNull())
+		{
+			_copiedItems.Clear();
+			DrawableScreenShot *pDsi = new DrawableScreenShot();
+			QPixmap pxm; pxm.convertFromImage(img);
+			_copiedRect = pxm.rect();
+			pDsi->refPoint = _copiedRect.center();
+			pDsi->SetImage(pxm);
+			(*this)[-1]->SetSelectionRect(_copiedRect);	// history->-selectionRect
+			_copiedItems.AddDrawable(pDsi);
+		}
 		return;
+	}
 
 	QString s = _pClipBoard->text();
 	if (s.isEmpty() || s.left(19) != "fBClipBoardDataV2.0")
@@ -2078,6 +2100,7 @@ void HistoryList::GetFromClipboard()
 		_copyGUID = s.mid(19);
 
 		_copiedItems.Clear();
+
 		QByteArray pclipData = pMime->data(formats[formatIndex]);
 		QDataStream data(pclipData);		  // uses internal QBuffer
 
