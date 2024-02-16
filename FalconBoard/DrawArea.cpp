@@ -2410,7 +2410,7 @@ void DrawArea::Undo()               // must draw again all underlying drawables
 {
 	if (_history->CanUndo())
 	{
-		HideRubberBand(true);
+		HideRubberBand(true);	// and remove
 
 		HistoryItem* phi = _history->LastItem();	// before undo
 		_history->Undo();

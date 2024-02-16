@@ -343,6 +343,11 @@ void FalconBoard::RestoreState()
             }
         }
         _nLastTab = s->value(LASTTAB, 0).toInt();
+        if (_pTabs->count() == 0)
+        {
+            _nLastTab = 0;
+            _AddNewTab();
+        }
     }
     else if (paramsList.size() == 1)       // nothing to restore: create new empty tab
         _AddNewTab();    // + new empty history

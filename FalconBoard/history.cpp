@@ -529,13 +529,13 @@ QRectF HistoryInsertVertSpace::Area() const
 //---------------------------------------------------------
 
 HistoryRotationItem::HistoryRotationItem(History* pHist, MyRotation rotation, QRectF rect, DrawableIndexVector selList) :
-	HistoryItem(pHist, HistEvent::heRotation), rot(rotation), driSelectedDrawables(selList), encRect(rect)
+	HistoryItem(pHist, HistEvent::heRotation), rot(rotation), driSelectedDrawables(selList), encRect(rect), center(rect.center())
 {
 	Redo();
 }
 
 HistoryRotationItem::HistoryRotationItem(const HistoryRotationItem& other) :
-	HistoryItem(other.pHist), rot(other.rot), driSelectedDrawables(other.driSelectedDrawables), encRect(other.encRect)
+	HistoryItem(other.pHist), rot(other.rot), driSelectedDrawables(other.driSelectedDrawables), encRect(other.encRect),center(other.center)
 {
 	
 }
@@ -546,6 +546,7 @@ HistoryRotationItem& HistoryRotationItem::operator=(const HistoryRotationItem& o
 	rot = other.rot;
 	driSelectedDrawables = other.driSelectedDrawables;
 	encRect = other.encRect;
+	center = other.center;
 
 	return *this;
 }
@@ -577,8 +578,7 @@ int HistoryRotationItem::Undo()
 
 int HistoryRotationItem::Redo()
 {
-	center = pHist->SelectionRect().center();
-	if (!pHist->RotateSelected(rot))
+	if (!pHist->RotateSelected(rot))	// '_driSelectedDrawables', uses then recalculates pHist->_selectionRect
 	{
 		encRect = QRectF();
 		return 0;

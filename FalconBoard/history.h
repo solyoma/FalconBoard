@@ -321,7 +321,7 @@ struct HistoryRotationItem : public HistoryItem
     DrawableIndexVector driSelectedDrawables;
     QRectF encRect;         // encompassing rectangle: before rotation all items are inside this
                             // after rotation they are usually not 
-    QPointF center;
+    QPointF center;         // rotate around this point (0,0): not yet set
     HistoryRotationItem(History* pHist, MyRotation rotation, QRectF rect, DrawableIndexVector selList);
     HistoryRotationItem(const HistoryRotationItem& other);
     HistoryRotationItem& operator=(const HistoryRotationItem& other);
