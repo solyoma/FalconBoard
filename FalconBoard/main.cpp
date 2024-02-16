@@ -92,7 +92,6 @@ int main(int argc, char *argv[])
 
 //	FalconBoard w;
 #if defined(_DEBUG)
-
 	#ifdef _VIEWER
 		w.setWindowTitle(QObject::tr("FalconBoard Viewer - Debug version"));
 	#else

@@ -1,15 +1,16 @@
-﻿# ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png) FalconBoard
-Last modified/utolsó változtatás: Sept. 24. 2023
+﻿# ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png) 
+Last modified/utolsó változtatás: Feb. 16. 2024
 (A magyar nyelvű leírást az angol után találod)
 
-FalconBoard is a cross platform open source 
-whiteboard / blackboard application with unique features that makes it 
-perfectly suited for classroom or for online lectures. It has a semi 
-infinite canvas, unlimited drawings, unlimited undo and redo, colored 
-pens of different width, screen capture, printout, PDF output and more (see below).
+# FalconBoard
+is a cross platform open source whiteboard / blackboard application with 
+unique features that makes it perfectly suited for classroom or for online 
+lectures. It has a semi-infinite canvas, unlimited drawings, unlimited undo 
+and redo, colored pens of different width, screen capture, printout, PDF 
+output and more (see below).
 
-The project also contains a separate viewer that only displays and prints
-saved drawings, but cannot modify them or create PDFs.
+*The project also contains a separate viewer that only displays and prints
+saved drawings, but cannot modify them or create PDFs.**
 
 ## Screenshots:
 ![falconBoard-dark-mode](https://user-images.githubusercontent.com/37068759/121942239-8d803700-cd50-11eb-8493-e239f46e7da7.jpg)
@@ -17,19 +18,18 @@ saved drawings, but cannot modify them or create PDFs.
 ## Features (Version 2.x) : 
 
    -  Works under Windows and Linux, and (I hope) on Macs too.
-      did not try to compile it to Android or iOs
-   -  interface languages are US English and Hungarian, selectable from the 
-      program
-   -  Usable with the mouse and with a Wacom graphics tablet. 
-        (No Android or iOS versions (yet?))
+      (did not even try to compile it on Android or iOS)
+   -  Two interface languages: US English and Hungarian, selectable  
+      from inside the program.
+   -  Can be used with the mouse and with pen input (a Wacom graphics tablet. 
    -  System, dark and black interface modes.
    -  Maximum 30 documents can be open at the same time
    -  Freehand drawing with five different colored pens. Colors depend on
       interface modes (light/dark): black/white, red, green, blue/lighter blue, 
-      yellow/magenta and (new) can be freely defined for each documents.
-   -  Widths of each pens and the Eraser are adjustable separately.
+      yellow/magenta and (from v2.3.0) can be freely defined for each document.
+   -  Widths of each pen and the Eraser are adjustable separately.
    -  Draw straight lines which may also be exactly horizontal or vertical.
-   -  Draw empty or filled rectangles, ellipses or circles
+   -  Draw empty or opaque rectangles, ellipses or circles
    -  Unlimited Undo/Redo during a single session.
    -  "Unlimited" scrolling from top of "paper" by the keyboard 
       (Left, Right, Up, Down, PgUp,PgDown, Home, End, 
@@ -40,11 +40,11 @@ saved drawings, but cannot modify them or create PDFs.
    -  Mark a rectangular area with the right button on mouse or tablet. 
         If the Shift key is kept down during selection the selection will
         be a square.
-        If the area contained any complete drawings or screenshots then 
+        If the area contains any complete drawings or screenshots then 
         the selection will constrict around those.
-	 -  Press the Alt key before letting the mouse button up makes the 
-		    selection not constrict to any elements inside it.
-	 - If The Alt key is kept pressed during selection the selection will
+	 -  Press the Alt key before letting the mouse button up to make the 
+		    selection not to constrict to any elements inside it.
+	 - If The Alt key is kept down during selection the selection will
 		    expand from the original start position and will not constrict
 		    when the button is released. This way you can draw concentric
 		    circles or rectangles.
@@ -63,29 +63,32 @@ saved drawings, but cannot modify them or create PDFs.
 			        or BackSpace keys.
             - lines completely under the marked area can be re-colored by
 			        clicking on the pen color buttons or pressing 1..5.
-            - change the line widths of drawings inside the selection with the
-              right (]) and left ([) bracket keys
+            - line widths of drawings inside the selection can be changed
+              using the right (]) and left ([) bracket keys
         - if the selected area is empty you can:
               delete empty space from the right or from below with the Del key. 
         - copy / cut marked area and paste it into any open drawings at at any 
           position, even into new documents
+        - paste images from the clipboard (from v2.3.6)
         - press F7 to rotate the selected area right or left with any angle. Use
           Ctrl+F7 to repeat the last rotation.
-        - Rotat 9ö degrees by '1' or 'ö', 18ö degrees by '8', mirror vertically
-          or horizontally by 'V' and 'H'.
+        - Rotate 90 degrees left by pressing '9' or right by pressing '0',
+          180 degrees by '8', mirror vertically or horizontally by 'V' and 'H'.
    -  Optional saving and loading sessions, option to automatic save of data
       and background image on exit.
    -  Print the whole document or a range of it. (Qt 15 does not make it possible
-      to print just the current page or a list of pages.)
-      (Even documents created in a dark mode can be printed as light mode ones to
-      save paint.)
+      to print just the current page or a list of pages. Workaround: export as pdf
+      and print from that.)
+   - Even documents created in a dark mode can be printed as light mode ones to
+      save paint.
    -  You may set a static background image: all you draw are on a different layer above
         the background.
-   -  Take a screenshot with F4 from any rectangular area of the desktop and
+   -  Use screenshots: 
+    - Take a screenshot with F4 from any rectangular area of the desktop and
       paste it into the middle of the screen to show or connotate. (After paste
-      you may move it around like any drawings.)  You may select a color to make 
-      portion of the screenshot transparent.
-      Ctrl+Click on a screenshot to mark it.
+      you may move it around like any drawings.)  
+    - You may select a color to make portion of the screenshot transparent.
+    - Ctrl+Click on a screenshot to mark it.
   -   Draw straight horizontal or vertical lines :press the left mouse button or 
         press the pen to the tablet THEN press and hold the Shift key and start
         drawing).
@@ -127,10 +130,10 @@ saved drawings, but cannot modify them or create PDFs.
   and you are ready to go.
   
   If you have downloaded the ZIP and there were only sub-version changes 
-  (like from 1.1.x to 1.1.y , but now for 2.0 also) you only need the new executables. 
+  (like from 2.0.x to 2.3.y) you only need the new executables. 
   Unpack them into the same folder where the previous release resides.
 
-  ## --------------------------------------
+## --------------------------------------
 
   *FalconBoard* egy platformfüggetlen, nyílt forráskódú "rajztábla" alkalmazás, amit a
   COVID alatti távoktatásrfa készítettem, olyan speciális tulajdonságokkal, amik
@@ -142,72 +145,73 @@ saved drawings, but cannot modify them or create PDFs.
   Ugyanez a projekt tartalmaz egy nézegetőt (FalconBoardViewer), amivel az elmentett
   (nem PDF) fájlokat megnézhetjük, de nem módosíthatjuk.
   
-    ## Képernyőfotók:
+## Képernyőfotók:
   ld. fent az angol részben
 
-    ## Tulajdonságok (2.x verziók):
+## Tulajdonságok (2.x verziók):
 
-    - Működik Windows-on és linuxon és (remélem MAC-eken is)
-    - Jelenleg kétnyelvű: magyar és angol, ami a programból választható
-    - világos és sötét mód választhatóa programból
-    - Egérrel és Wacom kompatibilis grafikus tabletek tollával is használható
-    - Maximum 30 dokumentum szerkeszthető párhuzamosan
-    - Szabadkézi rajzolás 5 különböző, programban átdefiniálható, akár minden
-      dokumentumban más színű tollal, amelyek színe a világos/sötét módokban
-      különböző lehet. Az alapértelmezett színek (világos/sötét -módok): 
-      fekete/fehér, piros, zöld, kék/világoskék és bíbor/sárga.
-    - a tollak és a Radir vastagsága választható
-    - húzhatsz egyenes vonalakat, amelyek lehetnek pontosan vízszintesek vagy 
-      fügőlegesek is.
-    - rajzolhatsz üres, vagy kitöltött téglalapok/négyzetek és ellipszisek/köröket
-    - "végtelen sok" visszavonás és újra alkalmazás lehetséges minden megnyitott
-      dokumentumban
-    - "végtelen" görgetés a "vászon/papír" bal felső sarkához képest mindkét
-      irányban a billentyűzettel, illete az egérrel/tollal
-    - a legtöbb funkció billentyűzetkombinációkkal könnyen elérhető (F1- súgó)
-    - az egész dokumentum PDF fájlba exportálása
-    - Kijelölhetsz egy téglalap alakú tartományt a jobb gombbal. 
-        - Ha Shift-et is nyomva tartod négyzet alakú lesz a kijelölés.
-        - Ha a kijelölt tartományban vannak teljes vonalak, illetve alakzatok és
-          képek a kijelölés összehúzodik köréjük és ezzel kiválastja azokat.
-          Ha ezt nem akarjuk, akkor nyomjuk be az Alt-ot mielőtt felengedjük az 
-          egér/toll gombját.
-        - A kijelölt tartományba téglalapot, illetve ellipszist rajzolhatsz az
-          'R', ill. 'C' gombokkal
-        - A kijelölt tartományba eső alakzatokat a DEL gombbal kitörölheted.
-          Üres (vagy Alt-al kijelölt) terület esetén az F5 gomb egy üres 
-          területet hoz létre, a kijelőlés tetejétől a kijelölés magsságával. 
-          (Azaz minden, a kijelölés teteje alatti vonalat és képet eltol
-          lefele.)
-        - A kijelölt vonalak vastagsátáa a '[' és ']' gombokkal változtathatod
-        - A kijelölés középpontját megjelölheted a '.', ill.'X' billentyűkkel
-        - A kijelölt tartományba eső objektumokat mozgathatod az egérrel, ill. a tollal,
-          vágólapra másolhatod, ami után bármelyik dokumentumba beillesztheted. 
-          A beillesztés helyét a pillanatnyi egér/toll pozíció adja meg.
-        - Az F7 gombbal tetszőleges szögben elforgathatod a kijelölést. 
-          A Ctrl+F7-el pedig az utolsó forgatás szögével. Az '1','0' gombok 90 
-          fokkal, a '8' gomb 180 fokkal forgat a 'V' és 'H' gombok függőlegesen
-          illetve vízszintesen tükrözik a kijelölt területet.
-    - Képernyő részlet kivágás ('képernyőfotó') az F4 gombbal éa bal egérgombos
-      kijelöléssel.
-    - a látható terület képként is elmenthető
+  - Működik Windows-on és linuxon és (remélem MAC-eken is)
+ - Jelenleg kétnyelvű: magyar és angol, ami a programból választható
+ - világos és sötét mód választhatóa programból
+ - Egérrel és Wacom kompatibilis grafikus tabletek tollával is használható
+ - Maximum 30 dokumentum szerkeszthető párhuzamosan
+ - Szabadkézi rajzolás 5 különböző, programban átdefiniálható, akár minden
+   dokumentumban más színű tollal, amelyek színe a világos/sötét módokban
+   különböző lehet. Az alapértelmezett színek (világos/sötét -módok): 
+   fekete/fehér, piros, zöld, kék/világoskék és bíbor/sárga.
+ - a tollak és a Radir vastagsága választható
+ - húzhatsz egyenes vonalakat, amelyek lehetnek pontosan vízszintesek vagy 
+   fügőlegesek is.
+ - rajzolhatsz üres, vagy kitöltött téglalapok/négyzetek és ellipszisek/köröket
+ - "végtelen sok" visszavonás és újra alkalmazás lehetséges minden megnyitott
+   dokumentumban
+ - "végtelen" görgetés a "vászon/papír" bal felső sarkához képest mindkét
+   irányban a billentyűzettel, illete az egérrel/tollal
+ - a legtöbb funkció billentyűzetkombinációkkal könnyen elérhető (F1- súgó)
+ - az egész dokumentum PDF fájlba exportálása
+ - Kijelölhetsz egy téglalap alakú tartományt a jobb gombbal. 
+     - Ha Shift-et is nyomva tartod négyzet alakú lesz a kijelölés.
+     - Ha a kijelölt tartományban vannak teljes vonalak, illetve alakzatok és
+       képek a kijelölés összehúzodik köréjük és ezzel kiválastja azokat.
+       Ha ezt nem akarjuk, akkor nyomjuk be az Alt-ot mielőtt felengedjük az 
+       egér/toll gombját.
+     - A kijelölt tartományba téglalapot, illetve ellipszist rajzolhatsz az
+       'R', ill. 'C' gombokkal
+     - A kijelölt tartományba eső alakzatokat a DEL gombbal kitörölheted.
+       Üres (vagy Alt-al kijelölt) terület esetén az F5 gomb egy üres 
+       területet hoz létre, a kijelőlés tetejétől a kijelölés magsságával. 
+       (Azaz minden, a kijelölés teteje alatti vonalat és képet eltol
+       lefele.)
+     - A kijelölt vonalak vastagságát a '[' és ']' gombokkal változtathatod
+     - A kijelölés középpontját megjelölheted a '.', ill.'X' billentyűkkel
+     - A kijelölt tartományba eső objektumokat mozgathatod az egérrel, ill. a tollal,
+       vágólapra másolhatod, ami után bármelyik dokumentumba beillesztheted. 
+       A beillesztés helyét a pillanatnyi egér/toll pozíció adja meg.
+     - Nem csak a FalconBoardból kimásolt elemeket, de a vágólapon levő
+       képeket is beillesztheted a dokumentumodba. (2.3.6-tól)
+     - Az F7 gombbal tetszőleges szögben elforgathatod a kijelölést. 
+       A Ctrl+F7-el pedig az utolsó forgatás szögével. Az '1','0' gombok 90 
+       fokkal, a '8' gomb 180 fokkal forgat a 'V' és 'H' gombok függőlegesen
+       illetve vízszintesen tükrözik a kijelölt területet.
+ - Képernyő részlet kivágás ('képernyőfotó') az F4 gombbal éa bal egérgombos
+   kijelöléssel.
+ - a látható terület képként is elmenthető
     
-    Nyílt forráskódú (ld. Copyright)
+ Nyílt forráskódú (ld. Copyright)
         felhasználtam néhány ikont [PikaJian's Whitepad projectjéből](https://github.com/PikaJian)
         de semmilyen kódot nem
         A 'Quadtree' kód viszont [PVigier](https://github.com/pvigier/Quadtree)
         A program nyelve C++
     Visual Studio és Qt projekt fájlokat adok
-
- * A program lefordítása
+* A program lefordítása
  
-    Qt 5.15.2 -vel kell fordítani (Qt 6.x-el nem próbáltam)
+    Qt 5.15.2 -vel kell fordítani (Qt 6.x-el nem próbáltam.)
   - Microsoft Windows 10 és 11 alatt a Microsoft Visual Studio 2019/2022-tel fordítható, amihez
     a [Qt VS Tools](https://marketplace.visualstudio.com/items?itemName=TheQtCompany.QtVisualStudioTools-19123)
     kiterjesztést használtam
   - Linuxon a PRO fájlokat kell használni
   
- * Telepítés
+* Telepítés
     
     A programot nem kell telepíteni. A parancsfájlokat (FalconBoar.exe, FalconViewer.exe) és az ikon fájlt
     (FalconBoard.ico), illetve, amennyiben ezek nincsenk fent a rendszerben a Qt (és Windows alatt a Microsoft
@@ -216,14 +220,12 @@ saved drawings, but cannot modify them or create PDFs.
      *AppData\Local\FalconBoard* mappája, Linux a felhasználó könyvtárában levő rejtett *.falconBoard* mappába)
      elhelyezett .ini fájlban van elmentve.)
  
- * Eltávolítás
+* Eltávolítás
  
     Töröld le a program mappát és ha későbbre nem kell, az itt megadott saját mappákat is.
   
- * Programverziók a GitHub-on
+* Programverziók a GitHub-on
     Mindegyikhez két ZIP fájl tartozik. Az egyikben ('FalconBoard_vX.Y.Z_Executables_Only.Zip')
     csak a futtatható programok és az ikon fájl, a másikban ('FalconBoard_vX.Y.Z_Release.ZIP')
     az összes fájl benne van. Az utóbbira csak új telepítés esetén, illetve akkor van szükség, 
     ha a program fő verziószáma változik. Egyszerűen felül ekell velük írni a régebbit.
-
-
