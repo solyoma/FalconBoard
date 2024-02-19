@@ -15,7 +15,7 @@ Nem FalconBoard fájl</translation>
         <source>File
 &apos;%1&apos;
  not found</source>
-        <translation>A &apos;%1&apos;\nNevű fájl nem található</translation>
+        <translation>A &apos;%1&apos; nevű fájl nem található</translation>
     </message>
     <message>
         <location filename="../FalconBoard/DrawArea.cpp" line="289"/>
@@ -70,43 +70,43 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="526"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="538"/>
         <source>%1...</source>
         <translation>%1...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="574"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="586"/>
         <source>Pen Width:</source>
         <translation>Toll vastagság:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="588"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="600"/>
         <source>Grid size:</source>
         <translation>Rács mérete:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="645"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="657"/>
         <source>Falconboard - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="645"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="657"/>
         <source>Too many open files</source>
         <translation>Túl sok fájl - nem tudok többet megnyitni</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="735"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="747"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation>&lt;i&gt;%1&lt;/i&gt; megváltozott. Elmentsem a változásokat?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1160"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1172"/>
         <source>C&amp;lear list</source>
         <translation>Lista &amp;Törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1331"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1343"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
@@ -117,62 +117,62 @@ Do you want to save your changes?</source>
  Ezt bármikor megváltoztathatod a &lt;i&gt;Lehetőségek/Lapszélesség korlátozása&lt;/i&gt; menüben.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1338"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1350"/>
         <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
  You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
         <translation>Lekorlátozzam a lap vízszintes méretét a&apos; Lapbeállítás&apos; menüben megadott szélességre?
 Ezt bármikor megváltoztathatod a &apos;Lehetőségek/Lapszélesség korlátozása&apos;  menüben</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1352"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1364"/>
         <source>FalconBoard - Import</source>
         <translation>FalconBoard - Importálás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1422"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1434"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1428"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1440"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation>Valószínűleg túl sok fájlt próbáltál megnyitni! Csak az első %1 darab még nem betöltött fájlt lehet betölteni.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1484"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1626"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1496"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1638"/>
         <source>Load Data</source>
         <translation>Adatok betöltése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1486"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1628"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1498"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1640"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation>FalconBoard fájl (*.mwb);;Minden fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1523"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1535"/>
         <source>FalconBoard - Go to Page</source>
         <translation>FalconBoard - Ugrás adott oldalra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1523"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1535"/>
         <source>Page:</source>
         <translation>Oldal:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1681"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1693"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation>Nyilt forráskódú tantermi tábla alkalmazás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1683"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1695"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt;&lt;p&gt;A QuadTree kódot innen vettem:&lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2237"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2249"/>
         <source>export</source>
         <translation>export</translation>
     </message>
@@ -182,38 +182,38 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="vanished">FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1575"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1587"/>
         <source>Please restart the program to change the language!</source>
         <translation>Indítsd újra programot anyelvváltáshoz!</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1609"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1666"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1621"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1678"/>
         <source>Save As</source>
         <translation>Mentés másként</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1610"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1622"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation>FalconBoard fájlok (*.mwb);; Mindenl Fájl (*))</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1644"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1656"/>
         <source>Open Background Image</source>
         <translation>Háttérkép megnyitása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1668"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1680"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation>%1 Fájlok (*.%2);;Mindenl Fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1680"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1692"/>
         <source>About FalconBoard</source>
         <translation>FalconBoard - Névjegy</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1682"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1694"/>
         <source>&lt;p&gt;Version </source>
         <translation>&lt;p&gt;Verzió </translation>
     </message>
@@ -222,12 +222,12 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="obsolete">&lt;p&gt;© A. Sólyom (2020-21)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt; {2020)?}</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1826"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1838"/>
         <source>falconBoard - Grid spacing</source>
         <translation>FalconBoard - rácsméret</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1827"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1839"/>
         <source>Spacing in pixels:</source>
         <translation>A távolság pixelben:</translation>
     </message>
@@ -1854,7 +1854,7 @@ El akarod menteni a változtatásokat?</translation>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="695"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="707"/>
         <source>Save Visi&amp;ble As...</source>
         <translation>&amp;Látható mentése más néven...</translation>
     </message>

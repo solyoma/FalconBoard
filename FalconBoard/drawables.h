@@ -64,8 +64,10 @@ enum class DrawableType : int {
     dtScribble,         // series of points from start to finish of scribble, eraser strokes added to  scribble
     dtText,
 
+    dtDrawableTop = dtText,
     dtNonDrawableStart = 0x80,   // it is dealt with DrawableItem::operator>>() and DrawableItem::operator<<() 
     dtPen = dtNonDrawableStart,  // pen data for redefined pens
+    dtNonDrawableEnd,            // end of drawables
 };
  // determined from the number of points
 enum ScribbleSubType { sstScribble,     // any number

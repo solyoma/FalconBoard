@@ -1145,7 +1145,7 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 		return 1;			//  no record loaded, but this is not an error
 
 	if (!force && _fileName == _loadedName)	// already loaded?
-		return _readCount;
+		return _items.count();	// can't use _readCount
 
 	DrawableItem::yOffset = 0.0;
 
@@ -1166,11 +1166,17 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 	Clear();
 	
 	int res;
-	if ((version_loaded & 0x00FF0000) < 0x020000)
-		res = _LoadV1(ifs, version_loaded);
-	else
-		res = _LoadV2(ifs, version_loaded);
-						 
+	try
+	{
+		if ((version_loaded & 0x00FF0000) < 0x020000)
+			res = _LoadV1(ifs, version_loaded);
+		else
+			res = _LoadV2(ifs, version_loaded);
+	}
+	catch (...)
+	{
+		return 0;		// invalid file
+	}
 	f.close();
 	return res;
 }
@@ -1405,6 +1411,7 @@ int History::_LoadV1(QDataStream &ifs, qint32 version)
 	_loadedName = _fileName;
 	return 	_readCount = _lastSaved += res;
 }
+
 int History::_LoadV2(QDataStream&ifs, qint32 version_loaded)
 {
 	uint16_t u = 0;

@@ -284,7 +284,7 @@ bool DrawColors::ReadPen(QDataStream& ifs)      // type already read in
     int cnt = 0;
     int n;
     ifs >> n; // 'pk'
-    if (n > 1 && n < PEN_COUNT) // no pen data may be read for none or eraser or black
+    if (n > 1 && n < PEN_COUNT) // no pen data is read for none (n=-1) or eraser(n==0) or black(n==1)
     {
         FalconPenKind pk = (FalconPenKind)n;
         QString sl,sd;

@@ -659,7 +659,10 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 {
 	int n;
 	ifs >> n; di.dtType = (DrawableType)n;
-	// special handling for data of not really drawables
+	if ((n >= (int)DrawableType::dtDrawableTop && n <= (int)DrawableType::dtNonDrawableStart) ||
+		n > (int)DrawableType::dtNonDrawableEnd)
+		throw("Bad File");
+	// special handling for data of not really drawables e.g. pen color data
 	if (n >= (int)DrawableType::dtNonDrawableStart)
 		return ifs;
 

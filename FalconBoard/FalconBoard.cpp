@@ -343,11 +343,18 @@ void FalconBoard::RestoreState()
             }
         }
         _nLastTab = s->value(LASTTAB, 0).toInt();
-        if (_pTabs->count() == 0)
+        int tabCount = _pTabs->count();
+        if (tabCount == 0)   // files were deleted outside of this program
         {
-            _nLastTab = 0;
-            _AddNewTab();
+            _nLastTab = -1;
+            if (paramsList.size() == 1)  // and no command line parameters (no double click on *.mwb file)
+            {
+                _AddNewTab();     // + new empty history
+                _nLastTab = 0;
+            }
         }
+        else if (tabCount < _nLastTab + 1)
+            _nLastTab = tabCount - 1;
     }
     else if (paramsList.size() == 1)       // nothing to restore: create new empty tab
         _AddNewTab();    // + new empty history
@@ -2253,5 +2260,3 @@ void FalconBoard::SlotForChkGridOn(bool checked)
         return;
     on_actionShowGrid_triggered();
 }
-
-
