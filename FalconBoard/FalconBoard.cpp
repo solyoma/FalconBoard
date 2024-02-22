@@ -1618,12 +1618,30 @@ void FalconBoard::on_actionSaveAs_triggered() // current tab
     int n = fname.length() - 1;
 
     QString initialPath = _lastDir + fname; 
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
-                        initialPath, tr("FalconBoard Files (*.mwb);; All Files (*))"));
-    if (fileName.isEmpty())
+    QString fileName;
+    bool askForName = true;
+    while(askForName)
     {
-        _saveResult = srCancelled;
-        return;
+        fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
+            initialPath, tr("FalconBoard Files (*.mwb);; All Files (*))"));
+        if (fileName.isEmpty())
+        {
+            _saveResult = srCancelled;
+            return;
+        }
+        askForName = false; // if name is not a name of another open document then break the loop
+        for (int i = 0; i < historyList.size(); ++i)
+        {
+            if (i != historyList.ActualHistory() && historyList[i]->Name() == fileName)
+            {
+                QMessageBox::StandardButton res = QMessageBox::warning(this, tr("FalconBoard - Warning"), 
+                                        tr("This file path name is already used for another open document.\nPlease enter a different one"));
+                if (res == QMessageBox::Escape || res == QMessageBox::Cancel)
+                    return;
+                askForName = true;
+                break;
+            }
+        }
     }
     _SaveLastDirectory(fileName);
     _SaveFile(fileName);    // and sets _SaveResult

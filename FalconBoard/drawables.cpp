@@ -658,11 +658,12 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not saved, so not set, must set it after all drawables read in
 {
 	int n;
-	ifs >> n; di.dtType = (DrawableType)n;
-	if ((n >= (int)DrawableType::dtDrawableTop && n <= (int)DrawableType::dtNonDrawableStart) ||
+	ifs >> n; // should be DrawableType
+	if ((n > (int)DrawableType::dtDrawableTop && n < (int)DrawableType::dtNonDrawableStart) ||
 		n > (int)DrawableType::dtNonDrawableEnd)
 		throw("Bad File");
 	// special handling for data of not really drawables e.g. pen color data
+	di.dtType = (DrawableType)n;
 	if (n >= (int)DrawableType::dtNonDrawableStart)
 		return ifs;
 

@@ -264,6 +264,9 @@ int DrawArea::_LoadCommon()
 {
 	file_version_loaded=0;	// aasuume old file, no grid data in _history->gridOptions yet
 	int res = _history->Load(file_version_loaded); // only loads if names diferent, if result is 0 readCount = 0
+	if (!res)
+		return res;
+
 	if( (file_version_loaded & 0x00FF0000) < 0x020000)	// no grid options from file, set them
 	{
 		_history->gridOptions.gridOn = _bGridOn;
@@ -674,15 +677,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					_Redraw();
 				}
 			}
-			// DELETE if
-			//if (bDelete || bCopy || bRecolor || bRotate)
-			//{
-			//	if (bCollected && !bDelete && !bRotate)
-			//	{
-			//		_history->CopySelected();
-			//		_itemsCopied = true;        // never remove selected list
-			//	}
-			//}
 			if ( (bCopy || bRecolor) && bCollected && !bDelete && !bRotate )
 			{
 				_history->CopySelected();
@@ -2943,7 +2937,7 @@ void DrawArea::_AddCopiedItems(QPointF pos, Sprite* ps)
 	_rubberRect = updateRect.adjusted(m,m,-m,-m);
 	_rubberBand->setGeometry(_rubberRect.toRect());
 	_rubberBand->show();
-	_history->SetSelectionRect(_rubberRect);
+// already set	_history->SetSelectionRect(_rubberRect);
 	_history->CollectPasted(_rubberRect.translated(_topLeft));
 
 	emit CanUndo(_history->CanUndo());

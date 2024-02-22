@@ -713,6 +713,7 @@ public:
 			return std::vector<History*>::operator[](_actualHistoryIndex);
 		}
     }
+    constexpr int ActualHistory() const { return _actualHistoryIndex; }
 
     void CopyToClipboard();     // uses _pCopiedItems and _pCopiedImages so these must be setup first
     void GetFromClipboard();    // when clipboard data already in memory returns the copied sata

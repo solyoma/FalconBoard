@@ -1165,7 +1165,7 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 
 	Clear();
 	
-	int res;
+	int res=0;
 	try
 	{
 		if ((version_loaded & 0x00FF0000) < 0x020000)
@@ -1175,7 +1175,7 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 	}
 	catch (...)
 	{
-		return 0;		// invalid file
+		res= 0;		// invalid file
 	}
 	f.close();
 	return res;
@@ -1426,7 +1426,7 @@ int History::_LoadV2(QDataStream&ifs, qint32 version_loaded)
 	di.yOffset = 0;		
 
 	_lastSaved = 0;		
-
+		// file offset is now 19 (0x13)
 	int res = _ReadV2(ifs, di);
 
 	_loadedName = _fileName;
@@ -1539,10 +1539,10 @@ HistoryItem* History::AddDeleteItems(Sprite* pSprite)
 HistoryItem* History::AddCopiedItems(QPointF topLeft, Sprite* pSprite)			   // tricky
 {
 	DrawableList* pCopiedItems = pSprite ? &pSprite->drawables : &_parent->_copiedItems;
-	QRectF* pCopiedRect = pSprite ? &pSprite->rect : &_parent->_copiedRect;
-
 	if (!pCopiedItems->Size())	// any drawable
 		return nullptr;          // do not add an empty list
+
+	QRectF* pCopiedRect = pSprite ? &pSprite->rect : &_parent->_copiedRect;
   // ------------add bottom item
 
 	HistoryDeleteItems* phd = nullptr;
@@ -1565,13 +1565,16 @@ HistoryItem* History::AddCopiedItems(QPointF topLeft, Sprite* pSprite)			   // t
 		}
 	}
 	HistoryDrawableItem* p = nullptr;
-	//----------- add drawables
+	//----------- add drawable(s)
+	_selectionRect = QRect();
+
 	for (auto &si : pCopiedItems->Items() )
 	{
 		si->Translate(topLeft, -1);		// transforms original item
 		si->zOrder = -1;	// so it will be on top
 		p = new HistoryDrawableItem(this, *si);	   // just a copy, si's data remains where it was
 		_AddItem(p);
+		_selectionRect  = _selectionRect.united(si->Area());
 		si->Translate(-topLeft, -1);	// transform back original item
 	}
 	// ------------Add Paste top marker item
@@ -1914,11 +1917,11 @@ QRectF History::SelectDrawablesUnder(QPointF& p, bool addToPrevious)
 
 /*========================================================
  * TASK:   copies selected drawables to a sprite or
- *			into '_copiedItems' and to the clipboard
+ *			into '_copiedItems' tin the latter case
+ *			also copies it to the clipboard
  *
- * PARAMS:	sprite: possible null pointer to sprite
+ * PARAMS:	sprite: either null or pointer to sprite
  *				that contains the copied drawables
- *				when null _copiedItems is used
  * GLOBALS: _parent (HistoryList)
  *			_driSelectedDrawables -only used if
  *					the sprite does not yet has its list
@@ -1968,8 +1971,8 @@ void History::CopySelected(Sprite* sprite)
 			sprite->rect = _parent->_copiedRect;	// (0,0, width, height)
 			sprite->topLeft = _selectionRect.topLeft();
 		}
-
-		_parent->CopyToClipboard();
+		else
+			_parent->CopyToClipboard();
 	}
 }
 
@@ -1988,20 +1991,23 @@ void History::CollectPasted(const QRectF& rect)
 {
 	int n = _items.size() - 1;
 	HistoryItem* phi = _items[n];
-	if (phi->type != HistEvent::heItemsPastedTop)
-		return;
+	if (phi->type == HistEvent::heItemsPastedTop) // then more than one items pasted
+	{
+		//      n=4
+		//B 1 2 3 T
+		//      m = 3       n - m,
+		int m = ((HistoryPasteItemTop*)phi)->count;
+		_driSelectedDrawables.resize(m);		// because it is empty when pasted w. rubberBand
+		for (int j = 0; j < m; ++j)
+			_driSelectedDrawables[j] = ((HistoryDrawableItem*)_items[n - m + j])->indexOfDrawable;
+	}
+	else if (_driSelectedDrawables.isEmpty())		// single item pasted
+			_driSelectedDrawables.push_back( ((HistoryDrawableItem*)_items[0])->indexOfDrawable);
 
 	_driSelectedDrawablesAtRight.clear();
 	_driSelectedDrawablesAtLeft.clear();
-	//      n=4
-	//B 1 2 3 T
-	//      m = 3       n - m,
-	int m = ((HistoryPasteItemTop*)phi)->count;
-	_driSelectedDrawables.resize(m);		// because it is empty when pasted w. rubberBand
-	for (int j = 0; j < m; ++j)
-		_driSelectedDrawables[j] = ((HistoryDrawableItem*)_items[n - m + j])->indexOfDrawable;
-	_selectionRect = rect;
 
+	_selectionRect = rect;
 }
 
 void History::CollectDeleted(HistoryDeleteItems* phd)	// use when undoing a paste when the sprite was not moved
@@ -2081,7 +2087,7 @@ void HistoryList::GetFromClipboard()
 			break;
 		}
 
-	if (formatIndex < 0)	// not our data Maybe an image
+	if (formatIndex < 0)	// not our data. Maybe an image
 	{
 		QImage img = _pClipBoard->image();
 		if (!img.isNull())
