@@ -985,17 +985,21 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 		return nullptr;
 
 	_items.push_back(p);
-		  // no undo after new item added
-	for(auto a: _redoList)
-		if (a->type == HistEvent::heDrawable)
-		{
-			_drawables.ClearRedo();			// any  Undo()-t drawbles must be removed
-			break;
-		}
-	_redoList.clear();	
+	//	  // no undo after new item added
+	if (p->type == HistEvent::heDrawable)
+	{
+		_drawables.ClearRedo();			// any  Undo()-t drawbles must be removed
+		_redoList.clear();
+	}
+	//for(auto a: _redoList)
+	//	if (a->type == HistEvent::heDrawable)
+	//	{
+	//		_drawables.ClearRedo();			// any  Undo()-t drawbles must be removed
+	//		break;
+	//	}
+	//_redoList.clear();	
 
-	int n = _items.size() - 1;
-	p = _items[n];
+	p = _items.last();
 
 	return p;		// always the last element
 }
