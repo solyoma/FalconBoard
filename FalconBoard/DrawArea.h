@@ -405,8 +405,8 @@ private:
     void _Right(int distance = 10);
     bool _NoPrintProblems();           // false: some problems
     QPointF _SanitizePointF(QPointF& pt);
-#ifndef _VIEWER
     void _ShowCoordinates(const QPointF& qp);   // and sets mouse position into _actMousePos
+#ifndef _VIEWER
     Sprite * _CreateSprite(QPointF cursorPos, QRectF& rect, bool itemsDeleted, bool setVisible=true);
     Sprite * _PrepareSprite(Sprite *pSprite, QPointF cursorPos, QRectF rect, bool itemsDeleted, bool setVisible=true);
     Sprite * _SpriteFromLists(); // from _copiedImages and _copiedItems lists and _copiedRect sprite will not be visible

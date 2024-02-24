@@ -142,9 +142,9 @@ bool FalconPens::SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName
     if (pk != penNone)
     {
         int n = size(); //  (int)pk;
-        if((int)pk >= size())  // a hole before pk in array
+        if((size_t)pk >= size())  // a hole before pk in array
         {
-            while (n++ <= (int)pk);
+            while (n++ <= (int)pk)
                 push_back(pen);
         }
         else
@@ -217,7 +217,7 @@ void FalconPens::SetActionText(FalconPenKind pk, QString text, int dark)
 
 bool FalconPens::IsAnyPensChanged()
 {
-    for (int i = 0; i < size(); ++i)
+    for (size_t i = 0; i < size(); ++i)
         if ((*this)[i].IsChanged())
             return true;
     return false;

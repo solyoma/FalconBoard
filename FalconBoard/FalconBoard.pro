@@ -53,8 +53,8 @@ FORMS += ./FalconBoard.ui \
 	./screenshotTransparency.ui
 RESOURCES += FalconBoard.qrc
 INCLUDEPATH += .
-QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter
-QT += gui widgets printsupport
+QMAKE_CXXFLAGS += -std=c++17 -Wno-unused-parameter -Wno-reorder
+QT += gui widgets printsupport network
 requires(qtConfig(filedialog))
 qtHaveModule(printsupport): QT += printsupport
 TRANSLATIONS += ../translations/FalconBoard_en.ts \

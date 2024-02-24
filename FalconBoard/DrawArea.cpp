@@ -202,8 +202,8 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 		res = _LoadCommon();   // only when it wasn't loaded before
 		_SetCanvasAndClippingRect();
 		_Redraw(true);
-#ifndef _VIEWER
 		_ShowCoordinates(QPointF());
+#ifndef _VIEWER
 		emit CanUndo(_history->CanUndo());
 		emit CanRedo(_history->CanRedo());
 #endif
@@ -878,7 +878,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_Redraw();
 			}
 		}
-		else if (bMovementKeys && (!_rubberBand || _rubberBand && !_mods.testFlag(Qt::ControlModifier)) )
+		else if (bMovementKeys && (!_rubberBand || (_rubberBand && !_mods.testFlag(Qt::ControlModifier)) ) )
 		{
 			int stepSize = _mods.testFlag(Qt::ControlModifier) ? LargeStep : (_mods.testFlag(Qt::ShiftModifier) ? SmallStep : NormalStep);
 			if (key == Qt::Key_PageUp)
@@ -1096,7 +1096,7 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 
 	}
 	else
-#endif
+	{	// wasn't here. Needed???
 		_startDrawingPos = event->pos;     // used for checking sprite paste
 		if (event->pressure != 0.0 && event->button == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
 		{
@@ -1107,7 +1107,6 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 			}
 			else
 				_scribbling = true;
-#ifndef _VIEWER
 			if (_rubberRect.isValid())
 			{
 				if (_history->SelectedSize() && _rubberRect.contains(event->pos))
@@ -1136,11 +1135,10 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 			}
 			else
 				_InitiateDrawing(event);                // resets _firstPointC and _lastPointC to event_>pos()
-#endif
 		}
-#ifndef _VIEWER
-	_ShowCoordinates(event->pos);
+	} // ???
 #endif
+	_ShowCoordinates(event->pos);
 }
 
 /*=============================================================
@@ -1152,9 +1150,7 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
  *------------------------------------------------------------*/
 void DrawArea::MyMoveEvent(MyPointerEvent* event)
 {
-#ifndef _VIEWER
 	_ShowCoordinates(event->pos);
-#endif
 	if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen))
 		return;
 
@@ -2749,7 +2745,6 @@ void DrawArea::_Right(int amount)
 	_ShiftAndDisplayBy(pt, false);
 }
 
-#ifndef _VIEWER
 void DrawArea::_ShowCoordinates(const QPointF& qp)
 {
 	static QPointF prevPoint = QPointF(0, 0);
@@ -2768,6 +2763,8 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 
 	QString qs;
 	int pg = int((_topLeft.y() + qp.y()) / PageParams::screenPageHeight) + 1;
+
+#ifndef _VIEWER
 	if (_rubberBand)
 	{
 		QRectF r = _rubberBand->geometry();
@@ -2777,6 +2774,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 			arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());
 	}
 	else
+#endif
 		qs = tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ").arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
 	if (_pencilmode)
 		qs += " | PM";
@@ -2786,6 +2784,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	emit TextToToolbar(qs);
 }
 
+#ifndef _VIEWER
 // ****************************** Sprite ******************************
 
 /*========================================================

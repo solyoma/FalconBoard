@@ -1500,7 +1500,7 @@ void FalconBoard::on_actionLoad_triggered()
         return;
 
     _SaveLastDirectory(fileName);
-    int n = _pTabs->currentIndex();
+    //int n = _pTabs->currentIndex();
     if (IsOverwritable())
     {
         _drawArea->SetHistoryName(fileName);
@@ -1508,7 +1508,7 @@ void FalconBoard::on_actionLoad_triggered()
         _drawArea->Load();
     }
     else
-        n = _AddNewTab(fileName, true);   // sets current tab and adds history item and set it to current too
+        /*n =*/(void) _AddNewTab(fileName, true);   // sets current tab and adds history item and set it to current too
                             
     _SetWindowTitle(fileName);
 
@@ -1615,7 +1615,7 @@ void FalconBoard::on_actionSave_triggered()
 void FalconBoard::on_actionSaveAs_triggered() // current tab
 {
     QString fname = _pTabs->tabText(_pTabs->currentIndex());//    _drawArea->HistoryName(UNTITLED);
-    int n = fname.length() - 1;
+    //int n = fname.length() - 1;
 
     QString initialPath = _lastDir + fname; 
     QString fileName;
@@ -1630,7 +1630,7 @@ void FalconBoard::on_actionSaveAs_triggered() // current tab
             return;
         }
         askForName = false; // if name is not a name of another open document then break the loop
-        for (int i = 0; i < historyList.size(); ++i)
+        for (size_t i = 0; i < historyList.size(); ++i)
         {
             if (i != historyList.ActualHistory() && historyList[i]->Name() == fileName)
             {
@@ -2203,7 +2203,7 @@ void FalconBoard::SlotForScreenshotReady(QRect gmetry)
     pixmap = QPixmap(gmetry.size()); //  , Qpixmap::Format_ARGB32);
 
     QPainter *painter = new QPainter(&pixmap);   // need to delete it before the label is deleted
-    painter->drawPixmap(QPoint(0,0), *_plblScreen->pixmap(), gmetry);
+    painter->drawPixmap(QPoint(0,0), _plblScreen->pixmap(Qt::ReturnByValue), gmetry);
     delete painter;
 
     if (_useScreenshotTransparency)

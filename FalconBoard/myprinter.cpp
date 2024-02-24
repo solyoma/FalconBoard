@@ -136,7 +136,7 @@ MyPrinter::StatusCode MyPrinter::_GetPrinterParameters()
         PageParams::actPrinterName = _printer->printerName();
 
         PageParams::flags &= ~landscapeModeFlag;
-        PageParams::flags |=_printer->orientation() == QPageLayout::Landscape ? landscapeModeFlag : 0;
+        PageParams::flags |=_printer->pageLayout().orientation() == QPageLayout::Landscape ? landscapeModeFlag : 0;
 
         _data.SetDpi(_printer->resolution(),false);
         _data.SetPrintArea(_printer->pageRect(QPrinter::Inch), true);
@@ -351,7 +351,7 @@ int MyPrinter::_CalcPages()
 {
     sortedPageNumbers.Init( QRectF(0, 0, PageParams::screenPageWidth, PageParams::screenPageHeight) );
 
-    int nSize = _pHist->CountOfVisible();
+ //   int nSize = _pHist->CountOfVisible();
 
     // for each scribble determine pages it apperas on and prepare
     // a list of pages ordered first by y then by x page indices

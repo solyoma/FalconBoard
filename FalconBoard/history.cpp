@@ -20,9 +20,9 @@ HistoryList historyList;       // many histories are possible
 
 HistoryItem::HistoryItem(History* pHist, HistEvent typ) : pHist(pHist), type(typ), pDrawables(pHist->Drawables()) {}
 
-HistoryItem::HistoryItem(const HistoryItem& other) : pHist(other.pHist), type(other.type), pDrawables(other.pDrawables)
-{
-}
+//HistoryItem::HistoryItem(const HistoryItem& other) : pHist(other.pHist), type(other.type), pDrawables(other.pDrawables)
+//{
+//}
 
 
 bool HistoryItem::operator<(const HistoryItem& other)
@@ -598,11 +598,11 @@ HistorySetTransparencyForAllScreenshotsItems::HistorySetTransparencyForAllScreen
 int HistorySetTransparencyForAllScreenshotsItems::Redo()
 {
 	DrawableList* pdrbl = &pHist->_drawables;
-	int siz = undoBase = pdrbl->Size(DrawableType::dtScreenShot); // for undo this will be the first position
-	DrawableItem* psi, *psin;
+	undoBase = pdrbl->Size(DrawableType::dtScreenShot); // for undo this will be the first position
+	DrawableItem* psi;
 	DrawableScreenShot* pds;
 	//DrawableItemIndex int drix;
-	int imgIndex = 0;
+	//int imgIndex = 0;
 		// get indices for visible screenshots, needed for undo
 	for (int i = 0; i < undoBase; ++i)
 	{
@@ -687,6 +687,8 @@ HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& d
 			break;
 		case DrawableType::dtScribble:
 			eraserStroke = ((DrawableScribble&)dri).points;
+			break;
+		default:	// no dtPen,dtScreenShot, etc
 			break;
 	}
 	pHist->GetDrawablesInside(dri.Area(), affectedIndexList);
@@ -1818,7 +1820,7 @@ int History::CollectDrawablesInside(QRectF rect) // only
 	_selectionRect = QRectF();     // minimum size of selection document (0,0) relative!
 
 	// first select all items inside a horizontal band whose top and bottom are set from 'rect'
-	// but it occupies the whole width of the 'paper'
+	// but it occupies the whole width of the 'paper' into "horizontal band" hb
 	QRectF hb = QRectF(0, rect.top(), _drawables.Area().Width(), rect.height());
 	DrawableIndexVector iv = _drawables.ListOfItemIndicesInRect(hb);
 	for (int i = iv.size()-1; i >= 0; --i)		// purge partial overlaps with HB
@@ -1921,7 +1923,7 @@ QRectF History::SelectDrawablesUnder(QPointF& p, bool addToPrevious)
 
 /*========================================================
  * TASK:   copies selected drawables to a sprite or
- *			into '_copiedItems' tin the latter case
+ *			into '_parent->_copiedItems' in the latter case
  *			also copies it to the clipboard
  *
  * PARAMS:	sprite: either null or pointer to sprite

@@ -260,7 +260,7 @@ struct DrawableItem : public DrawablePen
 
     DrawableItem() = default;
     DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlack, qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) {}
-    DrawableItem(const DrawableItem& other) { *this = other; }
+    DrawableItem(const DrawableItem& other):DrawablePen(other) { *this = other; }
     virtual ~DrawableItem()
     {
         erasers.clear();
@@ -1130,7 +1130,7 @@ public:
 
     IntVector ListOfItemIndicesInRect(QRectF& r) const; // ordered by z-order then y, then x
     IntVector ListOfItemIndicesInQuadArea(QuadArea& r) const; // ordered by z-order then y, then x
-    QPointF DrawableList::BottomRightLimit(QSize screenSize);
+    QPointF BottomRightLimit(QSize screenSize);
 
     DrawableItem* FirstVisibleDrawable(QRectF& r)  // smallest in zOrder
     {

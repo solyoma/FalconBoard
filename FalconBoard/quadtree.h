@@ -363,7 +363,7 @@ private:
 
 			bool insertIntoThisNode =
 				(node->values.size() < _MAX_ALLOWED_IN_ONE_NODE) ||	   // when there is space
-				(depth == _maxDepth); // ||								   // or no more split possible
+				(depth == (size_t)_maxDepth); // ||								   // or no more split possible
 				// (childAreaSize.x <= areaV.Width() || childAreaSize.y <= areaV.Height()); // or does not fit into any children
 			
 			if (insertIntoThisNode)

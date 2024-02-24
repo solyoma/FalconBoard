@@ -129,16 +129,18 @@ class Smoother
             }
             return _prevAver;
         }
-        void SmoothUnsmoothed(QVector<T>& points) // first 4 points smoothed (how to do it backwards?)
-        {
-            int n = points.size(); 
-            if (n > 4)
-            {
-                for (int i = 1; i < 5; ++i)
-                    points[i] = alpha * points[i] + (1 - alpha) * points[i - 1];
-                points[i-1]=(points[i]*)
-            }
-        }
+        //void SmoothUnsmoothed(QVector<T>& points) // first 4 points smoothed (how to do it backwards?)
+        //{
+        //    int n = points.size(); 
+        //    if (n > 4)
+        //    {
+        //        for (int i = 1; i < 5; ++i)
+        //        {
+        //            points[i] = alpha * points[i] + (1 - alpha) * points[i - 1];
+        //            points[i - 1] = (points[i] *)
+        //        }
+        //    }
+        //}
     };
     Exponenter _averager;
 #endif

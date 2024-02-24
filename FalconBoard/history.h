@@ -47,7 +47,7 @@ struct HistoryItem      // base class
     DrawableList* pDrawables = nullptr;         // to pHist's _drawables
 
     HistoryItem(History* pHist, HistEvent typ = HistEvent::heNone);
-    HistoryItem(const HistoryItem &other);
+    // HistoryItem(const HistoryItem &other);
     virtual ~HistoryItem() {}
 
     virtual int ZOrder() const { return 0; }

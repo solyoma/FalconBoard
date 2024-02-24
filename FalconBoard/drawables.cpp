@@ -469,12 +469,12 @@ void MyRotation::_SetRot(qreal alpha)
 
 QDataStream& operator<<(QDataStream& ofs, const MyRotation& mr)
 {
-	ofs << mr.angle << (byte)mr.flipType;
+	ofs << mr.angle << (std::byte)mr.flipType;
 	return ofs;
 }
 QDataStream& operator>>(QDataStream& ifs, MyRotation& mr)
 {
-	byte ch;
+	std::byte ch;
 	qreal alpha;
 	ifs >> alpha >> ch;
 	mr = alpha;		// sets transformation matrix too and fliptype to flipNone
@@ -570,10 +570,12 @@ int DrawableItem::AddEraserStroke(int eraserWidth, const QPolygonF& stroke)
 void DrawableItem::RemoveLastEraserStroke(EraserData* andStoreHere)
 {
 	if (andStoreHere)
+	{
 		if (erasers.isEmpty())
 			andStoreHere->eraserStroke.clear();
 		else
 			*andStoreHere = erasers[erasers.size() - 1];
+	}
 	if (!erasers.isEmpty())
 		erasers.pop_back();
 }
@@ -822,16 +824,16 @@ QDataStream& operator>>(QDataStream& ifs, DrawableCross& di)	  // call AFTER hea
 //=====================================
 DrawableEllipse::DrawableEllipse(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
 		rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtEllipse, rect.center(), zOrder, penKind, penWidth), _rotatedRect(rect) {}
-DrawableEllipse::DrawableEllipse(QPointF refPoint, qreal radius, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled): 
+DrawableEllipse::DrawableEllipse(QPointF refPoint, qreal radius, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled): 
 		rect(QPointF(refPoint.x() - radius, refPoint.y() - radius), QSize(2*radius, 2*radius)), isFilled(isFilled), 
 		DrawableItem(DrawableType::dtEllipse, refPoint, zOrder, penKind, penWidth), _rotatedRect(rect) {}
-DrawableEllipse::DrawableEllipse(QPointF refPoint, qreal a, qreal b, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled): 
+DrawableEllipse::DrawableEllipse(QPointF refPoint, qreal a, qreal b, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled): 
 		rect(QPointF(refPoint.x() - a, refPoint.y() -b), QSize(2*a, 2*b)), isFilled(isFilled), 
 		DrawableItem(DrawableType::dtEllipse, refPoint, zOrder, penKind, penWidth), _rotatedRect(rect) {}
 
 
-DrawableEllipse::DrawableEllipse(const DrawableEllipse& o) { *this = o; }
-DrawableEllipse::DrawableEllipse(DrawableEllipse&& o) noexcept { *this = o; }
+DrawableEllipse::DrawableEllipse(const DrawableEllipse& o) : DrawableItem(o) { *this = o; }
+DrawableEllipse::DrawableEllipse(DrawableEllipse&& o) noexcept :DrawableItem(o) { *this = o; }
 DrawableEllipse& DrawableEllipse::operator=(const DrawableEllipse& di)
 {
 	*(DrawableItem*)this = (const DrawableItem&)di;
@@ -865,7 +867,6 @@ bool DrawableEllipse::Translate(QPointF dr, qreal minY)
 {
 	if (_rotatedRect.top() > minY)
 	{
-		QRectF r = _rotatedRect;
 		DrawableItem::Translate(dr, minY);
 		rect.moveTo(rect.topLeft() + dr);
 		_rotatedRect.moveTo(_rotatedRect.topLeft() + dr);
@@ -1003,17 +1004,17 @@ QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER h
 //=====================================
 
 DrawableLine::DrawableLine(QPointF refPoint, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth) : 
-	endPoint(endPoint), DrawableItem(DrawableType::dtLine, refPoint, zOrder, penKind, penWidth)
+	endPoint(endPoint), DrawableItem(DrawableType::dtLine, refPoint, zorder, penKind, penWidth)
 {
 
 }
 
-DrawableLine::DrawableLine(const DrawableLine& ol)
+DrawableLine::DrawableLine(const DrawableLine& ol) :DrawableItem(ol)
 {
 	*this = ol;
 }
 
-DrawableLine::DrawableLine(DrawableLine&& ol)
+DrawableLine::DrawableLine(DrawableLine&& ol):DrawableItem(ol)
 {
 	*this = ol;
 }
@@ -1037,7 +1038,7 @@ DrawableLine& DrawableLine::operator=(const DrawableLine&& ol)
 bool DrawableLine::CanTranslate(const QPointF dr) const
 {
 	QPointF p1 = refPoint + dr, p2 = endPoint + dr;
-	return p1.x() >=0 && p1.y() >= 0 && p1.x() >=0 && p1.y() >= 0;
+	return p1.x() >=0 && p1.y() >= 0 && p2.x() >=0 && p2.y() >= 0;
 }
 bool DrawableLine::Translate(QPointF dr, qreal minY)
 
@@ -1114,7 +1115,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER hea
 //=====================================
 DrawableRectangle::DrawableRectangle(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
 	rect(rect), _rotatedRect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtRectangle, rect.center(), zOrder, penKind, penWidth) {}
-DrawableRectangle::DrawableRectangle(const DrawableRectangle& di) { *this = di; }
+DrawableRectangle::DrawableRectangle(const DrawableRectangle& di) :DrawableItem(di) { *this = di; }
 DrawableRectangle& DrawableRectangle::operator=(const DrawableRectangle& di)
 {
 	*(DrawableItem*)this = (DrawableItem&&)di;
@@ -1364,9 +1365,9 @@ QDataStream& operator>>(QDataStream& ifs, DrawableScreenShot& bimg)	  // call AF
 // DrawableScribble
 //=====================================
 
-DrawableScribble::DrawableScribble(FalconPenKind penKind, qreal penWidth, int zorder) noexcept : DrawableItem(DrawableType::dtScribble, points.boundingRect().topLeft(), zOrder, penKind, penWidth) {}
-DrawableScribble::DrawableScribble(const DrawableScribble& di) { *this = di; }
-DrawableScribble::DrawableScribble(DrawableScribble&& di) noexcept { *this = di; }
+DrawableScribble::DrawableScribble(FalconPenKind penKind, qreal penWidth, int zorder) noexcept : DrawableItem(DrawableType::dtScribble, points.boundingRect().topLeft(), zorder, penKind, penWidth) {}
+DrawableScribble::DrawableScribble(const DrawableScribble& di):DrawableItem(di) { *this = di; }
+DrawableScribble::DrawableScribble(DrawableScribble&& di) noexcept :DrawableItem(di) { *this = di; }
 DrawableScribble& DrawableScribble::operator=(const DrawableScribble& di)
 {
 	*(DrawableItem*)this = (DrawableItem&)di;
@@ -1532,7 +1533,6 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableScribble& di) // after h
 // reads ONLY after the type is read in!
 QDataStream& operator>>(QDataStream& ifs, DrawableScribble& di)	  // call AFTER header is read in
 {
-	qreal x, y;
 	di.points.clear();
 
 	ifs >> di.points;

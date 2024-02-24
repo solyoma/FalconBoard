@@ -134,7 +134,8 @@ struct FalconPen
 };
 
 //----------------------------- FalconPens -------------------
-class FalconPens : public std::vector<FalconPen>
+using FalconPenVector = std::vector<FalconPen>;
+class FalconPens : public FalconPenVector
 {
     bool _darkMode = false;     // use SetDarkMode to set up
 
@@ -142,7 +143,7 @@ class FalconPens : public std::vector<FalconPen>
     QCursor _SetupEraser() const;
 public:
     FalconPens() { resize(PEN_COUNT); }
-    FalconPens(const FalconPens& o) { *this = o; }
+    FalconPens(const FalconPens& o) :FalconPenVector(*this) { *this = o; }
     FalconPens& operator=(const FalconPens& o);
 
     static const QString ItemName(int grp, int pen, const char* penName);
