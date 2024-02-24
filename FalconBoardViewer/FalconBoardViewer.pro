@@ -40,6 +40,7 @@ SOURCES += \
 	../FalconBoard/pagesetup.cpp \
 	../FalconBoard/pencolorsdialog.cpp \
 	../FalconBoard/pencolorset.cpp \
+	../FalconBoard/rotateinput.cpp \
 	../FalconBoard/screenshotTransparency.cpp \
 	../FalconBoard/snipper.cpp
 FORMS += \

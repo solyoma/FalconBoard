@@ -61,6 +61,7 @@ HistoryDrawableItem::HistoryDrawableItem(History* pHist, DrawableItem& dri) : Hi
 		case DrawableType::dtScribble:	_pDrawable = new DrawableScribble(dynamic_cast<DrawableScribble&>(dri));	break;
 		case DrawableType::dtScreenShot:_pDrawable = new DrawableScreenShot(dynamic_cast<DrawableScreenShot&>(dri));break;
 		case DrawableType::dtText:		_pDrawable = new DrawableText(dynamic_cast<DrawableText&>(dri));			break;
+		default: break; // dtPen, etc
 	}
 	indexOfDrawable = pHist->AddToDrawables(_pDrawable);
 }
@@ -552,12 +553,12 @@ HistoryRotationItem& HistoryRotationItem::operator=(const HistoryRotationItem& o
 }
 
 // helper
-static void SwapWH(QRectF& r)
-{
-	int w = r.width();
-	r.setWidth(r.height());
-	r.setHeight(w);
-}
+//static void SwapWH(QRectF& r)
+//{
+//	int w = r.width();
+//	r.setWidth(r.height());
+//	r.setHeight(w);
+//}
 
 
 int HistoryRotationItem::Undo()
@@ -1242,7 +1243,6 @@ int History::Append(QString fileName, quint32& version_loaded)
 		// set correct count
 	pb = reinterpret_cast<HistoryPasteItemBottom*>(_items[nPosBottom]);
 	pb->count = nReadLines;
-	int nTop = _items.size();
 	QuadArea qarea = _quadTreeDelegate.Area();
 	QRectF rect = { 0, DrawableItem::yOffset, qarea.Width(), qarea.Bottom() - DrawableItem::yOffset };
 	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, nPosBottom, nReadLines, rect);
@@ -1269,7 +1269,7 @@ int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// retu
 		ifs >> n;	// HistEvent				
 		if ((HistEventV1(n) == HistEventV1::heScreenShot))
 		{
-			int x, y, zo;
+			int x, y;
 			ifs >> dsImg.zOrder >> x >> y;
 			dsImg.refPoint = QPoint(x, y);
 
@@ -1293,7 +1293,7 @@ int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// retu
 			//	i = i;
 			// end DEBUG
 			// dScrb.SetPenColor();	// from penKind
-			bool filled = n & 128;
+			// bool filled = n & 128;
 			ifs >> n; dScrb.penWidth = n;
 
 			qint32 x, y;

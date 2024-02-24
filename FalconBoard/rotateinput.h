@@ -27,6 +27,7 @@ public:
 		ui.sbdRotAngle->setValue(r);
 		ui.sbdRotAngle->selectAll();
 	}
+	virtual ~RotateInputDialog() {}
 private:
 	Ui::RotateInputDialog ui;
 	qreal& _retVal;

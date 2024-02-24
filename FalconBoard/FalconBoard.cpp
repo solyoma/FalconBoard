@@ -920,7 +920,6 @@ void FalconBoard::_SetResetChangedMark(int index)
     if(index < 0)
         index = _pTabs->currentIndex();
     QString text = _pTabs->tabText(index);
-    int n = text.length() - 1;
 
     if (_drawArea->IsModified(index))
         _pTabs->setTabIcon(index, _ColoredIcon(_iconSaveAs, CHANGED_MARKER_FOREGROUND, CHANGED_MARKER_BACKGROUND));
@@ -1632,7 +1631,7 @@ void FalconBoard::on_actionSaveAs_triggered() // current tab
         askForName = false; // if name is not a name of another open document then break the loop
         for (size_t i = 0; i < historyList.size(); ++i)
         {
-            if (i != historyList.ActualHistory() && historyList[i]->Name() == fileName)
+            if (i != (size_t)historyList.ActualHistory() && historyList[i]->Name() == fileName)
             {
                 QMessageBox::StandardButton res = QMessageBox::warning(this, tr("FalconBoard - Warning"), 
                                         tr("This file path name is already used for another open document.\nPlease enter a different one"));
@@ -1660,7 +1659,6 @@ void FalconBoard::on_actionAppend_triggered()
         return;
 
     _SaveLastDirectory(fileNames[0]);
-    int n = _pTabs->currentIndex();
     _drawArea->Append(fileNames);
 #ifndef _VIEWER
     if (_eraserOn)

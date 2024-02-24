@@ -440,7 +440,7 @@ struct DrawableDot : public DrawableItem
     {
         dtType = DrawableType::dtDot;
     }
-    DrawableDot(QPointF pos, int zorder, FalconPenKind penKind, qreal penWidth) : DrawableItem(DrawableType::dtDot, pos, zOrder, penKind, penWidth) { }
+    DrawableDot(QPointF pos, int zorder, FalconPenKind penKind, qreal penWidth) : DrawableItem(DrawableType::dtDot, pos, zorder, penKind, penWidth) { }
     DrawableDot(const DrawableDot& o) = default;
     ~DrawableDot() = default;
     QRectF Area() const override    // includes half od pen width+1 pixel

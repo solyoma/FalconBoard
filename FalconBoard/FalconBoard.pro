@@ -41,6 +41,7 @@ SOURCES += \
 	./pagesetup.cpp \
 	./pencolorsdialog.cpp \
 	./pencolorset.cpp \
+	./rotateinput.cpp \
 	./screenshotTransparency.cpp \
 	./snipper.cpp
 FORMS += ./FalconBoard.ui \

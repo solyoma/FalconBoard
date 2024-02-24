@@ -227,6 +227,7 @@ PageSetupDialog::PageSetupDialog(QWidget* parent, PageParams::PageSetupType toDo
 		case PageParams::wtdPageSetup:		// page setup needs printer to set printable page size
 				ui.gbPDFRes->setVisible(false);
 				ui.chkOpenPDFInViewer->setVisible(false);
+				break;
 		case PageParams::wtdPrint:
 		default:
 			ui.gbPDFRes->setVisible(false);

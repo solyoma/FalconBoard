@@ -324,7 +324,6 @@ int DrawArea::Append(QStringList &fileNames)
 #ifndef _VIEWER
 	HideRubberBand(true);
 #endif
-	QSize siz = geometry().size(); 
 	bool res = false;
 	for (auto &s : fileNames)
 	{
@@ -736,7 +735,6 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			else if (bRotate && bCollected)
 			{
 				MyRotation rot;
-				qreal alpha = 0.0;
 				switch (key)
 				{
 					case Qt::Key_0: userRotationAngle =  90; rot = MyRotation::rotR90; break;
@@ -1711,7 +1709,6 @@ void DrawArea::_RemoveScrollTimer()
 void DrawArea::_ScrollTimerSlot()
 {
 	QPointF dr;
-	constexpr const qreal count = 4;
 	qreal delta = 5; // total move: count * delta
 	for (int i = 0; i < 4; ++i)
 	{
