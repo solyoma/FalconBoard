@@ -1997,6 +1997,7 @@ void History::CollectPasted(const QRectF& rect)
 {
 	int n = _items.size() - 1;
 	HistoryItem* phi = _items[n];
+	_driSelectedDrawables.clear();
 	if (phi->type == HistEvent::heItemsPastedTop) // then more than one items pasted
 	{
 		//      n=4
@@ -2007,8 +2008,8 @@ void History::CollectPasted(const QRectF& rect)
 		for (int j = 0; j < m; ++j)
 			_driSelectedDrawables[j] = ((HistoryDrawableItem*)_items[n - m + j])->indexOfDrawable;
 	}
-	else if (_driSelectedDrawables.isEmpty())		// single item pasted
-			_driSelectedDrawables.push_back( ((HistoryDrawableItem*)_items[0])->indexOfDrawable);
+	else /*if (_driSelectedDrawables.isEmpty())	*/	// single item pasted
+			_driSelectedDrawables.push_back( ((HistoryDrawableItem*)_items[n])->indexOfDrawable);
 
 	_driSelectedDrawablesAtRight.clear();
 	_driSelectedDrawablesAtLeft.clear();

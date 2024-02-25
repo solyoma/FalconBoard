@@ -442,6 +442,7 @@ void FalconBoard::SaveState()
         case ScreenMode::smWhite :  qs = "w"; break;
         case ScreenMode::smDark  :  qs = "d"; break;
         case ScreenMode::smBlack :  qs = "b"; break;
+        default: break;
     }
     s->setValue(MODE, qs);
     s->setValue(GRID, (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
