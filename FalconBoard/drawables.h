@@ -273,7 +273,7 @@ struct DrawableItem : public DrawablePen
     bool IsVisible() const { return isVisible; }
     bool IsImage() const { return dtType == DrawableType::dtScreenShot; }
     virtual bool IsFilled() const { return false; }
-    virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is near the lines or for filled items: inside it
+    virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is nearer than 'distance' to the line or for filled items: inside it
     {
         p -= refPoint;
         return p.x() * p.x() + p.y() * p.y() < distance * distance;

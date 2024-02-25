@@ -123,8 +123,8 @@ public:
 
     void GotoPage(int page);
 
-    void SetMode(bool darkMode, QString color, QString gridColor, QString pageGuideColor);
-    void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // light/ dark / black mode
+    void SetMode(ScreenMode mode, QString color, QString gridColor, QString pageGuideColor);
+    void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // system/light/white/dark/black modes
     void SetPenKind(FalconPenKind newKind, int newWidth);
 
     void SetOrigin() { _topLeft = QPointF(); }

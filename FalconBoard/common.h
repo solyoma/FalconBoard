@@ -23,6 +23,7 @@ const QString sWindowTitle =
 #else
         "FalconBoard";
 #endif
+enum class ScreenMode { smSystem, smLight, smWhite, smDark, smBlack };
 
 using IntVector = QVector<int>;
 inline constexpr qreal EqZero(qreal a) { return qFuzzyIsNull(qAbs(a)); }

@@ -43,8 +43,6 @@ extern const QString pipeName;
 extern const QString fileExtension;
 
 
-enum class ScreenMode { smSystem, smLight, smWhite, smDark, smBlack };
-
 // ************************ helper **********************
 QStringList GetTranslations();	// list of translation files
 // ************************ /helper **********************

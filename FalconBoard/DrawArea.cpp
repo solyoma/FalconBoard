@@ -19,6 +19,7 @@
 #include <math.h>
 
 #include "config.h"
+#include "common.h"
 #include "rotateinput.h"
 #include "DrawArea.h"
 
@@ -393,13 +394,13 @@ void DrawArea::GotoPage(int page)
 	_Redraw();
 }
 
-void DrawArea::SetMode(bool darkMode, QString backgroundColor, QString sGridColor, QString sPageGuideColor)
+void DrawArea::SetMode(ScreenMode mode, QString backgroundColor, QString sGridColor, QString sPageGuideColor)
 {
 	//qDebug("	Set mode to %s, %s:%d", darkMode ? "dark" : "light", __FILE__, __LINE__);
 	_backgroundColor = backgroundColor;
 	_gridColor = sGridColor;
 	_pageGuideColor = sPageGuideColor;
-	globalDrawColors.SetDarkMode(_darkMode = darkMode);
+	globalDrawColors.SetDarkMode(_darkMode = mode > ScreenMode::smWhite);
 	emit SignalPenColorChanged();
 	_Redraw();                  // because pen color changed!
 	SetCursor(_erasemode ? csEraser : csPen);
@@ -1094,47 +1095,45 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 
 	}
 	else
-	{	// wasn't here. Needed???
 		_startDrawingPos = event->pos;     // used for checking sprite paste
-		if (event->pressure != 0.0 && event->button == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
+	if (event->pressure != 0.0 && event->button == Qt::LeftButton && !_pendown)  // even when using a pen some mouse messages still appear
+	{
+		if (event->fromPen)
 		{
-			if (event->fromPen)
+			_pendown = true;
+			emit PointerTypeChange(event->pointerT);
+		}
+		else
+			_scribbling = true;
+		if (_rubberRect.isValid())
+		{
+			if (_history->SelectedSize() && _rubberRect.contains(event->pos))
 			{
-				_pendown = true;
-				emit PointerTypeChange(event->pointerT);
-			}
-			else
-				_scribbling = true;
-			if (_rubberRect.isValid())
-			{
-				if (_history->SelectedSize() && _rubberRect.contains(event->pos))
+				if (_CreateSprite(event->pos, _rubberRect, !event->mods.testFlag(Qt::AltModifier)))
 				{
-					if (_CreateSprite(event->pos, _rubberRect, !event->mods.testFlag(Qt::AltModifier)))
+					if (event->mods.testFlag(Qt::AltModifier) /*&& _mods.testFlag(Qt::ControlModifier)*/)
+						/* do nothing */;
+					else
 					{
-						if (event->mods.testFlag(Qt::AltModifier) /*&& _mods.testFlag(Qt::ControlModifier)*/)
-							/* do nothing */;
-						else
-						{
-							_history->AddDeleteItems(_pSprite);
-							_Redraw();
-						}
-						//                    QApplication::processEvents();
+						_history->AddDeleteItems(_pSprite);
+						_Redraw();
 					}
-
+					//                    QApplication::processEvents();
 				}
 
-				HideRubberBand(!_spaceBarDown);   // else move canavs with mouse, and move rubberband with it as well
 			}
 
-			if (event->mods.testFlag(Qt::ShiftModifier))    // will draw straight line from last position to actual position
-			{
-				_firstPointC = _lastPointC;
-				_InitiateDrawingIngFromLastPos();       // instead of the event's position
-			}
-			else
-				_InitiateDrawing(event);                // resets _firstPointC and _lastPointC to event_>pos()
+			HideRubberBand(!_spaceBarDown);   // else move canavs with mouse, and move rubberband with it as well
 		}
-	} // ???
+
+		if (event->mods.testFlag(Qt::ShiftModifier))    // will draw straight line from last position to actual position
+		{
+			_firstPointC = _lastPointC;
+			_InitiateDrawingIngFromLastPos();       // instead of the event's position
+		}
+		else
+			_InitiateDrawing(event);                // resets _firstPointC and _lastPointC to event_>pos()
+	}
 #endif
 	_ShowCoordinates(event->pos);
 }
