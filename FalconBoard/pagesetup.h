@@ -105,12 +105,12 @@ private slots:
 	void on_rb600_toggled(bool b);
 	void on_rb1200_toggled(bool b);
 
-	void on_rbTl_toggled(bool b){PageParams::pgPositionOnPage = 0;}
-	void on_rbTc_toggled(bool b){PageParams::pgPositionOnPage = 1;}
-	void on_rbTr_toggled(bool b){PageParams::pgPositionOnPage = 2;}
-	void on_rbBl_toggled(bool b){PageParams::pgPositionOnPage = 3;}
-	void on_rbBc_toggled(bool b){PageParams::pgPositionOnPage = 4;}
-	void on_rbBr_toggled(bool b){PageParams::pgPositionOnPage = 5;}
+	void on_rbTl_toggled(bool b){if(b) PageParams::pgPositionOnPage = 0;}
+	void on_rbTc_toggled(bool b){if(b) PageParams::pgPositionOnPage = 1;}
+	void on_rbTr_toggled(bool b){if(b) PageParams::pgPositionOnPage = 2;}
+	void on_rbBl_toggled(bool b){if(b) PageParams::pgPositionOnPage = 3;}
+	void on_rbBc_toggled(bool b){if(b) PageParams::pgPositionOnPage = 4;}
+	void on_rbBr_toggled(bool b){if(b) PageParams::pgPositionOnPage = 5;}
 
 	void on_sbFirstPageNumber_valueChanged(int value);
 																

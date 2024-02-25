@@ -1,6 +1,6 @@
 #include "pencolorset.h"
 
-PenColorSetDialog::PenColorSetDialog(QString actName, QWidget* parent)
+PenColorSetDialog::PenColorSetDialog(QString actName, QWidget* parent) :QDialog(parent)
 {
 	ui.setupUi(this);
 	QSettings* s = FBSettings::Open();

@@ -148,7 +148,9 @@
      <property name="title">
       <string>&amp;Mode</string>
      </property>
+     <addaction name="actionSystemMode"/>
      <addaction name="actionLightMode"/>
+     <addaction name="actionWhiteMode"/>
      <addaction name="actionDarkMode"/>
      <addaction name="actionBlackMode"/>
     </widget>
@@ -583,7 +585,7 @@
     <string>Clear List of prev. documents</string>
    </property>
   </action>
-  <action name="actionLightMode">
+  <action name="actionSystemMode">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -913,6 +915,22 @@
   <action name="actionDefinePenColors">
    <property name="text">
     <string>Define/&amp;change pen color schemes...</string>
+   </property>
+  </action>
+  <action name="actionLightMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Light</string>
+   </property>
+  </action>
+  <action name="actionWhiteMode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;White</string>
    </property>
   </action>
  </widget>

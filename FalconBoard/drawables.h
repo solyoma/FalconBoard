@@ -293,11 +293,11 @@ struct DrawableItem : public DrawablePen
         QPointF p = refPoint + dp;
         return p.x() >=0 && p.y() >= 0;
     }
-    virtual bool CanRotate(MyRotation rot, const QPointF center) const
+    virtual bool CanRotate(MyRotation arot, const QPointF center) const
     {
         QPointF pt = refPoint - center;
         QTransform tr;
-        tr.rotate(rot.angle);
+        tr.rotate(arot.angle);
         pt = tr.map(pt) + center;
         return pt.x() >= 0 && pt.y() >= 0;
     }
@@ -820,7 +820,7 @@ struct DrawableText : public DrawableItem
 //    bool Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
 //    void Rotate(MyRotation rot, QRectF center, qreal alpha=0.0) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override { return QRectF();  /* TODO ??? */ }
-    bool PointIsNear(QPointF p, qreal distance) const override // true if the point is near the circumference or for filled ellpse: inside it
+    bool PointIsNear(QPointF p, qreal distance) const override // TODO
     {
         return false; // ???
     }
@@ -1101,17 +1101,17 @@ public:
             delete a;
         _redoItems.clear();
     }
-
-    void Pop_back(int n = 1)    // Deletes last n items. Used only when history's undo list is discarded
+/*
+    void Pop_back_N(int n = 1)    // Deletes last n items. Used only when history's undo list is discarded
     {
-        for (int i = _items.size() - 1; i >= 0; --i)
+        for (int i = _items.size() - 1; i >= 0 && n--; --i)
         {
             SetVisibility(i, false);    // removes them from QuadTree if they were there
             delete _items[i];
             _items.pop_back();
         }
     }
-
+ */
     int Count(const QuadArea& area = QuadArea())  // count of visible items
     {
         return _pQTree->Count(area);

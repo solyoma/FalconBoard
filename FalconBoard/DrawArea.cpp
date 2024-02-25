@@ -1734,7 +1734,7 @@ void DrawArea::_ScrollTimerSlot()
 				break;
 		}
 		if(delta > 0)
-			_ShiftAndDisplayBy(dr, false);
+			_ShiftAndDisplayBy(dr/*, false*/);
 	}
 	//    qDebug("dr=%d:%d, _lastPointC=%d:%d", dr.x(),dr.y(), _lastPointC.x(), _lastPointC.y());
 }
@@ -2122,7 +2122,7 @@ bool DrawArea::SetupPage(PageParams::PageSetupType forWhat)
 
 	if (_screenHeight > 0)           // -1 if no predefined resolution
 	{
-		static float fact[] = { 1.0, 1.0 / 2.54, 1.0 / 25.4 };   // inch, cm, mm
+		static float fact[] = { 1.0f, 1.0f / 2.54f, 1.0f / 25.4f };   // inch, cm, mm
 #define SQUARE(a)  ((a)*(a))
 		float cosine = (float)PageParams::screenPageWidth / (float)std::sqrt(SQUARE(PageParams::screenPageWidth) + SQUARE(_screenHeight));
 #undef SQUARE
@@ -2637,7 +2637,7 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
  *          - delta.x() > 0 - moves viewport right (diplayed left)
  *            delta.y() > 0 - moves viewport down (displayed up)
  *-------------------------------------------------------*/
-void DrawArea::_ShiftAndDisplayBy(QPointF delta, bool smooth)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
+void DrawArea::_ShiftAndDisplayBy(QPointF delta/*, bool smooth*/)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
 {
 	if (_topLeft.y() + delta.y() < 0)
 		delta.setY(-_topLeft.y());
@@ -2724,22 +2724,22 @@ void DrawArea::_End(bool toBottom)
 void DrawArea::_Up(int amount)
 {
 	QPointF pt(0, -amount);
-	_ShiftAndDisplayBy(pt, false);
+	_ShiftAndDisplayBy(pt/*, false*/);
 }
 void DrawArea::_Down(int amount)
 {
 	QPointF pt(0, amount);
-	_ShiftAndDisplayBy(pt, false);
+	_ShiftAndDisplayBy(pt/*, false*/);
 }
 void DrawArea::_Left(int amount)
 {
 	QPointF pt(-amount, 0);
-	_ShiftAndDisplayBy(pt, false);
+	_ShiftAndDisplayBy(pt/*, false*/);
 }
 void DrawArea::_Right(int amount)
 {
 	QPointF pt(amount, 0);
-	_ShiftAndDisplayBy(pt, false);
+	_ShiftAndDisplayBy(pt/*, false*/);
 }
 
 void DrawArea::_ShowCoordinates(const QPointF& qp)

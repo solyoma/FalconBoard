@@ -38,7 +38,7 @@ struct GridOptions
  * One history element
  *-------------------------------------------------------*/
 
-struct History; // forward declaration it contains the 'DrawableList' common for this history
+class History; // forward declaration it contains the 'DrawableList' common for this history
 
 struct HistoryItem      // base class
 {
@@ -455,8 +455,8 @@ using HistoryItemPointer = HistoryItem*;
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    friend class HistoryScreenShotItem;
-    friend class HistorySetTransparencyForAllScreenshotsItems;
+    //friend class HistoryScreenshotItem;
+    friend struct HistorySetTransparencyForAllScreenshotsItems;
 
     HistoryList* _parent;           // needed for copy and paste
 

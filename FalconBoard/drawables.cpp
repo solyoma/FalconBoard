@@ -532,7 +532,7 @@ int DrawableItem::AddEraserStroke(int eraserWidth, const QPolygonF& stroke)
 		// skip those outside
 	QPointF prevP, x = stroke[0];		// previous point on stroke curve
 	bool inside = rect.contains(prevP), 
-		 prevInside;
+		 prevInside = false;
 	int ix = 1;		// index in stroke for next point
 	for (; ix < stroke.size(); ++ix)
 	{

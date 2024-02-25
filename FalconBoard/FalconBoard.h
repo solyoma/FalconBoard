@@ -43,7 +43,7 @@ extern const QString pipeName;
 extern const QString fileExtension;
 
 
-enum ScreenMode { smSystem, smDark, smBlack };
+enum class ScreenMode { smSystem, smLight, smWhite, smDark, smBlack };
 
 // ************************ helper **********************
 QStringList GetTranslations();	// list of translation files
@@ -191,7 +191,9 @@ private slots:
 	void on_actionAbout_triggered();
 	void on_actionHelp_triggered();
 
+	void on_actionSystemMode_triggered();
 	void on_actionLightMode_triggered();
+	void on_actionWhiteMode_triggered();
 	void on_actionDarkMode_triggered();
 	void on_actionBlackMode_triggered();
 
@@ -288,7 +290,7 @@ private:
 	qreal _transparencyFuzzyness = 0.0;
 	QColor _screenshotTransparencyColor;
 
-	ScreenMode _screenMode = smSystem;
+	ScreenMode _screenMode = ScreenMode::smSystem;
 
 	QString _lastDir, _lastPDFDir, _lastSaveName;
 	int _nGridSpacing = 64;
@@ -315,6 +317,7 @@ private:
 	void _AddToRecentList(QString path);
 
 	void _CreateAndAddActions();
+	void _UncheckOtherModes(ScreenMode mode);
 
 #ifndef _VIEWER
 

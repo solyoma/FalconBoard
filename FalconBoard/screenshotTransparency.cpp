@@ -6,7 +6,7 @@
 
 const QString ssFormat = QStringLiteral("QToolButton#btnColor {\nbackground-color:%1;\nborder-color:%2;color:%3\n}");
 
-ScreenShotTransparencyDialog::ScreenShotTransparencyDialog(QWidget* parent, QColor trcolor, bool usetr, qreal fuzzyness) : _trcolor(trcolor), _fuzzyness(fuzzyness)
+ScreenShotTransparencyDialog::ScreenShotTransparencyDialog(QWidget* parent, QColor trcolor, bool usetr, qreal fuzzyness) : _trcolor(trcolor), _fuzzyness(fuzzyness), QDialog(parent)
 {
 	ui.setupUi(this);
 	ui.chkUse->setChecked(usetr);

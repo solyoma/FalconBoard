@@ -432,7 +432,16 @@ void FalconBoard::SaveState()
     else
         s->setValue(LANG, _actLanguage);
 
-    s->setValue(MODE, _screenMode == smSystem ? "s" : _screenMode == smDark ? "d" : "b");
+    QString qs;
+    switch (_screenMode)
+    {
+        case ScreenMode::smSystem:  qs = "s"; break;
+        case ScreenMode::smLight :  qs = "l"; break;
+        case ScreenMode::smWhite :  qs = "w"; break;
+        case ScreenMode::smDark  :  qs = "d"; break;
+        case ScreenMode::smBlack :  qs = "b"; break;
+    }
+    s->setValue(MODE, qs);
     s->setValue(GRID, (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
     s->setValue(PAGEGUIDES, ui.actionShowPageGuides->isChecked() ? 1 : 0);
     s->setValue(LIMITED, ui.actionLimitPaperWidth->isChecked());
@@ -649,6 +658,18 @@ void FalconBoard::_CreateAndAddActions()
     connect(_pTabs, &QTabBar::tabCloseRequested, this, &FalconBoard::SlotForTabCloseRequested);
     connect(_pTabs, &QTabBar::tabMoved, this, &FalconBoard::SlotForTabMoved);
 }
+
+void FalconBoard::_UncheckOtherModes(ScreenMode mode)
+{
+    bool checks[5] = { false }; // same # as the # of modes
+
+    checks[(int)mode] = true;
+    ui.actionSystemMode->setChecked(checks[0]);
+    ui.actionLightMode->setChecked(checks[1]);
+    ui.actionWhiteMode->setChecked(checks[2]);
+    ui.actionDarkMode->setChecked(checks[3]);
+    ui.actionBlackMode->setChecked(checks[4]);
+}                
 
 int FalconBoard::_AddNewTab(QString fname, bool loadIt, bool force) // and new history record
 {
@@ -951,6 +972,8 @@ void FalconBoard::_SetupMode(ScreenMode mode)
 
     _screenMode = mode;
 
+    _UncheckOtherModes(mode);
+
     QString actions[] = {
             "close",        // 0
             "eraser",       // 1
@@ -967,17 +990,16 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     switch (mode)
     {
         default:
-        case smSystem:
-            // already set : _drawArea->globalDrawColors.SetDarkMode(false);   // light mode: dark colors
-            // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, _drawArea->drawColors[penBlack]));
-            ui.actionExit   ->setIcon(_iconExit   );
-            ui.action_Eraser->setIcon(_iconEraser );
-            ui.actionNew    ->setIcon(_iconNew    );
-            ui.actionLoad   ->setIcon(_iconOpen   );
-            ui.actionRedo   ->setIcon(_iconRedo   );
-            ui.actionUndo   ->setIcon(_iconUndo   );
-            ui.actionSave   ->setIcon(_iconSave   );
-            ui.action_Screenshot->setIcon(_iconScreenShot);
+        case ScreenMode::smSystem:
+            break;
+        case ScreenMode::smLight:
+            ui.actionExit->setIcon(_iconExit);
+            ui.action_Eraser->setIcon(_iconEraser);
+            ui.actionNew->setIcon(_iconNew);
+            ui.actionLoad->setIcon(_iconOpen);
+            ui.actionRedo->setIcon(_iconRedo);
+            ui.actionUndo->setIcon(_iconUndo);
+            ui.actionSave->setIcon(_iconSave);
             _sBackgroundColor = "#FFFFFF";
             _sBackgroundHighlightColor = "#D8EAF9";
             _sSelectedBackgroundColor = "#007acc",
@@ -990,7 +1012,27 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sPageGuideColor = "#fcd475";
             _sToolBarColor = "#AAAAAA";
             break;
-        case smDark:
+        case ScreenMode::smWhite:
+            ui.actionExit->setIcon(_iconExit);
+            ui.action_Eraser->setIcon(_iconEraser);
+            ui.actionNew->setIcon(_iconNew);
+            ui.actionLoad->setIcon(_iconOpen);
+            ui.actionRedo->setIcon(_iconRedo);
+            ui.actionUndo->setIcon(_iconUndo);
+            ui.actionSave->setIcon(_iconSave);
+            _sBackgroundColor = "#FFFFFF";
+            _sBackgroundHighlightColor = "#D8EAF9";
+            _sSelectedBackgroundColor = "#007acc",
+            _sUnselectedBackgroundColor = "#d0d0d0",
+            _sEditBackgroundColor = "#FFFFFF",
+            _sEditTextColor = "#000000",
+            _sTextColor = "#000000";
+            _sDisabledColor = "#AAAAAA";
+            _sGridColor = "#d0d0d0";
+            _sPageGuideColor = "#fcd475";
+            _sToolBarColor = "#AAAAAA";
+            break;
+        case ScreenMode::smDark:
             // already set : _drawArea->globalDrawColors.SetDarkMode(true);
             // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
             ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
@@ -1013,7 +1055,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sPageGuideColor = "#413006";
             _sToolBarColor = "#202020";
             break;
-        case smBlack:
+        case ScreenMode::smBlack:
             // already set : _drawArea->globalDrawColors.SetDarkMode(true);
             // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
 
@@ -1041,7 +1083,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     if(_eraserOn)
         _drawArea->SetCursor(csEraser);
 
-    if (mode != smSystem)
+    if (mode != ScreenMode::smSystem)
         ss = "* {\n" 
                   "  background-color:" + _sBackgroundColor + ";\n"
                   "  color:" + _sTextColor + ";\n"
@@ -1127,7 +1169,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     ((QApplication*)(QApplication::instance()))->setStyleSheet(ss); // so it cascades down to all sub windows/dialogs, etc
 
 
-    _drawArea->SetMode(mode != smSystem, _sBackgroundColor, _sGridColor, _sPageGuideColor);
+    _drawArea->SetMode(mode != ScreenMode::smSystem, _sBackgroundColor, _sGridColor, _sPageGuideColor);
 }
 
 void FalconBoard::_ClearRecentMenu()
@@ -1720,19 +1762,29 @@ void FalconBoard::on_actionHelp_triggered()
     hd.exec();
 }
 
+void FalconBoard::on_actionSystemMode_triggered()
+{
+    _SetupMode(ScreenMode::smSystem);
+}
+
 void FalconBoard::on_actionLightMode_triggered()
 {
-    _SetupMode(smSystem);
+    _SetupMode(ScreenMode::smLight);
+}
+
+void FalconBoard::on_actionWhiteMode_triggered()
+{
+    _SetupMode(ScreenMode::smWhite);
 }
 
 void FalconBoard::on_actionDarkMode_triggered()
 {
-    _SetupMode(smDark);
+    _SetupMode(ScreenMode::smDark);
 }
 
 void FalconBoard::on_actionBlackMode_triggered()
 {
-    _SetupMode(smBlack);
+    _SetupMode(ScreenMode::smBlack);
 }
 
 void FalconBoard::on_actionAllowMultipleProgramInstances_triggered()
