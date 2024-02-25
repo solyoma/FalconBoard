@@ -11,10 +11,10 @@ void PenColorsDialog::Data::SetupFrom(const DrawColors& dc, QString schemeName)
 	title = schemeName;
 	for (int i = 0; i < PEN_COUNT - 2; ++i)
 	{
-		names[i][0]  = dc.ActionText((FalconPenKind)(i + 2), 0);
-		names[i][1]  = dc.ActionText((FalconPenKind)(i + 2), 1);
-		colors[i][0] = dc.Color((FalconPenKind)(i + 2), 0);
-		colors[i][1] = dc.Color((FalconPenKind)(i + 2), 1);
+		names[i][0]  = dc.ActionText((FalconPenKind)(i + 2)	, ScreenMode::smLight);
+		names[i][1] = dc.ActionText((FalconPenKind)(i + 2)	, ScreenMode::smDark);
+		colors[i][0] = dc.Color((FalconPenKind)(i + 2)		, ScreenMode::smLight);
+		colors[i][1] = dc.Color((FalconPenKind)(i + 2)		, ScreenMode::smDark);
 	}
 }
 
@@ -43,11 +43,11 @@ PenColorsDialog::~PenColorsDialog()
 bool PenColorsDialog::GetChanges(DrawColors& drcls) const
 {
 	int changeCount = 0;
-	drcls.SetupPenAndCursor(penBlack, drcls.Color(penBlack,false), drcls.Color(penBlack,true));
+	drcls.SetupPenAndCursor(penBlack, drcls.Color(penBlack, ScreenMode::smLight), drcls.Color(penBlack, ScreenMode::smDark));
 	for (int i = 0; i < PEN_COUNT - 2; ++i)
 	{
-		if ((_data.colors[i][0] != drcls.Color((FalconPenKind)(i + 2), 0)) ||
-			(_data.colors[i][1] != drcls.Color((FalconPenKind)(i + 2), 1)))
+		if ((_data.colors[i][0] != drcls.Color((FalconPenKind)(i + 2), ScreenMode::smLight)) ||
+			(_data.colors[i][1] != drcls.Color((FalconPenKind)(i + 2), ScreenMode::smDark)))
 		{
 			drcls.SetupPenAndCursor((FalconPenKind)(i + 2), _data.colors[i][0], _data.colors[i][1], pe[i][0]->text(), pe[i][1]->text());
 			++changeCount;

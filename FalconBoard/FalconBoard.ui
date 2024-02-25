@@ -593,7 +593,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>System Colors</string>
+    <string>&amp;System Colors</string>
    </property>
   </action>
   <action name="actionDarkMode">
@@ -601,7 +601,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Dark</string>
+    <string>&amp;Dark</string>
    </property>
   </action>
   <action name="actionBlackMode">
@@ -609,7 +609,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Black</string>
+    <string>&amp;Black</string>
    </property>
   </action>
   <action name="actionShowGrid">

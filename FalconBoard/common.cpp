@@ -243,7 +243,7 @@ DrawColors& DrawColors::operator= (const DrawColors& o)
     {
         _pens = o._pens;
     }
-    _dark = o._dark;
+    _mode = o._mode;
     _pkActual = o._pkActual;
 
     return *this;
@@ -261,15 +261,15 @@ bool DrawColors::SameColors(const DrawColors& o)
     return true;
 }
 
-bool DrawColors::SetDarkMode(bool dark) // returns previous mode
+bool DrawColors::SetDarkMode(ScreenMode mode) // returns previous mode: never use smUseDefault !
 {
-    bool b = _dark;
-    if (b != dark)
+    ScreenMode b = _mode;
+    if (b != mode)
     {
-        _dark = dark;
-        _pens.SetDarkMode(dark);
+        _mode = mode;
+        _pens.SetDarkMode(_IsDarkMode());
     }
-    return b;
+    return b > ScreenMode::smWhite;
 }
 
 void DrawColors::SetDrawingPen(FalconPenKind pk)
@@ -315,9 +315,9 @@ void DrawColors::SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor d
     _pens.SetupPen(pk, lightcolor, darkcolor, sLightColorUserName, sDarkColorUserName, false);
 }
 
-void DrawColors::SetActionText(FalconPenKind pk, QString text, bool dark)
+void DrawColors::SetActionText(FalconPenKind pk, QString text, ScreenMode mode)
 {
-    _pens.SetActionText(pk, text, dark);
+    _pens.SetActionText(pk, text, _IsDarkMode() );
 }
 
 void DrawColors::SetDefaultPen(FalconPenKind pk, QColor lc, QColor dc, QString& ln, QString& dn)
@@ -376,14 +376,12 @@ bool DrawColors::DefaultsFromSettings()
     return true;
 }
 
-QColor DrawColors::Color(FalconPenKind pk, int dark) const
+QColor DrawColors::Color(FalconPenKind pk, ScreenMode mode) const
 {
     if (pk == penNone)
         pk = _pkActual;
-    if (dark < 0)
-        dark = _dark;
 //    qDebug("pk:%d, %s, color:%s - %s:line #%ld", pk, (dark? "dark " : "light"), _pens.Color(pk, dark).name().toStdString().c_str(), __FILE__, __LINE__);
-    return _pens.Color(pk, dark);
+    return _pens.Color(pk, _IsDarkMode(mode));
 }
 
 QCursor DrawColors::PenPointer(FalconPenKind pk) const
@@ -393,11 +391,11 @@ QCursor DrawColors::PenPointer(FalconPenKind pk) const
     return _pens.Pointer(pk);
 }
 
-QString DrawColors::ActionText(FalconPenKind pk, int dark) const
+QString DrawColors::ActionText(FalconPenKind pk, ScreenMode mode) const
 {
     if (pk == penNone)
         pk = _pkActual;
-    return _pens.ActionText(pk, dark);
+    return _pens.ActionText(pk, _IsDarkMode(mode));
 }
 
 QIcon FalconPens::_RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB) const

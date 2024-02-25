@@ -400,7 +400,7 @@ void DrawArea::SetMode(ScreenMode mode, QString backgroundColor, QString sGridCo
 	_backgroundColor = backgroundColor;
 	_gridColor = sGridColor;
 	_pageGuideColor = sPageGuideColor;
-	globalDrawColors.SetDarkMode(_darkMode = mode > ScreenMode::smWhite);
+	globalDrawColors.SetDarkMode(mode);
 	emit SignalPenColorChanged();
 	_Redraw();                  // because pen color changed!
 	SetCursor(_erasemode ? csEraser : csPen);

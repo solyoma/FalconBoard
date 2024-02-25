@@ -532,11 +532,11 @@ void MyPrinter::_PreparePage(int page)
 
     _pItemImage->fill(Qt::transparent);
 
-    bool b = globalDrawColors.IsDarkMode();
+    ScreenMode m = globalDrawColors.ActualMode();
     // bottom layer
-    if (!b || (PageParams::flags & printWhiteBackgroundFlag) != 0)
+    if (globalDrawColors.IsDarkMode() || (PageParams::flags & printWhiteBackgroundFlag) != 0)
     {
-        globalDrawColors.SetDarkMode(false);
+        globalDrawColors.SetDarkMode(ScreenMode::smWhite);
         _pPageImage->fill(Qt::white);
     }
     else
@@ -559,7 +559,7 @@ void MyPrinter::_PreparePage(int page)
         }
     }
     _pImagePainter->drawImage(QPointF(0,0), *_pItemImage);   // all items to pPageImage at top of images
-    globalDrawColors.SetDarkMode(b);
+    globalDrawColors.SetDarkMode(m);
 
 }
 

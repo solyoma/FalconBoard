@@ -10,6 +10,7 @@
 #include <QIcon>
 #include <QColor>
 #include <QPainter>
+#include <QApplication>
 #include <QMainWindow>
 #include <QDir>
 #include <QSettings>
@@ -23,7 +24,7 @@ const QString sWindowTitle =
 #else
         "FalconBoard";
 #endif
-enum class ScreenMode { smSystem, smLight, smWhite, smDark, smBlack };
+enum class ScreenMode { smUseDefault=-1, smSystem, smLight, smWhite, smDark, smBlack, };
 
 using IntVector = QVector<int>;
 inline constexpr qreal EqZero(qreal a) { return qFuzzyIsNull(qAbs(a)); }
@@ -166,10 +167,22 @@ public:
 //----------------------------- DrawColors -------------------
 class DrawColors
 {
-    bool _dark = false;
+    ScreenMode _mode = ScreenMode::smSystem;
     static FalconPens _defaultPens;
     FalconPens _pens;     // no color for 'penNone'
     FalconPenKind _pkActual = penNone;
+
+    inline bool _IsDarkMode(ScreenMode mode = ScreenMode::smUseDefault) const
+    {
+        bool dark = QApplication::palette().window().color().value() < QApplication::palette().windowText().color().value();
+        if (mode == ScreenMode::smUseDefault)
+            mode = _mode;
+
+        if (mode == ScreenMode::smSystem)
+            return dark;
+        else 
+            return _mode > ScreenMode::smWhite;
+    }
 public:
     DrawColors() {}
     DrawColors(const DrawColors& o) { *this = o; }
@@ -182,16 +195,17 @@ public:
     }
 
     bool SameColors(const DrawColors& o);
-    QColor  Color(FalconPenKind pk = penNone, int dark=-1) const;       // penNone and dark < 0 for actual pen
+    ScreenMode ActualMode() const { return _mode; }
+    QColor  Color(FalconPenKind pk = penNone, ScreenMode mode=ScreenMode::smUseDefault) const;       // penNone and dark < 0 for actual pen
     QCursor PenPointer(FalconPenKind pk=penNone) const;    // for actual pen
-    QString ActionText(FalconPenKind pk = penNone, int dark =-1) const;
-    bool IsDarkMode() const { return _dark; }
+    QString ActionText(FalconPenKind pk = penNone, ScreenMode mode = ScreenMode::smUseDefault) const;
+    bool IsDarkMode() const { return _mode > ScreenMode::smWhite; }
     bool IsChanged() { return _pens.IsAnyPensChanged(); }
 
-    bool SetDarkMode(bool dark);
+    bool SetDarkMode(ScreenMode mode = ScreenMode::smUseDefault);
     void SetDrawingPen(FalconPenKind pk);
     void SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColorUserName=QString(), QString sDarkColorUserName=QString());
-    void SetActionText(FalconPenKind pk, QString text, bool dark);  // used from 'pencolors'
+    void SetActionText(FalconPenKind pk, QString text, ScreenMode mode = ScreenMode::smUseDefault);  // used from 'pencolors'
         // global pen colors
     void SetDefaultPen(FalconPenKind pk, QColor lc, QColor dc, QString &ln, QString &dn);
     bool DefaultsToSettings() const;
