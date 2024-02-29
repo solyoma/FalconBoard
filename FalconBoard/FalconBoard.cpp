@@ -1461,6 +1461,9 @@ bool FalconBoard::_LoadData(int index)
  *------------------------------------------------------------*/
 void FalconBoard::_AddToRecentList(QString path)
 {
+    if (path.isEmpty())
+        return;
+
     int i = _recentList.indexOf(path);
     if (i == 0)                    // at top
         return;

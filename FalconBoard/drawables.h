@@ -488,7 +488,7 @@ struct DrawableEllipse : public DrawableItem    // refPoint is the center
     }
     QPointF GetLastDrawnPoint() const override
     {
-        return  refPoint + QPointF(_rotatedRect.width(), _rotatedRect.height() / 2.0);
+        return  refPoint;
     }
 
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellipse: inside it
@@ -610,7 +610,7 @@ struct DrawableRectangle : public DrawableItem
     }
     QPointF GetLastDrawnPoint() const override
     {
-        return rect.bottomRight();
+        return refPoint;
     }
 
     bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled rectangle: inside it

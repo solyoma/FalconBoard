@@ -406,6 +406,7 @@ private:
     bool _NoPrintProblems();           // false: some problems
     QPointF _SanitizePointF(QPointF& pt);
     void _ShowCoordinates(const QPointF& qp);   // and sets mouse position into _actMousePos
+    void _PaintOnActCanvas(DrawableItem* pdrwi);
 #ifndef _VIEWER
     Sprite * _CreateSprite(QPointF cursorPos, QRectF& rect, bool itemsDeleted, bool setVisible=true);
     Sprite * _PrepareSprite(Sprite *pSprite, QPointF cursorPos, QRectF rect, bool itemsDeleted, bool setVisible=true);

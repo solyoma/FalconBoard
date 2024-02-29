@@ -615,10 +615,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			_actPenWidth = _penWidth;
 			_lastDrawableCross = DrawableCross(p, halflen, _history->GetZorder(false), _actPenKind, _actPenWidth);
 
-			QPainter* painter = _GetPainter(_pActCanvas);
-			_lastDrawableCross.Draw(painter, _topLeft, _clippingRect);
-			delete painter;
-			_firstPointC = _lastPointC = _lastDrawableCross.refPoint;;
+			_PaintOnActCanvas(&_lastDrawableCross);
 
 			(void)_history->AddDrawableItem(_lastDrawableCross);
 			_history->AddToSelection(-1);
@@ -794,13 +791,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 
 					_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
 
-					QPainter* painter = _GetPainter(_pActCanvas);
-					_lastRectangleItem.Draw(painter, _topLeft, _clippingRect);
-					delete painter;
+					_PaintOnActCanvas(&_lastRectangleItem);
 					update(r.adjusted(-_penWidth,-_penWidth,_penWidth,_penWidth).toRect());
-
-					_firstPointC = _lastPointC = _lastRectangleItem.GetLastDrawnPoint();
-
 					//				_rubberRect = r.adjusted(-adjustment, -adjustment, adjustment, adjustment);
 					_rubberBand->setGeometry(_rubberRect.toRect());
 					(void)_history->AddDrawableItem(_lastRectangleItem);
@@ -815,12 +807,9 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				QRectF r = _rubberRect.adjusted(-adjustment, -adjustment, adjustment, adjustment);
 				_lastEllipseItem = DrawableEllipse(r.translated(_topLeft), _history->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
 				
-				QPainter* painter = _GetPainter(_pActCanvas);
-				_lastEllipseItem.Draw(painter, _topLeft, _clippingRect);
-				delete painter;
+				_PaintOnActCanvas(&_lastEllipseItem);
 				update(_rubberRect.toRect());
 
-				_firstPointC = _lastPointC = _lastEllipseItem.GetLastDrawnPoint();
 
 
 				(void) _history->AddDrawableItem(_lastEllipseItem);
@@ -836,9 +825,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				_actPenWidth = _penWidth;
 				_lastDotItem = DrawableDot(_rubberRect.translated(_topLeft).center(), _history->GetZorder(false), _actPenKind, _actPenWidth);
 
-				QPainter* painter = _GetPainter(_pActCanvas);
-				_lastDotItem.Draw(painter, _topLeft,_clippingRect);
-				delete painter;
+				_PaintOnActCanvas(&_lastDotItem);
 
 				(void) _history->AddDrawableItem(_lastDotItem);
 				 if(!_erasemode)
@@ -2778,6 +2765,14 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 		qs += " | DM";
 
 	emit TextToToolbar(qs);
+}
+
+void DrawArea::_PaintOnActCanvas(DrawableItem* pdrwi)
+{
+	QPainter* painter = _GetPainter(_pActCanvas);
+	pdrwi->Draw(painter, _topLeft, _clippingRect);
+	delete painter;
+	_firstPointC = _lastPointC = pdrwi->GetLastDrawnPoint();
 }
 
 #ifndef _VIEWER

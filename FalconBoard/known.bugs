@@ -1,4 +1,5 @@
 scribbles not the same as seen on screen, change when marked
 moving marked blocks stutter
 sometimes after load nothing is shown until "paper" is scrolled
-when pasted or copy moved the selectedrect is incorrect, the rubberband is correct
+after undo last point is not set to last point of previous item
+deleteing end of document still moves down to that point when Ctrl+End is pressed
