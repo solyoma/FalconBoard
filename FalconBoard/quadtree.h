@@ -237,7 +237,7 @@ public:
 		_DebugAreaPrint(f, _area);
 		f << " contains " << _rootNode->values.size() << " values\n";
 		if (!_IsLeaf(_rootNode.get()))
-			for (int i = 0; i < _rootNode->children.size(); ++i)
+			for (size_t i = 0; i < _rootNode->children.size(); ++i)
 				_DebugPrint(f, _rootNode->children[i].get(), _area, i, "    ");
 		f.close();
 	}
@@ -568,7 +568,7 @@ private:
 		if (std::find(std::begin(node->values),std::end(node->values), val) != std::end(node->values))
 			f << indent << indent << " contains 947\n";
 		if (!_IsLeaf(node))
-			for (int i = 0; i < node->children.size(); ++i)
+			for (size_t i = 0; i < node->children.size(); ++i)
 				_DebugPrint(f, node->children[i].get(), area, i, indent + "   ");
 	}
 #endif
