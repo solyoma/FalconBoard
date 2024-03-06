@@ -1627,9 +1627,9 @@ DrawableScreenShot* DrawableList::NextVisibleScreenShot()
 void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-index ordered index '_yOrder'
 {														  // _pQTree must not be NULL
 	// DEBUG
-#if !defined _VIEWER && defined _DEBUG
-	_pQTree->pItemTree->DebugPrint();
-#endif
+//#if !defined _VIEWER && defined _DEBUG
+//	_pQTree->pItemTree->DebugPrint();
+//#endif
 	// /DEBUG
 	QuadArea area = _pQTree->Area();
 	QRectF r = QRectF(area.Left(), thisY, area.Width(), area.Height());

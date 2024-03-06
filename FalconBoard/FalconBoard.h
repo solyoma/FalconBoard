@@ -237,6 +237,7 @@ private:
 	QIcon   _iconEraser		   ;
 	QIcon   _iconNew		   ;
 	QIcon   _iconOpen		   ;
+	QIcon   _iconPrint		   ;
 	QIcon   _iconSave		   ;
 	QIcon   _iconSaveAs		   ;
 	QIcon   _iconUndo		   ;
@@ -373,6 +374,7 @@ private:
 	void _CloseTab(int index);
 	void _SetResetChangedMark(int index);
 	void _SetTabText(int index, QString fname);
+	void _PrepareActionIcons();
 	void _SetupMode(ScreenMode mode);
 	void _ClearRecentMenu();
 	void _PopulateRecentMenu();		// from recentList

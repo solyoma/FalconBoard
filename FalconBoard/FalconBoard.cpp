@@ -509,6 +509,7 @@ void FalconBoard::_LoadIcons()
     _iconNew = QIcon(":/FalconBoard/Resources/new.png");
     _iconOpen = QIcon(":/FalconBoard/Resources/open.png");
     _iconSave = QIcon(":/FalconBoard/Resources/save.png");
+    _iconPrint = QIcon(":/FalconBoard/Resources/printer.png");
     _iconSaveAs = QIcon(":/FalconBoard/Resources/saveas.png");
     _iconUndo = QIcon(":/FalconBoard/Resources/undo.png");
     _iconRedo = QIcon(":/FalconBoard/Resources/redo.png");
@@ -574,7 +575,7 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.action_Blue);
     ui.mainToolBar->addAction(ui.action_Yellow);
 
-    ui.mainToolBar->addAction(ui.action_Eraser);
+    ui.mainToolBar->addAction(ui.actionEraser);
 
         // these are needed for radiobutton like behaviour for actions in the group
     _penGroup = new QActionGroup(this);
@@ -584,7 +585,7 @@ void FalconBoard::_CreateAndAddActions()
     _penGroup->addAction(ui.action_Blue);
     _penGroup->addAction(ui.action_Yellow);
 
-    _penGroup->addAction(ui.action_Eraser);
+    _penGroup->addAction(ui.actionEraser);
 #endif
 
     _modeGroup = new QActionGroup(this);
@@ -898,15 +899,20 @@ QIcon FalconBoard::_ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB)
 {
     QPixmap pm, pmW, pmB;
     pmW = pmB = pm = sourceIcon.pixmap(64, 64);
-    QBitmap mask = pm.createMaskFromColor(Qt::white, Qt::MaskOutColor);
+    QBitmap mask = pm.createMaskFromColor(Qt::white, Qt::MaskOutColor); // whites become transparent
 
     pmW.fill(colorW);
     pmW.setMask(mask);
+    // DEBUG
+    // pmW.save("whiteMask.png");
     if (colorB.isValid())
     {
-        mask = pm.createMaskFromColor(Qt::black, Qt::MaskOutColor);
+        mask = pm.createMaskFromColor(Qt::black, Qt::MaskOutColor); // blacks become transparent
         pmB.fill(colorB);
         pmB.setMask(mask);
+    // DEBUG
+    //    pmB.save("blackMask.png");
+
         QPainter painter(&pmW);
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
         painter.drawPixmap(0,0, pm.width(), pm.height(), pmB);
@@ -968,6 +974,34 @@ void FalconBoard::_SetTabText(int index, QString fname)
     _pTabs->setTabText(index, text);
 }
 
+void FalconBoard::_PrepareActionIcons()
+{
+	if (globalDrawColors.IsDarkMode())
+	{
+		ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, Qt::white));
+		ui.actionEraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, Qt::white));
+		ui.actionNew->setIcon(_ColoredIcon(_iconNew, Qt::black, Qt::white));
+		ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, Qt::black, Qt::white));
+		ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, Qt::black, Qt::white));
+		ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, Qt::black, Qt::white));
+		ui.actionPrint->setIcon(_ColoredIcon(_iconPrint, Qt::black, Qt::white));
+		ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, Qt::white));
+		ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, Qt::white));
+	}
+	else
+	{
+		ui.actionExit->setIcon(_iconExit);
+		ui.actionEraser->setIcon(_iconEraser);
+		ui.actionNew->setIcon(_iconNew);
+		ui.actionLoad->setIcon(_iconOpen);
+		ui.actionPrint->setIcon(_iconPrint);
+		ui.actionRedo->setIcon(_iconRedo);
+		ui.actionUndo->setIcon(_iconUndo);
+		ui.actionSave->setIcon(_iconSave);
+		ui.action_Screenshot->setIcon(_iconScreenShot);
+	}
+}
+
 void FalconBoard::_SetupMode(ScreenMode mode)
 {
     QString ss,
@@ -994,23 +1028,9 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     {
         default:
         case ScreenMode::smSystem:
-            ui.actionExit->setIcon(_iconExit);
-            ui.action_Eraser->setIcon(_iconEraser);
-            ui.actionNew->setIcon(_iconNew);
-            ui.actionLoad->setIcon(_iconOpen);
-            ui.actionRedo->setIcon(_iconRedo);
-            ui.actionUndo->setIcon(_iconUndo);
-            ui.actionSave->setIcon(_iconSave);
             _sGridColor = "#d0d0d0";
             break;
         case ScreenMode::smLight:
-            ui.actionExit->setIcon(_iconExit);
-            ui.action_Eraser->setIcon(_iconEraser);
-            ui.actionNew->setIcon(_iconNew);
-            ui.actionLoad->setIcon(_iconOpen);
-            ui.actionRedo->setIcon(_iconRedo);
-            ui.actionUndo->setIcon(_iconUndo);
-            ui.actionSave->setIcon(_iconSave);
             _sBackgroundColor = "#F0F0F0";
             _sBackgroundHighlightColor = "#D8EAF9";
             _sSelectedBackgroundColor = "#007acc",
@@ -1026,13 +1046,6 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sTabBarInactiveTextColor = "#808080";
             break;
         case ScreenMode::smWhite:
-            ui.actionExit->setIcon(_iconExit);
-            ui.action_Eraser->setIcon(_iconEraser);
-            ui.actionNew->setIcon(_iconNew);
-            ui.actionLoad->setIcon(_iconOpen);
-            ui.actionRedo->setIcon(_iconRedo);
-            ui.actionUndo->setIcon(_iconUndo);
-            ui.actionSave->setIcon(_iconSave);
             _sBackgroundColor = "#FFFFFF";
             _sBackgroundHighlightColor = "#D8EAF9";
             _sSelectedBackgroundColor = "#007acc",
@@ -1050,14 +1063,6 @@ void FalconBoard::_SetupMode(ScreenMode mode)
         case ScreenMode::smDark:
             // already set : _drawArea->globalDrawColors.SetDarkMode(true);
             // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
-            ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
-            ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, QColor(Qt::white)));
-            ui.actionNew->setIcon(_ColoredIcon(_iconNew  , Qt::black, QColor(Qt::white)));
-            ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, Qt::black, QColor(Qt::white)));
-            ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, Qt::black, QColor(Qt::white)));
-            ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, Qt::black, QColor(Qt::white)));
-            ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, QColor(Qt::white)));
-            ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#282828";
             _sSelectedBackgroundColor = "#007acc";
             _sBackgroundHighlightColor = "#D8EAF9";
@@ -1065,7 +1070,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sEditBackgroundColor = "#555",
             _sEditTextColor = "#ffffff",
             _sTextColor = "#E1E1E1";
-            _sDisabledColor = "#AAAAAA";
+            _sDisabledColor = "#888888";
             _sGridColor = "#202020";
             _sPageGuideColor = "#413006";
             _sToolBarColor = "#202020";
@@ -1075,15 +1080,6 @@ void FalconBoard::_SetupMode(ScreenMode mode)
         case ScreenMode::smBlack:
             // already set : _drawArea->globalDrawColors.SetDarkMode(true);
             // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
-
-            ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, QColor(Qt::white)));
-            ui.action_Eraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, QColor(Qt::white)));
-            ui.actionNew->setIcon(_ColoredIcon(_iconNew, Qt::black, QColor(Qt::white)));
-            ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, Qt::black, QColor(Qt::white)));
-            ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, Qt::black, QColor(Qt::white)));
-            ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, Qt::black, QColor(Qt::white)));
-            ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, QColor(Qt::white)));
-            ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, QColor(Qt::white)));
             _sBackgroundColor = "#000000";
             _sBackgroundHighlightColor = "#D8EAF9";
             _sSelectedBackgroundColor = "#007acc";
@@ -1099,6 +1095,10 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sTabBarInactiveTextColor = "#808080";
             break;
     }
+
+    _drawArea->SetMode(mode, _sBackgroundColor, _sGridColor, _sPageGuideColor);
+    _PrepareActionIcons();
+
     if(_eraserOn)
         _drawArea->SetCursor(csEraser);
 
@@ -1128,6 +1128,11 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "  color:"+ _sDisabledColor + ";\n"
             "}\n"
 
+            "QSpinBox {\n"
+            "  color:"+_sBackgroundColor + ";\n"
+            "  background-color:" + _sTextColor + ";\n"
+            "}\n"
+
             "QLineEdit {\n"
             "  background-color:" + _sEditBackgroundColor + ";\n"
             "  color:"+_sEditTextColor + ";\n"
@@ -1153,10 +1158,13 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "  margin: 2px;\n"
             "  border: 2px solid" + _sGridColor + ";"
             "\n}\n"
-            "QPushButton:hover, QToolButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n" 
+            "QPushButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n" 
             "QToolButton:hover {\n  "
             "  border:1px solid " + _sTabBarActiveTextColor + ";\n"
             "}\n"
+            "QToolBar:disabled, QToolButton:disabled {\n"
+            "  color:" + _sDisabledColor + ";\n"
+            "}"
             "QStatusBar, QToolBar {\n"
             " background-color:" + _sToolBarColor + ";\n"
             " border:1px solid " + _sGridColor + ";\n"        // needed for some linux distors to set tool bar background colro
@@ -1185,14 +1193,21 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "  color:"+_sBackgroundColor+";\n"
             "}\n"
 
-            "QToolTip {\n background-color:"+_sTextColor+";\n color:"+_sBackgroundColor+";\n"
+            "QToolTip {\n" 
+            "  background-color:"+_sTextColor+";\n"
+            "  color:"+_sBackgroundColor+";\n"
             "}\n"
         ;
 
     ((QApplication*)(QApplication::instance()))->setStyleSheet(ss); // so it cascades down to all sub windows/dialogs, etc
-
-
-    _drawArea->SetMode(mode, _sBackgroundColor, _sGridColor, _sPageGuideColor);
+// DEBUG
+    //{
+    //    QFile f("styleSheet.txt");
+    //    f.open(QIODevice::WriteOnly);
+    //    QTextStream ofs(&f);
+    //    ofs << ss;
+    //}
+// /DEBUG
 }
 
 void FalconBoard::_ClearRecentMenu()
@@ -2019,7 +2034,7 @@ void FalconBoard::on_action_Eraser_triggered()
     _eraserOn = true;
     _SetPenWidth(_actPen = penEraser);
     _drawArea->SetCursor(csEraser);
-    _SelectPenForAction(ui.action_Eraser);
+    _SelectPenForAction(ui.actionEraser);
 	ui.centralWidget->setFocus();
 }
 

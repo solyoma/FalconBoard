@@ -17,6 +17,9 @@
    <iconset>
     <normaloff>:/FalconBoard/Resources/falconboard.ico</normaloff>:/FalconBoard/Resources/falconboard.ico</iconset>
   </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
   <property name="styleSheet">
    <string notr="true"/>
   </property>
@@ -104,7 +107,7 @@
     <addaction name="actionGoToPage"/>
     <addaction name="separator"/>
     <addaction name="menuPen_Color"/>
-    <addaction name="action_Eraser"/>
+    <addaction name="actionEraser"/>
     <addaction name="separator"/>
     <addaction name="action_Screenshot"/>
     <addaction name="actionApplyTransparencyToLoaded"/>
@@ -342,6 +345,10 @@
    <property name="enabled">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/printer.png</normaloff>:/FalconBoard/Resources/printer.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Print...</string>
    </property>
@@ -360,7 +367,7 @@
     <string>Ctrl+Del</string>
    </property>
   </action>
-  <action name="action_Eraser">
+  <action name="actionEraser">
    <property name="checkable">
     <bool>true</bool>
    </property>

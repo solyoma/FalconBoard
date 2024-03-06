@@ -174,12 +174,14 @@ class DrawColors
 
     inline bool _IsDarkMode(ScreenMode mode = ScreenMode::smUseDefault) const
     {
-        bool dark = QApplication::palette().window().color().value() < QApplication::palette().windowText().color().value();
+        //bool dark = (QApplication::palette().color(QPalette::WindowText).value() >
+        //             QApplication::palette().color(QPalette::Window).value() ) || _mode > ScreenMode::smWhite;  // for system colors
+        bool isSystemDark = QApplication::palette().window().color().value() < QApplication::palette().windowText().color().value();
         if (mode == ScreenMode::smUseDefault)
             mode = _mode;
 
         if (mode == ScreenMode::smSystem)
-            return dark;
+            return isSystemDark;
         else 
             return _mode > ScreenMode::smWhite;
     }
@@ -201,8 +203,7 @@ public:
     QString ActionText(FalconPenKind pk = penNone, ScreenMode mode = ScreenMode::smUseDefault) const;
     bool IsDarkMode() const 
     {
-        return (qApp->palette().color(QPalette::WindowText).value() >
-                qApp->palette().color(QPalette::Window).value() ) || _mode > ScreenMode::smWhite;  // for system colors
+        return _IsDarkMode();
     }
     bool IsChanged() { return _pens.IsAnyPensChanged(); }
 

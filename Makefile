@@ -463,6 +463,7 @@ Debug/rcc/qrc_FalconBoard.cpp: FalconBoard/FalconBoard.qrc \
 		FalconBoard/Resources/undo.png \
 		FalconBoard/Resources/screenshot.png \
 		FalconBoard/Resources/move.png \
+		FalconBoard/Resources/printer.png \
 		FalconBoard/Resources/trash-can.png \
 		FalconBoard/Resources/redo.png \
 		FalconBoard/Resources/multi.png \
@@ -642,10 +643,10 @@ Debug/drawables.o: FalconBoard/drawables.cpp FalconBoard/drawables.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Debug/drawables.o FalconBoard/drawables.cpp
 
 Debug/DrawArea.o: FalconBoard/DrawArea.cpp FalconBoard/config.h \
+		FalconBoard/common.h \
 		FalconBoard/rotateinput.h \
 		Debug/Ui/ui_rotateinput.h \
 		FalconBoard/DrawArea.h \
-		FalconBoard/common.h \
 		FalconBoard/drawables.h \
 		FalconBoard/quadtree.h \
 		FalconBoard/history.h \
