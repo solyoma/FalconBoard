@@ -1117,6 +1117,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "QMenuBar::item, "
             "QMenu::item {\n"
             "  color:" + _sTextColor + ";\n"
+            "  background-color:" + _sBackgroundColor + ";\n"
             "}\n"
             "QMenuBar::item:selected,\n"
             "QMenu::item:selected {\n"

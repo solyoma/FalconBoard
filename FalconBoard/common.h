@@ -202,7 +202,7 @@ public:
     bool IsDarkMode() const 
     {
         return (qApp->palette().color(QPalette::WindowText).value() >
-                qApp->palette().color(QPalette::Window).value() ) || _mode > ScreenMode::smWhite; 
+                qApp->palette().color(QPalette::Window).value() ) || _mode > ScreenMode::smWhite;  // for system colors
     }
     bool IsChanged() { return _pens.IsAnyPensChanged(); }
 
