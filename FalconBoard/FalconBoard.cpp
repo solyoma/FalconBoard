@@ -1132,6 +1132,11 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "  color:"+_sBackgroundColor + ";\n"
             "  background-color:" + _sTextColor + ";\n"
             "}\n"
+            "QSpinBox::up-button,QSpinBox::down-button, QSpinBox::up-arrow,QSpinBox::down-arrow {\n"
+            "  color:"+_sBackgroundColor + ";\n"
+            "  background-color:" + _sTextColor + ";\n"
+            "}\n"
+
 
             "QLineEdit {\n"
             "  background-color:" + _sEditBackgroundColor + ";\n"

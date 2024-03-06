@@ -192,9 +192,11 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 		_history = historyList[index];
 		_topLeft = _history->TopLeft();
 		_history->SetPageParamsFromHistory();
-		globalDrawColors = _history->drawColors;
-		PageParams::SetScreenWidth();
 
+		ScreenMode actualMode = globalDrawColors.ActualMode();	// as the other item may not bi in the current display mode
+		globalDrawColors = _history->drawColors;
+		globalDrawColors.SetDarkMode(actualMode);
+		PageParams::SetScreenWidth();
 	}
 
 	int res = 1;
