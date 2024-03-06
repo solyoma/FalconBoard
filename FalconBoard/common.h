@@ -199,7 +199,11 @@ public:
     QColor  Color(FalconPenKind pk = penNone, ScreenMode mode=ScreenMode::smUseDefault) const;       // penNone and dark < 0 for actual pen
     QCursor PenPointer(FalconPenKind pk=penNone) const;    // for actual pen
     QString ActionText(FalconPenKind pk = penNone, ScreenMode mode = ScreenMode::smUseDefault) const;
-    bool IsDarkMode() const { return _mode > ScreenMode::smWhite; }
+    bool IsDarkMode() const 
+    {
+        return (qApp->palette().color(QPalette::WindowText).value() >
+                qApp->palette().color(QPalette::Window).value() ) || _mode > ScreenMode::smWhite; 
+    }
     bool IsChanged() { return _pens.IsAnyPensChanged(); }
 
     bool SetDarkMode(ScreenMode mode = ScreenMode::smUseDefault);
