@@ -118,7 +118,7 @@ private slots:
 	void on_action_Green_triggered() ;
 	void on_action_Blue_triggered()  ;
 	void on_action_Yellow_triggered();
-	void on_action_Eraser_triggered();
+	void on_actionEraser_triggered();
 
 	void on_actionRotate_triggered();
 	void on_actionRepeatRotation_triggered();

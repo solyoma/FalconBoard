@@ -42,6 +42,16 @@ bool HistoryItem::operator<(const HistoryItem& other)
 	return false;
 }
 
+QPointF HistoryItem::_TopLeftFrom(const DrawableIndexVector& dvi) const
+{
+	QRectF a;
+	for (auto& d : dvi)
+	{
+		a = a.united(pHist->Drawables()->Items()[d]->Area());
+	}
+	return a.topLeft();
+}
+
 
 
 //-------------------------------------------- 

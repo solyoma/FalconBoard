@@ -196,6 +196,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 		ScreenMode actualMode = globalDrawColors.ActualMode();	// as the other item may not bi in the current display mode
 		globalDrawColors = _history->drawColors;
 		globalDrawColors.SetDarkMode(actualMode);
+		setCursor(globalDrawColors.PenPointer(_actPenKind));
 		PageParams::SetScreenWidth();
 	}
 
@@ -1909,18 +1910,30 @@ void DrawArea::_SetTopLeftFromItem(HistoryItem* phi)
 		t = _topLeft.y();
 	if (phi)
 	{
-		QRectF rect = phi->Area();
-		if (!rect.isNull() && rect.isValid() && !_canvasRect.intersects(rect)) // try to put at the middle of the screen
+		if (phi->type == HistEvent::heDrawable)
 		{
-			if (rect.x() < l || rect.x() > l + _canvasRect.width())
-				l = rect.x() - (_canvasRect.width() - rect.width()) / 2;
-			if (rect.y() < t || rect.y() > t + _canvasRect.height())
-				t = rect.y() - (_canvasRect.height() - rect.height()) / 2;
-
-			if (l != _topLeft.x() || t != _topLeft.y())
+			QRectF rect = phi->Area();
+			if (!rect.isNull() && rect.isValid() && !_canvasRect.intersects(rect)) // try to put at the middle of the screen
 			{
-				_SetOrigin(QPointF(l, t));
+				if (rect.x() < l || rect.x() > l + _canvasRect.width())
+					l = rect.x() - (_canvasRect.width() - rect.width()) / 2;
+				if (rect.y() < t || rect.y() > t + _canvasRect.height())
+					t = rect.y() - (_canvasRect.height() - rect.height()) / 2;
+
 			}
+		}
+		else
+		{
+			QPointF pt = phi->TopLeft();
+			if (pt.x() < l || pt.x() > l + _canvasRect.width())
+				l = pt.x() - _canvasRect.width() / 2;
+			if (pt.y() < t || pt.y() > t + _canvasRect.height())
+				t = pt.y() - _canvasRect.height() / 2;
+		}
+
+		if (l != _topLeft.x() || t != _topLeft.y())
+		{
+			_SetOrigin(QPointF(l, t));
 		}
 	}
 	else
@@ -2388,15 +2401,16 @@ void DrawArea::Undo()               // must draw again all underlying drawables
 		HideRubberBand(true);	// and remove
 
 		HistoryItem* phi = _history->LastItem();	// before undo
+		_SetTopLeftFromItem(phi);	// works only for scribbles
 		_history->Undo();
 
 		if (phi && phi->type == HistEvent::hePenColorChanged)	// must come after undo so that globalDrawColors is set
 			emit SignalPenColorChanged();
 
-		phi = _history->LastItem();	// after undo
+		HistoryItem* phil = _history->LastItem();	// after undo
 
-		if (_history->CanUndo())
-			_SetTopLeftFromItem(phi);
+		//if (phi->type != HistEvent::heDrawable)
+		//	_SetTopLeftFromItem(phil);
 
 		_Redraw();	// _Canvas is cleared inside _Redraw
 		_clippingRect = _canvasRect;

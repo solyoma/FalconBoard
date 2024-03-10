@@ -168,7 +168,9 @@ public:
 class DrawColors
 {
     ScreenMode _mode = ScreenMode::smSystem;
-    static FalconPens _defaultPens;
+    static FalconPens _defaultPens; // pens a new program instance starts with May be redefined
+                                    // may differ from the base pen defaults used in the color
+                                    // redefining dialog
     FalconPens _pens;     // no color for 'penNone'
     FalconPenKind _pkActual = penNone;
 
@@ -207,6 +209,7 @@ public:
     }
     bool IsChanged() { return _pens.IsAnyPensChanged(); }
 
+    void SetBaseColorsInto(FalconPens& pens);
     bool SetDarkMode(ScreenMode mode = ScreenMode::smUseDefault);
     void SetDrawingPen(FalconPenKind pk);
     void SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColorUserName=QString(), QString sDarkColorUserName=QString());

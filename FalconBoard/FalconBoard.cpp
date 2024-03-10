@@ -830,7 +830,7 @@ void FalconBoard::_SelectPen()     // call after '_actPen' is set
         case penGreen: ui.action_Green->setChecked(true); break;
         case penBlue: ui.action_Blue->setChecked(true); break;
         case penYellow: ui.action_Yellow->setChecked(true); break;
-        case penEraser:on_action_Eraser_triggered(); return;
+        case penEraser:on_actionEraser_triggered(); return;
     }
     _SetPenKind();
 }
@@ -1562,7 +1562,7 @@ void FalconBoard::_LoadFiles(QStringList names)
     }
 #ifndef _VIEWER
     if (_eraserOn)
-        on_action_Eraser_triggered();
+        on_actionEraser_triggered();
 #endif
 }
 
@@ -1601,7 +1601,7 @@ void FalconBoard::on_actionLoad_triggered()
 
 #ifndef _VIEWER
     if (_eraserOn)
-        on_action_Eraser_triggered();
+        on_actionEraser_triggered();
 #endif
 }
 
@@ -1750,7 +1750,7 @@ void FalconBoard::on_actionAppend_triggered()
     _drawArea->Append(fileNames);
 #ifndef _VIEWER
     if (_eraserOn)
-        on_action_Eraser_triggered();
+        on_actionEraser_triggered();
 #endif
 }
 
@@ -2034,7 +2034,7 @@ void FalconBoard::on_action_Yellow_triggered()
 	ui.centralWidget->setFocus();
 };
 
-void FalconBoard::on_action_Eraser_triggered()
+void FalconBoard::on_actionEraser_triggered()
 {
     _eraserOn = true;
     _SetPenWidth(_actPen = penEraser);
@@ -2187,7 +2187,7 @@ void FalconBoard::on_actionUndo_triggered()
     _drawArea->Undo();                
     _SelectPen();
     if (_eraserOn)
-        on_action_Eraser_triggered();
+        on_actionEraser_triggered();
     else
         _SetCursor(csPen);
     _SetResetChangedMark(-1);
@@ -2198,7 +2198,7 @@ void FalconBoard::on_actionRedo_triggered()
     _drawArea->Redo();
     _SelectPen();
     if (_eraserOn)
-        on_action_Eraser_triggered();
+        on_actionEraser_triggered();
     else
         _SetCursor(csPen);
 }

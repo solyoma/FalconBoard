@@ -82,6 +82,9 @@ struct HistoryItem      // base class
     virtual void Draw(QPainter* painter, QPointF& topLeftOfVisibleArea, const QRectF& clipR) {} // when painter is known
 
     virtual bool operator<(const HistoryItem& other);
+
+protected:
+    QPointF _TopLeftFrom(const DrawableIndexVector& dvi) const;
 };
 
             //--------------------------------------------
@@ -141,13 +144,16 @@ private:
 struct HistoryDeleteItems : public HistoryItem
 {
     DrawableIndexVector deletedList;   // absolute indexes of drawable elements in 'pHist->_drawables'
-    int Undo() override;
-    int Redo() override;
+
     HistoryDeleteItems(History* pHist, DrawableIndexVector& selected);
     HistoryDeleteItems(HistoryDeleteItems& other);
     HistoryDeleteItems& operator=(const HistoryDeleteItems& other);
     HistoryDeleteItems(HistoryDeleteItems&& other) noexcept;
     HistoryDeleteItems& operator=(const HistoryDeleteItems&& other) noexcept;
+
+    QPointF TopLeft() const override { return _TopLeftFrom(deletedList); }
+    int Undo() override;
+    int Redo() override;
 };
 
             //--------------------------------------------
@@ -278,6 +284,7 @@ struct HistoryReColorItem : public HistoryItem
     HistoryReColorItem(HistoryReColorItem&& other) noexcept;
     HistoryReColorItem& operator=(const HistoryReColorItem&& other) noexcept;
     QRectF Area() const override;
+    QPointF TopLeft() const override { return _TopLeftFrom(selectedList); }
 };
 
             //--------------------------------------------
@@ -296,6 +303,7 @@ struct HistoryMoveItems : public HistoryItem
     int Undo() override;
     int Redo() override;
     QRectF Area() const override;
+    QPointF TopLeft() const override { return _TopLeftFrom(movedItemList); }
 };
 
 struct HistoryInsertVertSpace : public HistoryItem
@@ -309,6 +317,7 @@ struct HistoryInsertVertSpace : public HistoryItem
     int Undo() override;
     int Redo() override;
     QRectF Area() const override;
+    QPointF TopLeft() const override { return Area().topLeft(); }
 };
             //--------------------------------------------
             //      HistoryRotationItem
@@ -327,6 +336,7 @@ struct HistoryRotationItem : public HistoryItem
     HistoryRotationItem& operator=(const HistoryRotationItem& other);
     int Undo() override;
     int Redo() override;
+    QPointF TopLeft() const override { return _TopLeftFrom(driSelectedDrawables); }
 };
 
             //--------------------------------------------
@@ -343,6 +353,7 @@ struct HistorySetTransparencyForAllScreenshotsItems : public HistoryItem
     HistorySetTransparencyForAllScreenshotsItems(History* pHist, QColor transparentColor, qreal fuzzyness);
     int Undo() override;
     int Redo() override;
+    QPointF TopLeft() const override { return _TopLeftFrom(affectedIndexList); }
 };
 
 
@@ -363,6 +374,7 @@ struct HistoryEraserStrokeItem : public HistoryItem
 
     int Undo() override;
     int Redo() override;
+    QPointF TopLeft() const override { return _TopLeftFrom(affectedIndexList); }
 };
 
             //--------------------------------------------
@@ -378,6 +390,7 @@ struct HistoryPenWidthChangeItem : public HistoryItem
     HistoryPenWidthChangeItem& operator=(const HistoryPenWidthChangeItem& o);
     int Undo() override;
     int Redo() override;
+    QPointF TopLeft() const override { return _TopLeftFrom(affectedIndexList); }
 };
 
             //--------------------------------------------

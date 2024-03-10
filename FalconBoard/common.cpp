@@ -261,6 +261,14 @@ bool DrawColors::SameColors(const DrawColors& o)
     return true;
 }
 
+void DrawColors::SetBaseColorsInto(FalconPens& pens)
+{
+    pens.SetupPen(penRed, PEN_DEFAULT_LIGHT_RED, PEN_DEFAULT_DARK_RED, QObject::tr("&Red"), QObject::tr("&Red"), true);
+    pens.SetupPen(penGreen, PEN_DEFAULT_LIGHT_GREEN, PEN_DEFAULT_DARK_GREEN, QObject::tr("&Green"), QObject::tr("&Green"), true);
+    pens.SetupPen(penBlue, PEN_DEFAULT_LIGHT_BLUE, PEN_DEFAULT_DARK_BLUE, QObject::tr("&Blue"), QObject::tr("&Blue"), true);
+    pens.SetupPen(penYellow, PEN_DEFAULT_LIGHT_YELLOW, PEN_DEFAULT_DARK_YELLOW, QObject::tr("&Purple"), QObject::tr("&Yellow"), true);
+}
+
 bool DrawColors::SetDarkMode(ScreenMode mode) // returns previous mode: never use smUseDefault !
 {
     ScreenMode b = _mode;
@@ -269,7 +277,7 @@ bool DrawColors::SetDarkMode(ScreenMode mode) // returns previous mode: never us
         _mode = mode;
         _pens.SetDarkMode(_IsDarkMode());
     }
-    return b > ScreenMode::smWhite;
+    return _IsDarkMode();
 }
 
 void DrawColors::SetDrawingPen(FalconPenKind pk)
@@ -343,10 +351,11 @@ bool DrawColors::DefaultsToSettings() const
     return true;
 }
 
+
+
 bool DrawColors::DefaultsFromSettings()
 {
     _defaultPens.SetupPen(penEraser, Qt::white, Qt::white, QObject::tr("&Eraser"), QObject::tr("&Eraser"), true);            // eraser must come first
-
     _defaultPens.SetupPen(penBlack, Qt::black, Qt::white, QObject::tr("Blac&k"), QObject::tr("&White"), true);
 
     QSettings* s = FBSettings::Open();
@@ -359,19 +368,15 @@ bool DrawColors::DefaultsFromSettings()
             QString qsColors = s->value(QString("pen%1_c").arg(pen), "").toString(), qsNames;
             if (!qsColors.isEmpty())
             {
-                qsNames = s->value(QString("pen%1_n").arg(pen),"").toString();
+                qsNames = s->value(QString("pen%1_n").arg(pen), "").toString();
                 _defaultPens.SetupPen((FalconPenKind)pen, qsColors, qsNames, true);
             }
         }
         s->endGroup();
     }
     else
-    {
-        _defaultPens.SetupPen(penRed, PEN_DEFAULT_LIGHT_RED, PEN_DEFAULT_DARK_RED, QObject::tr("&Red"), QObject::tr("&Red"), true);
-        _defaultPens.SetupPen(penGreen, PEN_DEFAULT_LIGHT_GREEN, PEN_DEFAULT_DARK_GREEN, QObject::tr("&Green"), QObject::tr("&Green"), true);
-        _defaultPens.SetupPen(penBlue, PEN_DEFAULT_LIGHT_BLUE, PEN_DEFAULT_DARK_BLUE, QObject::tr("&Blue"), QObject::tr("&Blue"), true);
-        _defaultPens.SetupPen(penYellow, PEN_DEFAULT_LIGHT_YELLOW, PEN_DEFAULT_DARK_YELLOW, QObject::tr("&Purple"), QObject::tr("&Yellow"), true);
-    }
+        SetBaseColorsInto(_defaultPens);
+
     FBSettings::Close();
     return true;
 }
