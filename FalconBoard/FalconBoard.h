@@ -113,11 +113,13 @@ private slots:
 	void on_actionUndo_triggered();
 	void on_actionRedo_triggered();
 
-	void on_action_Black_triggered() ;
-	void on_action_Red_triggered()	 ;
-	void on_action_Green_triggered() ;
-	void on_action_Blue_triggered()  ;
-	void on_action_Yellow_triggered();
+	void on_actionPenBlackOrWhite_triggered() ;
+	void on_actionPenT2_triggered();
+	void on_actionPenT3_triggered();
+	void on_actionPenT4_triggered();
+	void on_actionPenT5_triggered();
+	void on_actionPenT6_triggered();
+	void on_actionPenT7_triggered();
 	void on_actionEraser_triggered();
 
 	void on_actionRotate_triggered();
@@ -228,8 +230,8 @@ private:
 	QSignalMapper _languageMapper;
 
 	bool	_eraserOn = false;
-	int		_penWidths[PEN_COUNT] = { 30,3,3,3,3,3 }; // first is the eraser C.f. FalconPenKind
-	FalconPenKind _actPen = penBlack;
+	int _penWidths[PEN_COUNT] = {30,3,3,3,3,3,3,3}; // first is the eraser C.f. FalconPenKind
+	FalconPenKind _actPen = penBlackOrWhite;
 
 		// default icons
 	QIcon	_iconPen;	// set from white and change colors as required
@@ -344,6 +346,8 @@ private:
 	SaveResult _SaveIfYouWant(int index, bool mustAsk = false, bool onClose = false);
 	SaveResult _SaveFile(const QString name);
 	bool _SaveBackgroundImage();
+
+	void _SetPenCommon(FalconPenKind pk);
 		 
 	void _SelectPenForAction(QAction* paction);
 
@@ -355,13 +359,8 @@ private:
 
 	void _SetCursor(DrawCursorShape cs);
 
-	void _SetBlackPen();
-	void _SetRedPen()  ;
-	void _SetGreenPen();
-	void _SetBluePen() ;
-	void _SetYellowPen() ;
-		 
 	void _SetPenWidth(FalconPenKind pk);
+
 
 	void _SelectTransparentPixelColor();
 

@@ -79,11 +79,13 @@
      <property name="title">
       <string>Pen Color</string>
      </property>
-     <addaction name="action_Black"/>
-     <addaction name="action_Red"/>
-     <addaction name="action_Green"/>
-     <addaction name="action_Blue"/>
-     <addaction name="action_Yellow"/>
+     <addaction name="actionPenBlackOrWhite"/>
+     <addaction name="actionPenT2"/>
+     <addaction name="actionPenT3"/>
+     <addaction name="actionPenT4"/>
+     <addaction name="actionPenT5"/>
+     <addaction name="actionPenT6"/>
+     <addaction name="actionPenT7"/>
     </widget>
     <widget class="QMenu" name="menuRotate">
      <property name="enabled">
@@ -265,7 +267,7 @@
     <string>Alt+X</string>
    </property>
   </action>
-  <action name="action_Black">
+  <action name="actionPenBlackOrWhite">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -283,7 +285,7 @@
     <string>1</string>
    </property>
   </action>
-  <action name="action_Red">
+  <action name="actionPenT2">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -298,7 +300,7 @@
     <string>2</string>
    </property>
   </action>
-  <action name="action_Green">
+  <action name="actionPenT3">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -313,7 +315,7 @@
     <string>3</string>
    </property>
   </action>
-  <action name="action_Blue">
+  <action name="actionPenT4">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -326,6 +328,51 @@
    </property>
    <property name="shortcut">
     <string>4</string>
+   </property>
+  </action>
+  <action name="actionPenT5">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pen T&amp;5</string>
+   </property>
+   <property name="shortcut">
+    <string>5</string>
+   </property>
+  </action>
+  <action name="actionPenT6">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pen T&amp;6</string>
+   </property>
+   <property name="shortcut">
+    <string>6</string>
+   </property>
+  </action>
+  <action name="actionPenT7">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="FalconBoard.qrc">
+     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
+   </property>
+   <property name="text">
+    <string>Pen T&amp;7</string>
+   </property>
+   <property name="shortcut">
+    <string>7</string>
    </property>
   </action>
   <action name="actionHelp">
@@ -511,21 +558,6 @@
    </property>
    <property name="toolTip">
     <string>Save background image at exit automatically</string>
-   </property>
-  </action>
-  <action name="action_Yellow">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="FalconBoard.qrc">
-     <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Yellow</string>
-   </property>
-   <property name="shortcut">
-    <string>5</string>
    </property>
   </action>
   <action name="actionVertical_space">

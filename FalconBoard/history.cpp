@@ -1109,7 +1109,7 @@ SaveResult History::Save(QString name)
 
 	ofs << (uint16_t)gridOptions;
 	ofs << _resolutionIndex << _pageWidthInPixels << _useResInd;
-	for (int i = (int)penRed; i < penLastNotUseThis; ++i)
+	for (int i = (int)penT2; i < PEN_COUNT; ++i)
 		drawColors.SavePen(ofs, (FalconPenKind)i);
 
 					  // drawables
@@ -1355,8 +1355,8 @@ int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// retu
 			if (version < 0x56010108)
 			{
 				if (pdrwh->PenKind()== penEraser)
-					pdrwh->SetPenKind(penYellow);
-				else if (pdrwh->PenKind()== penYellow)
+					pdrwh->SetPenKind(penT5);
+				else if (pdrwh->PenKind()== penT5)
 					pdrwh->SetPenKind( penEraser);
 			}
 			// end patch

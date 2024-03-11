@@ -487,22 +487,23 @@ FalconPenKind DrawArea::PenKindFromKey(int key)
 {
 	switch (key)
 	{
-	case Qt::Key_1: return penBlack;
-	case Qt::Key_2: return penRed;
-	case Qt::Key_3: return penGreen;
-	case Qt::Key_4: return penBlue;
-	case Qt::Key_5: return penYellow;
-	default: return penNone;
+		case Qt::Key_1: return penBlackOrWhite;
+		case Qt::Key_2: return penT2;
+		case Qt::Key_3: return penT3;
+		case Qt::Key_4: return penT4;
+		case Qt::Key_5: return penT5;
+		case Qt::Key_6: return penT6;
+		case Qt::Key_7: return penT7;
+		default: return penNone;
 	}
 }
-bool DrawArea::RecolorSelected(int key)
+bool DrawArea::RecolorSelected(FalconPenKind pk)
 {
 	if (!_rubberBand)
 		return false;
 	if (!_history->SelectedSize())
 		_history->CollectDrawablesInside(_rubberRect.translated(_topLeft));
 
-	FalconPenKind pk = PenKindFromKey(key);
 	HistoryItem* phi = _history->AddRecolor(pk);
 
 	if (phi)
@@ -639,7 +640,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
 					key != Qt::Key_F7 &&  key != Qt::Key_Space && !bMovementKeys),
 				bCollected = _history->SelectedSize(),
-				bRecolor = (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5),
+				bRecolor = (key >= Qt::Key_1 && key <= Qt::Key_7),
 
 				bRotate = (key == Qt::Key_0 ||  // rotate right by 90 degrees
 					key == Qt::Key_8 ||  // rotate by 180 degrees
@@ -2304,7 +2305,7 @@ QColor DrawArea::_PenColor()
 	//static QColor color;
 	//if (_actPenKind == _prevKind)
 	//{
-	//	if (_actPenKind != penBlack)
+	//	if (_actPenKind != penBlackOrWhite)
 	//		return color;
 	//	return _darkMode ? QColor(Qt::white) : QColor(Qt::black);
 	//}
@@ -2313,7 +2314,7 @@ QColor DrawArea::_PenColor()
 
 	//switch (_actPenKind)
 	//{
-	//case penBlack: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
+	//case penBlackOrWhite: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
 	//default:
 	//	return color = globalDrawColors[_actPenKind];
 	//}

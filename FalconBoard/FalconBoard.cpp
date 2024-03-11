@@ -277,12 +277,12 @@ void FalconBoard::RestoreState()
     // globalDrawColors.FromSettings(s);    -  do not read it here, but save it if changed
 
 #ifndef _VIEWER
-    qs = s->value(PENSIZES, "30, 3,3,3,3,3").toString();      // pen size for eraser, black, red, green, blue, yellow
+    qs = s->value(PENSIZES, "30, 3,3,3,3,3,3,3").toString();      // pen size for eraser, black, red, green, blue, yellow
     QStringList qsl = qs.split(',');
     if (qsl.size() != PEN_COUNT)
     {
         qsl.clear();
-        qsl << "30" << "3" << "3" << "3" << "3" << "3";
+        qsl << "30" << "3" << "3" << "3" << "3" << "3" << "3" << "3";
     }
     for (int i = 0; i < PEN_COUNT; ++i)
         _penWidths[i] = qsl[i].toInt();
@@ -291,7 +291,7 @@ void FalconBoard::RestoreState()
         std::swap(_penWidths[0], _penWidths[5]);
 
 
-    _psbPenWidth->setValue(_penWidths[(int)penBlack]); 
+    _psbPenWidth->setValue(_penWidths[(int)penBlackOrWhite]); 
     
     ui.actionAutoSaveData->setChecked(s->value(AUTOSAVEDATA, false).toBool());
     ui.actionAutoSaveBackgroundImage->setChecked(s->value(AUTOSBCKIMG, false).toBool());
@@ -524,20 +524,26 @@ void FalconBoard::_SetupIconsForPenColors(ScreenMode sm, DrawColors *pdrclr)
 //    globalDrawColors.SetDarkMode(sm != smSystem);
 
 #ifndef _VIEWER
-    ui.action_Black->setIcon(_ColoredIcon(_iconPen, globalDrawColors.Color(penBlack)));
-    ui.action_Black->setText(globalDrawColors.ActionText(penBlack));
+    ui.actionPenBlackOrWhite->setIcon(_ColoredIcon(_iconPen, globalDrawColors.Color(penBlackOrWhite)));
+    ui.actionPenBlackOrWhite->setText(globalDrawColors.ActionText(penBlackOrWhite));
 
-    ui.action_Red->setIcon(_ColoredIcon(_iconPen,   pdrclr->Color(penRed)));
-    ui.action_Red->setText(pdrclr->ActionText(penRed));
+    ui.actionPenT2->setIcon(_ColoredIcon(_iconPen,   pdrclr->Color(penT2)));
+    ui.actionPenT2->setText(pdrclr->ActionText(penT2));
 
-    ui.action_Green->setIcon(_ColoredIcon(_iconPen, pdrclr->Color(penGreen)));
-    ui.action_Green->setText(pdrclr->ActionText(penGreen));
+    ui.actionPenT3->setIcon(_ColoredIcon(_iconPen, pdrclr->Color(penT3)));
+    ui.actionPenT3->setText(pdrclr->ActionText(penT3));
 
-    ui.action_Blue->setIcon(_ColoredIcon(_iconPen,  pdrclr->Color(penBlue)));
-    ui.action_Blue->setText(pdrclr->ActionText(penBlue));
+    ui.actionPenT4->setIcon(_ColoredIcon(_iconPen,  pdrclr->Color(penT4)));
+    ui.actionPenT4->setText(pdrclr->ActionText(penT4));
 
-    ui.action_Yellow->setIcon(_ColoredIcon(_iconPen,pdrclr->Color(penYellow)));
-    ui.action_Yellow->setText(pdrclr->ActionText(penYellow));
+    ui.actionPenT5->setIcon(_ColoredIcon(_iconPen,pdrclr->Color(penT5)));
+    ui.actionPenT5->setText(pdrclr->ActionText(penT5));
+
+    ui.actionPenT6->setIcon(_ColoredIcon(_iconPen,pdrclr->Color(penT6)));
+    ui.actionPenT6->setText(pdrclr->ActionText(penT6));
+
+    ui.actionPenT7->setIcon(_ColoredIcon(_iconPen,pdrclr->Color(penT7)));
+    ui.actionPenT7->setText(pdrclr->ActionText(penT7));
 #endif
 }
 
@@ -569,21 +575,25 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.actionPrint);
     ui.mainToolBar->addSeparator();
 
-    ui.mainToolBar->addAction(ui.action_Black);
-    ui.mainToolBar->addAction(ui.action_Red);
-    ui.mainToolBar->addAction(ui.action_Green);
-    ui.mainToolBar->addAction(ui.action_Blue);
-    ui.mainToolBar->addAction(ui.action_Yellow);
+    ui.mainToolBar->addAction(ui.actionPenBlackOrWhite);
+    ui.mainToolBar->addAction(ui.actionPenT2);
+    ui.mainToolBar->addAction(ui.actionPenT3);
+    ui.mainToolBar->addAction(ui.actionPenT4);
+    ui.mainToolBar->addAction(ui.actionPenT5);
+    ui.mainToolBar->addAction(ui.actionPenT6);
+    ui.mainToolBar->addAction(ui.actionPenT7);
 
     ui.mainToolBar->addAction(ui.actionEraser);
 
         // these are needed for radiobutton like behaviour for actions in the group
     _penGroup = new QActionGroup(this);
-    _penGroup->addAction(ui.action_Black);
-    _penGroup->addAction(ui.action_Red);
-    _penGroup->addAction(ui.action_Green);
-    _penGroup->addAction(ui.action_Blue);
-    _penGroup->addAction(ui.action_Yellow);
+    _penGroup->addAction(ui.actionPenBlackOrWhite);
+    _penGroup->addAction(ui.actionPenT2);
+    _penGroup->addAction(ui.actionPenT3);
+    _penGroup->addAction(ui.actionPenT4);
+    _penGroup->addAction(ui.actionPenT5);
+    _penGroup->addAction(ui.actionPenT6);
+    _penGroup->addAction(ui.actionPenT7);
 
     _penGroup->addAction(ui.actionEraser);
 #endif
@@ -825,11 +835,13 @@ void FalconBoard::_SelectPen()     // call after '_actPen' is set
     switch (_actPen)
     {
         default:
-        case penBlack: ui.action_Black->setChecked(true); break;
-        case penRed: ui.action_Red->setChecked(true); break;
-        case penGreen: ui.action_Green->setChecked(true); break;
-        case penBlue: ui.action_Blue->setChecked(true); break;
-        case penYellow: ui.action_Yellow->setChecked(true); break;
+        case penBlackOrWhite: ui.actionPenBlackOrWhite->setChecked(true); break;
+        case penT2: ui.actionPenT2->setChecked(true); break;
+        case penT3: ui.actionPenT3->setChecked(true); break;
+        case penT4: ui.actionPenT4->setChecked(true); break;
+        case penT5: ui.actionPenT5->setChecked(true); break;
+        case penT6: ui.actionPenT6->setChecked(true); break;
+        case penT7: ui.actionPenT7->setChecked(true); break;
         case penEraser:on_actionEraser_triggered(); return;
     }
     _SetPenKind();
@@ -858,12 +870,6 @@ void FalconBoard::_SetCursor(DrawCursorShape cs)
 {
     _drawArea->SetCursor(cs);
 }
-
-void FalconBoard::_SetBlackPen() { _SetPenKind(penBlack); }
-void FalconBoard::_SetRedPen()   { _SetPenKind  (penRed); }
-void FalconBoard::_SetGreenPen() { _SetPenKind(penGreen); }
-void FalconBoard::_SetBluePen()  { _SetPenKind (penBlue); }
-void FalconBoard::_SetYellowPen()  { _SetPenKind (penYellow); }
 
 void FalconBoard::_SetPenWidth(FalconPenKind pk)
 {
@@ -1062,7 +1068,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             break;
         case ScreenMode::smDark:
             // already set : _drawArea->globalDrawColors.SetDarkMode(true);
-            // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
+            // already set : ui.actionPenBlackOrWhite->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
             _sBackgroundColor = "#282828";
             _sSelectedBackgroundColor = "#007acc";
             _sBackgroundHighlightColor = "#D8EAF9";
@@ -1079,7 +1085,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             break;
         case ScreenMode::smBlack:
             // already set : _drawArea->globalDrawColors.SetDarkMode(true);
-            // already set : ui.action_Black->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
+            // already set : ui.actionPenBlackOrWhite->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
             _sBackgroundColor = "#000000";
             _sBackgroundHighlightColor = "#D8EAF9";
             _sSelectedBackgroundColor = "#007acc";
@@ -1992,46 +1998,49 @@ void FalconBoard::on_actionShowPageGuides_triggered()
 }
 
 #ifndef _VIEWER
-void FalconBoard::on_action_Black_triggered()
-{
-    _drawArea->RecolorSelected(Qt::Key_1);
-    _SetBlackPen();
-    _SetCursor(csPen);
-    _SetPenWidth(penBlack);
-    ui.centralWidget->setFocus();
-};
-void FalconBoard::on_action_Red_triggered() 
-{   
-    _drawArea->RecolorSelected(Qt::Key_2);
-    _SetRedPen();
-    _SetCursor(csPen);
-    _SetPenWidth(penRed);
-    ui.centralWidget->setFocus();
-};
 
-void FalconBoard::on_action_Green_triggered()
+void FalconBoard::_SetPenCommon(FalconPenKind pk)
 {
-	_drawArea->RecolorSelected(Qt::Key_3);
-	_SetGreenPen();
-	_SetCursor(csPen);
-	_SetPenWidth(penGreen);
-	ui.centralWidget->setFocus();
-};
-void FalconBoard::on_action_Blue_triggered()
+    _drawArea->RecolorSelected(pk);
+    _SetPenKind(pk);
+    _SetCursor(csPen);
+    _SetPenWidth(pk);
+    ui.centralWidget->setFocus();
+}
+
+void FalconBoard::on_actionPenBlackOrWhite_triggered()
 {
-	_drawArea->RecolorSelected(Qt::Key_4);
-	_SetBluePen();
-	_SetCursor(csPen);
-	_SetPenWidth(penBlue);
-	ui.centralWidget->setFocus();
-};
-void FalconBoard::on_action_Yellow_triggered()
+    _SetPenCommon(penBlackOrWhite);
+}
+
+void FalconBoard::on_actionPenT2_triggered() 
+{   
+    _SetPenCommon(penT2);
+}
+
+void FalconBoard::on_actionPenT3_triggered()
 {
-	_drawArea->RecolorSelected(Qt::Key_5);
-	_SetYellowPen();
-	_SetCursor(csPen);
-	_SetPenWidth(penYellow);
-	ui.centralWidget->setFocus();
+    _SetPenCommon(penT3);
+}
+
+void FalconBoard::on_actionPenT4_triggered()
+{
+    _SetPenCommon(penT4);
+}
+
+void FalconBoard::on_actionPenT5_triggered()
+{
+    _SetPenCommon(penT5);
+}
+
+void FalconBoard::on_actionPenT6_triggered()
+{
+    _SetPenCommon(penT6);
+}
+
+void FalconBoard::on_actionPenT7_triggered()
+{
+    _SetPenCommon(penT7);
 };
 
 void FalconBoard::on_actionEraser_triggered()
@@ -2265,7 +2274,7 @@ void FalconBoard::SlotForFocus()
 void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sent by tablet
 {
     static bool isPenEraser = false;     // set to true if not erasemode just
-    static FalconPenKind pk = penBlack;
+    static FalconPenKind pk = penBlackOrWhite;
     switch (pt)                         // eraser end of stylus used
     {
         case QTabletEvent::Eraser:      // only when eraser side selected

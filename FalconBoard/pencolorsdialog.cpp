@@ -12,7 +12,7 @@ void PenColorsDialog::Data::SetupFrom(const DrawColors& dc, QString schemeName)
 	for (int i = 0; i < PEN_COUNT - 2; ++i)
 	{
 		names[i][0]  = dc.ActionText((FalconPenKind)(i + 2)	, ScreenMode::smLight);
-		names[i][1] = dc.ActionText((FalconPenKind)(i + 2)	, ScreenMode::smDark);
+		names[i][1]  = dc.ActionText((FalconPenKind)(i + 2)	, ScreenMode::smDark);
 		colors[i][0] = dc.Color((FalconPenKind)(i + 2)		, ScreenMode::smLight);
 		colors[i][1] = dc.Color((FalconPenKind)(i + 2)		, ScreenMode::smDark);
 	}
@@ -26,11 +26,15 @@ PenColorsDialog::PenColorsDialog(QWidget* parent) : QDialog(parent)
 	pe[1][0] = ui.edtL3; pe[1][1] = ui.edtD3;
 	pe[2][0] = ui.edtL4; pe[2][1] = ui.edtD4;
 	pe[3][0] = ui.edtL5; pe[3][1] = ui.edtD5;
+	pe[4][0] = ui.edtL6; pe[4][1] = ui.edtD6;
+	pe[5][0] = ui.edtL7; pe[5][1] = ui.edtD7;
 
 	pb[0][0] = ui.btnL2; pb[0][1] = ui.btnD2;
 	pb[1][0] = ui.btnL3; pb[1][1] = ui.btnD3;
 	pb[2][0] = ui.btnL4; pb[2][1] = ui.btnD4;
 	pb[3][0] = ui.btnL5; pb[3][1] = ui.btnD5;
+	pb[4][0] = ui.btnL6; pb[4][1] = ui.btnD6;
+	pb[5][0] = ui.btnL7; pb[5][1] = ui.btnD7;
 
 	_ReadData(true);
 	_SetupFrom(1);	// actual
@@ -43,7 +47,7 @@ PenColorsDialog::~PenColorsDialog()
 bool PenColorsDialog::GetChanges(DrawColors& drcls) const
 {
 	int changeCount = 0;
-	drcls.SetupPenAndCursor(penBlack, drcls.Color(penBlack, ScreenMode::smLight), drcls.Color(penBlack, ScreenMode::smDark));
+	drcls.SetupPenAndCursor(penBlackOrWhite, drcls.Color(penBlackOrWhite, ScreenMode::smLight), drcls.Color(penBlackOrWhite, ScreenMode::smDark));
 	for (int i = 0; i < PEN_COUNT - 2; ++i)
 	{
 		if ((_data.colors[i][0] != drcls.Color((FalconPenKind)(i + 2), ScreenMode::smLight)) ||
@@ -180,6 +184,15 @@ void PenColorsDialog::on_btnL5_clicked()
 {
 	_SelectColor(3, 0);
 }
+void PenColorsDialog::on_btnL6_clicked()
+{
+	_SelectColor(4, 0);
+}
+void PenColorsDialog::on_btnL7_clicked()
+{
+	_SelectColor(5, 0);
+}
+
 void PenColorsDialog::on_btnD2_clicked()
 {
 	_SelectColor(0, 1);
@@ -195,6 +208,14 @@ void PenColorsDialog::on_btnD4_clicked()
 void PenColorsDialog::on_btnD5_clicked()
 {
 	_SelectColor(3, 1);
+}
+void PenColorsDialog::on_btnD6_clicked()
+{
+	_SelectColor(4, 1);
+}
+void PenColorsDialog::on_btnD7_clicked()
+{
+	_SelectColor(5, 1);
 }
 
 void PenColorsDialog::on_cbSelectScheme_currentIndexChanged(int index)
@@ -224,7 +245,8 @@ void PenColorsDialog::on_btnSaveScheme_pressed()
 	if (pdlg->exec()/* && !(qs = pdlg->text()).isEmpty()*/)
 	{
 		_data.title = qs = pdlg->text();
-		int selected[PEN_COUNT-2] = { 0 }, cntChanged=0;	// only save where there's a difference
+		int selected[PEN_COUNT - 2] = { 0 };
+		int cntChanged = 0;	// only save where there's a difference
 		for (int i = 0; i < PEN_COUNT - 2; ++i)		// between the actual name or color and the default
 		{
 			if (_data.colors[i][0] != _schemes[0].colors[i][0] ||

@@ -476,7 +476,7 @@ bool MyPrinter::_PrintItem(int yi, const QRectF& clipR)
         Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
 		if (_data.flags & pfDontPrintImages)    // print placeholder
         {
-            _pImagePainter->setPen(QPen(drawColors[penYellow], 2, Qt::DotLine));
+            _pImagePainter->setPen(QPen(drawColors[penT5], 2, Qt::DotLine));
             _pImagePainter->drawRect(imgRect);  // part may be outside of page
         }
         else

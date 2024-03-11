@@ -39,8 +39,21 @@ extern QString FB_WARNING,      // in FalconBoard.cpp
 
 extern QString UNTITLED;     // in falconBoard.cpp
 
-constexpr int PEN_COUNT = 6;    // including eraser, no 'penNone' pen! Modify if pen count changes !
-enum FalconPenKind { penNone=-1, penEraser=0, penBlack, penRed, penGreen, penBlue, penYellow, penLastNotUseThis};
+constexpr int penNone=-1,           // default color is none    // not a pen, not included in PEN_COUNT
+              penEraser=0,          //  transparent
+                                    // light  / dark
+              penBlackOrWhite = 1,  // black  / white
+              penT2 = 2,            // red    / red
+              penT3 = 3,            // green  / green
+              penT4 = 4,            // blue   / light blue
+              penT5 = 5,            // purple / yellow
+              penT6 = 6,            // 
+              penT7 = 7,            // 
+              PEN_COUNT = 8;
+
+using FalconPenKind = int;
+
+//enum FalconPenKind { penNone=-1, penEraser=0, penBlackOrWhite, penT2, penT3, penT4, penT5, PEN_COUNT};
 
 // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
 enum DrawCursorShape { csArrow, csCross, csOHand, csCHand, csPen, csEraser };
@@ -89,7 +102,7 @@ extern MyScreenSizes myScreenSizes;
 //******************************************************
 struct FalconPen
 {
-    FalconPenKind kind = penBlack;
+    FalconPenKind kind = penBlackOrWhite;
     QColor lightColor = Qt::black,    // _dark = false - for light mode
         darkColor = Qt::white;        // _dark = true  - for dark mode
     QString lightName, darkName;      // Menu names for dark and light modes
@@ -195,7 +208,7 @@ public:
 
     void Initialize() // call after the GUI is initialized! 
     { 
-        _pens = _defaultPens; 
+        SetBaseColorsInto(_pens); 
     }
 
     bool SameColors(const DrawColors& o);

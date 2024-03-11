@@ -11,12 +11,7 @@
 #include <QDataStream>
 #include <QIODevice>
 
-#ifdef _TEST_
-    constexpr int PEN_COUNT = 6;    // no 'penNone' pen modify if pen count changes
-    enum FalconPenKind { penNone = 0, penBlack = 1, penRed = 2, penGreen = 3, penBlue = 4, penYellow = 5, penEraser = PEN_COUNT };
-#else
-    #include "common.h"
-#endif
+#include "common.h"
 
 enum HistEvent2 {
     heNone,
@@ -150,7 +145,7 @@ public:
             // ---------------- common of all drawables ---------------
 struct DrawParams
 {
-    FalconPenKind penKind = penBlack;
+    FalconPenKind penKind = penBlackOrWhite;
     QColor  penColor = Qt::black;       // used for undefined pens
     int penWidth = 1;       // only for dtScribble
 };

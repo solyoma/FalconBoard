@@ -16,8 +16,8 @@ class PenColorsDialog : public QDialog
 	struct Data
 	{		    
 		QString title;
-		QColor  colors[4][2];
-		QString names[4][2];
+		QColor  colors[PEN_COUNT-2][2];	// penT2..penT7
+		QString names[PEN_COUNT-2][2];
 
 		void SetupFrom(const DrawColors& dc, QString schemeName);
 		//void CopyInto(DrawColors& dc);
@@ -31,8 +31,8 @@ public:
 private:
 	bool _busy = false;
 	bool _changed = false;
-	QLineEdit *pe[4][2];
-	QToolButton* pb[4][2], *pbD[4][2];
+	QLineEdit *pe[PEN_COUNT-2][2];
+	QToolButton* pb[PEN_COUNT-2][2], *pbD[PEN_COUNT-2][2];
 	Ui::PenColorDialogClass ui;
 
 	int _ReadData(bool overWriteActual);	// returns count of stored data
@@ -45,10 +45,14 @@ public slots:
 	void on_btnL3_clicked();
 	void on_btnL4_clicked();
 	void on_btnL5_clicked();
+	void on_btnL6_clicked();
+	void on_btnL7_clicked();
 	void on_btnD2_clicked();
 	void on_btnD3_clicked();
 	void on_btnD4_clicked();
 	void on_btnD5_clicked();
+	void on_btnD6_clicked();
+	void on_btnD7_clicked();
 
 	void on_cbSelectScheme_currentIndexChanged(int index);
 	void on_btnSaveScheme_pressed();

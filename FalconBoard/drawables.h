@@ -184,7 +184,7 @@ QDataStream& operator>>(QDataStream& ifs, MyRotation& mr);
 
 class DrawablePen
 {
-    FalconPenKind _penKind = penBlack;
+    FalconPenKind _penKind = penBlackOrWhite;
 public:
     qreal penWidth = 1.0;
 
@@ -259,7 +259,7 @@ struct DrawableItem : public DrawablePen
 
 
     DrawableItem() = default;
-    DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlack, qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) {}
+    DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) {}
     DrawableItem(const DrawableItem& other):DrawablePen(other) { *this = other; }
     virtual ~DrawableItem()
     {
@@ -273,7 +273,7 @@ struct DrawableItem : public DrawablePen
     bool IsVisible() const { return isVisible; }
     bool IsImage() const { return dtType == DrawableType::dtScreenShot; }
     virtual bool IsFilled() const { return false; }
-    virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is nearer than 'distance' to the line or for filled items: inside it
+    virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is nearer than 'distance' to this object
     {
         p -= refPoint;
         return p.x() * p.x() + p.y() * p.y() < distance * distance;
@@ -345,9 +345,9 @@ struct DrawableItem : public DrawablePen
     {
         drawStarted = true;
 
-        if (erasers.size())                 // then paint object first then erasers on separate pixmap 
-        {                                   // and copy the pixmap to the visible area
-            QRectF area = Area();           // includes half of pen width (none for screenshots)
+        if (erasers.size())                 // then paint object first on a separate transparent pixmap then 
+        {                                   // paint erasers and, finally, copy the pixmap to "painter's" object
+            QRectF area = Area();           // includes half of pen width (except for screenshots)
             //QPixmap pxm(area.size().toSize());
             QImage pimg(area.width(), area.height(), QImage::Format_ARGB32);
             pimg.fill(Qt::transparent);
@@ -361,7 +361,8 @@ struct DrawableItem : public DrawablePen
                                             // clipRect is not important as the pixmap is exactly the right size
             // DEBUG
             // pimg.save("pimg-before.png", "png");
-            // and now the erasers
+            // 
+            // and now paint the erasers
 #if !defined _VIEWER && defined _DEBUG
             if (!isDebugMode)
             {
@@ -371,7 +372,6 @@ struct DrawableItem : public DrawablePen
 #if !defined _VIEWER && defined _DEBUG
             }
 #endif
-
             for (auto &er : erasers)
             {
                 QPen pen(QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
@@ -1231,7 +1231,7 @@ public:
 
     // create new object of given parameters on the heap
                                         // pimage must be set for dtScreenShot
-    int AddDrawable(DrawableType dType, QPixmap *pimage=nullptr, FalconPenKind penKind = penBlack, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false)
+    int AddDrawable(DrawableType dType, QPixmap *pimage=nullptr, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false)
     {
         int ivi=-1;    // _pZorderStore must exist
 
@@ -1253,7 +1253,7 @@ public:
 
         //return ivi->second;
     }
-    int AddDrawable(DrawableType dType, FalconPenKind penKind = penBlack, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false)
+    int AddDrawable(DrawableType dType, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false)
     {
         return AddDrawable(dType, nullptr, penKind, penWidth, topLeft, sizef, isFilled);
     }

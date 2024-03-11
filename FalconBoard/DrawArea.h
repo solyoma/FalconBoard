@@ -112,7 +112,7 @@ public:
 
     void InsertVertSpace();         // from top left of rubber band with height of rubber rectangle
     FalconPenKind PenKindFromKey(int key);  // keyboard press/menu click
-    bool RecolorSelected(int key); // true: recolored
+    bool RecolorSelected(FalconPenKind pk); // true: recolored
     void SetLimitedPage(bool limited) { _limited = limited; }
 
     void SynthesizeKeyEvent(Qt::Key key, Qt::KeyboardModifier mod=Qt::NoModifier);
@@ -258,7 +258,7 @@ private:
 
     int     _penWidth = 1;
     int     _actPenWidth = 1;
-    FalconPenKind _actPenKind = penBlack;
+    FalconPenKind _actPenKind = penBlackOrWhite;
 
     bool    _bPageSetupValid = false;
     bool    _bPageSetupUsed = false;

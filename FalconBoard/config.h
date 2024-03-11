@@ -35,11 +35,11 @@ constexpr const char
 	*LASTDIR = "lastDir",	// last used folder path for documents
 	*LASTPDFDIR = "lastPDFDir",	// last used folder path for PDF output
 		// PEN COLORS			   defaults: (light,dark)
-	*PEN_BLACK = "penBlack",	// 000000,FFFFFF
-	*PEN_RED   = "penRed",		// FF0000,FF0000
-	*PEN_GREEN = "penGreen",	// 007D1A,00FF00
-	*PEN_BLUE  = "penBlue",		// 0000FF,82DBFC
-	*PEN_YELLOW= "penYellow",	// B704BE,FF00FF
+	*PEN_BLACK = "penBlackOrWhite",	// 000000,FFFFFF
+	*PEN_RED   = "penT2",		// FF0000,FF0000
+	*PEN_GREEN = "penT3",	// 007D1A,00FF00
+	*PEN_BLUE  = "penT4",		// 0000FF,82DBFC
+	*PEN_YELLOW= "penT5",	// B704BE,FF00FF
 		// PEN COLOR NAMES		    defaults: (light,dark)	- user defined names do not get translated
 	*PEN_BLACK_NAME	= "penNBlack",	// 
 	*PEN_RED_NAME	= "penNRed",	// 
