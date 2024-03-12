@@ -164,7 +164,8 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
     PageParams::Load();
     _drawArea->SetupPage(PageParams::wtdPageSetup);
 
-    _SetupIconsForPenColors(_screenMode);
+    _PrepareActionIcons();
+    _SetupIconsForPenColors();
     setAcceptDrops(true);
 
     ui.centralWidget->setFocus();
@@ -277,7 +278,7 @@ void FalconBoard::RestoreState()
     // globalDrawColors.FromSettings(s);    -  do not read it here, but save it if changed
 
 #ifndef _VIEWER
-    qs = s->value(PENSIZES, "30, 3,3,3,3,3,3,3").toString();      // pen size for eraser, black, red, green, blue, yellow
+    qs = s->value(PENSIZES, "30,3,3,3,3,3,3,3").toString();      // pen size for eraser, black, red, green, blue, yellow
     QStringList qsl = qs.split(',');
     if (qsl.size() != PEN_COUNT)
     {
@@ -452,7 +453,14 @@ void FalconBoard::SaveState()
 
     //globalDrawColors.ToSettings(s);   // no restore on start
 
-    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6").arg(_penWidths[0]).arg(_penWidths[1]).arg(_penWidths[2]).arg(_penWidths[3]).arg(_penWidths[4]).arg(_penWidths[5]));
+    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6,%7,%8").arg(_penWidths[0])
+                                                             .arg(_penWidths[1])
+                                                             .arg(_penWidths[2])
+                                                             .arg(_penWidths[3])
+                                                             .arg(_penWidths[4])
+                                                             .arg(_penWidths[5])
+                                                             .arg(_penWidths[6])
+                                                             .arg(_penWidths[7]));
     s->setValue(AUTOSAVEDATA, ui.actionAutoSaveData->isChecked());
     s->setValue(AUTOSBCKIMG, ui.actionAutoSaveBackgroundImage->isChecked());
     if (ui.actionAutoSaveBackgroundImage->isChecked())
@@ -516,7 +524,7 @@ void FalconBoard::_LoadIcons()
     _iconScreenShot = QIcon(":/FalconBoard/Resources/screenshot.png");
 }
 
-void FalconBoard::_SetupIconsForPenColors(ScreenMode sm, DrawColors *pdrclr)
+void FalconBoard::_SetupIconsForPenColors(DrawColors *pdrclr)
 {
     if (!pdrclr)
         pdrclr = &globalDrawColors;
@@ -1028,7 +1036,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "undo"          // 7
     };
 
-    _SetupIconsForPenColors(mode);      // pen selection
+    _SetupIconsForPenColors();      // pen selection
 
     switch (mode)
     {
@@ -1039,66 +1047,78 @@ void FalconBoard::_SetupMode(ScreenMode mode)
         case ScreenMode::smLight:
             _sBackgroundColor = "#F0F0F0";
             _sBackgroundHighlightColor = "#D8EAF9";
-            _sSelectedBackgroundColor = "#007acc",
-            _sUnselectedBackgroundColor = "#d0d0d0",
+            _sDisabledColor = "#A0A0A0";
             _sEditBackgroundColor = "#F0F0F0",
             _sEditTextColor = "#000000",
-            _sTextColor = "#000000";
-            _sDisabledColor = "#A0A0A0";
             _sGridColor = "#d0d0d0";
             _sPageGuideColor = "#fcd475";
+            _sPressedBackground = "#0000bb",
+            _sSelectedBackgroundColor = "#007acc",
             _sToolBarColor = "#F0F0F0";
             _sTabBarActiveTextColor = "#B30000",
             _sTabBarInactiveTextColor = "#808080";
-            break;
+            _sTextColor = "#000000";
+            _sToolTipTextColor = "#000000";
+            _sToolTipBackground = "#cccccc";
+            _sUnselectedBackgroundColor = "#d0d0d0";
+                break;
         case ScreenMode::smWhite:
             _sBackgroundColor = "#FFFFFF";
             _sBackgroundHighlightColor = "#D8EAF9";
             _sSelectedBackgroundColor = "#007acc",
-            _sUnselectedBackgroundColor = "#d0d0d0",
             _sEditBackgroundColor = "#FFFFFF",
             _sEditTextColor = "#000000",
-            _sTextColor = "#000000";
             _sDisabledColor = "#AAAAAA";
             _sGridColor = "#E0E0E0";
             _sPageGuideColor = "#fcd475";
+            _sPressedBackground = "#0000bb",
             _sToolBarColor = "#FFFFFF";
             _sTabBarActiveTextColor = "#B30000",
             _sTabBarInactiveTextColor = "#808080";
+            _sTextColor = "#000000";
+            _sToolTipTextColor = "#000000";
+            _sToolTipBackground = "#cccccc";
+            _sUnselectedBackgroundColor = "#d0d0d0";
             break;
         case ScreenMode::smDark:
             // already set : _drawArea->globalDrawColors.SetDarkMode(true);
             // already set : ui.actionPenBlackOrWhite->setIcon(_ColoredIcon(_iconPen, Qt::black)); // white
             _sBackgroundColor = "#282828";
-            _sSelectedBackgroundColor = "#007acc";
             _sBackgroundHighlightColor = "#D8EAF9";
-            _sUnselectedBackgroundColor = "#303030";
             _sEditBackgroundColor = "#555",
             _sEditTextColor = "#ffffff",
-            _sTextColor = "#E1E1E1";
             _sDisabledColor = "#888888";
             _sGridColor = "#202020";
             _sPageGuideColor = "#413006";
+            _sPressedBackground = "#888888";
+            _sSelectedBackgroundColor = "#007acc";
+            _sTextColor = "#E1E1E1";
             _sToolBarColor = "#202020";
             _sTabBarActiveTextColor = "#FFA0A0",
             _sTabBarInactiveTextColor = "#808080";
+            _sToolTipTextColor = "#000000";
+            _sToolTipBackground = "#cccccc";
+            _sUnselectedBackgroundColor = "#303030";
             break;
         case ScreenMode::smBlack:
             // already set : _drawArea->globalDrawColors.SetDarkMode(true);
             // already set : ui.actionPenBlackOrWhite->setIcon(_ColoredIcon(_iconPen, Qt::black));     // white
             _sBackgroundColor = "#000000";
             _sBackgroundHighlightColor = "#D8EAF9";
-            _sSelectedBackgroundColor = "#007acc";
-            _sUnselectedBackgroundColor = "#101010";
             _sEditBackgroundColor = "#FFFFFF",
-            _sEditTextColor = "#000000",
-            _sTextColor = "#CCCCCC";
             _sDisabledColor = "#888888";
+            _sEditTextColor = "#000000",
             _sGridColor = "#202020";
             _sPageGuideColor = "#2e2204";
+            _sPressedBackground = "#888888";
+            _sSelectedBackgroundColor = "#007acc";
+            _sTextColor = "#CCCCCC";
             _sToolBarColor = "#101010";
             _sTabBarActiveTextColor = "#FFA0A0",
             _sTabBarInactiveTextColor = "#808080";
+            _sToolTipTextColor = "#cccccc";
+            _sToolTipBackground = "#101010";
+            _sUnselectedBackgroundColor = "#101010";
             break;
     }
 
@@ -1135,14 +1155,13 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "}\n"
 
             "QSpinBox {\n"
-            "  color:"+_sBackgroundColor + ";\n"
-            "  background-color:" + _sTextColor + ";\n"
+            "  background-color:"+_sBackgroundColor + ";\n"
+            "  color:" + _sTextColor + ";\n"
             "}\n"
-            "QSpinBox::up-button,QSpinBox::down-button, QSpinBox::up-arrow,QSpinBox::down-arrow {\n"
-            "  color:"+_sBackgroundColor + ";\n"
-            "  background-color:" + _sTextColor + ";\n"
-            "}\n"
-
+            //"QSpinBox::up-button,QSpinBox::down-button, QSpinBox::up-arrow,QSpinBox::down-arrow {\n"
+            //"  color:"+_sBackgroundColor + ";\n"
+            //"  background-color:" + _sTextColor + ";\n"
+            //"}\n"
 
             "QLineEdit {\n"
             "  background-color:" + _sEditBackgroundColor + ";\n"
@@ -1170,15 +1189,22 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "  border: 2px solid" + _sGridColor + ";"
             "\n}\n"
             "QPushButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n" 
+
+            "QToolButton:pressed {\n"
+            "  background-color:"+ _sPressedBackground + ";\n"
+            "  border: none;\n"
+            "}\n"
+
             "QToolButton:hover {\n  "
             "  border:1px solid " + _sTabBarActiveTextColor + ";\n"
             "}\n"
+
             "QToolBar:disabled, QToolButton:disabled {\n"
             "  color:" + _sDisabledColor + ";\n"
             "}"
             "QStatusBar, QToolBar {\n"
             " background-color:" + _sToolBarColor + ";\n"
-            " border:1px solid " + _sGridColor + ";\n"        // needed for some linux distors to set tool bar background colro
+            " border:1px solid " + _sGridColor + ";\n"        // needed for some linux distros to set toolbar background color
             "}\n"
 
             "QTabBar::tab {\n"
@@ -1205,8 +1231,9 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "}\n"
 
             "QToolTip {\n" 
-            "  background-color:"+_sTextColor+";\n"
-            "  color:"+_sBackgroundColor+";\n"
+            "  background-color:"+_sToolTipBackground+";\n"
+            "  color:"+_sToolTipTextColor+";\n"
+            "  border 1px solid " + _sToolTipTextColor+";\n"
             "}\n"
         ;
 
@@ -1886,7 +1913,7 @@ void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
     {
         _drawArea->SwitchToHistory(index, true);
         _SetWindowTitle(_drawArea->HistoryName());
-        _SetupIconsForPenColors(_screenMode);   // don't touch black pen
+        _SetupIconsForPenColors();   // don't touch black pen
     }
     ui.actionAppend->setEnabled(!_drawArea->HistoryName().isEmpty());
     _nLastTab = index;
@@ -2355,7 +2382,7 @@ void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 
 void FalconBoard::SlotForPenColorChanged()      // called from _drawArea after the pen color is redefined
 {
-    _SetupIconsForPenColors(_screenMode);
+    _SetupIconsForPenColors();
 //    _SetResetChangedMark(-1);
 
 //    _drawArea->setFocus();

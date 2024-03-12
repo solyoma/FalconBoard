@@ -280,12 +280,16 @@ private:
 			_sEditTextColor = "#000000",
 			_sGridColor = "#d0d0d0",
 		    _sPageGuideColor = "#fcd475",
+			_sPressedBackground = "#00aa00",
 			_sSelectedBackgroundColor="#FFF",
 			_sUnselectedBackgroundColor="#d0d0d0",
 			_sTextColor = "#000000",
 			_sToolBarColor = "#cccccc",
 			_sTabBarActiveTextColor = "#FFA0A0",
-			_sTabBarInactiveTextColor = "#808080";
+			_sTabBarInactiveTextColor = "#808080",
+			_sToolTipTextColor = "#000000",
+			_sToolTipBackground= "#cccccc"
+		;
 
 	bool _useScreenshotTransparency = false;
 	qreal _transparencyFuzzyness = 0.0;
@@ -304,7 +308,7 @@ private:
 #endif
 	QIcon _ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB = QColor());
 	void _LoadIcons();
-	void _SetupIconsForPenColors(ScreenMode sm, DrawColors *fromColors = nullptr);		// depend on mode
+	void _SetupIconsForPenColors(DrawColors *fromColors = nullptr);		// depend on mode
 
 	void _LoadFiles(QStringList fileNames);
 	void _SaveLastDirectory(QString fileName);

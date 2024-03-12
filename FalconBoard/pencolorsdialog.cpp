@@ -242,11 +242,11 @@ void PenColorsDialog::on_btnSaveScheme_pressed()
 	int ix = ui.cbSelectScheme->currentIndex();
 	QString qs = ix > 0 && ix != 1 ? ui.cbSelectScheme->currentText() : QString();
 	PenColorSetDialog *pdlg = new PenColorSetDialog(qs, this);
-	if (pdlg->exec()/* && !(qs = pdlg->text()).isEmpty()*/)
+	if (pdlg->exec())
 	{
 		_data.title = qs = pdlg->text();
 		int selected[PEN_COUNT - 2] = { 0 };
-		int cntChanged = 0;	// only save where there's a difference
+		int cntChanged = 0;							// only save when there's a difference
 		for (int i = 0; i < PEN_COUNT - 2; ++i)		// between the actual name or color and the default
 		{
 			if (_data.colors[i][0] != _schemes[0].colors[i][0] ||
