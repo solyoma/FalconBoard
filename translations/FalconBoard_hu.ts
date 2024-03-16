@@ -191,7 +191,7 @@ Please enter a different one</source>
     <message>
         <location filename="../FalconBoard/FalconBoard.cpp" line="1707"/>
         <source>Please restart the program to change the language!</source>
-        <translation>Indítsd újra programot anyelvváltáshoz!</translation>
+        <translation>Indítsd újra programot a nyelvváltáshoz!</translation>
     </message>
     <message>
         <location filename="../FalconBoard/FalconBoard.cpp" line="1745"/>
