@@ -1116,7 +1116,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sToolBarColor = "#101010";
             _sTabBarActiveTextColor = "#FFA0A0",
             _sTabBarInactiveTextColor = "#808080";
-            _sToolTipTextColor = "#cccccc";
+            _sToolTipTextColor = "#888888";
             _sToolTipBackground = "#101010";
             _sUnselectedBackgroundColor = "#101010";
             break;
@@ -1204,7 +1204,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             "}"
             "QStatusBar, QToolBar {\n"
             " background-color:" + _sToolBarColor + ";\n"
-            " border:1px solid " + _sGridColor + ";\n"        // needed for some linux distros to set toolbar background color
+            " border:1px solid " + _sGridColor + ";\n"        
             "}\n"
 
             "QTabBar::tab {\n"

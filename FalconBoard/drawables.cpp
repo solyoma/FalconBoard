@@ -772,7 +772,7 @@ bool DrawableCross::Translate(QPointF dr, qreal minY)
 bool DrawableCross::CanRotate(MyRotation rot, QPointF center)  const
 {
 	QRectF a = Area();
-	return rot.RotateRect(a,center);
+	return rot.RotateRect(a,center,false);
 }
 
 bool DrawableCross::Rotate(MyRotation arot, QPointF center)
@@ -1059,7 +1059,7 @@ bool DrawableLine::CanRotate(MyRotation arot, QPointF center) const
 {
 	arot = arot.AddRotation(rot);
 	QLineF line = QLineF(refPoint, endPoint);
-	if (arot.RotateLine(line, center, true))
+	if (arot.RotateLine(line, center, false))
 		return true;
 	return false;
 }
@@ -1164,7 +1164,7 @@ bool DrawableRectangle::CanRotate(MyRotation arot, QPointF center) const
 	QRectF r = rect;			// original rectangle. Modified if rotated by any multiple of 90
 
 	tmpr.AddRotation(arot);		// check if rotation is possible before doing any changes
-	return tmpr.RotateRect(r, center, true);
+	return tmpr.RotateRect(r, center, false);
 }
 
 /*=============================================================
@@ -1300,7 +1300,7 @@ bool DrawableScreenShot::CanRotate(MyRotation arot, QPointF center) const
 	QRectF r = QRectF(refPoint - QPointF(_image.size().width() / 2, _image.size().height() / 2), _image.size());
 
 	tmpr.AddRotation(arot);		// check if rotation is possible before doing any changes
-	if (!tmpr.RotateRect(r, center, true))
+	if (!tmpr.RotateRect(r, center, false))
 		return false;
 
 	return true;
@@ -1485,7 +1485,7 @@ bool DrawableScribble::CanRotate(MyRotation arot, QPointF center) const
 	QRectF r = Area();			// original rectangle. Modified if rotated by any multiple of 90
 
 	tmpr.AddRotation(arot);		// check if rotation is possible before doing any changes
-	if (!tmpr.RotateRect(r, center, true))
+	if (!tmpr.RotateRect(r, center, false))
 		return false;
 
 	return true;

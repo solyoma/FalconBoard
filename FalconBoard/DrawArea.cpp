@@ -1094,7 +1094,7 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 			_pendown = true;
 			emit PointerTypeChange(event->pointerT);
 		}
-		else
+		else if(!_spaceBarDown)
 			_scribbling = true;
 		if (_rubberRect.isValid())
 		{
@@ -1119,7 +1119,13 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 
 		if (event->mods.testFlag(Qt::ShiftModifier))    // will draw straight line from last position to actual position
 		{
-			_firstPointC = _lastPointC;
+			int n = _history->Size()-1;
+			while (n >= 0 && (!_history->Item(n)->IsDrawable() || !_history->Item(n)->IsVisible()) )
+				--n;
+			if (n < 0)
+				_firstPointC = _lastPointC;
+			else
+				_firstPointC = _lastPointC = _history->Item(n)->GetDrawable(true)->GetLastDrawnPoint();
 			_InitiateDrawingIngFromLastPos();       // instead of the event's position
 		}
 		else
