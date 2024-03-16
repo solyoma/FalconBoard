@@ -1,5 +1,5 @@
 ﻿# ![image](https://user-images.githubusercontent.com/37068759/114211459-f61df280-9960-11eb-8e57-eddca19dcf7e.png) 
-Last modified/utolsó változtatás: Feb. 16. 2024
+Last modified/utolsó változtatás: Mar. 16. 2024
 (A magyar nyelvű leírást az angol után találod)
 
 # FalconBoard
@@ -24,9 +24,9 @@ saved drawings, but cannot modify them or create PDFs.**
    -  Can be used with the mouse and with pen input (a Wacom graphics tablet. 
    -  System, dark and black interface modes.
    -  Maximum 30 documents can be open at the same time
-   -  Freehand drawing with five different colored pens. Colors depend on
-      interface modes (light/dark): black/white, red, green, blue/lighter blue, 
-      yellow/magenta and (from v2.3.0) can be freely defined for each document.
+   -  Freehand drawing with seven different colored pens. Colors depend on
+      interface modes (system/light/white/dark): black/white, red, green, blue/lighter blue, 
+      yellow/magenta, brown, magenta and the last five be freely re-defined for each document.
    -  Widths of each pen and the Eraser are adjustable separately.
    -  Draw straight lines which may also be exactly horizontal or vertical.
    -  Draw empty or opaque rectangles, ellipses or circles
@@ -64,21 +64,22 @@ saved drawings, but cannot modify them or create PDFs.**
             - lines completely under the marked area can be re-colored by
 			        clicking on the pen color buttons or pressing 1..5.
             - line widths of drawings inside the selection can be changed
-              using the right (]) and left ([) bracket keys
+              using the right (]) and left (\[ ) bracket keys
         - if the selected area is empty you can:
               delete empty space from the right or from below with the Del key. 
         - copy / cut marked area and paste it into any open drawings at at any 
-          position, even into new documents
+          position, even into new documents or new instances
         - paste images from the clipboard (from v2.3.6)
         - press F7 to rotate the selected area right or left with any angle. Use
-          Ctrl+F7 to repeat the last rotation.
+          Shift+F7 to repeat the last rotation.
         - Rotate 90 degrees left by pressing '9' or right by pressing '0',
           180 degrees by '8', mirror vertically or horizontally by 'V' and 'H'.
-   -  Optional saving and loading sessions, option to automatic save of data
+   -  Optional save and load of sessions, option to automatic save of data
       and background image on exit.
+   -  Option to restrict many or one instance of the program to run
    -  Print the whole document or a range of it. (Qt 15 does not make it possible
       to print just the current page or a list of pages. Workaround: export as pdf
-      and print from that.)
+      and print that.)
    - Even documents created in a dark mode can be printed as light mode ones to
       save paint.
    -  You may set a static background image: all you draw are on a different layer above
@@ -155,10 +156,10 @@ saved drawings, but cannot modify them or create PDFs.**
  - világos és sötét mód választhatóa programból
  - Egérrel és Wacom kompatibilis grafikus tabletek tollával is használható
  - Maximum 30 dokumentum szerkeszthető párhuzamosan
- - Szabadkézi rajzolás 5 különböző, programban átdefiniálható, akár minden
+ - Szabadkézi rajzolás hét különböző, programban átdefiniálható, akár minden
    dokumentumban más színű tollal, amelyek színe a világos/sötét módokban
-   különböző lehet. Az alapértelmezett színek (világos/sötét -módok): 
-   fekete/fehér, piros, zöld, kék/világoskék és bíbor/sárga.
+   különböző lehet. Az alapértelmezett színek (rendszer/világos/fehér/sötét/fekete -módok): 
+   fekete/fehér, piros, zöld, kék/világoskék, bíbor/sárga, barna, bíborvörös.
  - a tollak és a Radir vastagsága választható
  - húzhatsz egyenes vonalakat, amelyek lehetnek pontosan vízszintesek vagy 
    fügőlegesek is.
@@ -168,7 +169,7 @@ saved drawings, but cannot modify them or create PDFs.**
  - "végtelen" görgetés a "vászon/papír" bal felső sarkához képest mindkét
    irányban a billentyűzettel, illete az egérrel/tollal
  - a legtöbb funkció billentyűzetkombinációkkal könnyen elérhető (F1- súgó)
- - az egész dokumentum PDF fájlba exportálása
+ - az egész dokumentum PDF fájlba exportálható
  - Kijelölhetsz egy téglalap alakú tartományt a jobb gombbal. 
      - Ha Shift-et is nyomva tartod négyzet alakú lesz a kijelölés.
      - Ha a kijelölt tartományban vannak teljes vonalak, illetve alakzatok és
@@ -188,9 +189,9 @@ saved drawings, but cannot modify them or create PDFs.**
        vágólapra másolhatod, ami után bármelyik dokumentumba beillesztheted. 
        A beillesztés helyét a pillanatnyi egér/toll pozíció adja meg.
      - Nem csak a FalconBoardból kimásolt elemeket, de a vágólapon levő
-       képeket is beillesztheted a dokumentumodba. (2.3.6-tól)
+       képeket is beillesztheted a dokumentumodba. (V2.3.6-tól)
      - Az F7 gombbal tetszőleges szögben elforgathatod a kijelölést. 
-       A Ctrl+F7-el pedig az utolsó forgatás szögével. Az '1','0' gombok 90 
+       A Shift+F7-el pedig az utolsó forgatás szögével. Az '1','0' gombok 90 
        fokkal, a '8' gomb 180 fokkal forgat a 'V' és 'H' gombok függőlegesen
        illetve vízszintesen tükrözik a kijelölt területet.
  - Képernyő részlet kivágás ('képernyőfotó') az F4 gombbal éa bal egérgombos
