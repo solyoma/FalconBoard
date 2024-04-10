@@ -313,8 +313,8 @@ private:
               NormalStep = 10,         // shift screen this many pixels on one press on arrow key 
               LargeStep = 100;         // or with this many pixels if holding down the Ctrl key 
 
-    QPointF _firstPointC, // canvas relative first point drawn
-            _lastPointC;  // canvas relative last point drawn relative to visible image
+    QPointF _firstPointC, // screen relative first point drawn
+            _lastPointC;  // screen relative last point drawn relative to visible image
     DrawableItem*   _pLastDrawableItem = nullptr; // set to either of the following:
     DrawableCross   _lastDrawableCross;
     DrawableDot      _lastDotItem;

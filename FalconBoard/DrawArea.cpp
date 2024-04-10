@@ -1125,11 +1125,11 @@ void DrawArea::MyButtonPressEvent(MyPointerEvent* event)
 			if (n < 0)
 				_firstPointC = _lastPointC;
 			else
-				_firstPointC = _lastPointC = _history->Item(n)->GetDrawable(true)->GetLastDrawnPoint();
+				_firstPointC = _lastPointC = _history->Item(n)->GetDrawable(true)->GetLastDrawnPoint() - _topLeft;
 			_InitiateDrawingIngFromLastPos();       // instead of the event's position
 		}
 		else
-			_InitiateDrawing(event);                // resets _firstPointC and _lastPointC to event_>pos()
+			_InitiateDrawing(event);                // resets _firstPointC and _lastPointC to event->pos()
 	}
 #endif
 	_ShowCoordinates(event->pos);
@@ -1634,7 +1634,7 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
 	_lastScribbleItem.SetPenKind(_actPenKind);
 //	_lastScribbleItem.SetPenColor();
 	_lastScribbleItem.penWidth = _actPenWidth;
-	_lastScribbleItem.refPoint = _lastPointC + _topLeft;
+	_lastScribbleItem.refPoint = _lastPointC +_topLeft;
 	_lastScribbleItem.zOrder = _history->GetZorder(false);
 	if (_lastPointC.x() >= 0)    // else no last point yet
 		_lastScribbleItem.Add(_lastPointC + _topLeft, true, true);		// reset then add first new point
