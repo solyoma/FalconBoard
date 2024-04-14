@@ -580,13 +580,13 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 		bool redraw = false;
 		if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::ShiftModifier)))
 		{
-			_pencilmode = !_pencilmode, redraw = true;
+			pencilMode = !pencilMode;
 			redraw = true;
 		}
 		if (key == Qt::Key_D && (_mods.testFlag(Qt::ControlModifier) && _mods.testFlag(Qt::AltModifier)))
 		{                           // toggle debug mode
-			_debugmode = !_debugmode;
-			isDebugMode = _debugmode;	// isDebugMode is a global in drawables.cpp
+			debugMode = debugMode;
+			isDebugMode = debugMode;	// isDebugMode is a global in drawables.cpp
 			redraw = true;
 		}
 		if (redraw)
@@ -2018,10 +2018,18 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 	// end DEBUG
 
 	QPainter painter(_pActCanvas);
-	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+#if !defined _VIEWER && defined _DEBUG
+	QPen pen = QPen(_PenColor(), (pencilMode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+#else
+	QPen pen = QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+#endif
 	painter.setPen(pen);
 //	qDebug("pen:#%02x%02x%02x - DrawLineTo(%g,%g) - D.A.cpp, line #1980", painter.pen().color().red(), painter.pen().color().green(), painter.pen().color().blue(), endPointC.x(), endPointC.y());
-	if (_erasemode && !_debugmode)
+#if !defined _VIEWER && defined _DEBUG
+	if (_erasemode && !debugMode)
+#else
+	if (_erasemode)
+#endif
 		painter.setCompositionMode(QPainter::CompositionMode_Clear);
 	//else			Default mode is SourceOver
 	//	painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -2349,9 +2357,17 @@ void DrawArea::_RestoreCursor()
 QPainter *DrawArea::_GetPainter(QImage *pCanvas)
 {
 	QPainter *painter = new QPainter(pCanvas);
-	QPen pen = QPen(_PenColor(), (_pencilmode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+#if !defined _VIEWER && defined _DEBUG
+	QPen pen = QPen(_PenColor(), (pencilMode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+#else
+	QPen pen = QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+#endif
 	painter->setPen(pen);
-	if (_erasemode && !_debugmode)
+#if !defined _VIEWER && defined _DEBUG
+	if (_erasemode && !debugMode)
+#else
+	if (_erasemode)
+#endif
 		painter->setCompositionMode(QPainter::CompositionMode_Clear);
 	else
 		painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -2372,7 +2388,7 @@ QPainter *DrawArea::_GetPainter(QImage *pCanvas)
  *              if it intersects _clippingRect
  * PARAMS:  phi - possibly null pointer to a HistoryItem
  * GLOBALS: _clippingRect
- * RETURNS:
+ * RETURNS:	true when shape drawn, false if can't draw it here
  * REMARKS: - reason: double buffering: draw on one canvas display the other
  *			- images are not painted here, not even when they
  *             are part of a pasted stack of items
@@ -2384,11 +2400,6 @@ bool DrawArea::_ReplotDrawableItem(DrawableItem* pdrwi)
 		return false;
 
 	QPainter painter(_pActCanvas);
-	if (_pencilmode)
-	{
-		QPen pen(_PenColor(), 1);
-		painter.setPen(pen);
-	}
 	pdrwi->Draw(&painter, _topLeft, _clippingRect);
 
 	return true;
@@ -2782,11 +2793,12 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	else
 #endif
 		qs = tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 ").arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y());
-	if (_pencilmode)
+#if !defined _VIEWER && defined _DEBUG
+	if (pencilMode)
 		qs += " | PM";
-	if (_debugmode)
+	if (debugMode)
 		qs += " | DM";
-
+#endif
 	emit TextToToolbar(qs);
 }
 

@@ -252,8 +252,6 @@ private:
     bool    _scribbling = false;    // true for mouse drawing (_spaceBarDown == false)
     bool    _pendown = false;       // true for pen
     bool    _erasemode = false;
-    bool    _debugmode = false;     // can only be toggled when debug compile and Ctrl+Alt+D is pressed 
-    bool    _pencilmode = false;    // pen width is not used                      Ctrl+Shift+D
     bool    _itemsCopied = false;   // copy/copy & delete : list of scribbles into 'history::_nSelectedItems';
 
     int     _penWidth = 1;

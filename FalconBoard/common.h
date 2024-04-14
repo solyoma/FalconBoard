@@ -18,6 +18,11 @@
 
 extern quint32 file_version_loaded;	// set in history::Load
 
+#if !defined _VIEWER && defined _DEBUG
+    extern bool    debugMode;     // can only be toggled when debug compile and Ctrl+Alt+D is pressed 
+    extern bool    pencilMode;    // pen width is not used                      Ctrl+Shift+D
+#endif
+
 const QString sWindowTitle =
 #ifdef _VIEWER
         "FalconBoard Viewer";

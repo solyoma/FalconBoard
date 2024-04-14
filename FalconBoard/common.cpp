@@ -4,6 +4,10 @@
 
     // global variables
 quint32 file_version_loaded = 0;	// aasuume old file, no grid data in _history->gridOptions yet
+#if !defined _VIEWER && defined _DEBUG
+    bool    debugMode = false;     // can only be toggled when debug compile and Ctrl+Alt+D is pressed 
+    bool    pencilMode = false;    // pen width is not used                      Ctrl+Shift+D
+#endif
 
 MyPageSizes myPageSizes;
 DrawColors globalDrawColors;

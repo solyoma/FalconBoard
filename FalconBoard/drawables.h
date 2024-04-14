@@ -215,8 +215,17 @@ public:
         if(clipR.isValid())
             painter->setClipRect(clipR);  // clipR must be DrawArea relative
 
+#if !defined _VIEWER && defined _DEBUG
+        int sw = penWidth;
+        if(pencilMode)
+            penWidth = 1;
+#endif
         QPen pen(QPen(PenColor(), penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin) );
         painter->setPen(pen);
+#if !defined _VIEWER && defined _DEBUG
+        if(pencilMode)
+            penWidth = sw;
+#endif
         if (brushColor.isValid())
             painter->setBrush(QBrush(brushColor));
         else
