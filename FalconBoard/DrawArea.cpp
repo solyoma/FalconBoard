@@ -145,6 +145,7 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 			return -2;
 	}
 	_topLeft = QPointF(0, 0);
+	_canvasRect = _clippingRect = QRectF(0, 0, width(), height());
 	// set page parameters
 	_history->SetPageParamsFromHistory();
 

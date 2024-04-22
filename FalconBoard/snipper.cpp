@@ -87,6 +87,7 @@ void Snipper::tabletEvent(QTabletEvent* event)
 			break;
 		case QEvent::TabletRelease:
 			_Released(event->pos());
+			event->accept();
 			break;
 		default:
 			break;

@@ -936,19 +936,16 @@ QIcon FalconBoard::_ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB)
 
 
 #ifndef _VIEWER
-void FalconBoard::_ConnectDisconnectScreenshotLabel(bool join )
+void FalconBoard::_ConnectScreenshotLabel()
 {
-
-    if (join)
-    {
-        connect(_plblScreen, &Snipper::SnipperCancelled, this, &FalconBoard::SlotForScreenShotCancelled);
-        connect(_plblScreen, &Snipper::SnipperReady, this, &FalconBoard::SlotForScreenshotReady);
-    }
-    else
-    {
-        disconnect(_plblScreen, &Snipper::SnipperCancelled, this, &FalconBoard::SlotForScreenShotCancelled);
-        disconnect(_plblScreen, &Snipper::SnipperReady, this, &FalconBoard::SlotForScreenshotReady);
-    }
+    connect(_pSnipper, &Snipper::SnipperCancelled, this, &FalconBoard::SlotForScreenShotCancelled);
+    connect(_pSnipper, &Snipper::SnipperReady, this, &FalconBoard::SlotForScreenshotReady);
+}
+    
+void FalconBoard::_DisconnectScreenshotLabel()
+{
+    disconnect(_pSnipper, &Snipper::SnipperCancelled, this, &FalconBoard::SlotForScreenShotCancelled);
+    disconnect(_pSnipper, &Snipper::SnipperReady, this, &FalconBoard::SlotForScreenshotReady);
 }
 #endif
 QString FalconBoard::_FileNameToTabText(QString fname)
@@ -2149,18 +2146,18 @@ void FalconBoard::on_action_Screenshot_triggered()
     if (!screen)
         return;
 
-    _plblScreen = new Snipper(nullptr);
-    _plblScreen->setGeometry(screen->geometry());
-    _ConnectDisconnectScreenshotLabel(true);
+    _pSnipper = new Snipper(nullptr);
+    _pSnipper->setGeometry(screen->geometry());
+    _ConnectScreenshotLabel();
 
     hide();
 
     QThread::msleep(300);
 
-    _plblScreen->setPixmap(screen->grabWindow(0));
+    _pSnipper->setPixmap(screen->grabWindow(0));
 
     show();
-    _plblScreen->show();
+    _pSnipper->show();
 }
 
 void FalconBoard::on_actionScreenshotTransparency_triggered()
@@ -2329,13 +2326,13 @@ void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sen
 
 void FalconBoard::SlotForScreenshotReady(QRect gmetry)
 {
-    _plblScreen->hide();
+    _pSnipper->hide();
 
     QPixmap pixmap;  // need a pixmap for transparency (used Qpixmap previously)
     pixmap = QPixmap(gmetry.size()); //  , Qpixmap::Format_ARGB32);
 
     QPainter *painter = new QPainter(&pixmap);   // need to delete it before the label is deleted
-    painter->drawPixmap(QPoint(0,0), _plblScreen->pixmap(Qt::ReturnByValue), gmetry);
+    painter->drawPixmap(QPoint(0,0), _pSnipper->pixmap(Qt::ReturnByValue), gmetry);
     delete painter;
 
     if (_useScreenshotTransparency)
@@ -2346,18 +2343,16 @@ void FalconBoard::SlotForScreenshotReady(QRect gmetry)
 
     _drawArea->AddScreenShotImage(pixmap);
 
-    _ConnectDisconnectScreenshotLabel(false);
-    delete _plblScreen;
-    _plblScreen = nullptr;
-
+    _DisconnectScreenshotLabel();
+    delete _pSnipper;
 }
 
 void FalconBoard::SlotForScreenShotCancelled()
 {
-    _plblScreen->hide();
-    _ConnectDisconnectScreenshotLabel(false);
-    delete _plblScreen;
-    _plblScreen = nullptr;
+    _pSnipper->hide();
+    _DisconnectScreenshotLabel();
+    delete _pSnipper;
+    _pSnipper = nullptr;
 }
 
 void FalconBoard::SlotIncreaseBrushSize(int ds)

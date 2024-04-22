@@ -270,7 +270,7 @@ private:
 	QActionGroup* _penGroup, *_modeGroup;		// these are needed for radiobutton like behaviour for actions in the group
 
 #ifndef _VIEWER
-	Snipper* _plblScreen = nullptr;		// screen grab label
+	QPointer<Snipper> _pSnipper = nullptr;		// screen grab label
 #endif
 
 	QString _sBackgroundColor = "#FFFFFF",
@@ -368,7 +368,8 @@ private:
 
 	void _SelectTransparentPixelColor();
 
-	void _ConnectDisconnectScreenshotLabel(bool join); // toggle
+	void _ConnectScreenshotLabel();
+	void _DisconnectScreenshotLabel();
 #endif
 
 	QString _FileNameToTabText(QString fname);
