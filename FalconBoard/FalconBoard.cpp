@@ -170,7 +170,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 
 #ifndef _VIEWER
     #ifdef _DEBUG
-        _snapshotTimer.setInterval(10000ms);  // 10 seconds
+        _snapshotTimer.setInterval(10000ms);     // 10 seconds
     #else
         _snapshotTimer.setInterval(300000ms);    // 5 minutes
     #endif
@@ -1057,9 +1057,11 @@ QString FalconBoard::_FileNameToTabText(QString fname)
         }
     }
 
+#ifndef _VIEWER
     if (fname.isEmpty())
         fname = _NextUntitledName();
     else
+#endif
     {
         int i = fname.lastIndexOf('/'),  // get file name, -1 is Ok
             j = fname.lastIndexOf(".mwb");

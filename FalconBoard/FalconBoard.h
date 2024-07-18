@@ -368,8 +368,9 @@ private:
 
 	SaveResult _saveResult = srSaveSuccess;	// because save as slot can't return a value
 	int _saveCount = 0;						// this many documents saved
-
+#endif
 	void _SaveTabStates(QSettings*& s, IntVector& tabs);
+#ifndef _VIEWER
 			// for _SaveXX() 0: cancelled, -1 error, 1 success
 	SaveResult _SaveIfYouWant(int index, bool mustAsk = false, bool onClose = false);
 	SaveResult _SaveFile(const QString name);
