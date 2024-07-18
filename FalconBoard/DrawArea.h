@@ -23,8 +23,9 @@
 // DEBUG
 //#include "screenshotTransparency.h"
 
-
 using namespace std::chrono_literals;
+
+extern History* pHistory;      // global modified by _drawArea  - actual history (every scribble and image element with undo/redo)
 
 #ifdef _VIEWER
     #define WindowTitle  "FalconBoard Viewer "
@@ -64,32 +65,14 @@ public:
     int RemoveHistory(int index);
     void SwapHistories(int from, int to);   // from _currentHistoryIndex
 
-    QString HistoryName(QString qsDefault) const
-    {
-        return HistoryName(-1, qsDefault);
-    }
-
-    QString HistoryName(int index = -1, QString qsDefault=QString()) const       // may be empty!
-    {
-        if (index < 0)
-            return _history ? (_history->Size() ? _history->Name() : qsDefault) : qsDefault;
-            
-        if (index >= HistoryListSize())
-            return QString();
-        return historyList[index]->Name(); // may be empty and may contain changes flag!
-    }
+    History* GetHistory(int index = -1) const;
 
     int SameFileAlreadyUsed(QString& name)
     {
-        for (int i=0; i < (int)historyList.size(); ++i)	// no list so big to require unsigned long
+        for (int i=0; i < (int)historyList.size(); ++i)	// no list so big as to require unsigned long
             if (historyList[i]->Name() == name)
                 return i;
         return -1;
-    }
-
-    void SetHistoryName(QString fileName)
-    {
-        _history->SetName(fileName);
     }
 
     //------------------------------------------------------
@@ -97,13 +80,13 @@ public:
     int Append(QStringList &fileNames);       // to current history
     bool EnableRedraw(bool value);
 #ifndef _VIEWER
-    SaveResult Save(QString name, int index=-1) 
+    SaveResult Save(int index=-1) 
     { 
         HideRubberBand(true);
 
         if (index < 0) 
             index = _currentHistoryIndex;
-        return  historyList[index]->Save(name); 
+        return  historyList[index]->Save(); 
     }
 
     bool OpenBackgroundImage(const QString& fileName);
@@ -133,12 +116,12 @@ public:
 
     int HistoryListSize() const { return (int)historyList.size(); }
 
-    int IsModified(int fromIndex=-1, bool any = false) const;
+    bool IsModified(int fromIndex, bool alsoCheckForSnapshot = false) const;
+    int HistoryIsSnapshot(int index = -1) const;
+
+    int SearchForModified(int &afterThisIndex) const;  // check afterThisIndex+1 -th history first, include snapshots
+
     int ActHistoryIndex() const { return _currentHistoryIndex; }
-    int AnyHistoryToSave() const
-    {
-        return historyList.size() > 1 || (historyList.size() == 1 && !_history->IsModified()) ? historyList.size() : -1;
-    }
 
     FalconPenKind PenKind() const { return _actPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
@@ -154,7 +137,7 @@ public:
             index = _currentHistoryIndex;
         if (index <0 || index > HistoryListSize())
             return;
-        Print(HistoryName(index));
+        Print(historyList[index]->Name());
     }
 // DEBUG
     //void _SelectTransparentPixelColor()
@@ -222,7 +205,6 @@ private:
     void _ChangePenByKeyboard(int key);
 #endif
 private:
-    History *_history=nullptr;      // actual history (every scribble and image element with undo/redo)
     int _currentHistoryIndex = -1,  // actual history index, -1: none
         _previousHistoryIndex = -1; // this was the current index before something happened
 
