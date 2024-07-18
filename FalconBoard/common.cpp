@@ -449,9 +449,9 @@ void FBSettings::Init()             // set home path for falconBoard
 {
     homePath = QDir::homePath() +
 #if defined (Q_OS_Linux)   || defined (Q_OS_Darwin) || defined(__linux__)
-        "/.falconBoard";
+        "/.falconBoard/";
 #elif defined(Q_OS_WIN)
-        "/Appdata/Local/FalconBoard";
+        "/Appdata/Local/FalconBoard/";
 #endif
 }
 

@@ -63,7 +63,14 @@ using FalconPenKind = int;
 // cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
 enum DrawCursorShape { csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
-enum SaveResult { srCancelled = -1, srFailed, srSaveSuccess, srNoSave};
+enum SaveResult 
+    { 
+        srCancelled = -1, 
+        srFailed,           // write erro
+        srSaveSuccess, 
+        srNoNeedToSave,
+        srNoSave            // user do not want it saved
+    };
 enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
 
 constexpr const int resos[] = { 300, 600, 1200 };;

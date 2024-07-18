@@ -1,6 +1,8 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QMainWindow>
+#include <QTemporaryFile>
+
 #include <algorithm>
 
 #include "config.h"		  // version
@@ -878,6 +880,23 @@ History::~History()
 	Clear(true);
 }
 
+QString History::SnapshotName(bool withPath)
+{
+	if (_snapshotName.isEmpty())
+	{
+		QTemporaryFile f;
+		if (f.open())
+		{
+			_snapshotName = f.fileName();
+			_snapshotName = _snapshotName.mid(_snapshotName.indexOf('.') + 1);
+		}
+	}
+	if (withPath)
+		return FBSettings::homePath + _snapshotName;
+	else
+		return _snapshotName;
+}
+
 void History::_SaveClippingRect()
 {
 	_savedClps.push(_clpRect);
@@ -1033,7 +1052,7 @@ void History::Clear(bool andDeleteQuadTree)		// does not clear lists of copied i
 	_redoList.clear();
 
 	_drawables.Clear(andDeleteQuadTree);			// images and others + clear _pQTree and set it to nullptr
-	_readCount = _lastSaved = 0;
+	_readCount = _savedItemCount = 0;
 	_loadedName.clear();
 }
 
@@ -1078,32 +1097,64 @@ HistoryItem* History::operator[](DrawableItemIndex dri)	// absolute index
 }
 
 /*========================================================
- * TASK:    save actual visible drawable items
- * PARAMS:  name - full path name
+ * TASK:    save actual visible drawable items in either a
+ *			normal file or as a snapshot
+ * PARAMS:  'asSnapshot' - true: save as a snapshot, even when
+ *								 _fileName is set
+ *						   false: if _fileName is empty save
+ *								 snapshot, otherwise save using
+ *								 _fileName
  * GLOBALS:
- * RETURNS:
- * REMARKS:
+ * RETURNS:	result of save
+ * REMARKS: - when saved as snapshot '_lastSavedAsSnapshot is set
+ *			  to true
+ *			- if 'asSnapshot' is false removes snapshot after save
+ *			  and set '_lastSavedAsSnapshot' to false
+ *			- do not save file if it was not modified and
+ *			  either it was not saved as snapshot or 
+ *			  it was saved as snapshot and it doesn't have
+ *			  a _fileName
  *-------------------------------------------------------*/
-SaveResult History::Save(QString name)
+SaveResult History::Save(bool asSnapshot)
 {
 	// only save visible items
+	// snapshot file is in FalconBoard folder
+	QString snapshotName = SnapshotName(true);	
 
-	if (name != _loadedName)
-		_loadedName = _fileName = name;
+	if (_fileName != _loadedName)
+		_loadedName = _fileName;
 
-	if (_drawables.Count() == 0 && _lastSaved == 0)					// no elements or no visible elements
+	if (_drawables.Count() == 0 && _savedItemCount == 0)					// no elements or no visible elements
 	{
 		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
-		return srSaveSuccess;
+		return srNoNeedToSave;
 	}
+	if(!IsModified() && (!_lastSavedAsSnapshot || _fileName.isEmpty() ) )
+		return srNoNeedToSave;
 
+	if (_fileName.isEmpty())		
+		asSnapshot = true;
+
+	QString name = asSnapshot ? snapshotName : _fileName;
+
+	if (asSnapshot)		// then save an index file beside the main file with the file name in it
+	{
+		QFile f(name);
+		f.open(QIODevice::WriteOnly);
+		if (!f.isOpen())
+			return srFailed;   // can't write file
+		QDataStream ofsdat(&f);
+		ofsdat << _fileName;
+		name = name + ".dat";	 // the mwb file
+	}
+					  // global part
 	QFile f(name + ".tmp");
 	f.open(QIODevice::WriteOnly);
 
 	if (!f.isOpen())
 		return srFailed;   // can't write file
-					  // global part
 	QDataStream ofs(&f);
+
 	ofs << MAGIC_ID;
 	ofs << MAGIC_VERSION;	// file version
 
@@ -1128,24 +1179,77 @@ SaveResult History::Save(QString name)
 	}
 	if (QFile::exists(name + "~"))
 		QFile::remove(QString(name + "~"));
-	QFile::rename(name, QString(name + "~"));
 
-	f.rename(name);
+	if(asSnapshot)	// then don't use a backup file and delete previous snapshot
+		QFile::remove(QString(name));
+	else			// create backup file from original
+		QFile::rename(name, QString(name + "~"));
 
-	/*_readCount = */ _lastSaved = _items.count();	// saved at this point
+	f.rename(name);	
+
+	_savedItemCount = _items.count();	// saved at this point
+
+	if (asSnapshot)
+	{
+		_lastSavedAsSnapshot = true;
+	}
+	else // remove snapshot file
+	{
+		_lastSavedAsSnapshot = false;
+		name = SnapshotName();
+		QFile::remove(name);
+		QFile::remove(name+".dat");
+	}	
+	_loaded = true;	// if saved, then already is in memory as if it was loaded
 
 	return srSaveSuccess;
 }
 
 
+void History::SetName(QString name, bool clear)
+{
+	bool isSnapshotName = name.indexOf('/') < 0;
+	if(!isSnapshotName)
+		_fileName = name;
+
+	if (isSnapshotName)
+	{
+		_snapshotName = name;
+		_lastSavedAsSnapshot = true;
+		QString s = FBSettings::homePath + name;
+		_NameFromTmpData(s);
+	}
+
+	if(clear)
+		Clear();
+}
+
+void History::_NameFromTmpData(QString &nameOfSnapshot)
+{
+	_fileName.clear();
+	if (!QFile::exists(nameOfSnapshot))	// File not found	
+		return;
+	// then get file name from there
+	QFile f(nameOfSnapshot);
+	f.open(QIODevice::ReadOnly);
+	if (!f.isOpen())
+		return;			
+	QDataStream ifs(&f);
+	ifs >> _fileName;
+}
+
 /*========================================================
- * TASK:	Loads saved file whose name is set into _fileName
+ * TASK:	Loads saved file whose full path name is set 
+ *			into _fileName or a snapshot file when 
+ *			_lastSavedAsSnapshot is true
  * PARAMS:	'version_loaded' set version of loaded file into this
  *			'force' load it even when already loaded
  *				in which case it overwrites data in memory
  *			'fromY' - add this to the y coord of every point loaded
  *						(used for append)
- * GLOBALS: _fileName, _inLoad,_readCount,_items,
+ * GLOBALS: _fileName, _snapshotName, 
+ *			_lastSavedAsSnapshot - set this only for snapshot files
+ *			_inLoad,_readCount,_items,
  *			_screenShotImageList,_modified, 
  * RETURNS:   -1: file does not exist
  *			< -1: file read error number of records read so
@@ -1154,19 +1258,25 @@ SaveResult History::Save(QString name)
  *			>  0: count of items read
  * REMARKS: - beware of old version files
  *			- when 'force' clears data first
+ *			- _fileName and _loadedName are full path names, 
+ *			  _snapshotName is not
  *			- both _fileName and _loadedName can be empty
+ *			  in that case _snapshotName is used
  *-------------------------------------------------------*/
 int History::Load(quint32& version_loaded, bool force, int fromY)
 {
-	if (_fileName.isEmpty())
+	(void)SnapshotName(false);	// generate new name
+	QString fname = _lastSavedAsSnapshot ? SnapshotName(true)+".dat" : _fileName;
+
+	if (fname.isEmpty())
 		return 1;			//  no record loaded, but this is not an error
 
-	if (!force && _fileName == _loadedName)	// already loaded?
-		return _items.count();	// can't use _readCount
+	if ( (!force && _fileName == _loadedName && !_lastSavedAsSnapshot) || _loaded)	// already loaded?
+		return _items.count();				// can't use _readCount
 
 	DrawableItem::yOffset = 0.0;
 
-	QFile f(_fileName);
+	QFile f(fname);
 	f.open(QIODevice::ReadOnly);
 	if (!f.isOpen())
 		return -1;			// File not found
@@ -1195,6 +1305,7 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 		res= 0;		// invalid file
 	}
 	f.close();
+	_loaded = true;
 	return res;
 }
 
@@ -1420,12 +1531,12 @@ int History::_LoadV1(QDataStream &ifs, qint32 version)
 	DrawableItem di;
 	di.yOffset = 0;		
 
-	_lastSaved = 0;		
+	_savedItemCount = 0;		
 
 	int res = _ReadV1(ifs, di, version);
 
 	_loadedName = _fileName;
-	return 	_readCount = _lastSaved += res;
+	return 	_readCount = _savedItemCount += res;
 }
 
 int History::_LoadV2(QDataStream&ifs, qint32 version_loaded)
@@ -1441,13 +1552,13 @@ int History::_LoadV2(QDataStream&ifs, qint32 version_loaded)
 	DrawableItem di;
 	di.yOffset = 0;		
 
-	_lastSaved = 0;		
+	_savedItemCount = 0;		
 		// file offset is now 19 (0x13)
 	int res = _ReadV2(ifs, di);
 
 	_loadedName = _fileName;
 
-	return 	_readCount = _lastSaved += res;
+	return 	_readCount = _savedItemCount += res;
 }
 
 //--------------------- Add Items ------------------------------------------

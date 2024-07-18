@@ -48,13 +48,18 @@ QStringList GetTranslations();	// list of translation files
 // ************************ /helper **********************
 
 	class Listener;		// pre-declaration
-
+#ifndef _VIEWER
+	class Snapshotter;
+#endif
 // ************************ FalconBoard **********************
 class FalconBoard : public QMainWindow
 {
 	Q_OBJECT
 
-		friend class ListenerThread;
+		//friend class ListenerThread;
+#ifndef _VIEWER
+		friend class Snapshotter;
+#endif
 
 public:
 	FalconBoard(QSize screenSize, QWidget *parent = Q_NULLPTR);
@@ -175,6 +180,10 @@ private slots:
 #endif
 	void SlotForPenColorChanged();	// sent when 'history' is changed and pens are changed too changed actions when needed
 	void SlotForChkGridOn(bool checked);
+#ifndef _VIEWER
+	void SlotForSnapshotTimer();
+	void SlotSnapshotSaverFinished();
+#endif
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() 
 	{ 
@@ -207,12 +216,12 @@ private slots:
 
 #ifndef _VIEWER
    signals:
-	   void DrawPenColorBy(int key);
-	   void PenColorChangedSignal(const DrawColors &drwclr);
-
+	   void SignalDrawPenColorBy(int key);
+	   void SignalPenColorChanged(const DrawColors &drwclr);
+	   void SignalToSaveSnapshots(IntVector& which);
 #endif
    signals:
-	   void GridSpacingChanged(int spacing);
+	   void SignalGridSpacingChanged(int spacing);
 	   void SignalToCloseServer();
 
 private:
@@ -221,9 +230,20 @@ private:
 	FLAG _busy;
 	bool _firstShown = false;	// main window was shown first
 
-	QThread _listenerThread;
+	QThread _listenerThread
+#ifndef _VIEWER
+		, _snapshotterThread
+#endif
+		;
+
+#ifndef _VIEWER
+	QTimer _snapshotTimer;
+#endif
 
 	Listener* _pListener = nullptr;
+#ifndef _VIEWER
+	Snapshotter* _pSnapshotter = nullptr;
+#endif
 
 	QStringList _translations;	// list of *.qm files in resources
 	int _actLanguage = -1;			// index in list of languages ordered by abbreviations 
@@ -302,6 +322,8 @@ private:
 
 	void RestoreState();
 	void SaveState();
+	void SaveTabState();	// for all tabs after each timed snapshot save
+	void SaveTabState(IntVector &tabindex);	// for tabs in list
 
 #ifdef _VIEWER
 	void _RemoveMenus();
@@ -314,8 +336,8 @@ private:
 	void _SaveLastDirectory(QString fileName);
 	bool IsOverwritable() const
 	{
-		bool bOverwritable = _drawArea->HistoryName().isEmpty() &&
-			!_drawArea->IsModified();
+		bool bOverwritable = pHistory->Name().isEmpty() &&
+			!pHistory->IsModified();
 		return bOverwritable;
 	}
 	bool _LoadData(int index = -1);	// into the index-th history (-1: current)
@@ -328,13 +350,13 @@ private:
 
 	void _QDoSaveModified(const QString s)
 	{
-		if (_drawArea->IsModified())
+		if (pHistory->IsModified())
 		{
 			QString cs = tr("Do you want to save the document before %1?\n\n(You may set automatic save in the Options menu.)").arg(s);
 			if (ui.actionAutoSaveBeforePrintOrExport->isChecked() ||
 				(QMessageBox::question(this, tr("FalconBoard - Question"), cs) == QMessageBox::Yes))
 			{
-				_drawArea->Save(_drawArea->HistoryName(), -1);
+				_drawArea->Save(-1);
 				_SetResetChangedMark(-1);
 			}
 		}
@@ -346,6 +368,8 @@ private:
 
 	SaveResult _saveResult = srSaveSuccess;	// because save as slot can't return a value
 	int _saveCount = 0;						// this many documents saved
+
+	void _SaveTabStates(QSettings*& s, IntVector& tabs);
 			// for _SaveXX() 0: cancelled, -1 error, 1 success
 	SaveResult _SaveIfYouWant(int index, bool mustAsk = false, bool onClose = false);
 	SaveResult _SaveFile(const QString name);
@@ -442,6 +466,7 @@ private:
 					if (siz != TO_FRONT_SIZE || strcmp(data.constData(), TO_FRONT)) // then command line
 						emit SignalAddNewTab(data.constData());
 					clientSocket->flush();
+
 				}
 
 				//clientSocket->disconnectFromServer();
@@ -453,6 +478,25 @@ private:
 	}
 
 };
+// ========================================================= Snapshotter ==========================================
+#ifndef _VIEWER
+class Snapshotter : public QObject
+{
+	Q_OBJECT
+public:
+	explicit Snapshotter(FalconBoard* falconBoard, IntVector &whose) : _falconBoard(falconBoard), _whose(whose), QObject(nullptr)
+	{
+
+	}
+public slots:
+	void SlotToSaveSnapshots();
+signals:
+	void SignalFinished();
+private:
+	FalconBoard* _falconBoard; 
+	IntVector _whose;
+};
+#endif		// _not VIEWER
 
 #endif
 

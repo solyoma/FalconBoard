@@ -490,13 +490,23 @@ class History  // stores all drawing sections and keeps track of undo and redo
 
     QPointF _topLeft;                   // temporary, top left of the visible part of this history
                                         // document relative
-    QString _fileName,                  // file for history
+    QString _fileName,                  // full path name for file, but may be "Untitled" or empty
+            _snapshotName,                   // for timed backup copies. No path. Used for safety copy of named and 
+                                        // of untitled files in the user's 'FalconBoard' folder
+                                        // If _fileName is empty the file was not yet saved by the user
+                                        // if a file is saved at exit or when the tab is closed
+                                        // then the corresponding temporary is removed
+                                        // On starting the program the temporary files are loaded too
             _loadedName;                // set only after the file is loaded, used to check reloads
+                                        // for not snaphots files it is set to the given name
+    bool _lastSavedAsSnapshot = false;  // set in 'Save()' or before loading a snapshot
     bool _inLoad = false;               // in function Load() / needed for correct z- order settings
     int _readCount = 0;                 // undo works until this index is reached
-    int _lastSaved = 0;                 // the count of _items when data was saved, after read it is _readCount
+    int _savedItemCount = 0;            // the count of _items when data was saved, after read it is _readCount
+                                        // used to check if data is changed
 
                                         // unscribble items have no indices in here
+    bool _loaded = false;               // if it was loaded from disk already
     bool _isSaved = false;              // clear after every change!
 
     QRectF _clpRect;                    // clipping rectangle for selecting points to draw
@@ -528,6 +538,8 @@ class History  // stores all drawing sections and keeps track of undo and redo
         _driSelectedDrawablesAtLeft.clear();
     }
 
+    void _NameFromTmpData(QString &nameOfSnapshot);
+
     int _ReadV1(QDataStream &ifs,DrawableItem &di, qint32 version); // reads items from version 1.X files and returns count of read
     int _ReadV2(QDataStream &ifs,DrawableItem &di);                 // reads items from version 2.X files and returns count of read
 
@@ -535,26 +547,58 @@ class History  // stores all drawing sections and keeps track of undo and redo
     int _LoadV2(QDataStream &ifs, qint32 version_loaded);   // load version 2.X files
 
     void _CantRotateWarning() const;
-public:
+public: // variables
     GridOptions gridOptions;
-
     DrawColors drawColors;         // global for all drawables in this history
 
+public: // functions
     History(HistoryList* parent) noexcept;
     History(const History& o);
     History(History&& o) noexcept;
     virtual ~History();
 
+    QString Name(QString qsDefault=QString()) const    // includes whole path
+    { 
+        return _fileName.isEmpty() ? qsDefault : _fileName;
+    }
 
-    QSizeF UsedArea();   // of all points and images
+    QString SnapshotName(bool withPath = false);
+
+    bool IsLoaded() const
+    {
+        return _loaded;
+    }
+    bool IsSnapshot() const
+    {
+        return _lastSavedAsSnapshot;
+    }
+
+    bool IsModified() const 
+    { 
+        return _savedItemCount != _items.size();
+    }
+
+    void SetModifiedState(int resInd, int pageWidth, bool useResInd) // so that IsModified will return true
+    {
+        if(resInd != _resolutionIndex || pageWidth != _pageWidthInPixels || useResInd != _useResInd)
+            _savedItemCount = _items.size() - 1;
+    }
+
+    void SetName(QString name, bool clear = false);
+    void MarkAsSnapshot(bool mark)
+    {
+        _lastSavedAsSnapshot = mark;
+    }
+
+    QSizeF UsedArea();   // of all points and images from (0,0) to (right,bottom)
     int CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize); // -1: invalid page for px, -2: invalid page for py i.e. outside used area. First call with getAreaSize=true, others with false
 
-    HistoryItemPointer Item(int index) const 
+    inline HistoryItemPointer Item(int index) const 
     { 
         return _items[index]; 
     }
 
-    HistoryItemPointer LastItem() const 
+    inline HistoryItemPointer LastItem() const 
     { 
         int n = _items.size();
         return n ? _items[n-1] : nullptr;
@@ -597,18 +641,9 @@ public:
     int CountButScreenShots();
     int SelectedSize() const { return _driSelectedDrawables.size(); }
 
-    QString Name() const 
-    { 
-        return _fileName; 
-    }
-    SaveResult Save(QString name);
+    SaveResult Save(bool asasSnapshot = false);
 
-    void SetName(QString name)
-    {
-        _fileName = name;
-        Clear();
-    }
-
+    
     int Load(quint32& version_loaded, bool force=false, int fromY=0);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
     int Append(QString fileName, quint32& version_loaded);
     void SetPageParamsFromHistory() const
@@ -622,17 +657,6 @@ public:
         _resolutionIndex    = PageParams::resolutionIndex   ;
         _pageWidthInPixels  = PageParams::horizPixels ;
         _useResInd          = PageParams::useResInd         ;
-    }
-
-    bool IsModified() const 
-    { 
-        return _lastSaved != _items.size();
-    }
-
-    void SetModifiedState(int resInd, int pageWidth, bool useResInd) // so that IsModified will return true
-    {
-        if(resInd != _resolutionIndex || pageWidth != _pageWidthInPixels || useResInd != _useResInd)
-            _lastSaved = _items.size() - 1;
     }
     bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
     bool CanRedo() const { return _redoList.size(); }
@@ -707,6 +731,16 @@ class HistoryList : public std::vector<History*>
 
 public:
     HistoryList() {}
+
+    IntVector ModifiedItems()
+    {
+        IntVector indices;
+        for (size_t i = 0; i < size(); ++i)
+            if ((*this)[i]->IsModified())
+                indices.push_back(i);
+                
+        return indices;
+    }
 
     void SetupClipBoard()   // setup before use! needed, because _historyList is created before QApplication
     { 
