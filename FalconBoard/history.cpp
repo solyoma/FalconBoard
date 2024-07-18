@@ -1239,6 +1239,32 @@ void History::_NameFromTmpData(QString &nameOfSnapshot)
 	ifs >> _fileName;
 }
 
+	if (isSnapshotName)
+	{
+		_snapshotName = name;
+		_lastSavedAsSnapshot = true;
+		QString s = FBSettings::homePath + name;
+		_NameFromTmpData(s);
+	}
+
+	if(clear)
+		Clear();
+}
+
+void History::_NameFromTmpData(QString &nameOfSnapshot)
+{
+	_fileName.clear();
+	if (!QFile::exists(nameOfSnapshot))	// File not found	
+		return;
+	// then get file name from there
+	QFile f(nameOfSnapshot);
+	f.open(QIODevice::ReadOnly);
+	if (!f.isOpen())
+		return;			
+	QDataStream ifs(&f);
+	ifs >> _fileName;
+}
+
 /*========================================================
  * TASK:	Loads saved file whose full path name is set 
  *			into _fileName or a snapshot file when 
