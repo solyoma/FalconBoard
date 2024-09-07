@@ -1253,8 +1253,8 @@ void DrawArea::MyMoveEvent(MyPointerEvent* event)
 	else
 		// no rubber band
 #endif
-				// mouse  or pen                                     pen
-		if (((event->buttons & Qt::LeftButton) && _scribbling) || _pendown)
+				//				mouse  or pen                                         pen
+ 		if (((event->buttons & Qt::LeftButton) && (_scribbling || _spaceBarDown)) || _pendown)
 		{
 			static QPointF lastpos;
 			if (lastpos == epos)
