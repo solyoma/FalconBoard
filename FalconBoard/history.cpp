@@ -1178,6 +1178,7 @@ SaveResult History::Save(bool asSnapshot)
 		phi = _drawables.NextVisibleDrawable();	// in increasing zOrder
 	}
 					  // *********  saving finished ******** 
+	f.close();
 	if (QFile::exists(name + "~"))
 		QFile::remove(QString(name + "~"));
 
@@ -1197,9 +1198,8 @@ SaveResult History::Save(bool asSnapshot)
 	else // remove snapshot files
 	{
 		_lastSavedAsSnapshot = false;
-		name = snapshotName;
-		QFile::remove(name);
-		QFile::remove(name+".dat");
+		QFile::remove(snapshotName);
+		QFile::remove(snapshotName+".dat");
 	}	
 	_loaded = true;	// if saved, then already is in memory as if it was loaded
 

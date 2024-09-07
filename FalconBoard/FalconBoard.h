@@ -372,6 +372,7 @@ private:
 	void _SaveTabStates(QSettings*& s, IntVector& tabs);
 #ifndef _VIEWER
 			// for _SaveXX() 0: cancelled, -1 error, 1 success
+	bool StopSnapshotTimerAndWaitForIt();	// returns true if timer was running, false otherwise
 	SaveResult _SaveIfYouWant(int index, bool mustAsk = false, bool onClose = false);
 	SaveResult _SaveFile(const QString name);
 	bool _SaveBackgroundImage();

@@ -801,6 +801,16 @@ void FalconBoard::_AddSaveVisibleAsMenu()
 }
 
 
+bool FalconBoard::StopSnapshotTimerAndWaitForIt()
+{
+    bool res = _snapshotTimer.isActive();
+    _snapshotTimer.stop();
+    int of = 1000000000;                   // wait until save in the other thread is finished
+    while (_pSnapshotter && --of)
+        ;
+    return res;
+}
+
 /*========================================================
  * TASK:    check index-th history for change 
  *          conditionally asks for save confirmation 
@@ -824,12 +834,7 @@ void FalconBoard::_AddSaveVisibleAsMenu()
  *-------------------------------------------------------*/
 SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onTabClose)
 {
-    // wait for timered save to finish
-    bool isTimerIsRunning = _snapshotTimer.isActive();
-    _snapshotTimer.stop();
-    int of = 1000000;                   // wait until save in the other thread is finished
-    while (_pSnapshotter && --of)
-        ;
+    bool isTimerIsRunning = StopSnapshotTimerAndWaitForIt();  // svae timer state
 
     _saveResult = srSaveSuccess;
 
@@ -837,7 +842,8 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onTabClose)
 
     const QString & saveName = pHistory->Name();
 
-    if (!pHistory->IsModified() && !pHistory->IsSnapshot()) //?? other cases?
+    bool hasSnapshot = pHistory->IsSnapshot();
+    if (!pHistory->IsModified() && !hasSnapshot) //?? other cases?
     {
        if(isTimerIsRunning)
            _snapshotTimer.start();
@@ -871,7 +877,7 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onTabClose)
 
         if (ret == QMessageBox::Save)
         {
-            on_actionSaveAs_triggered();     // asks file name and sets _saveResult
+            on_actionSave_triggered();
             if (_saveResult == srSaveSuccess)
             {
                 pHistory->SetName(_lastSaveName, true);
@@ -1853,6 +1859,7 @@ void FalconBoard::_SaveLastDirectory(QString fileName)
 #ifndef _VIEWER
 void FalconBoard::on_actionSave_triggered()
 {
+    bool wasRunning = StopSnapshotTimerAndWaitForIt();
     QString fname = pHistory->Name();
     if (fname.isEmpty())
         on_actionSaveAs_triggered();
@@ -1862,6 +1869,8 @@ void FalconBoard::on_actionSave_triggered()
         _SetTabText(-1, fname);
         _SetResetChangedMark(-1);
     }
+    if (wasRunning)
+        _snapshotTimer.start();
 }
 void FalconBoard::on_actionSaveAs_triggered() // current tab
 {
