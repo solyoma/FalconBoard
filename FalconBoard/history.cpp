@@ -1164,7 +1164,7 @@ SaveResult History::Save(bool asSnapshot)
 		drawColors.SavePen(ofs, (FalconPenKind)i);
 
 					  // drawables
-	QRectF area = QuadAreaToArea(_drawables.Area());
+	QRectF area = _drawables.Area();
 	DrawableItem* phi = _drawables.FirstVisibleDrawable(area); // lowest in zOrder
 	while(phi)
 	{
@@ -1366,7 +1366,7 @@ int History::Append(QString fileName, quint32& version_loaded)
 	pb = reinterpret_cast<HistoryPasteItemBottom*>(_items[nPosBottom]);
 	pb->count = nReadLines;
 	QuadArea qarea = _quadTreeDelegate.Area();
-	QRectF rect = { 0, DrawableItem::yOffset, qarea.Width(), qarea.Bottom() - DrawableItem::yOffset };
+	QRectF rect = { 0, DrawableItem::yOffset, qarea.width(), qarea.bottom() - DrawableItem::yOffset };
 	HistoryPasteItemTop* pt = new HistoryPasteItemTop(this, nPosBottom, nReadLines, rect);
 	_AddItem(pt);
 	f.close();
@@ -1943,7 +1943,7 @@ int History::CollectDrawablesInside(QRectF rect) // only
 
 	// first select all items inside a horizontal band whose top and bottom are set from 'rect'
 	// but it occupies the whole width of the 'paper' into "horizontal band" hb
-	QRectF hb = QRectF(0, rect.top(), _drawables.Area().Width(), rect.height());
+	QRectF hb = QRectF(0, rect.top(), _drawables.Area().width(), rect.height());
 	DrawableIndexVector iv = _drawables.ListOfItemIndicesInRect(hb);
 	for (int i = iv.size()-1; i >= 0; --i)		// purge partial overlaps with HB
 	{

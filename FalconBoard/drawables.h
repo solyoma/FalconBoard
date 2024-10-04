@@ -87,7 +87,7 @@ extern bool isDebugMode;
             //----------------------------------------------------
             // ------------------- helpers -------------
             //----------------------------------------------------
-QRectF QuadAreaToArea(const QuadArea& qarea);
+//QRectF QuadAreaToArea(const QuadArea& qarea);
 QuadArea AreaForItem(const int& i);
 
 qreal Round(qreal number, int dec_digits);
@@ -892,7 +892,7 @@ struct QuadTreeDelegate
     }
 
     int Count(const QuadArea &area=QuadArea()) { return pItemTree ? pItemTree->Count(area) : 0; }
-    QuadArea Area() { return pItemTree ? pItemTree->Area() :QuadArea(); }
+    QuadArea Area() const { return pItemTree ? pItemTree->Area() :QuadArea(); }
     void Clear()
     {
         if(pItemTree)
@@ -908,11 +908,11 @@ struct QuadTreeDelegate
         if(pItemTree) 
             pItemTree->Remove(ix); 
     }
-    IntVector GetValues(const DrawableItemList* pItems, const QRectF& area) const
-    {
-        return GetValues(pItems, AreaForQRect(area));
+    //IntVector GetValues(const DrawableItemList* pItems, const QRectF& area) const
+    //{
+    //    return GetValues(pItems, AreaForQRect(area));
 
-    }
+    //}
     IntVector GetValues(const DrawableItemList* pItems, const QuadArea& area) const
     {
 
@@ -1168,6 +1168,7 @@ public:
     // must redefine this 
     DrawableItem* operator[](int ix) const
     {
+        Q_ASSERT_X(ix >= 0 && ix < _items.size(), "DrawableItem::operator[]", "index out of range");
         return  _items[ix];
     }
 

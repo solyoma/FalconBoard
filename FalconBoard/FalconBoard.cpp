@@ -917,7 +917,7 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onTabClose)
 
 SaveResult FalconBoard::_SaveFile(const QString name)   // returns: 0: cancelled, -1 error, 1 saved
 {
-    _saveResult = _drawArea->Save();
+    _saveResult = _drawArea->Save(-1, name);
     if (_saveResult == srSaveSuccess)
     {
         _AddToRecentList(name);

@@ -3,6 +3,10 @@
 	#define _QUADTREE_H
 
 // Based on https://github.com/pvigier/Quadtree
+// but using Qt types
+// interesting: QArea in pvigier has exactly the
+// same member functions as QRectF, except the case of
+// the function names
 
 /*----------------------------------------------------------
 * Quadtree implementation for drawable and visible history items.
@@ -59,77 +63,9 @@
 	#include <fstream>
 #endif
 
-using real = float;
+using real = qreal;
 
-struct V2
-{
-	real x, y;
-	constexpr V2(real x, real y) :x(x), y(y) {};
-	constexpr V2 operator+=(const V2 o) noexcept { x += o.x; y += o.y; return *this; }
-	constexpr V2 operator/=(real c)		noexcept { x /= c; y /= c; return *this; }
-};
-constexpr V2 operator+(const V2 l, const V2 o) noexcept { return V2(l.x + o.x, l.y + o.y); }
-constexpr V2 operator/(const V2 l, real c) { return V2(l.x / c, l.y / c); }
-
-class QuadArea
-{
-	real _left=0, _top=0, _right=0, _bottom=0;
-public:
-	QuadArea() {}
-    QuadArea(real left, real top, real width, real height) noexcept : _left(left), _top(top),_right(left + width), _bottom(_top + height)
-	{
-		assert(_right > _left && _bottom > _top);
-	};
-	QuadArea(V2 leftTop, V2 size) noexcept : QuadArea(leftTop.x, leftTop.y, size.x, size.y) 
-	{
-		assert(size.x && size.y);
-	}
-	bool IsValid() const { return _left < _right&& _top < _bottom; }
-
-	constexpr bool Contains(const V2& p) const noexcept
-	{
-		return !(p.x < _left || p.y < _top || p.x > _right || p.y > _bottom); // was >= _right/_bottom
-	}
-
-	constexpr bool Contains(const QuadArea& r) const noexcept
-	{
-		return (r._left >= _left) && (r._right < _right) && (r._top >= _top) && (r._bottom <= _bottom);
-	}
-
-	constexpr bool Intersects(const QuadArea& r) const noexcept
-	{
-		return (_left < r._right && _right >= r._left && _top < r._bottom && _bottom>= r._top);
-	}
-
-	QuadArea Union(const QuadArea& other) const noexcept
-	{
-		QuadArea area(_left,_top,_right,_bottom);
-		if (_left > other._left)
-			area._left = other._left;
-		if (_top > other._top)
-			area._top = other._top;
-		if (area._right < other._right)
-			area._right = other._right;
-		if (_bottom < other._bottom)
-			area._bottom = other._bottom;
-
-		return area;
-	}
-	constexpr real Left() const noexcept { return _left; }
-	constexpr real Top() const noexcept { return _top; }
-	constexpr real Right() const noexcept { return _right; }
-	constexpr real Bottom() const noexcept { return _bottom; }
-	constexpr real Width() const noexcept { return _right - _left; }
-	constexpr real Height() const noexcept { return _bottom - _top; }
-
-	constexpr V2 TopLeft() const noexcept { return V2(_left,_top); }
-	constexpr V2 Size() const noexcept { return V2(Width(), Height()); }
-	constexpr V2 Center() const noexcept { return V2(_left + Width()/2, _top + Height()/2); }
-
-	constexpr void SetWidth(real newWidth) { _right = _left + newWidth; }
-	constexpr void SetHeight(real newHeight) { _bottom = _top + newHeight; }
-	
-};
+using QuadArea = QRectF;
 
 /*=============================================================
  * When constructing a value type and two functions are required.
@@ -161,14 +97,14 @@ public:
 	{
 		bool res = false;
 		QuadArea areaV = _AreaFor(value);
-		if (!_area.Contains(areaV))
+		if (!_area.contains(areaV))
 		{				  // area always starts at (0,0)
-			QuadArea newArea = _area.Union(areaV);
+			QuadArea newArea = _area.united(areaV);
 				// to decrease the frequency of resizing enlarge area minimum 1000 points in any direction
-			if (newArea.Width() - _area.Width())  // then enlarge x
-				newArea.SetWidth(newArea.Width() + 1000);
-			if (newArea.Height() - _area.Height())  // then enlarge y
-				newArea.SetHeight(newArea.Height() + 1000);
+			if (newArea.width() - _area.width())  // then enlarge x
+				newArea.setWidth(newArea.width() + 1000);
+			if (newArea.height() - _area.height())  // then enlarge y
+				newArea.setHeight(newArea.height() + 1000);
 			Resize(newArea, &value, true); // also adds new value
 		}
 		else
@@ -187,7 +123,7 @@ public:
 	std::vector<T> GetValues(const QuadArea& area) const
 	{
 		auto values = std::vector<T>();
-		if(_area.Intersects(area) )
+		if(_area.intersects(area) )
 			_Query(_rootNode.get(), _area, area, values);
 		return values;
 	}
@@ -215,7 +151,7 @@ public:
 
 	constexpr std::size_t Count(QuadArea area = QuadArea()) 
 	{
-		if (area.IsValid())
+		if (area.isValid())
 			return _CountForArea(_rootNode.get(), _area, area);
 		else
 			return _count;
@@ -276,9 +212,9 @@ private:
 
 	void _CalcMaxDepth(QuadArea area)
 	{
-		V2 size = area.Size();
+		QSizeF size = area.size();
 		_maxDepth = 1;
-		while (size.x > _MIN_WIDTH && size.y > _MIN_HEIGHT)
+		while (size.width() > _MIN_WIDTH && size.height() > _MIN_HEIGHT)
 		{
 			++_maxDepth;
 			size /= real(2);
@@ -292,8 +228,8 @@ private:
 
 	QuadArea _AreaOfThisChild(const QuadArea& areaOfParent, int quadrant) const
 	{
-		auto origin = areaOfParent.TopLeft();
-		auto childSize = areaOfParent.Size() / static_cast<real>(2);
+		auto origin = areaOfParent.topLeft();
+		auto childSize = areaOfParent.size() / static_cast<real>(2);
 		switch (quadrant)
 		{
 				// North West
@@ -301,13 +237,13 @@ private:
 				return QuadArea(origin, childSize);
 				// Norst East
 			case 1:
-				return QuadArea(V2(origin.x + childSize.x, origin.y), childSize);
+				return QuadArea(QPointF(origin.x() + childSize.width(), origin.y()), childSize);
 				// South West
 			case 2:
-				return QuadArea(V2(origin.x, origin.y + childSize.y), childSize);
+				return QuadArea(QPointF(origin.x(), origin.y() + childSize.height()), childSize);
 				// South East
 			case 3:
-				return QuadArea(origin + childSize, childSize);
+				return QuadArea(QPointF(origin.x() + childSize.width(), origin.y() + childSize.height() ), childSize);
 			default:
 				assert(false && "Invalid child index");
 				return QuadArea();
@@ -316,28 +252,28 @@ private:
 
 	int _GetQuadrant(const QuadArea& nodeArea, const QuadArea& valueArea) const // must be fully inside quadrant!
 	{
-		auto center = nodeArea.Center();
+		auto center = nodeArea.center();
 		// West
-		if (valueArea.Right() < center.x)
+		if (valueArea.right() < center.x())
 		{
 			// North West
-			if (valueArea.Bottom() < center.y)
+			if (valueArea.bottom() < center.y())
 				return 0;
 			// South West
-			else if (valueArea.Top() >= center.y)
+			else if (valueArea.top() >= center.y())
 				return 2;
 			// Not contained in any quadrant
 			else
 				return -1;
 		}
 		// East
-		else if (valueArea.Left() >= center.x)
+		else if (valueArea.left() >= center.x())
 		{
 			// North East
-			if (valueArea.Bottom() < center.y)
+			if (valueArea.bottom() < center.y())
 				return 1;
 			// South East
-			else if (valueArea.Top() >= center.y)
+			else if (valueArea.top() >= center.y())
 				return 3;
 			// Not contained in any quadrant
 			else
@@ -352,7 +288,7 @@ private:
 	{
 		assert(node != nullptr);
 		QuadArea areaV = _AreaFor(value);
-		assert(area.Contains(areaV));
+		assert(area.contains(areaV));
 		if (std::find(node->values.begin(), node->values.end(), value) != node->values.end())		// already added
 			return false;
 
@@ -418,7 +354,7 @@ private:
 	bool _Remove(QuadNode* node, const QuadArea& area, const T& value)
 	{
 		assert(node != nullptr);
-		assert(area.Contains(_AreaFor(value)));
+		assert(area.contains(_AreaFor(value)));
 		if (_IsLeaf(node))
 		{
 			// Remove the value from node
@@ -486,10 +422,10 @@ private:
 	void _Query(QuadNode* node, const QuadArea& area, const QuadArea& queryArea, std::vector<T>& values) const
 	{
 		assert(node != nullptr);
-		assert(queryArea.Intersects(area));
+		assert(queryArea.intersects(area));
 		for (const auto& value : node->values)
 		{
-			if (queryArea.Intersects(_AreaFor(value)))
+			if (queryArea.intersects(_AreaFor(value)))
 				values.push_back(value);
 		}
 		if (!_IsLeaf(node))
@@ -497,7 +433,7 @@ private:
 			for (auto i = std::size_t(0); i < node->children.size(); ++i)
 			{
 				auto childArea = _AreaOfThisChild(area, static_cast<int>(i));
-				if (queryArea.Intersects(childArea))
+				if (queryArea.intersects(childArea))
 					_Query(node->children[i].get(), childArea, queryArea, values);
 			}
 		}
@@ -506,10 +442,10 @@ private:
 	int _CountForArea(QuadNode *node, const QuadArea area, const QuadArea queryArea)
 	{
 		int cnt = 0;
-		assert(area.IsValid());
+		assert(area.isValid());
 		for (const auto& value : node->values)
 		{
-			if (queryArea.Intersects(_AreaFor(value)))
+			if (queryArea.intersects(_AreaFor(value)))
 				++cnt;
 		}
 		if (!_IsLeaf(node))
@@ -517,7 +453,7 @@ private:
 			for (auto i = std::size_t(0); i < node->children.size(); ++i)
 			{
 				auto childArea = _AreaOfThisChild(area, static_cast<int>(i));
-				if (queryArea.Intersects(childArea))
+				if (queryArea.intersects(childArea))
 					cnt += _CountForArea(node->children[i].get(), childArea, queryArea);
 			}
 		}
@@ -537,10 +473,10 @@ private:
 		for (auto v : node->values)
 		{
 			QuadArea av = _AreaFor(v);
-			if (av.Bottom() > _bottomY)
+			if (av.bottom() > _bottomY)
 			{
 				item = v;
-				_bottomY = av.Bottom();
+				_bottomY = av.bottom();
 			}
 		}
 

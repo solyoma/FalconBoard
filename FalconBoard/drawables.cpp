@@ -82,11 +82,11 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
 qreal	DrawableItem::yOffset = 0.0;
 
 
-QRectF QuadAreaToArea(const QuadArea& qarea)
-{
-	QRectF area = QRectF(qarea.Left(), qarea.Top(), qarea.Right(), qarea.Bottom());
-	return area;
-}
+//QRectF QuadAreaToArea(const QuadArea& qarea)
+//{
+//	QRectF area = QRectF(qarea.left(), qarea.top(), qarea.right(), qarea.bottom());
+//	return area;
+//}
 // QuadArea containes indices into active _history's _drawables
 QuadArea AreaForItem(const int& i)
 {
@@ -1632,7 +1632,7 @@ void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-i
 //#endif
 	// /DEBUG
 	QuadArea area = _pQTree->Area();
-	QRectF r = QRectF(area.Left(), thisY, area.Width(), area.Height());
+	QRectF r = QRectF(area.left(), thisY, area.width(), area.height());
 	IntVector iv = _pQTree->GetValues(&_items, r);
 
 	for (auto ind : iv)

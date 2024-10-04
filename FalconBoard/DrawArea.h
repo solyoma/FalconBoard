@@ -80,13 +80,16 @@ public:
     int Append(QStringList &fileNames);       // to current history
     bool EnableRedraw(bool value);
 #ifndef _VIEWER
-    SaveResult Save(int index=-1) 
+    SaveResult Save(int index=-1, QString name=QString()) 
     { 
         HideRubberBand(true);
 
         if (index < 0) 
             index = _currentHistoryIndex;
-        return  historyList[index]->Save(); 
+        History* ph = historyList[index];
+        if (!name.isEmpty() && name != ph->Name())
+            ph->SetName(name, false);
+        return  ph->Save(); 
     }
 
     bool OpenBackgroundImage(const QString& fileName);
