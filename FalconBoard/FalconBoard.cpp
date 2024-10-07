@@ -172,7 +172,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
     #ifdef _DEBUG
         _snapshotTimer.setInterval(10000ms);     // 10 seconds
     #else
-        _snapshotTimer.setInterval(300000ms);    // 5 minutes
+        _snapshotTimer.setInterval(30000ms);    // 1/2 minute
     #endif
     connect(&_snapshotTimer, &QTimer::timeout, this, &FalconBoard::SlotForSnapshotTimer);
     _snapshotTimer.start();
@@ -2567,6 +2567,7 @@ void FalconBoard::SlotForSnapshotTimer()
         _pSnapshotter->moveToThread(&_snapshotterThread);
         connect(_pSnapshotter, &Snapshotter::SignalFinished, this, &FalconBoard::SlotSnapshotSaverFinished);
         connect(&_snapshotterThread, &QThread::started, _pSnapshotter, &Snapshotter::SlotToSaveSnapshots);
+        _drawArea->SetSnapshotterState(true);
         _snapshotterThread.start();
     }
 }
@@ -2576,6 +2577,7 @@ void FalconBoard::SlotSnapshotSaverFinished()
     _snapshotterThread.wait();
     delete _pSnapshotter;
     _pSnapshotter = nullptr;
+    _drawArea->SetSnapshotterState(false);
 }
 #endif
 

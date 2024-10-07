@@ -75,6 +75,15 @@ public:
         return -1;
     }
 
+    void SetSnapshotterState(bool on)
+    {
+        _snapShotterRunning = on;
+    }
+    constexpr bool IsSnapShotterRunning() const
+    { 
+        return _snapShotterRunning;  
+    }
+
     //------------------------------------------------------
     int Load();                         // into current history
     int Append(QStringList &fileNames);       // to current history
@@ -316,6 +325,8 @@ private:
     QRectF   _canvasRect;    // document (0,0) relative rectangle
     QRectF   _clippingRect;  // this too, only draw strokes inside this
     FLAG _busy;
+
+    bool _snapShotterRunning = false;       // it runs in a different thread started in FalconCalc
 
 #ifndef _VIEWER
     enum class _ScrollDirection {scrollNone, scrollUp, scrollDown, scrollLeft,scrollRight };

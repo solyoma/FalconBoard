@@ -2450,6 +2450,12 @@ void DrawArea::_SetCanvasAndClippingRect()
 
 void DrawArea::Undo()               // must draw again all underlying drawables
 {
+	// because backups are saved in the background it is possible
+	// that during the save _items will loose some elements but the save still
+	// thinks they are there so crushes the program
+	while (_snapShotterRunning)
+		qApp->processEvents();
+
 	if (pHistory->CanUndo())
 	{
 		HideRubberBand(true);	// and remove
