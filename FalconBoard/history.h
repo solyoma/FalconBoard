@@ -734,11 +734,13 @@ public:
 
     IntVector ModifiedItems()
     {
+        int savedIndex = _actualHistoryIndex;
         IntVector indices;
         for (size_t i = 0; i < size(); ++i)
             if ((*this)[i]->IsModified())
                 indices.push_back(i);
                 
+        _actualHistoryIndex = savedIndex;
         return indices;
     }
 
