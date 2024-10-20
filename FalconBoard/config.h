@@ -6,8 +6,8 @@
 constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 
 const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
-const qint32 MAGIC_VERSION = 0x56020307; // V 02.03.07	2024.03.16.
-const QString sVersion = "2.3.7";
+const qint32 MAGIC_VERSION = 0x56020308; // V 02.03.08	2025.10.20.
+const QString sVersion = "2.3.8";
 
 // names in configuration
 
