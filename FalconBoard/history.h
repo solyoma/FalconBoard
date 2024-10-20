@@ -734,13 +734,11 @@ public:
 
     IntVector ModifiedItems()
     {
-        int savedIndex = _actualHistoryIndex;
         IntVector indices;
         for (size_t i = 0; i < size(); ++i)
             if ((*this)[i]->IsModified())
                 indices.push_back(i);
-                
-        _actualHistoryIndex = savedIndex;
+
         return indices;
     }
 
@@ -755,14 +753,11 @@ public:
     History*& operator[](int index)     // will throw if index < 0 && _actualHistoryIndex < 0
     {
         if (index < 0)
-            return std::vector<History*>::operator[](_actualHistoryIndex);
-		else
-		{
-			_actualHistoryIndex = index;
-			return std::vector<History*>::operator[](_actualHistoryIndex);
-		}
+            index = _actualHistoryIndex;
+		return std::vector<History*>::operator[](index);
     }
     constexpr int ActualHistory() const { return _actualHistoryIndex; }
+    void SelectHistory(int which) { _actualHistoryIndex = which; }
 
     void CopyToClipboard();     // uses _pCopiedItems and _pCopiedImages so these must be setup first
     void GetFromClipboard();    // when clipboard data already in memory returns the copied sata

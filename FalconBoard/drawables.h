@@ -994,122 +994,31 @@ class DrawableList
 public:
     // must set a drawable store
     DrawableList() = default;
-    DrawableList(const DrawableList& other)
-    {
-        *this = other;
-    }
+    DrawableList(const DrawableList& other);
 
-    DrawableList(DrawableList&& other) noexcept
-    {
-        *this = other;
-    }
+    DrawableList(DrawableList&& other) noexcept;
 
-    DrawableList &operator=(const  DrawableList& other)
-    {
-        _items = other._items;
-        _redoItems = other._redoItems;
+    DrawableList& operator=(const  DrawableList& other);
+    DrawableList& operator=(DrawableList&& other)   noexcept;
 
-        _pZorderStore = other._pZorderStore;
-        //_allocatedZorders = true;
+    DrawableList& SetZorderStore(ZorderStore* pzorders = nullptr);
+    DrawableList& SetQuadTreeDelegate(QuadTreeDelegate* pqtree);
 
-        _pQTree = other._pQTree;
-
-        _runningIndex = other._runningIndex;
-        _indicesInRect = other._indicesInRect;
-        return *this;
-    }
-    DrawableList &operator=(DrawableList&& other)   noexcept
-    {
-        _items = other._items;
-        _redoItems = other._redoItems;
-        other._items.clear();
-        other._redoItems.clear();
-
-        //if (_allocatedZorders)
-        //    delete _pZorderStore;
-        _pZorderStore = other._pZorderStore;
-        other._pZorderStore = nullptr;
-        //_allocatedZorders = other._allocatedZorders;
-        //other._allocatedZorders = false;
-
-        _pQTree = other._pQTree;		
-        other._pQTree = nullptr;
-
-        _runningIndex = other._runningIndex;
-        _indicesInRect = other._indicesInRect;
-        return *this;
-    }
-
-    DrawableList& SetZorderStore(ZorderStore* pzorders = nullptr)
-    {
-        //if (pzorders)
-            _pZorderStore = pzorders;
-        //else
-        //{
-        //    //_allocatedZorders = true;
-        //    _pZorderStore = new ZorderStore;
-        //}
-        return *this;
-    }
-    DrawableList& SetQuadTreeDelegate(QuadTreeDelegate* pqtree)
-    {
-        _pQTree = pqtree;
-        return *this;
-    }
-
-    ~DrawableList()              // pQTree is deleted elsewhere!
-    {
-        Clear();
-        _pQTree = nullptr;
-    }
+    ~DrawableList();              // pQTree is deleted elsewhere!
 
     DrawableItemList &Items() { return _items; }
 
-    void ResetZorder()
-    {
-        _pZorderStore->Reset();
-    }
+    void ResetZorder();
 
-    void Clear(bool andDeleteQuadTree = false)
-    {
-        if (_pQTree)
-        {
-            _pQTree->Clear();
-            if (andDeleteQuadTree)
-                _pQTree = nullptr;
-        }
-
-        for (auto a : _items)
-                delete a;
-        _items.clear();
-        if(_pZorderStore)
-            ResetZorder();
-    }
+    void Clear(bool andDeleteQuadTree = false);
             // these two used only when a new drawable is just added or the top van is remeoved
-    void Undo()    // moves last item to _redoItems w.o. deleting them
-    {                       // and removes them from the quad tree
-        int i = _items.size() - 1;
-        if (_pQTree)
-             _pQTree->Remove(i);
-        _redoItems.push_back(_items.at(i));
-        _items.pop_back();
-    }
+    void Undo();    // moves last item to _redoItems w.o. deleting them
+                    // and removes them from the quad tree
 
-    void Redo()    // moves last item from _redoItems 
-    {                       // and adds them from the quad tree
-        int i = _items.size(), k = _redoItems.size()-1;
-        _items.push_back(_redoItems.at(k));
-        _redoItems.pop_back();
-        if (_pQTree)
-            _pQTree->Add(i);
-    }
+    void Redo();    // moves last item from _redoItems 
+                    // and adds them from the quad tree
 
-    void ClearRedo()
-    {
-        for (auto a : _redoItems)
-            delete a;
-        _redoItems.clear();
-    }
+    void ClearRedo();
 /*
     void Pop_back_N(int n = 1)    // Deletes last n items. Used only when history's undo list is discarded
     {
@@ -1121,19 +1030,9 @@ public:
         }
     }
  */
-    int Count(const QuadArea& area = QuadArea())  // count of visible items
-    {
-        return _pQTree->Count(area);
-    }
+    int Count(const QuadArea& area = QuadArea());  // count of visible items
 
-    int CountOfScreenShots()
-    {
-        int cnt = 0;
-        for (auto p : _items)
-            if (p->dtType == DrawableType::dtScreenShot && p->isVisible)
-                ++cnt;
-        return cnt;
-    }
+    int CountOfScreenShots();
 
     QuadArea Area() { return _pQTree ? _pQTree->Area() : QuadArea(); }
 
@@ -1141,321 +1040,46 @@ public:
     IntVector ListOfItemIndicesInQuadArea(QuadArea& r) const; // ordered by z-order then y, then x
     QPointF BottomRightLimit(QSize screenSize);
 
-    DrawableItem* FirstVisibleDrawable(QRectF& r)  // smallest in zOrder
-    {
-        _indicesInRect = ListOfItemIndicesInRect(r);
+    DrawableItem* FirstVisibleDrawable(QRectF& r);  // smallest in zOrder
 
-        _runningIndex = -1; //  _itemIndices.begin();
-        return NextVisibleDrawable();
-    }
+    DrawableItem* NextVisibleDrawable();  // smallest in zOrder
 
-    DrawableItem* NextVisibleDrawable()  // smallest in zOrder
-    {
-        DrawableItem* pdh;
-
-        for (++_runningIndex; _runningIndex < _indicesInRect.size(); ++_runningIndex)
-        {
-            pdh = (*this)[_indicesInRect[_runningIndex] ];
-            if (pdh->isVisible)
-                return pdh;
-        }
-        return nullptr;
-    }
-    DrawableItem* operator[](const DrawableItemIndex& drix) const
-    {
-        return _items.operator[](drix.index);
-    }
+    DrawableItem* operator[](const DrawableItemIndex& drix) const;
     // must redefine this 
-    DrawableItem* operator[](int ix) const
-    {
-        Q_ASSERT_X(ix >= 0 && ix < _items.size(), "DrawableItem::operator[]", "index out of range");
-        return  _items[ix];
-    }
+    DrawableItem* operator[](int ix) const;
 
-    void SetVisibility(DrawableItemIndex drix, bool visible)
-    {
-        SetVisibility(drix.index, visible);
-    }
-    void SetVisibility(int index, bool visible)
-    {                     // _pQTree must not be null
-        if (_items[index]->isVisible != visible)    // when it does change
-            _items[index]->isVisible = visible;
-        if (visible)
-            _pQTree->Add(index);
-        else
-            _pQTree->Remove(index);
-    }
+    void SetVisibility(DrawableItemIndex drix, bool visible);
+    void SetVisibility(int index, bool visible);
 
 
     //    IndexVectorIterator Push_back(DrawableItem* pdrwi)
-    int Push_back(DrawableItem* pdrwi)
-    {
-        int ix = _items.size();  // index of items to add
-        if (pdrwi->zOrder < 0)
-            pdrwi->zOrder = _pZorderStore->GetZorder(pdrwi->dtType == DrawableType::dtScreenShot);
-        _items.push_back(pdrwi);
-        // return _itemIndices.Insert(ix, pdrwi);
-        return ix;
-    }
+    int Push_back(DrawableItem* pdrwi);
 
-    int CopyDrawable(DrawableItem& dri, QPointF topLeft) // adds copy of existing object on the heap
-    {
-        if(_pZorderStore) // then the copy's zOrder must be increased'
-            dri.zOrder = _pZorderStore->GetZorder(dri.dtType == DrawableType::dtScreenShot);
-
-        DrawableItem* pres = nullptr;
-        switch (dri.dtType)
-        {
-            case DrawableType::dtDot:       pres = new DrawableDot((DrawableDot&)dri); break;
-            case DrawableType::dtCross:     pres = new DrawableCross((DrawableCross&)dri); break;
-            case DrawableType::dtEllipse:   pres = new DrawableEllipse((DrawableEllipse&)dri); break;
-            case DrawableType::dtLine:      pres = new DrawableLine((DrawableLine&)dri); break;
-            case DrawableType::dtRectangle: pres = new DrawableRectangle((DrawableRectangle&)dri); break;
-            case DrawableType::dtScreenShot:pres = new DrawableScreenShot((DrawableScreenShot&)dri); break;
-            case DrawableType::dtScribble:  pres = new DrawableScribble((DrawableScribble&)dri); break;
-            case DrawableType::dtText:      pres = new DrawableText((DrawableText&)dri); break;
-            default:  break;
-        }
-        if (pres)
-        {
-            pres->Translate(-topLeft, 0);
-            return Push_back(pres);
-        }
-
-        return -1;
-    }
+    int CopyDrawable(DrawableItem& dri, QPointF topLeft); // adds copy of existing object on the heap
 
     //DrawableItemIndex AddDrawable(DrawableItem* pdrh) // add original, 'pdrh' points to complete object (subclass) which MUST be created on the heap!
-    int AddDrawable(DrawableItem* pdrh) // add original, 'pdrh' points to complete object (subclass) which MUST be created on the heap!
-    {
-        int ix = _items.size();  // index of items to add
-        if (pdrh->zOrder < 0 && _pZorderStore)
-            pdrh->zOrder = _pZorderStore->GetZorder(pdrh->dtType == DrawableType::dtScreenShot);
-        _items.push_back(pdrh);
-        if(_pQTree)
-            _pQTree->Add(ix);
-        return ix;
-        //        IndexVectorIterator ivi = _itemIndices.Insert(ix, pdrh);
-                //return ivi->second;
-    }
+    int AddDrawable(DrawableItem* pdrh); // add original, 'pdrh' points to complete object (subclass) which MUST be created on the heap!
 
     // create new object of given parameters on the heap
                                         // pimage must be set for dtScreenShot
-    int AddDrawable(DrawableType dType, QPixmap *pimage=nullptr, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false)
-    {
-        int ivi=-1;    // _pZorderStore must exist
+    int AddDrawable(DrawableType dType, QPixmap* pimage = nullptr, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false);
+    int AddDrawable(DrawableType dType, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false);
 
-        switch (dType)
-        {
-            case DrawableType::dtDot:       ivi = Push_back(new DrawableDot(topLeft, _pZorderStore->GetZorder(false), penKind, penWidth)); break;
-            case DrawableType::dtCross:     ivi = Push_back(new DrawableCross(topLeft, sizef.width(), _pZorderStore->GetZorder(false), penKind, penWidth)); break;
-            case DrawableType::dtEllipse:   ivi = Push_back(new DrawableEllipse(QRectF(topLeft, sizef), _pZorderStore->GetZorder(false), penKind, penWidth, isFilled)); break;
-            case DrawableType::dtLine:      ivi = Push_back(new DrawableLine(topLeft, QPointF(sizef.width(),sizef.height()),_pZorderStore->GetZorder(false),penKind,penWidth) ); break;
-            case DrawableType::dtRectangle: ivi = Push_back(new DrawableRectangle(QRectF(topLeft, sizef), _pZorderStore->GetZorder(false), penKind, penWidth, isFilled)); break;
-            case DrawableType::dtScreenShot:ivi = Push_back(new DrawableScreenShot(topLeft, _pZorderStore->GetZorder(true), *pimage)); break;
-            case DrawableType::dtScribble:  ivi = Push_back(new DrawableScribble(penKind, penWidth, _pZorderStore->GetZorder(false))); break;    // add points later
-            case DrawableType::dtText:      ivi = Push_back(new DrawableText(topLeft, _pZorderStore->GetZorder(false))); break;                  // add text later
-            default:  break;
-        }
-        if(_pQTree)
-            _pQTree->Add(ivi);
-        return ivi;
+    int Size(DrawableType type = DrawableType::dtNone) const;
 
-        //return ivi->second;
-    }
-    int AddDrawable(DrawableType dType, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false)
-    {
-        return AddDrawable(dType, nullptr, penKind, penWidth, topLeft, sizef, isFilled);
-    }
+    void Erase(IntVector& iv);
+    void Erase(int from);
+    QRectF ItemsUnder(QPointF point, IntVector& iv, DrawableType type = DrawableType::dtNone);
+    int/*DrawableItemIndex*/ IndexOfTopMostItemInlist(IntVector& iv) const;
 
-    int Size(DrawableType type = DrawableType::dtNone) const
-    {
-        auto _size = [&](DrawableType dt)
-        {
-            int n = 0;
-            for (auto a : _items)
-                if (a->dtType == dt)
-                    ++n;
-            return n;
-        };
-
-        switch (type)
-        {
-            case DrawableType::dtNone: 
-                return _items.size();
-            default: return _size(type);
-        }
-    }
-    void Erase(IntVector& iv)
-    {
-        for (int i = iv.size() - 1; i >= 0; --i)
-        {
-            delete _items.at(iv[i]);
-            _items.removeAt(iv[i]);
-        }
-    }
-    void Erase(int from)
-    {
-        for (int i = _items.size() - 1; i >= from; --i)
-        {
-            delete _items.at(i);
-            _items.removeAt(i);
-        }
-    }
-    QRectF ItemsUnder(QPointF point, IntVector& iv, DrawableType type = DrawableType::dtNone)
-    {
-        // copies indices for visible drawables under cursor into list
-        // for non filled drawables when we are near the line, else even when inside
-        // point is document relative
-        QRectF rect;
-        auto addIfNear = [&, this](DrawableItem* pdrw, int i)
-        {
-            if (pdrw->isVisible && pdrw->PointIsNear(point, pdrw->penWidth / 2.0 + 3))
-            {
-                iv.append(i); //  ({ pdrw->dtType, i, pdrw->zOrder });
-                rect = rect.united(pdrw->Area());
-            }
-        };
-
-        int dist = 50; // generous sized area
-        QRectF r(point - QPointF(dist, dist), QSizeF(2 * dist, 2 * dist));
-        IntVector iv1 = ListOfItemIndicesInRect(r);
-
-        int siz = iv1.size();
-        if (type == DrawableType::dtNone)
-        {
-            for (int i = 0; i < siz; ++i)
-            {
-                auto pdrw = _items[ iv1.at(i) ];
-                addIfNear(pdrw, iv1[i]);
-            }
-        }
-        else
-        {
-            for (int i = 0; i < siz; ++i)
-            {
-                auto pdrw = _items[ iv1.at(i) ];
-
-                if (pdrw->dtType == type)
-                    addIfNear(pdrw, iv1[i]);
-            }
-        }
-        return rect;
-    }
-    int/*DrawableItemIndex*/ IndexOfTopMostItemInlist(IntVector &iv) const
-    {
-        int j = 0;
-        for (int i = 0, zOrder = 0; i < iv.size(); ++i)
-        {
-            int zo = _items[iv.at(i)]->zOrder;
-            if (zo > zOrder)
-            {
-                j = i;
-                zOrder = zo;
-            }
-        }
-        return j;
-
-    }
-
-    int/*DrawableItemIndex*/ IndexOfTopMostItemUnder(QPointF point, int penWidth, DrawableType type = DrawableType::dtNone) const
-    {
-        if (point == QPoint(-1, -1))  // select topmost item
-        {
-            for (int i = _items.size() - 1; i >= 0; --i)
-                if (_items[i]->dtType == type && _items[i]->isVisible)
-                    return i;
-            return -1;
-        }
-
-        // else create a vector with all of the items under an area
-        // around the point
-
-        DrawableItemIndex res;
-
-        QRectF rect(point.x() - 5, point.y() - 5, 10, 10);
-        IntVector iv = ListOfItemIndicesInRect(rect);
-        if (iv.isEmpty())
-            return res.index; // -1
-
-        if (type == DrawableType::dtNone)
-        {
-            for (int i = 0; i < iv.size(); ++i)
-            {
-                auto pdrw = _items[iv.at(i)];
-
-                if (pdrw->isVisible && pdrw->PointIsNear(point, penWidth / 2.0 + 3))
-                    if (pdrw->zOrder > res.zorder)
-                    {
-                        res.type = pdrw->dtType;
-                        res.index = i;
-                        res.zorder = pdrw->zOrder;
-                    }
-            }
-        }
-        else
-        {
-            int i;
-            DrawableItem* pdrw=nullptr;
-            for (i = 0; i < iv.size(); ++i)
-            {
-                pdrw = _items[iv.at(i)];
-                if (pdrw->isVisible && pdrw->dtType == type && pdrw->PointIsNear(point, penWidth / 2.0 + 3))
-                    break;
-            }
-
-            if (i < iv.size())
-            {
-                res.index = iv.at(i);
-                res.zorder = pdrw->zOrder;
-                res.type = type;
-
-                for (++i; i < iv.size(); ++i)
-                {
-                    pdrw = _items[iv.at(i)];
-                    if (pdrw->isVisible && pdrw->PointIsNear(point, penWidth / 2.0 + 3))
-                    {
-                        if (pdrw->zOrder > res.zorder)
-                        {
-                            res.index = iv.at(i);
-                            res.zorder = pdrw->zOrder;
-                        }
-                    }
-                }
-            }
-            else
-                res.index = -1;
-        }
-        return res.index;
-    }
+    int/*DrawableItemIndex*/ IndexOfTopMostItemUnder(QPointF point, int penWidth, DrawableType type = DrawableType::dtNone) const;
     DrawableScreenShot* FirstVisibleScreenShot(const QRectF& canvasRect);
     DrawableScreenShot* NextVisibleScreenShot();
 
-    void Remove(int which)
-    {
-        if(_pQTree)
-            _pQTree->Remove(which);                 // uses _pItems[which]
-
-        _items.erase(_items.begin() + which);   // remove after not in use
-    }
-    bool MoveItems(QPointF dr, const DrawableIndexVector& drl)
-    {
-        for (auto& a : drl)
-            if (!(*this)[a]->CanTranslate(dr))
-                return false;
-        for (auto& a : drl)
-            (*this)[a]->Translate(dr,-1);
-        return true;
-    }
-    bool TranslateDrawable(int index, QPointF dr, qreal minY)
-    {
-        return (*this)[index]->Translate(dr, minY);
-
-    }
-    void RotateDrawable(int index, MyRotation rot, QPointF &center)    // alpha used only for 'rotAngle'
-    {
-        (*this)[index]->Rotate(rot, center);
-    }
+    void Remove(int which);
+    bool MoveItems(QPointF dr, const DrawableIndexVector& drl);
+    bool TranslateDrawable(int index, QPointF dr, qreal minY);
+    void RotateDrawable(int index, MyRotation rot, QPointF& center);    // alpha used only for 'rotAngle'
     void VertShiftItemsBelow(int belowY, int deltaY);
 
 private:

@@ -198,7 +198,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 			pHistory->GetPageParamsToHistory();
 		}
 
-		_currentHistoryIndex = index;
+		historyList.SelectHistory(_currentHistoryIndex = index);
 		pHistory = historyList[index];
 		if (!pHistory->IsLoaded())
 			pHistory->Load(file_version_loaded);
