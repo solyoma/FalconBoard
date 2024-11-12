@@ -76,7 +76,7 @@ public:
         return -1;
     }
 
-    void SetSnapshotterState(bool on)
+    constexpr void SetSnapshotterState(bool on)
     {
         _snapShotterRunning = on;
     }

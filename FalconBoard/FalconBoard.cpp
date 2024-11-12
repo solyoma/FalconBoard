@@ -2563,11 +2563,11 @@ void FalconBoard::SlotForSnapshotTimer()
     IntVector  modList = historyList.ModifiedItems();
     if (modList.size())
     {
+        _drawArea->SetSnapshotterState(true);           // before creating snapshotter is it important?
         _pSnapshotter = new Snapshotter(this, modList);
         _pSnapshotter->moveToThread(&_snapshotterThread);
         connect(_pSnapshotter, &Snapshotter::SignalFinished, this, &FalconBoard::SlotSnapshotSaverFinished);
         connect(&_snapshotterThread, &QThread::started, _pSnapshotter, &Snapshotter::SlotToSaveSnapshots);
-        _drawArea->SetSnapshotterState(true);
         _snapshotterThread.start();
     }
 }
