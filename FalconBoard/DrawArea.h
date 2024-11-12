@@ -10,6 +10,7 @@
 #include <QRubberBand>
 #include <QTabletEvent>
 
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -28,9 +29,9 @@ using namespace std::chrono_literals;
 extern History* pHistory;      // global modified by _drawArea  - actual history (every scribble and image element with undo/redo)
 
 #ifdef _VIEWER
-    #define WindowTitle  "FalconBoard Viewer "
+    constexpr auto WindowTitle = "FalconBoard Viewer ";
 #else
-    #define WindowTitle  "FalconBoard "
+    constexpr auto WindowTitle = "FalconBoard ";
 #endif
 
 // ******************************************************
@@ -63,7 +64,7 @@ public:
     int AddHistory(const QString name = QString(), bool loadIt = true, int indexAt = 1000000); // with name it may load it as well
     bool SwitchToHistory(int index, bool redraw, bool invalidate=false);   // use this before others
     int RemoveHistory(int index);
-    void SwapHistories(int from, int to);   // from _currentHistoryIndex
+    void SwapHistories(int from, int to);   // from historyList.ActualHistory()
 
     History* GetHistory(int index = -1) const;
 
@@ -94,7 +95,7 @@ public:
         HideRubberBand(true);
 
         if (index < 0) 
-            index = _currentHistoryIndex;
+            index = historyList.ActualHistory();
         History* ph = historyList[index];
         if (!name.isEmpty() && name != ph->Name())
             ph->SetName(name, false);
@@ -133,7 +134,7 @@ public:
 
     int SearchForModified(int &afterThisIndex) const;  // check afterThisIndex+1 -th history first, include snapshots
 
-    int ActHistoryIndex() const { return _currentHistoryIndex; }
+    int ActHistoryIndex() const { return historyList.ActualHistory(); }
 
     FalconPenKind PenKind() const { return _actPenKind;  }
     int PenWidth() const { return    _actPenWidth; }
@@ -146,7 +147,7 @@ public:
     void Print(int index = -1)
     {
         if (index < 0)
-            index = _currentHistoryIndex;
+            index = historyList.ActualHistory();
         if (index <0 || index > HistoryListSize())
             return;
         Print(historyList[index]->Name());
@@ -217,8 +218,7 @@ private:
     void _ChangePenByKeyboard(int key);
 #endif
 private:
-    int _currentHistoryIndex = -1,  // actual history index, -1: none
-        _previousHistoryIndex = -1; // this was the current index before something happened
+    int _previousHistoryIndex = -1; // this was the current index before something happened
 
     bool _mustRedrawArea = true;    // else no redraw
     bool _redrawPending = false;    // redraw requested when it was not enabled

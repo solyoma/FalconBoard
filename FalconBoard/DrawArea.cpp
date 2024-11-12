@@ -112,7 +112,7 @@ void DrawArea::ClearBackground()
  *          loadIt - if name is not empty also load data
  *                  if > capacity then at the end
  *          insertAt - insert at this position.
- * GLOBALS: pHistory, _topLeft,_currentHistoryIndex
+ * GLOBALS: pHistory, _topLeft,historyList.ActualHistory()
  * RETURNS: index of added history or
  *              -1 if capacity reached or
  *              -2 if file could not not be loaded
@@ -143,8 +143,8 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 	else
 		historyList.insert(historyList.begin() + insertAt, pHistory);
 
-	bool b = _currentHistoryIndex == insertAt;
-	_currentHistoryIndex = insertAt;
+	bool b = historyList.ActualHistory() == insertAt;
+	historyList.SelectHistory(insertAt);
 	pHistory = historyList[insertAt];
 		// always set a temporary name for backups
 	if (/*!name.isEmpty() &&*/ loadIt)
@@ -165,7 +165,7 @@ int DrawArea::AddHistory(const QString name, bool loadIt, int insertAt)
 
 
 /*========================================================
- * TASK: set a new history into _currentHistoryIndex and
+ * TASK: set a new history into historyList.ActualHistory() and
  *          pHistory
  * PARAMS: index	 : switch to here, if < 0 use curent history
  *         redraw	 : redraw history after the switch
@@ -180,13 +180,13 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 {
 	if (invalidate)
 	{
-		_currentHistoryIndex = -1;
+		historyList.SelectHistory(-1);
 		return true;
 	}
 
 	if (index >= HistoryListSize())
 		return false;
-	if (index != _currentHistoryIndex && index >= 0)
+	if (index != historyList.ActualHistory() && index >= 0)
 	{
 #ifndef _VIEWER
 		HideRubberBand(true);
@@ -198,7 +198,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 			pHistory->GetPageParamsToHistory();
 		}
 
-		historyList.SelectHistory(_currentHistoryIndex = index);
+		historyList.SelectHistory(index);
 		pHistory = historyList[index];
 		if (!pHistory->IsLoaded())
 			pHistory->Load(file_version_loaded);
@@ -235,7 +235,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
  * GLOBALS:
  * RETURNS: history size
  * REMARKS: - synchronize with TABs in FalconBoard
- *          - after called _currentHistoryIndex is invalid
+ *          - after called historyList.ActualHistory() is invalid
  *-------------------------------------------------------*/
 int DrawArea::RemoveHistory(int index)
 {
@@ -247,13 +247,13 @@ int DrawArea::RemoveHistory(int index)
 	historyList.erase(historyList.begin() + index);
 	delete phi;
 	--cnt;
-	if (index == _currentHistoryIndex)
+	if (index == historyList.ActualHistory())
 	{
-		_currentHistoryIndex = -1;
+		historyList.SelectHistory(-1);
 		pHistory = nullptr;
 	}
-	else if (index < _currentHistoryIndex)
-		--_currentHistoryIndex;
+	else if (index < historyList.ActualHistory())
+		historyList.ToPrevHistory();
 	if (!cnt)
 		_ClearCanvas();
 	return cnt;
@@ -267,14 +267,14 @@ int DrawArea::RemoveHistory(int index)
  * GLOBALS:
  * RETURNS:
  * REMARKS: - pHistory will not change
- *          - _to == _currentHistoryIndex
+ *          - _to == historyList.ActualHistory()
  *-------------------------------------------------------*/
 void DrawArea::SwapHistories(int from, int to)
 {
 	History* pdh = historyList[to];
 	historyList[to] = historyList[from];
 	historyList[from] = pdh;
-	_currentHistoryIndex = from;
+	historyList.SelectHistory(from);
 }
 
 History* DrawArea::GetHistory(int index) const
@@ -471,18 +471,18 @@ void DrawArea::AddScreenShotImage(QPixmap& animage)
 /*========================================================
  * TASK:    check history if it is modified
  * PARAMS:  index	 - history to check
- *						-1: then use '_currentHistoryIndex'
+ *						-1: then use 'historyList.ActualHistory()'
  *          snapsToo -	true : if snapshot => modified
  *						false: only check the 'index'-th
  *							history and dnon't care for snapshots
- * GLOBALS: _currentHistoryIndex
+ * GLOBALS: historyList.ActualHistory()
  * RETURNS: true or false
  * REMARKS: - only set 'search' to true when closing the program.
  *-------------------------------------------------------*/
 bool DrawArea::IsModified(int index, bool snapsToo) const
 {
 	if (index < 0)
-		index = _currentHistoryIndex;
+		index = historyList.ActualHistory();
 
 	return (historyList[index]->IsModified() || (snapsToo ? historyList[index]->IsSnapshot() : false) );
 }
@@ -490,7 +490,7 @@ bool DrawArea::IsModified(int index, bool snapsToo) const
 int DrawArea::HistoryIsSnapshot(int index) const
 {
 	if (index < 0)
-		index = _currentHistoryIndex;
+		index = historyList.ActualHistory();
 	return historyList[index]->IsSnapshot();
 }
 
@@ -884,7 +884,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 			else if (key == Qt::Key_BracketLeft)
 				emit DecreaseBrushSize(1);
 			else if (key == Qt::Key_F4 && _mods.testFlag(Qt::ControlModifier))
-				emit CloseTab(_currentHistoryIndex);
+				emit CloseTab(historyList.ActualHistory());
 			else if ((key == Qt::Key_Tab || key == Qt::Key_Backtab) && _mods.testFlag(Qt::ControlModifier))
 				emit TabSwitched(key == Qt::Key_Backtab ? -1 : 1); // Qt: Shit+Tab is Backtab
 			if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )

@@ -757,7 +757,9 @@ public:
 		return std::vector<History*>::operator[](index);
     }
     constexpr int ActualHistory() const { return _actualHistoryIndex; }
-    void SelectHistory(int which) { _actualHistoryIndex = which; }
+    constexpr void SelectHistory(int which) { _actualHistoryIndex = which; }
+    constexpr int ToNextHistory() { return ++_actualHistoryIndex >= (int)size() ? (_actualHistoryIndex = -1) : _actualHistoryIndex; }
+    constexpr int ToPrevHistory() { return --_actualHistoryIndex < 0 ? (_actualHistoryIndex = -1) : _actualHistoryIndex; }
 
     void CopyToClipboard();     // uses _pCopiedItems and _pCopiedImages so these must be setup first
     void GetFromClipboard();    // when clipboard data already in memory returns the copied sata
