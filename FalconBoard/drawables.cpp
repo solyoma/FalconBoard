@@ -1523,14 +1523,18 @@ void DrawableScribble::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, con
 			points.push_back(QPoint(652, 406));
 		}
 		*/// /DEBUG
-		QPolygonF pol = points.translated(-topLeftOfVisibleArea);
+
+		painter->translate(-topLeftOfVisibleArea);
 		if (isFilled)						// then originally this was an ellipse or rectangle that was rotated by not (90 degrees x n)
+		{
+			QPolygonF points = points.translated(-topLeftOfVisibleArea);
 			painter->drawPolygon(points);
+		}
 		else
 		{
-			QVector<QLineF> lfv(pol.size());
-			for (int i = 0; i < pol.size()-1; ++i)
-				lfv[i] = (QLineF(pol[i], pol[i + 1]));
+			QVector<QLineF> lfv(points.size());
+			for (int i = 0; i < points.size()-1; ++i)
+				lfv[i] = (QLineF(points[i], points[i + 1]));
 			painter->drawLines(lfv);
 		}
 	}
