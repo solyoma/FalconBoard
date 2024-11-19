@@ -2430,7 +2430,7 @@ QPainter *DrawArea::_GetPainter(QImage *pCanvas)
  *             are part of a pasted stack of items
  *				They are painted in paintEvent
  *-------------------------------------------------------*/
-bool DrawArea::_ReplotDrawableItem(DrawableItem* pdrwi)
+bool DrawArea::_ReplotDrawableItem(DrawableItem* pdrwi) const
 {
 	if (!pdrwi || pdrwi->IsImage() || !pdrwi->IsVisible() ||!pdrwi->Area().intersects(_clippingRect))
 		return false;

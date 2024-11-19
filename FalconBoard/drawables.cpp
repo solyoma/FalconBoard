@@ -1514,11 +1514,25 @@ void DrawableScribble::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, con
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), isFilled ? PenColor() : QColor());
 		// draw normally using 'painter' and 'topLeftOfVisibleArea'
+		// DEBUG	@
+		/*if (points[0] == points[1])
+		{
+			points.clear();
+			points.push_back(QPoint(698, 406));
+			points.push_back(QPoint(651, 406));
+			points.push_back(QPoint(652, 406));
+		}
+		*/// /DEBUG
 		QPolygonF pol = points.translated(-topLeftOfVisibleArea);
 		if (isFilled)						// then originally this was an ellipse or rectangle that was rotated by not (90 degrees x n)
 			painter->drawPolygon(points);
 		else
-			painter->drawPolyline(pol);
+		{
+			QVector<QLineF> lfv(pol.size());
+			for (int i = 0; i < pol.size()-1; ++i)
+				lfv[i] = (QLineF(pol[i], pol[i + 1]));
+			painter->drawLines(lfv);
+		}
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);

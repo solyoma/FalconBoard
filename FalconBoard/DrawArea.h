@@ -373,7 +373,7 @@ private:
     void _DrawAllPoints(DrawableItem* pscrbl);
     void _ResizeCanvas(QImage* image, const QSize& newSize, bool isTransparent);
 
-    bool _ReplotDrawableItem(DrawableItem* pscrbl); 
+    bool _ReplotDrawableItem(DrawableItem* pscrbl) const; 
     void _SetCanvasAndClippingRect();
     void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);

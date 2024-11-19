@@ -200,7 +200,7 @@ public:
     void SetPenKind(FalconPenKind pk)
     {
         _penKind = pk;
-        globalDrawColors.SetDrawingPen(pk);
+        globalDrawColors.SetActualPen(pk);
     }
 
     QColor PenColor() const 
@@ -211,9 +211,13 @@ public:
     constexpr FalconPenKind PenKind() const { return _penKind; }
     void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor())
     {
-        globalDrawColors.SetDrawingPen(_penKind);
+        globalDrawColors.SetActualPen(_penKind);
         if(clipR.isValid())
             painter->setClipRect(clipR);  // clipR must be DrawArea relative
+
+        // DEBUG	@
+        // penWidth = 10;
+        // /DEBUG	@
 
 #if !defined _VIEWER && defined _DEBUG
         int sw = penWidth;

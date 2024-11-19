@@ -290,7 +290,7 @@ bool DrawColors::SetDarkMode(ScreenMode mode) // returns previous mode: never us
     return _IsDarkMode();
 }
 
-void DrawColors::SetDrawingPen(FalconPenKind pk)
+void DrawColors::SetActualPen(FalconPenKind pk)
 {
     if (pk == _pkActual)
         return;

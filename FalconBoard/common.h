@@ -236,7 +236,7 @@ public:
 
     void SetBaseColorsInto(FalconPens& pens);
     bool SetDarkMode(ScreenMode mode = ScreenMode::smUseDefault);
-    void SetDrawingPen(FalconPenKind pk);
+    void SetActualPen(FalconPenKind pk);
     void SetupPenAndCursor(FalconPenKind pk, QColor lightcolor, QColor darkcolor, QString sLightColorUserName=QString(), QString sDarkColorUserName=QString());
     void SetActionText(FalconPenKind pk, QString text, ScreenMode mode = ScreenMode::smUseDefault);  // used from 'pencolors'
         // global pen colors
