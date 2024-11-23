@@ -1523,6 +1523,12 @@ void FalconBoard::showEvent(QShowEvent* event)
         else
             _drawArea->EnableRedraw(true);
     }
+    _drawArea->setFocus();
+}
+
+void FalconBoard::focusInEvent(QFocusEvent* event)
+{
+    _drawArea->setFocus();
 }
 
 /*============================================================================

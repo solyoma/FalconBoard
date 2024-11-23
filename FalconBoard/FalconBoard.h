@@ -77,6 +77,7 @@ public:
 protected:
 	void closeEvent(QCloseEvent* event) override;
 	void showEvent(QShowEvent* event) override;
+	void focusInEvent(QFocusEvent* event) override;
 
 	void dragEnterEvent(QDragEnterEvent* event);
 	void dropEvent(QDropEvent* event);

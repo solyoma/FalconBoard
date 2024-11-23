@@ -463,35 +463,6 @@ bool MyPrinter::_PrintItem(int yi, const QRectF& clipR)
         pTmp->Draw(_pDrawablePainter, clipR.topLeft(), clipR);
 
     return false;
-/*
-    if(phi->IsImage())
-    {                               // paint over background layer
-        DrawableScreenShot* psi = dynamic_cast<DrawableScreenShot*>(phi->GetDrawable(true) );
-        QPointF dp = -_actPage.screenArea.topLeft();
-        QRectF imgRect = phi->Area().translated(dp),   // actual screen relative coordinates for whole image
-            visibleRect = imgRect.intersected(_actPage.screenArea.translated(dp)); // screen relative coordinates of part of image rectangle on this page
-
-        dp = visibleRect.topLeft() - imgRect.topLeft();
-        QRectF srcRect = QRectF(dp,  visibleRect.size());
-        Qt::ImageConversionFlag flag = _data.flags & pfGrayscale ? Qt::MonoOnly : Qt::AutoColor; // ?? destination may be monochrome already
-		if (_data.flags & pfDontPrintImages)    // print placeholder
-        {
-            _pImagePainter->setPen(QPen(drawColors[penT5], 2, Qt::DotLine));
-            _pImagePainter->drawRect(imgRect);  // part may be outside of page
-        }
-        else
-            _pImagePainter->drawPixmap(visibleRect, psi->Image(), srcRect);
-    }
-    else if (phi->IsDrawable() && phi->IsVisible())
-    {             // paint over transparent layer
-        DrawableItem* pDrwbl = phi->GetDrawable(true);    // visible only, dot, ellipse, rectangle, scribble, text
-        FalconPenKind pk = pDrwbl->PenKind();
-        int pw = pDrwbl->penWidth;
-
-        pDrwbl->Draw(_pDrawablePainter, _actPage.screenArea.topLeft());
-    }
-    */
-
 }
 
 void MyPrinter::_PrintGrid()

@@ -107,7 +107,7 @@ public:
     };
     int GutterMargin(Unit u=mpdInch) const { return u == mpdDots ? PageParams::gutterMargin * _dpi : PageParams::gutterMargin; }
 
-    void CalcScreenPageHeight(bool calcScreenHeight)   // w. margins !
+    void CalcScreenPageHeight(bool calcScreenHeight)  const // w. margins !
     {
         if (!calcScreenHeight)
             return;

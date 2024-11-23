@@ -795,7 +795,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableScribble& di);           // ca
             //----------------------------------------------------
 struct DrawableText : public DrawableItem
 {
-    QString _text;                  // so that a text() fucntion can be created
+    QString _text;                  // so that a text() function can be created
     QString fontAsString;           // list of all properties separated by commas
 
     DrawableText() : DrawableItem()       // default constructor            TODO
