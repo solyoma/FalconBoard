@@ -307,7 +307,7 @@ private:
 
     QPointF _firstPointC, // screen relative first point drawn
             _lastPointC;  // screen relative last point drawn relative to visible image
-    DrawableItem*   _pLastDrawableItem = nullptr; // set to either of the following:
+    DrawableItem*   _pLastDrawableItem = nullptr; // set to point one of the following:
     DrawableCross   _lastDrawableCross;
     DrawableDot      _lastDotItem;
     DrawableEllipse  _lastEllipseItem;

@@ -879,18 +879,57 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 #endif
 		{
 #ifndef _VIEWER
-			if (key == Qt::Key_BracketRight)
-				emit IncreaseBrushSize(1);
-			else if (key == Qt::Key_BracketLeft)
-				emit DecreaseBrushSize(1);
-			else if (key == Qt::Key_F4 && _mods.testFlag(Qt::ControlModifier))
-				emit CloseTab(historyList.ActualHistory());
-			else if ((key == Qt::Key_Tab || key == Qt::Key_Backtab) && _mods.testFlag(Qt::ControlModifier))
-				emit TabSwitched(key == Qt::Key_Backtab ? -1 : 1); // Qt: Shit+Tab is Backtab
-			if (key == Qt::Key_X && !_mods.testFlag(Qt::ControlModifier) )
-				__DrawCross(_actMousePos, 10);
-			else if (key == Qt::Key_1 || key == Qt::Key_2 || key == Qt::Key_3 || key == Qt::Key_4 || key == Qt::Key_5)
+			switch (key)
+			{
+				case Qt::Key_BracketRight: 
+					emit IncreaseBrushSize(1); 
+					break;
+				case Qt::Key_BracketLeft:
+					emit DecreaseBrushSize(1); 
+					break;
+				case Qt::Key_F4: 
+					if(_mods.testFlag(Qt::ControlModifier))
+						emit CloseTab(historyList.ActualHistory());
+					break;
+				case Qt::Key_Tab:
+				case Qt::Key_Backtab:
+					if(_mods.testFlag(Qt::ControlModifier))
+						emit TabSwitched(key == Qt::Key_Backtab ? -1 : 1); // Qt: Shit+Tab is Backtab
+					break;
+				case Qt::Key_X:
+					if(!_mods.testFlag(Qt::ControlModifier) )
+						__DrawCross(_actMousePos, 10);
+				case Qt::Key_1:
+				case Qt::Key_2:
+				case Qt::Key_3:
+				case Qt::Key_4:
+				case Qt::Key_5:
 					_ChangePenByKeyboard(key);
+					break;
+				case Qt::Key_A:		// use last scribble
+					_pLastDrawableItem = pHistory->LastItem()->GetDrawable();
+					if (_pLastDrawableItem && _pLastDrawableItem->dtType == DrawableType::dtScribble)
+					{
+						DrawableEllipse circ;
+						DrawableRectangle rect;
+						DrawableLine lin;
+
+						if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostACircle(circ))
+						{
+							pHistory->ReplaceLastItemWith(circ);
+						}
+						else if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostARectangle(rect))
+						{
+							pHistory->ReplaceLastItemWith(rect);
+
+						}
+						else if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostAStraightLine(lin))
+						{
+							pHistory->ReplaceLastItemWith(lin);
+
+						}
+					}
+			}
 #endif
 		}
 #ifndef _VIEWER

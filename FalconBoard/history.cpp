@@ -1776,6 +1776,16 @@ HistoryItem* History::AddScreenShotTransparencyToLoadedItems(QColor trColor, qre
 	return _AddItem(psta);
 }
 
+void History::ReplaceLastItemWith(DrawableItem& di)
+{
+	if(_items.size())
+	{
+		HistoryDrawableItem* phdi = new HistoryDrawableItem(this, di);
+		_items.pop_back();
+		_AddItem(phdi);
+	}
+}
+
 HistoryItem* History::AddPenWidthChange(int increment)
 {
 	HistoryPenWidthChangeItem* ppwch = new HistoryPenWidthChangeItem(this, increment);

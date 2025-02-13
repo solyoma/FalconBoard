@@ -53,7 +53,7 @@ constexpr int penNone=-1,           // default color is none    // not a pen, no
               penT4 = 4,            // blue   / light blue
               penT5 = 5,            // purple / yellow
               penT6 = 6,            // 
-              penT7 = 7,            // 
+              penT7 = 7,            // gray / gray
               PEN_COUNT = 8;
 
 using FalconPenKind = int;
@@ -177,7 +177,7 @@ public:
     static void Separate(const QString& from, QString& s1, QString& s2);
     static QString Merge(const  QString& s1, const QString& s2);
 
-    bool SetDarkMode(bool dark);
+    bool SetDarkMode(bool dark);    // returns if previous mode was that
     bool SetupPen(FalconPenKind pk, QColor lc, QColor dc, QString sLName, QString sDName, bool setDefaultColors);  // and pointer
     bool SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName, bool setDefaultColors);
 
@@ -210,7 +210,7 @@ class DrawColors
         if (mode == ScreenMode::smSystem)
             return isSystemDark;
         else 
-            return _mode > ScreenMode::smWhite;
+            return mode > ScreenMode::smWhite;
     }
 public:
     DrawColors() {}

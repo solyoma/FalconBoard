@@ -209,35 +209,7 @@ public:
         return penColor; 
     }
     constexpr FalconPenKind PenKind() const { return _penKind; }
-    void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor())
-    {
-        globalDrawColors.SetActualPen(_penKind);
-        if(clipR.isValid())
-            painter->setClipRect(clipR);  // clipR must be DrawArea relative
-
-        // DEBUG	@
-        // penWidth = 10;
-        // /DEBUG	@
-
-#if !defined _VIEWER && defined _DEBUG
-        int sw = penWidth;
-        if(pencilMode)
-            penWidth = 1;
-#endif
-        QPen pen(QPen(PenColor(), penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin) );
-        painter->setPen(pen);
-#if !defined _VIEWER && defined _DEBUG
-        if(pencilMode)
-            penWidth = sw;
-#endif
-        if (brushColor.isValid())
-            painter->setBrush(QBrush(brushColor));
-        else
-            painter->setBrush(QBrush());
-        // painter's default compositionmode is CompositionMode_SourceOver
-        // painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
-        painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
-    }
+    void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor());
 };
 
             //----------------------------------------------------
@@ -255,9 +227,9 @@ struct DrawableItem : public DrawablePen
                             // May be the first point or top left of area or the center point of the drawable!
     MyRotation rot;         // used to store the actual state of the rotations and check if rotation is possible
     int   zOrder = -1;      // not saved on disk. Drawables are saved from lowest zOrder to highest zOrder
-    bool  isVisible = true;                              // not saved in file
-    static qreal  yOffset;  // add this to every coordinates read including erasers
-    // eraser strokes for a drawables. Oonly those parts of the eraser stroke that intersects the bounding rectangle of the
+    bool  isVisible = true; // property not saved in file
+    static qreal  yOffset;  // add this to every coordinates read including coordinates of the erasers
+    // eraser strokes for a drawables. Only those parts of the eraser stroke that intersects the bounding rectangle of the
     // drawable plus an eraser pen width/2 wide margin are saved here. When drawing the drawable eraser strokes are
     // clipped to the bounding box of the drawable plus half of the pen width for scribbles rectangles and ellipses.
     // TODO: drawables completely under eraser should not be saved, erased part should not be considered part of drawable
@@ -267,9 +239,8 @@ struct DrawableItem : public DrawablePen
         QPolygonF eraserStroke;
     };
 
-    QVector<EraserData> erasers;   // a polygon(s) confined to the bounding rectangle of points for eraser strokes (above points)
+    QVector<EraserData> erasers; // a polygon(s) confined to the bounding rectangle of points for eraser strokes (above points)
                                  // may intersect the visible lines only because of the pen width!
-
 
     DrawableItem() = default;
     DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) {}
@@ -283,7 +254,7 @@ struct DrawableItem : public DrawablePen
     int AddEraserStroke(int eraserWidth, const QPolygonF& eraserStroke);  // returns # of sub-strokes added
     virtual void RemoveLastEraserStroke(EraserData* andStoreHere = nullptr);
 
-    bool IsVisible() const { return isVisible; }
+	bool IsVisible() const { return isVisible; }
     bool IsImage() const { return dtType == DrawableType::dtScreenShot; }
     virtual bool IsFilled() const { return false; }
     virtual bool PointIsNear(QPointF p, qreal distance) const  // true if the point is nearer than 'distance' to this object
@@ -600,7 +571,7 @@ struct DrawableRectangle : public DrawableItem
 {
     QRectF rect;
     qreal angle = 0.0;          // angle if rotated by an angle and not just 90,180,270, etc
-    bool isFilled=false;        // whether closed polygon and it is filled
+    bool isFilled=false;        // whether it is filled
 
     DrawableRectangle() : DrawableItem()
     {
@@ -652,7 +623,7 @@ struct DrawableRectangle : public DrawableItem
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
 private:
     QRectF _rotatedRect;         // used for Area(), same as 'rect' unless rotated
-    QPolygonF _points;
+	QPolygonF _points;           
     void _ToPolygonF()
     {
         QPainterPath myPath;
@@ -752,6 +723,11 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
     DrawableScribble& operator=(const DrawableScribble& di);
 
     DrawableScribble& operator=(DrawableScribble&& di)  noexcept;
+
+
+    bool IsAlmostAStraightLine(DrawableLine &lin);      // true if the points between st(art) and (e)nd are almost on a straight line
+    bool IsAlmostACircle(DrawableEllipse &circ);        // true if the scribble is curved so that end point is near to the starting point
+    bool IsAlmostARectangle(DrawableRectangle &rect);   // true if the points are almost on a rectangle
 
     DrawableType Type() const 
     {

@@ -117,7 +117,9 @@ const char       // DEFAULTS
 *PEN_DEFAULT_LIGHT_BROWN    = "#aa5500",
 *PEN_DEFAULT_DARK_BROWN     = "#e77400",
 *PEN_DEFAULT_LIGHT_MAGENTA  = "#aa1147",
-*PEN_DEFAULT_DARK_MAGENTA   = "#e81763";
+*PEN_DEFAULT_DARK_MAGENTA   = "#e81763",
+*PEN_DEFAULT_LIGHT_GRAY     = "#D9D9D9",
+*PEN_DEFAULT_DARK_GRAY      = "#323232";
 
 
 FalconPens& FalconPens::operator=(const FalconPens& o)
@@ -175,7 +177,7 @@ bool FalconPens::SetupPen(FalconPenKind pk, QString lc_dc, QString sl_sdName, bo
 
 QColor FalconPens::Color(FalconPenKind pk, int dark) const
 {
-    int ix = (int)pk;   // ix <= 0 => pk == penNone or pk == penEraser
+    int ix = (int)pk;   // ix < 0 => pk == penNone, ix == 0 => pk == penEraser
     if (dark < 0)
         dark = _darkMode;
     return  (ix <= 0 ? QColor() : (dark ? (*this)[size_t(pk)].darkColor : (*this)[size_t(pk)].lightColor));
@@ -276,7 +278,7 @@ void DrawColors::SetBaseColorsInto(FalconPens& pens)
     pens.SetupPen(penT4, PEN_DEFAULT_LIGHT_BLUE, PEN_DEFAULT_DARK_BLUE, QObject::tr("&Blue"), QObject::tr("&Blue"), true);
     pens.SetupPen(penT5, PEN_DEFAULT_LIGHT_YELLOW, PEN_DEFAULT_DARK_YELLOW, QObject::tr("&Purple"), QObject::tr("&Yellow"), true);
     pens.SetupPen(penT6, PEN_DEFAULT_LIGHT_BROWN, PEN_DEFAULT_DARK_BROWN, QObject::tr("Bro&wn"), QObject::tr("Brow&n"), true);
-    pens.SetupPen(penT7, PEN_DEFAULT_LIGHT_MAGENTA, PEN_DEFAULT_DARK_MAGENTA, QObject::tr("&Magenta"), QObject::tr("Ma&genta"), true);
+    pens.SetupPen(penT7, PEN_DEFAULT_LIGHT_GRAY, PEN_DEFAULT_DARK_GRAY, QObject::tr("Gra&y"), QObject::tr("Gra&y"), true);
 }
 
 bool DrawColors::SetDarkMode(ScreenMode mode) // returns previous mode: never use smUseDefault !

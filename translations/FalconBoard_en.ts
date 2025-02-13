@@ -4,56 +4,56 @@
 <context>
     <name>DrawArea</name>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="307"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="310"/>
         <source>&apos;%1&apos;
 Invalid file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="309"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="312"/>
         <source>File
 &apos;%1&apos;
  not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="311"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="314"/>
         <source>File read problem. %1 records read. Please save the file to correct this error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2238"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2242"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2241"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2245"/>
         <source>Can&apos;t find printer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="820"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="824"/>
         <source>With this pen width drawing would be outside of &quot;paper&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2244"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2248"/>
         <source>Print error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2247"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2251"/>
         <source>Print cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2821"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2831"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2827"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2837"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -61,176 +61,176 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="614"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="615"/>
         <source>%1...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="666"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="667"/>
         <source>Pen Width:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="680"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="681"/>
         <source>Grid size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="749"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="750"/>
         <source>Falconboard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="749"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="750"/>
         <source>Too many open files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1399"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1408"/>
         <source>C&amp;lear list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1582"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1597"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1589"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1604"/>
         <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
  You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1603"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1618"/>
         <source>FalconBoard - Import</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1738"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1904"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1753"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1922"/>
         <source>Load Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1740"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1906"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1755"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1924"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1783"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1798"/>
         <source>FalconBoard - Go to Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1783"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1798"/>
         <source>Page:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1885"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1903"/>
         <source>FalconBoard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1886"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1904"/>
         <source>This file path name is already used for another open document.
 Please enter a different one</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1958"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1976"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1960"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1978"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2530"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2548"/>
         <source>export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1676"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1691"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="867"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="874"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1682"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1697"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1835"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1850"/>
         <source>Please restart the program to change the language!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1873"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1943"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1891"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1961"/>
         <source>Save As</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1874"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1892"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1921"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1939"/>
         <source>Open Background Image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1945"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1963"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1957"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1975"/>
         <source>About FalconBoard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1959"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1977"/>
         <source>&lt;p&gt;Version </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2118"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2136"/>
         <source>falconBoard - Grid spacing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2119"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2137"/>
         <source>Spacing in pixels:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="191"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="192"/>
         <source>print</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="355"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="356"/>
         <source>Do you want to save the document before %1?
 
 (You may set automatic save in the Options menu.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="357"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="358"/>
         <source>FalconBoard - Question</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1732,7 +1732,7 @@ Do you want to save the changes?</source>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="795"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="796"/>
         <source>Save Visi&amp;ble As...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1758,12 +1758,12 @@ Do you want to save the changes?</source>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="1118"/>
+        <location filename="../FalconBoard/history.cpp" line="1129"/>
         <source>Nothing to save</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/myprinter.cpp" line="678"/>
+        <location filename="../FalconBoard/myprinter.cpp" line="649"/>
         <source>This option is not yet implemented</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1813,48 +1813,43 @@ Do you want to save the changes?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="274"/>
+        <location filename="../FalconBoard/common.cpp" line="276"/>
         <source>&amp;Red</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="275"/>
+        <location filename="../FalconBoard/common.cpp" line="277"/>
         <source>&amp;Green</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="276"/>
+        <location filename="../FalconBoard/common.cpp" line="278"/>
         <source>&amp;Blue</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="277"/>
+        <location filename="../FalconBoard/common.cpp" line="279"/>
         <source>&amp;Purple</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="277"/>
+        <location filename="../FalconBoard/common.cpp" line="279"/>
         <source>&amp;Yellow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="278"/>
+        <location filename="../FalconBoard/common.cpp" line="280"/>
         <source>Bro&amp;wn</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="278"/>
+        <location filename="../FalconBoard/common.cpp" line="280"/>
         <source>Brow&amp;n</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/common.cpp" line="279"/>
-        <source>&amp;Magenta</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/common.cpp" line="279"/>
-        <source>Ma&amp;genta</source>
+        <location filename="../FalconBoard/common.cpp" line="281"/>
+        <source>Gra&amp;y</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -7,6 +7,10 @@
 	bool isDebugMode = false;
 #endif
 
+	// static member
+qreal	DrawableItem::yOffset = 0.0;
+
+// *----------- helper --------------
 static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'ccenter'
 {
 #define SQR(x)  ((x)*(x))
@@ -77,17 +81,8 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
 #undef DIST2
 };
 
+// ------------ Quad are helper functions ------------
 
-	// static member
-qreal	DrawableItem::yOffset = 0.0;
-
-
-//QRectF QuadAreaToArea(const QuadArea& qarea)
-//{
-//	QRectF area = QRectF(qarea.left(), qarea.top(), qarea.right(), qarea.bottom());
-//	return area;
-//}
-// QuadArea containes indices into active _history's _drawables
 QuadArea AreaForItem(const int& i)
 {
 	History* ph = historyList[-1];				// pointer to actual history
@@ -97,6 +92,7 @@ QuadArea AreaForItem(const int& i)
 	return QuadArea(r.x(), r.y(), r.width(), r.height());
 }
 
+// *----------- helpers --------------
 qreal Round(qreal number, int dec_digits)
 {
 	return round(number * pow(10.0f, (float)dec_digits)) * pow(10.0f, (float)-dec_digits);
@@ -484,8 +480,39 @@ QDataStream& operator>>(QDataStream& ifs, MyRotation& mr)
 }
 
 
-/* *********************** Drawables ********************/
-			// DrawableItem
+/* *********************** Drawable pen ********************/
+
+void DrawablePen::SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor)
+{
+	globalDrawColors.SetActualPen(_penKind);
+	if (clipR.isValid())
+		painter->setClipRect(clipR);  // clipR must be DrawArea relative
+
+#if !defined _VIEWER && defined _DEBUG
+	int sw = penWidth;
+	if (pencilMode)
+		penWidth = 1;
+#endif
+	QPen pen(QPen(PenColor(), penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
+	painter->setPen(pen);
+#if !defined _VIEWER && defined _DEBUG
+	if (pencilMode)
+		penWidth = sw;
+#endif
+	if (brushColor.isValid())
+		painter->setBrush(QBrush(brushColor));
+	else
+		painter->setBrush(QBrush());
+	// painter's default compositionmode is CompositionMode_SourceOver
+	// painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+	painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
+}
+			
+
+
+// -----------------------------------------------------------------
+//									DrawableItem
+// -----------------------------------------------------------------
 bool DrawableItem::drawStarted;
 
 DrawableItem& DrawableItem::operator=(const DrawableItem& other)
@@ -1389,6 +1416,65 @@ DrawableScribble& DrawableScribble::operator=(DrawableScribble&& di)  noexcept
 	points = di.points;
 	return *this;
 }
+
+/*=============================================================
+ * TASK   : determines if the points are almost or exactly on 
+ *			a straight line between the start point and the end point
+ * PARAMS :
+ * EXPECTS:
+ * GLOBALS:
+ * RETURNS: true: points are on almost a straight line and the line
+ *					is set into 'lin'
+ *			false: not a straight line, lin isn't touched
+ * REMARKS:
+ *------------------------------------------------------------*/
+bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
+{
+	return false;
+}
+
+/*=============================================================
+ * TASK   :	is it a closed or self intersecting curve or an almost 
+ *			closed one?
+ * PARAMS :
+ * EXPECTS:
+ * GLOBALS:
+ * RETURNS: true: yes they are and a circle (ellipse) that fits into 
+ *					a square with sides of length of the longer side of
+ *					the enclosing rectangle is returned in 'circ'
+ *			false: not a circle, circ isn't touched
+ * REMARKS:
+ *------------------------------------------------------------*/
+bool DrawableScribble::IsAlmostACircle(DrawableEllipse& circ)
+{
+	return false;
+}
+
+/*=============================================================
+ * TASK   : is this scribble at least approximately a rectangle?
+ * PARAMS :
+ * EXPECTS:
+ * GLOBALS:
+ * RETURNS:	true: yes and the rectangle is returned in 'rect'
+ *			false: not a rectangle, rect isn't touched
+ * REMARKS: - the scribble is considered a rectangle if it has
+ *				4 almost straight and pairwise almost parallel sides
+ *				and it is closed or almost closed
+ *			- only this single scribble is used. if you have 4 
+ *				separate, almost straight scribble, which may visually
+ *				form a rectangle this function returns false for each
+ *				of them.
+ *			- rect may be a rotated rectangle, in which case its
+ *				rotation is also stored
+ *			- if the smallest angle between the sides and the
+ *				horizontal is smaller than 5 degrees then the
+ *				rectangle is not rotated. Otherwise
+ *------------------------------------------------------------*/
+bool DrawableScribble::IsAlmostARectangle(DrawableRectangle& rect)
+{
+	return false;
+}
+
 
 void DrawableScribble::Clear()
 {

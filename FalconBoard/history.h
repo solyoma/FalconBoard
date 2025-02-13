@@ -444,8 +444,6 @@ using HistoryItemVector = QVector<HistoryItem*>;
 
 class HistoryList;
 
-using HistoryItemPointer = HistoryItem*;
-
 /*========================================================
  * Class for storing history of editing
  *  contains data for items drawn on screen, 
@@ -471,82 +469,6 @@ class History  // stores all drawing sections and keeps track of undo and redo
     //friend class HistoryScreenshotItem;
     friend struct HistorySetTransparencyForAllScreenshotsItems;
 
-    HistoryList* _parent;           // needed for copy and paste
-
-    HistoryItemVector _items,           // items in the order added. Items need not be drawables.
-                                        // drawables use _drables._pItems
-                      _redoList;        // from _items for redo. Items need not be scribbles.
-                                        // drawable elements on this list may be either visible or hidden
-    DrawableList _drawables;            // contains each type, including screenshots
-                                        // drawable elements on this list may be either visible or hidden
-    int  _resolutionIndex = 6;           // gives PageSetup::resolutionIndex -> full HD
-    int  _pageWidthInPixels = 1920;     // full HD
-    bool _useResInd = true;              // what to do
-                                        // if the value is above 100 it is resolution index
-
-    QuadTreeDelegate _quadTreeDelegate; // for fast display, set into _drawables
-
-    ZorderStore _zorderStore;           // max. zorder 
-
-    QPointF _topLeft;                   // temporary, top left of the visible part of this history
-                                        // document relative
-    QString _fileName,                  // full path name for file, but may be "Untitled" or empty
-            _snapshotName,                   // for timed backup copies. No path. Used for safety copy of named and 
-                                        // of untitled files in the user's 'FalconBoard' folder
-                                        // If _fileName is empty the file was not yet saved by the user
-                                        // if a file is saved at exit or when the tab is closed
-                                        // then the corresponding temporary is removed
-                                        // On starting the program the temporary files are loaded too
-            _loadedName;                // set only after the file is loaded, used to check reloads
-                                        // for not snaphots files it is set to the given name
-    bool _lastSavedAsSnapshot = false;  // set in 'Save()' or before loading a snapshot
-    bool _inLoad = false;               // in function Load() / needed for correct z- order settings
-    int _readCount = 0;                 // undo works until this index is reached
-    int _savedItemCount = 0;            // the count of _items when data was saved, after read it is _readCount
-                                        // used to check if data is changed
-
-                                        // unscribble items have no indices in here
-    bool _loaded = false;               // if it was loaded from disk already
-    bool _isSaved = false;              // clear after every change!
-
-    QRectF _clpRect;                    // clipping rectangle for selecting points to draw
-                                        // before searching operations set this when it is changed
-    QStack<QRectF> _savedClps;          // clipRect saves
-
-    int _indexOfFirstVisible = -1;      // in _yxorder
-
-                // drawable selection
-
-    DrawableIndexVector _driSelectedDrawables,    // indices into '_drawables', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
-              _driSelectedDrawablesAtRight,       // -"- for elements that were at the right of the rubber band
-              _driSelectedDrawablesAtLeft;        // -"- for elements that were at the left of the rubber band
-    QRectF _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
-                                        // when _driSelectedDrawables is empty
-
-
-
-    HistoryItem* _AddItem(HistoryItem* p);
-
-    bool _IsSaveable(int i);
-
-    void _SaveClippingRect();
-    void _RestoreClippingRect();
-    void _ClearSelectLists() 
-    { 
-        _driSelectedDrawables.clear();
-        _driSelectedDrawablesAtRight.clear();
-        _driSelectedDrawablesAtLeft.clear();
-    }
-
-    void _NameFromTmpData(QString &nameOfSnapshot);
-
-    int _ReadV1(QDataStream &ifs,DrawableItem &di, qint32 version); // reads items from version 1.X files and returns count of read
-    int _ReadV2(QDataStream &ifs,DrawableItem &di);                 // reads items from version 2.X files and returns count of read
-
-    int _LoadV1(QDataStream &ifs, qint32 version);          // load version 1.X files
-    int _LoadV2(QDataStream &ifs, qint32 version_loaded);   // load version 2.X files
-
-    void _CantRotateWarning() const;
 public: // variables
     GridOptions gridOptions;
     DrawColors drawColors;         // global for all drawables in this history
@@ -593,12 +515,12 @@ public: // functions
     QSizeF UsedArea();   // of all points and images from (0,0) to (right,bottom)
     int CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize); // -1: invalid page for px, -2: invalid page for py i.e. outside used area. First call with getAreaSize=true, others with false
 
-    inline HistoryItemPointer Item(int index) const 
+    inline HistoryItem* Item(int index) const 
     { 
         return _items[index]; 
     }
 
-    inline HistoryItemPointer LastItem() const 
+    inline HistoryItem* LastItem() const 
     { 
         int n = _items.size();
         return n ? _items[n-1] : nullptr;
@@ -687,7 +609,9 @@ public: // functions
     HistoryItem* AddRotationItem(MyRotation rot);
     HistoryItem* AddRemoveSpaceItem(QRectF &rect);
     HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
-    // --------------------- drawing -----------------------------------
+// --------------------- replace Item -----------------------------------
+    void ReplaceLastItemWith(DrawableItem& di);
+// --------------------- drawing -----------------------------------
     bool MoveItems(QPointF displacement, const DrawableIndexVector& driv);  // returns false when move is not possible
     void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
     void Rotate(int drawableIndex, MyRotation withRotation, QPointF center);
@@ -714,6 +638,85 @@ public: // functions
     void CollectDeleted(HistoryDeleteItems* phd);   // used when a sprite paste is undone
 
     const QRectF BoundingRect() const { return _selectionRect; }
+
+private:
+        HistoryList* _parent;           // needed for copy and paste
+
+        HistoryItemVector _items,           // items in the order added. Items need not be drawables.
+            // drawables use _drables._pItems
+            _redoList;        // from _items for redo. Items need not be scribbles.
+        // drawable elements on this list may be either visible or hidden
+        DrawableList _drawables;            // contains each type, including screenshots
+        // drawable elements on this list may be either visible or hidden
+        int  _resolutionIndex = 6;           // gives PageSetup::resolutionIndex -> full HD
+        int  _pageWidthInPixels = 1920;     // full HD
+        bool _useResInd = true;              // what to do
+        // if the value is above 100 it is resolution index
+
+        QuadTreeDelegate _quadTreeDelegate; // for fast display, set into _drawables
+
+        ZorderStore _zorderStore;           // max. zorder 
+
+        QPointF _topLeft;                   // temporary, top left of the visible part of this history
+        // document relative
+        QString _fileName,                  // full path name for file, but may be "Untitled" or empty
+            _snapshotName,                   // for timed backup copies. No path. Used for safety copy of named and 
+            // of untitled files in the user's 'FalconBoard' folder
+            // If _fileName is empty the file was not yet saved by the user
+            // if a file is saved at exit or when the tab is closed
+            // then the corresponding temporary is removed
+            // On starting the program the temporary files are loaded too
+            _loadedName;                // set only after the file is loaded, used to check reloads
+        // for not snaphots files it is set to the given name
+        bool _lastSavedAsSnapshot = false;  // set in 'Save()' or before loading a snapshot
+        bool _inLoad = false;               // in function Load() / needed for correct z- order settings
+        int _readCount = 0;                 // undo works until this index is reached
+        int _savedItemCount = 0;            // the count of _items when data was saved, after read it is _readCount
+        // used to check if data is changed
+
+        // unscribble items have no indices in here
+        bool _loaded = false;               // if it was loaded from disk already
+        bool _isSaved = false;              // clear after every change!
+
+        QRectF _clpRect;                    // clipping rectangle for selecting points to draw
+        // before searching operations set this when it is changed
+        QStack<QRectF> _savedClps;          // clipRect saves
+
+        int _indexOfFirstVisible = -1;      // in _yxorder
+
+        // drawable selection
+
+        DrawableIndexVector _driSelectedDrawables,    // indices into '_drawables', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
+            _driSelectedDrawablesAtRight,       // -"- for elements that were at the right of the rubber band
+            _driSelectedDrawablesAtLeft;        // -"- for elements that were at the left of the rubber band
+        QRectF _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
+        // when _driSelectedDrawables is empty
+
+
+
+        HistoryItem* _AddItem(HistoryItem* p);
+
+        bool _IsSaveable(int i);
+
+        void _SaveClippingRect();
+        void _RestoreClippingRect();
+        void _ClearSelectLists()
+        {
+            _driSelectedDrawables.clear();
+            _driSelectedDrawablesAtRight.clear();
+            _driSelectedDrawablesAtLeft.clear();
+        }
+
+        void _NameFromTmpData(QString& nameOfSnapshot);
+
+        int _ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version); // reads items from version 1.X files and returns count of read
+        int _ReadV2(QDataStream& ifs, DrawableItem& di);                 // reads items from version 2.X files and returns count of read
+
+        int _LoadV1(QDataStream& ifs, qint32 version);          // load version 1.X files
+        int _LoadV2(QDataStream& ifs, qint32 version_loaded);   // load version 2.X files
+
+        void _CantRotateWarning() const;
+
 };
 
             //--------------------------------------------
