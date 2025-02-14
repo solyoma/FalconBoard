@@ -15,6 +15,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QPageSize>
+#include <QSplashScreen>
 
 extern quint32 file_version_loaded;	// set in history::Load
 
@@ -72,6 +73,9 @@ enum SaveResult
         srNoSave            // user do not want it saved
     };
 enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};
+
+void ShowSplashScreen(bool addText = false);
+void CloseSplashScreen();
 
 constexpr const int resos[] = { 300, 600, 1200 };;
 

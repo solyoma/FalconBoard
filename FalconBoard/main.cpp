@@ -11,6 +11,8 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 
+	ShowSplashScreen();		// no text
+
 	FBSettings::Init();
 	QSettings *s = FBSettings::Open();
 	int ixLang = s->value("lang", -1).toInt();
@@ -36,6 +38,7 @@ int main(int argc, char *argv[])
 		if (loaded && qs != "en_US")	 // only set when not American English
 			a.installTranslator(&translator);
 	}
+	ShowSplashScreen(true);	 // add text
 	// set ip window and languages
 	FalconBoard w(a.screens()[0]->size());
 	w.SetLanguages(fileNames, ixLang);
@@ -103,6 +106,7 @@ int main(int argc, char *argv[])
 	#endif
 #endif
 	w.show();
+	CloseSplashScreen();
 	int res = a.exec();
 	//thread.terminate();
 	return res;

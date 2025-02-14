@@ -1465,15 +1465,19 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 	}
 	QPointF pfStart, pfEnd;
 	// find start and end points of the dialgonal of the bounding rectangle
-	if (brect.topLeft() == points[mx])
-		pfStart = brect.topLeft();
-	else
-		pfStart = brect.bottomLeft();
+	//if (brect.topLeft() == points[mx])
+	//	pfStart = brect.topLeft();
+	//else
+	//	pfStart = brect.bottomLeft();
+	pfStart = points[mx];
+	pfEnd = points[mxx];
 
-	if (brect.topRight() == points[mxx])
-		pfEnd = brect.topRight();
-	else
-		pfEnd = brect.bottomRight();
+	//if (brect.topRight() == points[mxx])
+	//	pfEnd = brect.topRight();
+	//else
+	//	pfEnd = brect.bottomRight();
+
+	qDebug("brect: (%d,%d),(%d,%d)", (int)brect.topLeft().x(), (int)brect.topLeft().y(), (int)brect.bottomRight().x(), (int)brect.bottomRight().y());
 	// now we have a line going through the start and end points of our scrible
 	// the equation for the distance between points 
 	// d = (|(pfEnd.y() - pfStart.y())*points[i].x() - (pfEnd.x() - pfStart.x())*points[i].y() + pfEnd.x() * pfStart.y() - pfEnd.y() * pfStart.x())/sqrt((pfEnd.y() -pfStart.y())^2+(pfEnd.x() -pfStart.x())^2) 
@@ -1489,17 +1493,22 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 		};
 	// get the point distances from this line and determine the maximum one
 	qreal maxd = 0;
-	for (auto &pt:points)
-	{
+	for (auto &pt:points)	// could be sped up by leaving intermediate points out as neighboring points
+	{						// must not differ by too large a distance
 		qreal dst = dist(pt);
 		if (maxd < dst)
 			maxd = dst;
 	}
-	if(maxd > r / 10.0 || maxd > 5*penWidth)
-		return false;
-	// set up 'the 'lin'
-	lin = DrawableLine(pfStart, pfEnd, zOrder, PenKind(), penWidth);
-	return true;
+	constexpr const qreal pwm = 2.0,			// pen width limit factor
+		                  lendiv = 1 / 10.0;	// length limit factor
+	if (r != 0.0 && ((r > pwm * penWidth && maxd <= r * lendiv) || maxd <= pwm * penWidth))
+	{	// set up 'the 'lin'
+		lin = DrawableLine(pfStart, pfEnd, zOrder, PenKind(), penWidth);
+		qDebug("TRUE: maxd: %g, start:(%d,%d), end:(%d,%d), len/: %g,  2 x penWidth: %d", maxd, (int)pfStart.x(), (int)pfStart.y(), (int)pfEnd.x(), (int)pfEnd.y(), (r*lendiv), pwm * (int)penWidth);
+		return true;
+	}
+	qDebug("FALSE: maxd: %g, start:(%d,%d), end:(%d,%d), len/: %g,  %d x penWidth: %d", maxd, (int)pfStart.x(), (int)pfStart.y(), (int)pfEnd.x(), (int)pfEnd.y(), (r*lendiv), pwm * (int)penWidth);
+	return false;
 }
 
 /*=============================================================

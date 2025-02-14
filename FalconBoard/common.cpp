@@ -79,6 +79,38 @@ MyScreenSizes::MyScreenSizes()
     push_back(MyScreenSize( 640 ,    360 ));
 }
 
+// ******************* Splash screen ***********************************
+static QSplashScreen* splashScreen = nullptr;
+
+void ShowSplashScreen(bool addMessage)
+{
+#ifndef DEBUG
+    if (!splashScreen)
+    {
+        splashScreen = new QSplashScreen(QPixmap(":/FalconBoard/Resources/falconboard-splash.png"));
+        splashScreen->setWindowFlag(Qt::WindowStaysOnTopHint);
+        splashScreen->show();
+    }
+    if (addMessage)
+    {
+        Qt::Alignment topRight = Qt::AlignHCenter | Qt::AlignBottom;
+        splashScreen->showMessage(QObject::tr("FalconBoard  - Setting up...\n\n\n"), topRight, Qt::white);
+    }
+
+    QApplication::processEvents();
+#endif
+}
+
+void CloseSplashScreen()
+{
+    if (splashScreen)
+    {
+        splashScreen->finish(nullptr); // 
+        delete splashScreen;
+        splashScreen = nullptr;
+    }
+}
+
 // ******************* FalconPens ***********************************
 void FalconPens::Separate(const QString& from, QString& s1, QString& s2)
 {

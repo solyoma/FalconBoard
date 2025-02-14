@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="FalconBoard">
+    <file>Resources/falconboard-splash.png</file>
     <file>Resources/printer.png</file>
     <file>Resources/trash-can.png</file>
     <file>../translations/FalconBoard_en.qm</file>
