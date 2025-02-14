@@ -906,29 +906,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				case Qt::Key_5:
 					_ChangePenByKeyboard(key);
 					break;
-				case Qt::Key_A:		// use last scribble
-					_pLastDrawableItem = pHistory->LastItem()->GetDrawable();
-					if (_pLastDrawableItem && _pLastDrawableItem->dtType == DrawableType::dtScribble)
-					{
-						DrawableEllipse circ;
-						DrawableRectangle rect;
-						DrawableLine lin;
-
-						if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostACircle(circ))
-						{
-							pHistory->ReplaceLastItemWith(circ);
-						}
-						else if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostARectangle(rect))
-						{
-							pHistory->ReplaceLastItemWith(rect);
-
-						}
-						else if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostAStraightLine(lin))
-						{
-							pHistory->ReplaceLastItemWith(lin);
-
-						}
-					}
+				default:
+					break;
 			}
 #endif
 		}
@@ -1426,12 +1405,16 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 		}
 		else
 		{
+			DrawableEllipse circ;
+			DrawableRectangle rect;
 			if (!_spaceBarDown)
 			{
 				//DEBUG_LOG(QString("Mouse release #1: _lastPoint: (%1,%2)").arg(_lastPointC.x()).arg(_lastPointC.y()))
 				if (_DrawFreehandLineTo(event->pos))
 					_lastScribbleItem.Add(_lastPointC + _topLeft, false);		// add but do not smooth last point
-				DrawableItem* pdrwi = &_lastScribbleItem;
+				_pLastDrawableItem = &_lastScribbleItem;
+
+				bool modified = false;
 
 				if (_lastScribbleItem.points.size() == 2)
 				{
@@ -1439,18 +1422,39 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 					{
 						(DrawableItem&)_lastDotItem = (DrawableItem&)_lastScribbleItem;
 						_lastDotItem.dtType = DrawableType::dtDot;
-						pdrwi = &_lastDotItem;
+						_pLastDrawableItem = &_lastDotItem;
 					}
 					else	// DrawableLine
 					{
 						(DrawableItem&)_lastLineItem = (DrawableItem&)_lastScribbleItem;
 						_lastLineItem.dtType = DrawableType::dtLine;
 						_lastLineItem.endPoint = _lastScribbleItem.points[1];
-						pdrwi = &_lastLineItem;
+						_pLastDrawableItem = &_lastLineItem;
 					}
 				}
-				pHistory->AddDrawableItem(*pdrwi);
-				update();
+				else    // autocorrect lines, circles, rectangles
+				{
+					if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostAStraightLine(_lastLineItem))
+					{
+						_pLastDrawableItem = &_lastLineItem;
+						modified = true;
+					}
+					if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostACircle(circ))
+					{
+						_pLastDrawableItem = &circ;
+						modified = true;
+					}
+					else if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostARectangle(rect))
+					{
+						_pLastDrawableItem = &rect;
+						modified = true;
+					}
+				}
+				pHistory->AddDrawableItem(*_pLastDrawableItem);
+				if(modified)
+					_Redraw();
+				else
+					update();
 // DEBUG
 				//std::ofstream alma;
 				//alma.open("_lastScribbleItem.csv");

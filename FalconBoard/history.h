@@ -520,10 +520,10 @@ public: // functions
         return _items[index]; 
     }
 
-    inline HistoryItem* LastItem() const 
+    inline HistoryItem* LastItem(bool onlyNew = false) const 
     { 
-        int n = _items.size();
-        return n ? _items[n-1] : nullptr;
+        int n = _items.size(), N = onlyNew ? _readCount : 0;
+        return n > N ? _items[n-1] : nullptr;
     }
 
     int GetZorder(bool isscreenshot, bool increment=true) { return _zorderStore.GetZorder(isscreenshot, increment); }

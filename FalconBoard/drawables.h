@@ -749,7 +749,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
 
     bool Translate(QPointF dr, qreal minY) override;    // only if not deleted and top is > minY
     bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
-    QRectF Area() const override // includes half od pen width+1 pixel
+    QRectF Area() const override // includes half og pen width+1 pixel
     {
         qreal d = penWidth / 2.0 + 1.0;
         return points.boundingRect().adjusted(-d, -d, d, d);

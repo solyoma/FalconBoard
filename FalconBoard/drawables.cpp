@@ -1426,11 +1426,80 @@ DrawableScribble& DrawableScribble::operator=(DrawableScribble&& di)  noexcept
  * RETURNS: true: points are on almost a straight line and the line
  *					is set into 'lin'
  *			false: not a straight line, lin isn't touched
- * REMARKS:
+ * REMARKS: - if this is a line it must go through two opposite
+ *			corner points of the bounding rectangle of the points.
+ *			- if the last point of the scribble is nearer to the 
+ *			first point than half of the length of the greater side
+ *			of the bounding rectangle of the points then this isn't
+ *			a line. Otherwise
+ *			- calculate the distances of the points of the scribble
+ *			from this line. If the maximum distance is greater than
+ *			either 3 times the pen width or the 1/10th of the 
+ *			length of the line(?) this is not a line
  *------------------------------------------------------------*/
 bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 {
-	return false;
+	if (points.size() < 3)
+		return false;
+
+	QRectF brect = points.boundingRect();	// no pen width used here
+	// If the reference point is not in _points then this isn't a 
+	// straight line It may be a circle or a rectangle though
+	if (points.indexOf(refPoint) < 0)
+		return false;
+	// start point has the smallest, end point the largest x coordinate
+	qreal xmin = 999999.0, xmax = 0;
+	int mx = -1, mxx = -1;
+	for (int i = 0; i < points.size(); ++i)
+	{
+		if (points[i].x() < xmin)
+		{
+			mx = i;
+			xmin = points[i].x();
+		}
+		if (points[i].x() > xmax)
+		{
+			mxx = i;
+			xmax = points[i].x();
+		}
+	}
+	QPointF pfStart, pfEnd;
+	// find start and end points of the dialgonal of the bounding rectangle
+	if (brect.topLeft() == points[mx])
+		pfStart = brect.topLeft();
+	else
+		pfStart = brect.bottomLeft();
+
+	if (brect.topRight() == points[mxx])
+		pfEnd = brect.topRight();
+	else
+		pfEnd = brect.bottomRight();
+	// now we have a line going through the start and end points of our scrible
+	// the equation for the distance between points 
+	// d = (|(pfEnd.y() - pfStart.y())*points[i].x() - (pfEnd.x() - pfStart.x())*points[i].y() + pfEnd.x() * pfStart.y() - pfEnd.y() * pfStart.x())/sqrt((pfEnd.y() -pfStart.y())^2+(pfEnd.x() -pfStart.x())^2) 
+	qreal r = std::sqrt((pfEnd.y() - pfStart.y()) * (pfEnd.y() - pfStart.y()) + 
+						(pfEnd.x() - pfStart.x()) * (pfEnd.x() - pfStart.x())),
+		  dly = pfEnd.y() - pfStart.y(),
+		  dlx = pfEnd.x() - pfStart.x(),
+		  dd  = pfEnd.x() * pfStart.y() - pfEnd.y() * pfStart.x();
+	auto dist = [&](const QPointF& pt)
+		{
+			qreal d = std::abs(dly * pt.x() - dlx * pt.y() + dd);
+			return d/r;
+		};
+	// get the point distances from this line and determine the maximum one
+	qreal maxd = 0;
+	for (auto &pt:points)
+	{
+		qreal dst = dist(pt);
+		if (maxd < dst)
+			maxd = dst;
+	}
+	if(maxd > r / 10.0 || maxd > 5*penWidth)
+		return false;
+	// set up 'the 'lin'
+	lin = DrawableLine(pfStart, pfEnd, zOrder, PenKind(), penWidth);
+	return true;
 }
 
 /*=============================================================

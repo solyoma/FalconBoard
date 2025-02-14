@@ -1780,8 +1780,8 @@ void History::ReplaceLastItemWith(DrawableItem& di)
 {
 	if(_items.size())
 	{
+		Undo();
 		HistoryDrawableItem* phdi = new HistoryDrawableItem(this, di);
-		_items.pop_back();
 		_AddItem(phdi);
 	}
 }
