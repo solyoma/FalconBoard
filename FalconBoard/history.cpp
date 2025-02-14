@@ -1126,7 +1126,7 @@ SaveResult History::Save(bool asSnapshot)
 
 	if (_drawables.Count() == 0 && _savedItemCount == 0)					// no elements or no visible elements
 	{
-		QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
+		// QMessageBox::information(nullptr, sWindowTitle, QObject::tr("Nothing to save"));
 		return srNoNeedToSave;
 	}
 	if(!IsModified() && (!_lastSavedAsSnapshot || _fileName.isEmpty() ) )

@@ -180,6 +180,7 @@
     <addaction name="actionLimitPaperWidth"/>
     <addaction name="actionShowPageGuides"/>
     <addaction name="actionAllowMultipleProgramInstances"/>
+    <addaction name="actionAutocorrectTolerance"/>
     <addaction name="separator"/>
     <addaction name="actionDefinePenColors"/>
     <addaction name="actionScreenshotTransparency"/>
@@ -970,6 +971,14 @@
    </property>
    <property name="text">
     <string>&amp;White</string>
+   </property>
+  </action>
+  <action name="actionAutocorrectTolerance">
+   <property name="text">
+    <string>Auto correct tolerance...</string>
+   </property>
+   <property name="toolTip">
+    <string>Sets a limit in pixels to auto correct imperfect lines to perfect ones</string>
    </property>
   </action>
  </widget>

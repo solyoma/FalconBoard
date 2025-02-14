@@ -121,6 +121,13 @@ public:
 
     void SetMode(ScreenMode mode, QString color, QString gridColor, QString pageGuideColor);
     void SetBackgroundColor(QColor bck) { _backgroundColor = bck;  }    // system/light/white/dark/black modes
+
+    void SetAutoCorrectLimit(int limitInPixels) 
+    { 
+        DrawableScribble::autoCorrectLimit = limitInPixels; 
+    }
+    int AutoCorrectLimit() const { return DrawableScribble::autoCorrectLimit; }
+
     void SetPenKind(FalconPenKind newKind, int newWidth);
 
     void SetOrigin() { _topLeft = QPointF(); }

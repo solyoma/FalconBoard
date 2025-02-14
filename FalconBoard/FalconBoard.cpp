@@ -73,17 +73,18 @@ void FalconBoard::_RemoveMenus()
 
     // options menu
     pMenu = pMenuActions[3]->menu();    
-                                                    //16: language
-    pMenu->removeAction(pMenu->actions()[15]);      //15:    separator
-    pMenu->removeAction(pMenu->actions()[14]);      //14: Auto save before print
-    pMenu->removeAction(pMenu->actions()[13]);      //13: Auto save background image
-    pMenu->removeAction(pMenu->actions()[12]);      //12: Auto save data
-                                                    //11:   separator
-    pMenu->removeAction(pMenu->actions()[10]);      //10: Load Background Image 
-    pMenu->removeAction(pMenu->actions()[9]);       // 9:   separator
-    pMenu->removeAction(pMenu->actions()[8]);       // 8: Screenshot Transparency
-    pMenu->removeAction(pMenu->actions()[7]);       // 7: Define pen colors
-                                                    // 6:   separator
+                                                    //17: language
+    pMenu->removeAction(pMenu->actions()[16]);      //16:    separator
+    pMenu->removeAction(pMenu->actions()[15]);      //15: Auto save before print
+    pMenu->removeAction(pMenu->actions()[14]);      //14: Auto save background image
+    pMenu->removeAction(pMenu->actions()[13]);      //13: Auto save data
+                                                    //12:   separator
+    pMenu->removeAction(pMenu->actions()[11]);      //11: Load Background Image 
+    pMenu->removeAction(pMenu->actions()[10]);      //10:   separator
+    pMenu->removeAction(pMenu->actions()[9]);       // 9: Screenshot Transparency
+    pMenu->removeAction(pMenu->actions()[8]);       // 8: Define pen colors
+                                                    // 7:   separator
+    pMenu->removeAction(pMenu->actions()[6]);       // 6: Auto correct tolerance
                                                     // 5: Allow multiple program instances
                                                     // 4: Show page guides
     pMenu->removeAction(pMenu->actions()[3]);       // 3: paper width
@@ -257,6 +258,8 @@ void FalconBoard::RestoreState()
 
     b = s->value(AUTOSAVEPRINT, false).toBool();
     ui.actionAutoSaveBeforePrintOrExport->setChecked(b);
+
+    _drawArea->SetAutoCorrectLimit(s->value(AUTOCORRECT_LIMIT, 6).toInt() );
 
     qs = s->value(MODE, "s").toString();
 
@@ -469,7 +472,7 @@ void FalconBoard::SaveState()
     s->setValue(PAGEGUIDES, ui.actionShowPageGuides->isChecked() ? 1 : 0);
     s->setValue(LIMITED, ui.actionLimitPaperWidth->isChecked());
 #ifndef _VIEWER
-
+    s->setValue(AUTOCORRECT_LIMIT, _drawArea->AutoCorrectLimit());
     //globalDrawColors.ToSettings(s);   // no restore on start
 
     s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6,%7,%8").arg(_penWidths[0])
@@ -2173,6 +2176,14 @@ void FalconBoard::slotGridSpacingEditingFinished()
 void FalconBoard::on_actionShowPageGuides_triggered()
 {
     _drawArea->SetPageGuidesOn(ui.actionShowPageGuides->isChecked());
+}
+
+void FalconBoard::on_actionAutocorrectTolerance_triggered()
+{
+    bool ok=false;
+    int tol = QInputDialog::getInt(this, tr("FalconBoard - settings"), tr("Autocorrect tolerance in pixels"), 6, 0, 99, 1, &ok);
+    if (ok)
+        _drawArea->SetAutoCorrectLimit(tol);
 }
 
 #ifndef _VIEWER

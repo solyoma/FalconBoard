@@ -1502,6 +1502,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 	_scribbling = false;
 	_pendown = false;
 	_allowMouse = _allowPen = true;
+	_allowMouse = _allowPen = true;
 }
 
 void DrawArea::_DrawGrid(QPainter& painter)

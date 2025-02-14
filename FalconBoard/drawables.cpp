@@ -9,6 +9,7 @@
 
 	// static member
 qreal	DrawableItem::yOffset = 0.0;
+int DrawableScribble::autoCorrectLimit = 6;	// in pixels, set from DrawArea
 
 // *----------- helper --------------
 static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'ccenter'
@@ -1477,7 +1478,7 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 	//else
 	//	pfEnd = brect.bottomRight();
 
-	qDebug("brect: (%d,%d),(%d,%d)", (int)brect.topLeft().x(), (int)brect.topLeft().y(), (int)brect.bottomRight().x(), (int)brect.bottomRight().y());
+	//qDebug("brect: (%d,%d),(%d,%d)", (int)brect.topLeft().x(), (int)brect.topLeft().y(), (int)brect.bottomRight().x(), (int)brect.bottomRight().y());
 	// now we have a line going through the start and end points of our scrible
 	// the equation for the distance between points 
 	// d = (|(pfEnd.y() - pfStart.y())*points[i].x() - (pfEnd.x() - pfStart.x())*points[i].y() + pfEnd.x() * pfStart.y() - pfEnd.y() * pfStart.x())/sqrt((pfEnd.y() -pfStart.y())^2+(pfEnd.x() -pfStart.x())^2) 
@@ -1499,15 +1500,16 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 		if (maxd < dst)
 			maxd = dst;
 	}
-	constexpr const qreal pwm = 2.0,			// pen width limit factor
-		                  lendiv = 1 / 10.0;	// length limit factor
-	if (r != 0.0 && ((r > pwm * penWidth && maxd <= r * lendiv) || maxd <= pwm * penWidth))
+	//constexpr const qreal pwm = 2.0,			// pen width limit factor
+	//	                  lendiv = 1 / 10.0;	// length limit factor
+	// if (r != 0.0 && (/*(r > pwm * penWidth && maxd <= r * lendiv) ||*/ maxd <= pwm * penWidth))
+	if (maxd != 0.0 &&  maxd <= autoCorrectLimit)
 	{	// set up 'the 'lin'
 		lin = DrawableLine(pfStart, pfEnd, zOrder, PenKind(), penWidth);
-		qDebug("TRUE: maxd: %g, start:(%d,%d), end:(%d,%d), len/: %g,  2 x penWidth: %d", maxd, (int)pfStart.x(), (int)pfStart.y(), (int)pfEnd.x(), (int)pfEnd.y(), (r*lendiv), pwm * (int)penWidth);
+//		qDebug("TRUE: maxd: %g, start:(%d,%d), end:(%d,%d), len/: %g,  2 x penWidth: %d", maxd, (int)pfStart.x(), (int)pfStart.y(), (int)pfEnd.x(), (int)pfEnd.y(), (r*lendiv), pwm * (int)penWidth);
 		return true;
 	}
-	qDebug("FALSE: maxd: %g, start:(%d,%d), end:(%d,%d), len/: %g,  %d x penWidth: %d", maxd, (int)pfStart.x(), (int)pfStart.y(), (int)pfEnd.x(), (int)pfEnd.y(), (r*lendiv), pwm * (int)penWidth);
+//		qDebug("FALSE: maxd: %g, start:(%d,%d), end:(%d,%d), len/: %g,  2 x penWidth: %d", maxd, (int)pfStart.x(), (int)pfStart.y(), (int)pfEnd.x(), (int)pfEnd.y(), (r*lendiv), pwm * (int)penWidth);
 	return false;
 }
 

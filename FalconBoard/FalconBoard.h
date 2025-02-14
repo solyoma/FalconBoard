@@ -94,6 +94,8 @@ private slots:
 
 	void on_actionShowPageGuides_triggered();
 
+	void on_actionAutocorrectTolerance_triggered();
+
 	void on_actionLoad_triggered();
 	void on_action_Close_triggered();
 	void on_action_CloseAll_triggered();

@@ -12,71 +12,72 @@ const QString sVersion = "2.3.8";
 // names in configuration
 
 constexpr const char
-		// general
-	*GEOMETRY = "geometry",
-	*WINDOWSTATE = "windowState",
-	*VERSION= "version",
-	*LANG	= "lang",		// actual language
+// general
+* GEOMETRY = "geometry",
+* WINDOWSTATE = "windowState",
+* VERSION = "version",
+* LANG = "lang",		// actual language
 
-	*SINGLE = "single",		// allow multiple program instances
+* SINGLE = "single",		// allow multiple program instances
 
-	*AUTOSAVEDATA = "saved",// automatic save of changed documents on close
-	*AUTOSBCKIMG = "saveb",	// automatic save of page background on close
-	*AUTOSAVEPRINT="saveonprint",	// auto save before print/ PDF
+* AUTOSAVEDATA = "saved",// automatic save of changed documents on close
+* AUTOSBCKIMG = "saveb",	// automatic save of page background on close
+* AUTOSAVEPRINT = "saveonprint",	// auto save before print/ PDF
 
-	*RECENTLIST = "Recent",	// group for recent file list of max 9 recent files
-	*CNTRECENT = "cnt",		// count of recent files
-	*BCKGIMG = "bckgrnd",	// background image
+* RECENTLIST = "Recent",	// group for recent file list of max 9 recent files
+* CNTRECENT = "cnt",		// count of recent files
+* BCKGIMG = "bckgrnd",	// background image
 
-	*MODE	= "mode",		// system , dark, black
-	*GRID	= "grid",		// grid visible?
-	*PAGEGUIDES	= "pageG",	// show page guides?
-	*LIMITED= "limited",	// page width limited to visible screen / width
-	*LASTDIR = "lastDir",	// last used folder path for documents
-	*LASTPDFDIR = "lastPDFDir",	// last used folder path for PDF output
-		// PEN COLORS			   defaults: (light,dark)
-	*PEN_BLACK = "penBlackOrWhite",	// 000000,FFFFFF
-	*PEN_RED   = "penT2",		// FF0000,FF0000
-	*PEN_GREEN = "penT3",	// 007D1A,00FF00
-	*PEN_BLUE  = "penT4",		// 0000FF,82DBFC
-	*PEN_YELLOW= "penT5",	// B704BE,FF00FF
-		// PEN COLOR NAMES		    defaults: (light,dark)	- user defined names do not get translated
-	*PEN_BLACK_NAME	= "penNBlack",	// 
-	*PEN_RED_NAME	= "penNRed",	// 
-	*PEN_GREEN_NAME	= "penNGreen",	// 
-	*PEN_BLUE_NAME	= "penNBlue",	// 
-	*PEN_YELLOW_NAME= "penNYellow",	// 
-		// TABS
-	*TABS = "Tabs",			// group for tabs
-	*TABSIZE = "tabSize",	// how many TABS
-	*LASTTAB = "lastTab",	// index of last used TAB
-		// printing
-			// PDF
-	*PSETUP = "Page Setup", // group for page setup
-	*PFLAGS = "pflags",		// bit #0: print background image, bit #1: white background
-							// bit #2: 0-> no page numbers, 1-> page numbers 
-	*PPOSIT = "pposit",		// page number position: 0-6:topLeft,topCenter,topRight,bottomLeft,bottomCenter,bottomRight
-	*PDFMLR = "pdfmlr",		// PDF margins: left/right
-	*PDFMTB = "pdfmtb",		//				top/bottom
-	*PDFGUT = "pdfgut",		//				gutter
-	*PDFDPI	= "pdfdpi",		// pdf resolution
-	*PDFPGS = "pdfpgs",		// 
-			// ALL
-	*USERI	= "useri",		// 1: use RESI, 0: use HPXS
-	*RESI	= "resi",		// screen resolution index
-	*HPXS	= "hpxs",		// horizontal pixels for a page
-	*SDIAG	= "sdiag",		// screen diagonal
-	*UNITINDEX= "uf",		// index to determines the multipl. factor for number in edScreenDiag number to inch
-	*PDFUI	= "pdfui",		// pdf unit
-		// drawing
-	*GRIDSPACING = "gridspacing",
-	*TRANSP = "transp",		// transparency used for screenshots
-	*TRANSC = "transc",		// transparent color + fuzzyness, format #FFRRGGBB, default #FFFFFF, FF fuzzyness in %
-	*PENSIZES = "pensizes",		// e.g. "30, 3,3,3,3,3,3" - pen width in pixels for eraser, black, red, green, blue, yellow
-		// pen color group
-	*PENGROUP = "Pens",
-	*DEFPENGROUP = "Default Pens",
-	*PENGROUPCOUNT = "count",
+* MODE = "mode",		// system , dark, black
+* GRID = "grid",		// grid visible?
+* PAGEGUIDES = "pageG",	// show page guides?
+* LIMITED = "limited",	// page width limited to visible screen / width
+* LASTDIR = "lastDir",	// last used folder path for documents
+* LASTPDFDIR = "lastPDFDir",	// last used folder path for PDF output
+// PEN COLORS			   defaults: (light,dark)
+* PEN_BLACK = "penBlackOrWhite",	// 000000,FFFFFF
+* PEN_RED = "penT2",		// FF0000,FF0000
+* PEN_GREEN = "penT3",	// 007D1A,00FF00
+* PEN_BLUE = "penT4",		// 0000FF,82DBFC
+* PEN_YELLOW = "penT5",	// B704BE,FF00FF
+// PEN COLOR NAMES		    defaults: (light,dark)	- user defined names do not get translated
+* PEN_BLACK_NAME = "penNBlack",	// 
+* PEN_RED_NAME = "penNRed",	// 
+* PEN_GREEN_NAME = "penNGreen",	// 
+* PEN_BLUE_NAME = "penNBlue",	// 
+* PEN_YELLOW_NAME = "penNYellow",	// 
+// TABS
+* TABS = "Tabs",			// group for tabs
+* TABSIZE = "tabSize",	// how many TABS
+* LASTTAB = "lastTab",	// index of last used TAB
+// printing
+	// PDF
+	* PSETUP = "Page Setup", // group for page setup
+	* PFLAGS = "pflags",		// bit #0: print background image, bit #1: white background
+	// bit #2: 0-> no page numbers, 1-> page numbers 
+	* PPOSIT = "pposit",		// page number position: 0-6:topLeft,topCenter,topRight,bottomLeft,bottomCenter,bottomRight
+	* PDFMLR = "pdfmlr",		// PDF margins: left/right
+	* PDFMTB = "pdfmtb",		//				top/bottom
+	* PDFGUT = "pdfgut",		//				gutter
+	* PDFDPI = "pdfdpi",		// pdf resolution
+	* PDFPGS = "pdfpgs",		// 
+	// ALL
+	* USERI = "useri",		// 1: use RESI, 0: use HPXS
+	* RESI = "resi",		// screen resolution index
+	* HPXS = "hpxs",		// horizontal pixels for a page
+	* SDIAG = "sdiag",		// screen diagonal
+	* UNITINDEX = "uf",		// index to determines the multipl. factor for number in edScreenDiag number to inch
+	* PDFUI = "pdfui",		// pdf unit
+	// drawing
+	* GRIDSPACING = "gridspacing",
+	* TRANSP = "transp",		// transparency used for screenshots
+	* TRANSC = "transc",		// transparent color + fuzzyness, format #FFRRGGBB, default #FFFFFF, FF fuzzyness in %
+	* PENSIZES = "pensizes",		// e.g. "30, 3,3,3,3,3,3" - pen width in pixels for eraser, black, red, green, blue, yellow
+	// pen color group
+	* PENGROUP = "Pens",
+	* DEFPENGROUP = "Default Pens",
+	* PENGROUPCOUNT = "count",
+	* AUTOCORRECT_LIMIT = "alimit",
 
 	*end_of_config = nullptr;
 ;

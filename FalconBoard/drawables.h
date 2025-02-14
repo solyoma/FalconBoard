@@ -703,6 +703,8 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
     QPolygonF points;         // coordinates are relative to logical origin (0,0) => canvas coord = points[i] - origin
     bool isFilled = false;    // used when this is a closed polygon (created from not n * pi/4) rotated ellipse or rectangle
 
+    static int autoCorrectLimit;
+
     // DEBUG
     bool bSmoothDebug = true;
     // end DEBUG
