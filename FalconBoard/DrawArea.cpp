@@ -1432,22 +1432,26 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 						_pLastDrawableItem = &_lastLineItem;
 					}
 				}
-				else    // autocorrect lines, circles, rectangles
+				else   // autocorrect lines, circles, rectangles
 				{
-					if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostAStraightLine(_lastLineItem))
+					QRectF br = _lastScribbleItem.points.boundingRect();
+					if (br.width() > 25*_penWidth || br.height() > 25*_penWidth)
 					{
-						_pLastDrawableItem = &_lastLineItem;
-						modified = true;
-					}
-					if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostACircle(circ))
-					{
-						_pLastDrawableItem = &circ;
-						modified = true;
-					}
-					else if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostARectangle(rect))
-					{
-						_pLastDrawableItem = &rect;
-						modified = true;
+						if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostAStraightLine(_lastLineItem))
+						{
+							_pLastDrawableItem = &_lastLineItem;
+							modified = true;
+						}
+						if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostACircle(circ))
+						{
+							_pLastDrawableItem = &circ;
+							modified = true;
+						}
+						else if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostARectangle(rect))
+						{
+							_pLastDrawableItem = &rect;
+							modified = true;
+						}
 					}
 				}
 				pHistory->AddDrawableItem(*_pLastDrawableItem);
