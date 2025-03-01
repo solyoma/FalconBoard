@@ -79,11 +79,6 @@ void CloseSplashScreen();
 
 constexpr const int resos[] = { 300, 600, 1200 };;
 
-inline int IsUntitled(QString name)
-{
-    return name.isEmpty() ? 1 : (name.left(UNTITLED.length()) == UNTITLED ? 2 : 0);
-}
-
 struct MyPageSize
 {
     double w=-1, h=-1;

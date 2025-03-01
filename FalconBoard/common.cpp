@@ -94,7 +94,7 @@ void ShowSplashScreen(bool addMessage)
     if (addMessage)
     {
         Qt::Alignment topRight = Qt::AlignHCenter | Qt::AlignBottom;
-        splashScreen->showMessage(QObject::tr("FalconBoard  - Setting up...\n\n\n"), topRight, Qt::white);
+        splashScreen->showMessage(QObject::tr("FalconBoard  - Setting up...\n\n"), topRight, Qt::white);
     }
 
     QApplication::processEvents();

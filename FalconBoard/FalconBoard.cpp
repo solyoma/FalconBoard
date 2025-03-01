@@ -197,20 +197,25 @@ void FalconBoard::StartListenerThread(QObject* parent)
 #ifndef _VIEWER
 QString FalconBoard::_NextUntitledName()
 {
-	int n = -1, m;
-	QString qsUntitled = UNTITLED;
-	for (int i = 0; i < _pTabs->count(); ++i)
-        if (IsUntitled(_pTabs->tabText(i)) == 2)
+	int n = -1, m;                  // expects: tab's name doesn't contain extension
+	QString qsUntitled = UNTITLED,  // language dependednt name
+                         tabName;
+    for (int i = 0; i < _pTabs->count(); ++i)
+    {
+        tabName = _pTabs->tabText(i);
+        if (tabName.isEmpty())
+            n = 0;
+        else if (tabName.left(UNTITLED.length()) == UNTITLED)
         {
-            m = _pTabs->tabText(i).mid(UNTITLED.length()).toInt();
-            if (m < 0)
-                ++n;
-            else
-                n = m + 1;
+            m = tabName.mid(UNTITLED.length()).toInt();
+            QString qs = tabName.mid(UNTITLED.length());
+            qDebug("%s",tabName.mid(UNTITLED.length()).toLatin1());
+            n = m + 1;
         }
+    }
 	if (n > 0)
 		qsUntitled += QString().setNum(n);
-	qsUntitled += ".mwb";
+	// qsUntitled += ".mwb";
     return qsUntitled;
 }
 #endif
