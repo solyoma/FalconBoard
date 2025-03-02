@@ -73,10 +73,11 @@ void FalconBoard::_RemoveMenus()
 
     // options menu
     pMenu = pMenuActions[3]->menu();    
-                                                    //17: language
-    pMenu->removeAction(pMenu->actions()[16]);      //16:    separator
+                                                    //18: language
+    pMenu->removeAction(pMenu->actions()[17]);      //17:    separator
+    pMenu->removeAction(pMenu->actions()[16]);      //16: Auto save background image
     pMenu->removeAction(pMenu->actions()[15]);      //15: Auto save before print
-    pMenu->removeAction(pMenu->actions()[14]);      //14: Auto save background image
+	pMenu->removeAction(pMenu->actions()[14]);      //14: Keep Changes
     pMenu->removeAction(pMenu->actions()[13]);      //13: Auto save data
                                                     //12:   separator
     pMenu->removeAction(pMenu->actions()[11]);      //11: Load Background Image 
@@ -209,7 +210,7 @@ QString FalconBoard::_NextUntitledName()
         {
             m = tabName.mid(UNTITLED.length()).toInt();
             QString qs = tabName.mid(UNTITLED.length());
-            qDebug("%s",tabName.mid(UNTITLED.length()).toLatin1());
+//            qDebug("%s",tabName.mid(UNTITLED.length()).toLatin1());
             n = m + 1;
         }
     }
@@ -315,6 +316,7 @@ void FalconBoard::RestoreState()
     _psbPenWidth->setValue(_penWidths[(int)penBlackOrWhite]); 
     
     ui.actionAutoSaveData->setChecked(s->value(AUTOSAVEDATA, false).toBool());
+	ui.actionKeepChangedNoAsking->setChecked(s->value(KEEPCHANGED, true).toBool());
     ui.actionAutoSaveBackgroundImage->setChecked(s->value(AUTOSBCKIMG, false).toBool());
     qs = s->value(BCKGIMG, QString()).toString();
     if (!qs.isEmpty())
@@ -489,6 +491,7 @@ void FalconBoard::SaveState()
                                                              .arg(_penWidths[6])
                                                              .arg(_penWidths[7]));
     s->setValue(AUTOSAVEDATA, ui.actionAutoSaveData->isChecked());
+    s->setValue(KEEPCHANGED, ui.actionKeepChangedNoAsking->isChecked());
     s->setValue(AUTOSBCKIMG, ui.actionAutoSaveBackgroundImage->isChecked());
     if (ui.actionAutoSaveBackgroundImage->isChecked())
 		s->setValue(BCKGIMG, _sImageName);
@@ -809,7 +812,7 @@ void FalconBoard::_AddSaveVisibleAsMenu()
 }
 
 
-bool FalconBoard::StopSnapshotTimerAndWaitForIt()
+bool FalconBoard::_StopSnapshotTimerAndWaitForIt()
 {
     bool res = _snapshotTimer.isActive();
     _snapshotTimer.stop();
@@ -842,7 +845,7 @@ bool FalconBoard::StopSnapshotTimerAndWaitForIt()
  *-------------------------------------------------------*/
 SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onTabClose)
 {
-    bool isTimerIsRunning = StopSnapshotTimerAndWaitForIt();  // svae timer state
+    bool isTimerIsRunning = _StopSnapshotTimerAndWaitForIt();  // save timer state
 
     _saveResult = srSaveSuccess;
 
@@ -932,6 +935,29 @@ SaveResult FalconBoard::_SaveFile(const QString name)   // returns: 0: cancelled
         _lastSaveName = name;
     }
     return _saveResult;
+}
+
+/*=============================================================
+ * TASK   : Saves snapshot in the background
+ * PARAMS :
+ * EXPECTS:
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS: - starts new thread to save snapshots
+ *          - state of save is checked in 'SlotSnapshotSaverFinished()'
+ *------------------------------------------------------------*/
+void FalconBoard::_StartSnapshotSaveThread()
+{
+    IntVector  modList = historyList.ModifiedItems();
+    if (modList.size())
+    {
+        _drawArea->SetSnapshotterState(true);           // before creating snapshotter is it important?
+        _pSnapshotter = new Snapshotter(this, modList);
+        _pSnapshotter->moveToThread(&_snapshotterThread);
+        connect(_pSnapshotter, &Snapshotter::SignalFinished, this, &FalconBoard::SlotSnapshotSaverFinished);
+        connect(&_snapshotterThread, &QThread::started, _pSnapshotter, &Snapshotter::SlotToSaveSnapshots);
+        _snapshotterThread.start();
+    }
 }
 
 bool FalconBoard::_SaveBackgroundImage()
@@ -1458,6 +1484,15 @@ void FalconBoard::_SetWindowTitle(QString qs)
     setWindowTitle(qs);
 }
 
+/*=============================================================
+ * TASK   : when the program closed either asks for save or
+ *          autosaves or keeps/saves snapshots of changed tabs
+ * PARAMS :
+ * EXPECTS:
+ * GLOBALS: actions, _pSnapshotter, _saveResult, _saveCount
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
 void FalconBoard::closeEvent(QCloseEvent* event)
 {
     emit  SignalToCloseServer();
@@ -1477,9 +1512,43 @@ void FalconBoard::closeEvent(QCloseEvent* event)
     bool bAuto = ui.actionAutoSaveData->isChecked();
     int n = -1;
     SaveResult sr = srSaveSuccess;
-    while (sr != srCancelled && _drawArea->SearchForModified(n))    // returned : n = (index of first modified after 'n') || 0
-        if ((sr = _SaveIfYouWant(--n, !bAuto, true)) == srSaveSuccess || sr == srNoNeedToSave)
-            savedTabs.push_back(n);
+
+    int waitCounter =0;
+
+	auto waitforsnapshot = [this]() -> int  // lambda for waiting for snapshot save
+		{
+            int i = 0;
+		    while (_pSnapshotter && i++ < 1000) // wait for snapshot save
+			    std::this_thread::sleep_for(30ms);
+			return i;
+		};
+#ifndef _VIEWER
+    if (ui.actionKeepChangedNoAsking->isChecked())
+    {
+		savedTabs = historyList.ModifiedItems();
+        waitCounter = waitforsnapshot();
+        if (waitCounter != 1000)
+        {
+            _StartSnapshotSaveThread();
+            waitCounter = waitforsnapshot();
+        }
+
+		if (waitCounter == 1000)
+        {
+            QMessageBox::warning(this, FB_WARNING, tr("Automatic snapshot save not finished in 30 seconds!\nPlease svae each changed files manually!\n\nAborting close."));
+			event->ignore();
+            return;
+        }
+    }
+    else
+#endif
+    {
+        while (sr != srCancelled && _drawArea->SearchForModified(n))    // returned : n = (index of first modified after 'n') || 0
+        {
+            if ((sr = _SaveIfYouWant(--n, !bAuto, true)) == srSaveSuccess || sr == srNoNeedToSave)
+                savedTabs.push_back(n);
+        }
+    }
     _saveCount = savedTabs.size();
 
     _saveResult = (sr != srCancelled ? srSaveSuccess :srCancelled);   // even when some was not saved
@@ -1873,7 +1942,7 @@ void FalconBoard::_SaveLastDirectory(QString fileName)
 #ifndef _VIEWER
 void FalconBoard::on_actionSave_triggered()
 {
-    bool wasRunning = StopSnapshotTimerAndWaitForIt();
+    bool wasRunning = _StopSnapshotTimerAndWaitForIt();
     QString fname = pHistory->Name();
     if (fname.isEmpty())
         on_actionSaveAs_triggered();
@@ -2582,16 +2651,7 @@ void FalconBoard::SlotForSnapshotTimer()
     if (_pSnapshotter)
         return;
     
-    IntVector  modList = historyList.ModifiedItems();
-    if (modList.size())
-    {
-        _drawArea->SetSnapshotterState(true);           // before creating snapshotter is it important?
-        _pSnapshotter = new Snapshotter(this, modList);
-        _pSnapshotter->moveToThread(&_snapshotterThread);
-        connect(_pSnapshotter, &Snapshotter::SignalFinished, this, &FalconBoard::SlotSnapshotSaverFinished);
-        connect(&_snapshotterThread, &QThread::started, _pSnapshotter, &Snapshotter::SlotToSaveSnapshots);
-        _snapshotterThread.start();
-    }
+    _StartSnapshotSaveThread();
 }
 void FalconBoard::SlotSnapshotSaverFinished()
 {

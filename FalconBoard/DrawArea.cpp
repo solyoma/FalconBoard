@@ -731,7 +731,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				{
 					step += ++cntRepetition / 5.0;
 
-					qDebug("%s:%d repetition:%d. Step:%g", __FILE__,__LINE__,cntRepetition,step);
+					// qDebug("%s:%d repetition:%d. Step:%g", __FILE__,__LINE__,cntRepetition,step);
 				}
 				switch (key)
 				{
@@ -961,7 +961,7 @@ void DrawArea::keyReleaseEvent(QKeyEvent* event)
 
 	if (!_totalMoves.isNull() && (!newmods.testFlag(Qt::ControlModifier) ) )
 	{
-		qDebug("%s:%d key up total:(%g,%g)", __FILE__, __LINE__, _totalMoves.x(), _totalMoves.y());
+		// qDebug("%s:%d key up total:(%g,%g)", __FILE__, __LINE__, _totalMoves.x(), _totalMoves.y());
 		pHistory->MoveItems(-_totalMoves, pHistory->SelectedDrawables());	// undo movement as reapplied when we add to history
 		pHistory->AddMoveItems(_totalMoves);
 		_totalMoves = QPointF();

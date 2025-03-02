@@ -67,7 +67,7 @@ enum DrawCursorShape { csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 enum SaveResult 
     { 
         srCancelled = -1, 
-        srFailed,           // write erro
+        srFailed,           // write error
         srSaveSuccess, 
         srNoNeedToSave,
         srNoSave            // user do not want it saved

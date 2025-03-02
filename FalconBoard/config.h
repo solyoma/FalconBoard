@@ -21,6 +21,7 @@ constexpr const char
 * SINGLE = "single",		// allow multiple program instances
 
 * AUTOSAVEDATA = "saved",// automatic save of changed documents on close
+* KEEPCHANGED = "keepChgs",	// keep changed documents on close
 * AUTOSBCKIMG = "saveb",	// automatic save of page background on close
 * AUTOSAVEPRINT = "saveonprint",	// auto save before print/ PDF
 

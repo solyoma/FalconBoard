@@ -188,8 +188,9 @@
     <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>
     <addaction name="actionAutoSaveData"/>
-    <addaction name="actionAutoSaveBackgroundImage"/>
+    <addaction name="actionKeepChangedNoAsking"/>
     <addaction name="actionAutoSaveBeforePrintOrExport"/>
+    <addaction name="actionAutoSaveBackgroundImage"/>
     <addaction name="separator"/>
     <addaction name="actionLanguages"/>
    </widget>
@@ -541,7 +542,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Auto Save Data</string>
+    <string>Autosave Data</string>
    </property>
    <property name="toolTip">
     <string>Automatic save of data at exit</string>
@@ -555,7 +556,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Auto Save Background Image</string>
+    <string>Autosave Background Image</string>
    </property>
    <property name="toolTip">
     <string>Save background image at exit automatically</string>
@@ -927,7 +928,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Auto Save Before Print/Export</string>
+    <string>Autosave Before Print/Export</string>
    </property>
    <property name="toolTip">
     <string>If not checked asks if you want to save modified documents</string>
@@ -975,10 +976,24 @@
   </action>
   <action name="actionAutocorrectTolerance">
    <property name="text">
-    <string>Auto correct tolerance...</string>
+    <string>Auto corr&amp;ect tolerance...</string>
    </property>
    <property name="toolTip">
     <string>Sets a limit in pixels to auto correct imperfect lines to perfect ones</string>
+   </property>
+  </action>
+  <action name="actionKeepChangedNoAsking">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Keep Changed</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not ask to save data, but&lt;/p&gt;&lt;p&gt;keep it for later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
  </widget>
