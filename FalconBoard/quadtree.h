@@ -10,7 +10,7 @@
 
 /*----------------------------------------------------------
 * Quadtree implementation for drawable and visible history items.
-*	Only pointers to visible hystory elements are stored in
+*	Only pointers to visible history elements are stored in
 *	this quad tree. Pointers stored here are ordered by z-order
 *	it must be done before display
 * Algorithm:
@@ -39,13 +39,14 @@
 * STL.
 * 
 * How to use:
-*	In class History add  to get area of item
+*	In class History add two functions. 
 * 		const QuadArea AreaForItem(int &)
-*	and determine equality of items:
+*	to get the area of an item and
 *		const bool AreEquals(HistoryItem &*p1, HistoryItem &*p2)
+*	to determine equality of items:
 * 
 *	In each History() constructor create a QuadTree for  
-*		the actual screen area and ading them these functions
+*		the actual screen area and ads these functions to them
 *	If a file is loaded into this history then after all is loaded
 *	add this to the Quad tree using the
 *	Also add items when the user adds a screenshot or a scribble.
