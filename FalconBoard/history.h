@@ -586,9 +586,7 @@ public: // functions
 
     HistoryItem* LastScribble() const;
     HistoryItem* operator[](int index);   // index: absolute index in _items
-    HistoryItem* operator[](int index) const { return _items[index]; }  // index: physical index in _items
     HistoryItem* operator[](DrawableItemIndex dri);   // index: absolute index
-    HistoryItem* operator[](DrawableItemIndex dri) const { return _items[dri.index]; }  // index: physical index in _items
 
     QPointF BottomRightLimit(QSize screenSize);      // returns bottom right coordinate of last visible item
 
