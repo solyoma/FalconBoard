@@ -1163,7 +1163,29 @@ SaveResult History::Save(bool asSnapshot)
 	for (int i = (int)penT2; i < PEN_COUNT; ++i)
 		drawColors.SavePen(ofs, (FalconPenKind)i);
 
-					  // drawables
+					  // save drawables
+#if 1
+	DrawableItemList drbl = _drawables.Items();		// get a copy of the actual state of the list, 
+													// so if it changes during saving it doesn't matter
+	QMap<int, DrawableItem*> drblMap;				// only visible, ordered by the unique zOrder
+													// zOrder is not saved explicitely
+	for (auto& pdrwi : drbl)
+	{
+		if (pdrwi->IsVisible())
+			drblMap.insert(pdrwi->zOrder, pdrwi);
+	}
+
+	for (auto& pdrwi : drbl)
+	{
+		if (pdrwi->IsVisible())
+			ofs << *pdrwi;
+		if (ofs.status() != QDataStream::Ok)
+		{
+			f.remove();
+			return srFailed;
+		}
+	}
+#else
 	QRectF area = _drawables.Area();
 	DrawableItem* phi = _drawables.FirstVisibleDrawable(area); // lowest in zOrder
 	while(phi)
@@ -1177,6 +1199,7 @@ SaveResult History::Save(bool asSnapshot)
 		}
 		phi = _drawables.NextVisibleDrawable();	// in increasing zOrder
 	}
+#endif
 					  // *********  saving finished ******** 
 	f.close();
 	if (QFile::exists(name + "~"))

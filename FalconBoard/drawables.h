@@ -983,6 +983,10 @@ public:
     DrawableList& operator=(const  DrawableList& other);
     DrawableList& operator=(DrawableList&& other)   noexcept;
 
+    DrawableItem* operator[](const DrawableItemIndex& drix) const;
+    // must redefine this 
+    DrawableItem* operator[](int ix) const;
+
     DrawableList& SetZorderStore(ZorderStore* pzorders = nullptr);
     DrawableList& SetQuadTreeDelegate(QuadTreeDelegate* pqtree);
 
@@ -1025,10 +1029,6 @@ public:
     DrawableItem* FirstVisibleDrawable(QRectF& r);  // smallest in zOrder
 
     DrawableItem* NextVisibleDrawable();  // smallest in zOrder
-
-    DrawableItem* operator[](const DrawableItemIndex& drix) const;
-    // must redefine this 
-    DrawableItem* operator[](int ix) const;
 
     void SetVisibility(DrawableItemIndex drix, bool visible);
     void SetVisibility(int index, bool visible);
