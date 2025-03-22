@@ -888,8 +888,11 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					emit DecreaseBrushSize(1); 
 					break;
 				case Qt::Key_F4: 
-					if(_mods.testFlag(Qt::ControlModifier))
+					if (_mods.testFlag(Qt::ControlModifier))
 						emit CloseTab(historyList.ActualHistory());
+					else if (_mods.testFlag(Qt::ShiftModifier))
+						emit SignalTakeScreenshot(false);	// w.out hiding this window
+					// F4 screenshot is handled in FalconBoard::on_action_Screenshot_triggered()
 					break;
 				case Qt::Key_Tab:
 				case Qt::Key_Backtab:

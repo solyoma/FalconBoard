@@ -27,13 +27,13 @@ Nem FalconBoard fájl</translation>
         <translation type="vanished">FalconBoard - Hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2290"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2293"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation>Erőforrás lefoglalási hiba. Nincs elég memória?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2293"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2296"/>
         <source>Can&apos;t find printer</source>
         <translation>Nem találom a nyomtatót</translation>
     </message>
@@ -47,22 +47,22 @@ Not enough memory?</source>
         <translation>Ezzel a tolllal a rajz a &quot;papíron&quot; kívül lenne</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2296"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2299"/>
         <source>Print error</source>
         <translation>Nyomtatási hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2299"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2302"/>
         <source>Print cancelled</source>
         <translation>Megszakítottad a nyomtatást</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2879"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2882"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 | Kijelölés: x:%6, y:%7, szél.:%8, mag.:%9</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2885"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2888"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 </translation>
     </message>
@@ -70,43 +70,43 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="626"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="627"/>
         <source>%1...</source>
         <translation>%1...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="678"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="679"/>
         <source>Pen Width:</source>
         <translation>Toll vastagság:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="692"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="693"/>
         <source>Grid size:</source>
         <translation>Rács mérete:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="761"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="762"/>
         <source>Falconboard - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="761"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="762"/>
         <source>Too many open files</source>
         <translation>Túl sok fájl - nem tudok többet megnyitni</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="885"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="886"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation>&lt;i&gt;%1&lt;/i&gt; megváltozott. Elmentsem a változásokat?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1442"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1443"/>
         <source>C&amp;lear list</source>
         <translation>Lista &amp;Törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1538"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1539"/>
         <source>Automatic snapshot save not finished in 30 seconds!
 Please svae each changed files manually!
 
@@ -116,7 +116,7 @@ Kérlek mentsed el a változásokat!
 A program bezárása elhalasztva.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1674"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1675"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
@@ -127,120 +127,120 @@ A program bezárása elhalasztva.</translation>
  Ezt bármikor megváltoztathatod a &lt;i&gt;Lehetőségek/Lapszélesség korlátozása&lt;/i&gt; menüben.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1681"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1682"/>
         <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
  You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
         <translation>Lekorlátozzam a lap vízszintes méretét a&apos; Lapbeállítás&apos; menüben megadott szélességre?
 Ezt bármikor megváltoztathatod a &apos;Lehetőségek/Lapszélesség korlátozása&apos;  menüben</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1695"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1696"/>
         <source>FalconBoard - Import</source>
         <translation>FalconBoard - Importálás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1768"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1769"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1774"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1775"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation>Valószínűleg túl sok fájlt próbáltál megnyitni! Csak az első %1 darab még nem betöltött fájlt lehet betölteni.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1830"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1999"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1831"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2000"/>
         <source>Load Data</source>
         <translation>Adatok betöltése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1832"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2001"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1833"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2002"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation>FalconBoard fájl (*.mwb);;Minden fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1875"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1876"/>
         <source>FalconBoard - Go to Page</source>
         <translation>FalconBoard - Ugrás adott oldalra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1875"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1876"/>
         <source>Page:</source>
         <translation>Oldal:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1981"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1982"/>
         <source>This file path name is already used for another open document.
 Please enter a different one</source>
         <translation>Egy ilyen elérési útvonalú fájl már szerepel a megnyitottak között\nVálassz egy másik nevet légy szíves</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2053"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2054"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation>Nyilt forráskódú tantermi tábla alkalmazás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2055"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2056"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt;&lt;p&gt;A QuadTree kódot innen vettem:&lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2258"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2259"/>
         <source>FalconBoard - settings</source>
         <translation>FalconBoard - auto javítás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2258"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2259"/>
         <source>Autocorrect tolerance in pixels</source>
         <translation>Automatikus korrekciók toleranciája  pixelben</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2633"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2642"/>
         <source>export</source>
         <translation>export</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1980"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1981"/>
         <source>FalconBoard - Warning</source>
         <oldsource>FalconG - Warning</oldsource>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1927"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1928"/>
         <source>Please restart the program to change the language!</source>
         <translation>Indítsd újra programot a nyelvváltáshoz!</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1968"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2038"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1969"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2039"/>
         <source>Save As</source>
         <translation>Mentés másként</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1969"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1970"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation>FalconBoard fájlok (*.mwb);; Mindenl Fájl (*))</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2016"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2017"/>
         <source>Open Background Image</source>
         <translation>Háttérkép megnyitása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2040"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2041"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation>%1 Fájlok (*.%2);;Mindenl Fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2052"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2053"/>
         <source>About FalconBoard</source>
         <translation>FalconBoard - Névjegy</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2054"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2055"/>
         <source>&lt;p&gt;Version </source>
         <translation>&lt;p&gt;Verzió </translation>
     </message>
@@ -249,22 +249,22 @@ Please enter a different one</source>
         <translation type="obsolete">&lt;p&gt;© A. Sólyom (2020-21)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt; {2020)?}</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2213"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2214"/>
         <source>falconBoard - Grid spacing</source>
         <translation>FalconBoard - rácsméret</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2214"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2215"/>
         <source>Spacing in pixels:</source>
         <translation>A távolság pixelben:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="194"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="195"/>
         <source>print</source>
         <translation>nyomtatás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="358"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="359"/>
         <source>Do you want to save the document before %1?
 
 (You may set automatic save in the Options menu.)</source>
@@ -272,7 +272,7 @@ Please enter a different one</source>
 (Az Opciók menüben beállíthatod az automatikus mentést.)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="360"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="361"/>
         <source>FalconBoard - Question</source>
         <translation>FalconBoard - kérdés</translation>
     </message>
@@ -1270,8 +1270,12 @@ Egyébként a fájl a már futó peogramba töltődik be</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="344"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Show this help&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5, 6, 7 - &lt;/span&gt;Select Pen color, &lt;span style=&quot; font-weight:600;&quot;&gt;E - &lt;/span&gt;Select Eraser&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt; - Put a cross at the actual cursor position&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Brace keys &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;][&lt;/span&gt;) - increase / decrease pen size&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; - Clear whole document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N - &lt;/span&gt;Create new document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O - &lt;/span&gt;Open document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; - Print document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4/Shift+F4&lt;/span&gt; - Take a snapshot of a screen area behind/including&lt;span style=&quot; font-style:italic;&quot;&gt; FalconBoard&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Súgó&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5, 6, 7 &lt;/span&gt;toll szín kiválasztása,&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;E &lt;/span&gt;Radír kiválasztása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X / . (pont) &lt;/span&gt;Egy X / pont rajzolása a pillanatnyi pozícióba&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Szögletes zárójelek&lt;/span&gt; (&lt;span style=&quot; font-weight:600;&quot;&gt; ] [&lt;/span&gt;) Toll méret növelése csökkentése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; Egész dokumentum kitörlése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N &lt;/span&gt;Új dokumentum létrehozása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O &lt;/span&gt;Dokumentum megnyitása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; Nyomtatás&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4/Shift+F4 &lt;/span&gt; Falconboard nélküli/azt is tartalmazó képernyő-tartomány fotó készítése &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Show this help&lt;br/&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5, 6, 7 - &lt;/span&gt;Select Pen color, &lt;span style=&quot; font-weight:600;&quot;&gt;E - &lt;/span&gt;Select Eraser&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt; - Put a cross at the actual cursor position&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Brace keys &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;][&lt;/span&gt;) - increase / decrease pen size&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; - Clear whole document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N - &lt;/span&gt;Create new document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O - &lt;/span&gt;Open document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; - Print document&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4&lt;/span&gt; - Take a snapshot of a screen area behind&lt;span style=&quot; font-style:italic;&quot;&gt; FalconBoard&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Súgó&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5, 6, 7 &lt;/span&gt;toll szín kiválasztása,&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;E &lt;/span&gt;Radír kiválasztása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X &lt;/span&gt;Egy X rajzolása a pillanatnyi pozícióba&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Szögletes zárójelek&lt;/span&gt; (&lt;span style=&quot; font-weight:600;&quot;&gt; ] [&lt;/span&gt;) Toll méret növelése csökkentése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; Egész dokumentum kitörlése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N &lt;/span&gt;Új dokumentum létrehozása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O &lt;/span&gt;Dokumentum megnyitása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; Nyomtatás&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4 &lt;/span&gt; Képernyő-tartomány fotó készítése&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="vanished">&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F1&lt;/span&gt; Súgó&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5, 6, 7 &lt;/span&gt;toll szín kiválasztása,&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;E &lt;/span&gt;Radír kiválasztása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X &lt;/span&gt;Egy X rajzolása a pillanatnyi pozícióba&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Szögletes zárójelek&lt;/span&gt; (&lt;span style=&quot; font-weight:600;&quot;&gt; ] [&lt;/span&gt;) Toll méret növelése csökkentése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;Del&lt;/span&gt; Egész dokumentum kitörlése&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;N &lt;/span&gt;Új dokumentum létrehozása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;O &lt;/span&gt;Dokumentum megnyitása&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl/Command&lt;/span&gt; + &lt;span style=&quot; font-weight:600;&quot;&gt;P&lt;/span&gt; Nyomtatás&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F4 &lt;/span&gt; Képernyő-tartomány fotó készítése&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="372"/>
@@ -1991,7 +1995,7 @@ El akarod menteni a változtatásokat?</translation>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="807"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="808"/>
         <source>Save Visi&amp;ble As...</source>
         <translation>&amp;Látható mentése más néven...</translation>
     </message>

@@ -155,6 +155,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &FalconBoard::SlotForRubberBandSelection);
     connect(this, &FalconBoard::SignalPenColorChanged, _drawArea, &DrawArea::SlotForPenColorRedefined);
     connect(_drawArea, &DrawArea::SignalPenColorChanged, this, &FalconBoard::SlotForPenColorChanged);   // set action icon for it from 'globalColors'
+	connect(_drawArea, &DrawArea::SignalTakeScreenshot, this, &FalconBoard::SlotTakeScreenshot);
 #endif
     connect(_drawArea, &DrawArea::SignalSetGrid, this, &FalconBoard::SlotToSetGrid);
     connect(this, &FalconBoard::SignalGridSpacingChanged, _drawArea, &DrawArea::SlotForGridSpacingChanged);
@@ -2379,7 +2380,7 @@ void FalconBoard::on_actionXToCenterPoint_triggered()
     _drawArea->SynthesizeKeyEvent(Qt::Key_X);
 }
 
-void FalconBoard::on_action_Screenshot_triggered()
+void FalconBoard::_DoScreenshot(bool doHide)
 {
     QScreen* screen = QGuiApplication::primaryScreen();
     if (!screen)
@@ -2389,14 +2390,22 @@ void FalconBoard::on_action_Screenshot_triggered()
     _pSnipper->setGeometry(screen->geometry());
     _ConnectScreenshotLabel();
 
-    hide();
+	if (doHide)
+        hide();
 
     QThread::msleep(300);
 
     _pSnipper->setPixmap(screen->grabWindow(0));
 
-    show();
+	if (doHide)
+        show();
     _pSnipper->show();
+}
+
+
+void FalconBoard::on_action_Screenshot_triggered()
+{
+    _DoScreenshot(true);
 }
 
 void FalconBoard::on_actionScreenshotTransparency_triggered()
@@ -2660,6 +2669,10 @@ void FalconBoard::SlotSnapshotSaverFinished()
     delete _pSnapshotter;
     _pSnapshotter = nullptr;
     _drawArea->SetSnapshotterState(false);
+}
+void FalconBoard::SlotTakeScreenshot(bool hideThisWindow)
+{
+	_DoScreenshot(hideThisWindow);
 }
 #endif
 

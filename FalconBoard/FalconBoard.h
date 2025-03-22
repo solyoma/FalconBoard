@@ -186,6 +186,7 @@ private slots:
 #ifndef _VIEWER
 	void SlotForSnapshotTimer();
 	void SlotSnapshotSaverFinished();
+	void SlotTakeScreenshot(bool hideThisWindow);
 #endif
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() 
@@ -368,6 +369,8 @@ private:
 	QString _NextUntitledName();
 
 	void _AddSaveVisibleAsMenu();
+
+	void _DoScreenshot(bool hide);	// if hide is true this window will be hidden before screenshot taken
 
 	SaveResult _saveResult = srSaveSuccess;	// because save as slot can't return a value
 	int _saveCount = 0;						// this many documents saved

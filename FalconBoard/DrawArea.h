@@ -182,6 +182,7 @@ signals:
     void TabSwitched(int direction);
     void SignalSetGrid(bool on, bool fixed, uint16_t value);
     void SignalPenColorChanged();   // new pens already in global 'drawColors'
+	void SignalTakeScreenshot(bool hideThisWindow);
 
 public slots:
     void NewData();
