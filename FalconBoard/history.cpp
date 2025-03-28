@@ -840,6 +840,27 @@ int HistoryPenColorChangeItem::Redo()
 	return 1;
 }
 
+
+//****************** HistoryRubberBandItem ****************
+HistoryRubberBandItem::HistoryRubberBandItem(History* pHist, QRectF r) : rect(r), HistoryItem(pHist, HistEvent::heRubberBand)
+{
+}
+
+HistoryRubberBandItem::HistoryRubberBandItem(const HistoryRubberBandItem& o) : rect(o.rect), HistoryItem(o)
+{
+}
+
+int HistoryRubberBandItem::Undo()
+{
+	return 0;
+}
+
+int HistoryRubberBandItem::Redo()
+{
+	return 0;
+}
+
+
 //********************************** History class ****************************
 History::History(HistoryList* parent) noexcept: _parent(parent) 
 { 
@@ -1797,6 +1818,12 @@ HistoryItem* History::AddScreenShotTransparencyToLoadedItems(QColor trColor, qre
 {
 	HistorySetTransparencyForAllScreenshotsItems* psta = new HistorySetTransparencyForAllScreenshotsItems(this, trColor, fuzzyness);
 	return _AddItem(psta);
+}
+
+HistoryItem* History::AddRubberBand(QRectF rect)
+{
+	HistoryRubberBandItem* phrb = new HistoryRubberBandItem(this, rect);
+	return _AddItem(phrb);
 }
 
 void History::ReplaceLastItemWith(DrawableItem& di)

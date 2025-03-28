@@ -51,6 +51,8 @@ enum class HistEvent {
     heRotation,             // items rotated
     heSpaceDeleted,         // empty space is deleted
     heVertSpace,            // insert vertical space
+	heRubberBand,           // rubber band is shown set only when established, add a new one when sprite is dropped
+                            // remove it when paste items is undone TODO
                 };
 
 enum class DrawableType : int {

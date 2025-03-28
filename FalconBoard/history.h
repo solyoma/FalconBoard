@@ -406,6 +406,23 @@ struct HistoryPenColorChangeItem : public HistoryItem
     int Redo() override;
 };
 
+            //--------------------------------------------
+			//      HistoryRubberBandItem
+            //--------------------------------------------
+struct HistoryRubberBandItem : public HistoryItem
+{
+	QRectF rect;
+	HistoryRubberBandItem(History* pHist, QRectF r);
+	HistoryRubberBandItem(const HistoryRubberBandItem& o);
+	HistoryRubberBandItem& operator=(const HistoryRubberBandItem& o);
+	int Undo() override;
+	int Redo() override;
+	QPointF TopLeft() const override { return rect.topLeft(); }
+};
+
+//--------------------------------------------
+//      HistoryCanvasMoveItem
+//--------------------------------------------;
 // ******************************************************
 class History;
         // declare here so that CopySelected can use it, but 
@@ -607,6 +624,7 @@ public: // functions
     HistoryItem* AddRotationItem(MyRotation rot);
     HistoryItem* AddRemoveSpaceItem(QRectF &rect);
     HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
+	HistoryItem* AddRubberBand(QRectF rect);
 // --------------------- replace Item -----------------------------------
     void ReplaceLastItemWith(DrawableItem& di);
 // --------------------- drawing -----------------------------------
