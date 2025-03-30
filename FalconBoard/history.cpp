@@ -860,6 +860,56 @@ int HistoryRubberBandItem::Redo()
 	return 0;
 }
 
+//****************** HistoryZoomItem ****************
+HistoryZoomItem::HistoryZoomItem(History* pHist, QRectF r, bool zoomIn, int steps) : zoomIn(zoomIn), zoomedRect(r), steps(steps),HistoryItem(pHist, HistEvent::heZoom)
+{
+	zoomedItemsList = pHist->SelectedDrawables();
+	_SetZoomedRectangle();
+}
+
+HistoryZoomItem::HistoryZoomItem(const HistoryZoomItem& o) : HistoryItem(o)
+{
+	zoomIn = o.zoomIn;
+	zoomedRect = o.zoomedRect;
+	zoomedItemsList = o.zoomedItemsList;
+}
+
+HistoryZoomItem& HistoryZoomItem::operator=(const HistoryZoomItem& o)
+{
+	zoomIn = o.zoomIn;
+	zoomedRect = o.zoomedRect;
+	zoomedItemsList = o.zoomedItemsList;
+	return *this;
+}
+
+int HistoryZoomItem::Undo()
+{
+	for (auto& ix : zoomedItemsList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(ix);
+		pdrwi->Zoom(!zoomIn, zoomedRect.center(), steps);
+	}
+	return 0;
+}
+
+int HistoryZoomItem::Redo()
+{
+
+	for (auto& ix : zoomedItemsList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(ix);
+		pdrwi->Zoom(zoomIn, zoomedRect.center(), steps);
+	}
+	return 0;
+}
+
+void HistoryZoomItem::_SetZoomedRectangle()
+{
+	DrawableRectangle* pdr = new DrawableRectangle(zoomedRect, -1, penBlackOrWhite, 1, false);
+	pdr->Zoom(zoomIn, zoomedRect.center(), steps);
+	zoomedRect = pdr->Area();
+}
+
 
 //********************************** History class ****************************
 History::History(HistoryList* parent) noexcept: _parent(parent) 
@@ -1824,6 +1874,12 @@ HistoryItem* History::AddRubberBand(QRectF rect)
 {
 	HistoryRubberBandItem* phrb = new HistoryRubberBandItem(this, rect);
 	return _AddItem(phrb);
+}
+
+HistoryItem* History::AddZoomItem(QRectF rect, bool zoomIn, int steps)
+{
+	HistoryZoomItem* phzi = new HistoryZoomItem(this, rect, zoomIn, steps);
+	return _AddItem(phzi);
 }
 
 void History::ReplaceLastItemWith(DrawableItem& di)

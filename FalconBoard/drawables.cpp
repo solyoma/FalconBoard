@@ -200,6 +200,276 @@ QBitmap MyCreateMaskFromColor(QPixmap& pixmap, QColor color, qreal fuzzyness, Qt
 
 }
 
+
+/* *********************** MyZoom ********************/
+
+// static members and functions
+constexpr const int MyZoom::maxZoomLevel = 10;
+bool MyZoom::initted = false;
+QVector<qreal> MyZoom::zoomFactors;  // zoom in and out factors
+double MyZoom::dFactor = 1.05;  // zoom in step, zoom out is 1/dFactor
+
+qreal MyZoom::ZoomFactor(int level) const
+{ 
+	return zoomFactors[(zoomDirection >= 0 ? level : level + maxZoomLevel)-1]; 
+}
+/*
+*  the 'zoomFactor' array holds the powers of the zoom coefficient 'dFactor'
+*  zoomFactors[0] is the first zoomed state, items till .. (maxZoomLevel-1) are for zooming in, 
+*  items maxZoomLevel .. (2*maxZoomLevel-1) are for zooming out
+*  The zoom centers are stored in 'oRefPoints' and the original data in 'oPoints', 'oRect', 'oRData' and 'oPixmap'
+*  The x coordinate of a point with the initial coordinate x0 zoomed n-times is
+*    (using A[0] instead of 'dFactor' and A[n] for zoomFactors[n], the zoom factor and C[n] for oRefPoints[n].x() ):
+*    x = x0 * A^n + (A^n-A)*C[n] + (A^(n-1)- A)*C[n-1] + ... + (A - A)*C[1] + C[0]
+*/
+
+// functions
+MyZoom::MyZoom()
+{
+	_Init();
+}
+
+MyZoom::MyZoom(const MyZoom& o) : pOwnerItem(pOwnerItem), oRefPoints(oRefPoints), oPoints(o.oPoints	), oPixmap(o.oPixmap)
+{
+	_Init();
+}
+
+MyZoom& MyZoom::operator=(const MyZoom& o)
+{
+	pOwnerItem	= o.pOwnerItem;
+	oRefPoints	= o.oRefPoints;
+	oPoints		= o.oPoints	;
+	oPixmap		= o.oPixmap	;
+	return *this;
+}
+
+MyZoom::MyZoom(MyZoom&& o) noexcept
+{
+	_Init();
+	*this = std::move(o);
+}
+
+MyZoom& MyZoom::operator=(MyZoom&& o) noexcept
+{
+	pOwnerItem = o.pOwnerItem;
+	oRefPoints = std::move(o.oRefPoints);
+	oPoints = std::move(o.oPoints);
+	oPixmap = std::move(o.oPixmap);
+	return *this;
+}
+
+
+QPointF MyZoom::_ZoomPoint(const QPointF& p) const		  // to 'level'-th level
+{
+	if (!level)
+		return p;	
+	int ix = (zoomDirection >= 0 ? level : level + maxZoomLevel)-1;
+	QPointF p1 = p * ZoomFactor(ix);
+	for (int i = ix - 1; i >= 0; --i)
+		p1 += (ZoomFactor(i) - dFactor) * oRefPoints[i];
+
+	return p1;
+}
+
+void MyZoom::Reset()    // parameters but not the base data 
+{
+	level = 0;
+	zoomDirection = 0;
+}
+void MyZoom::_SetupCommon(DrawableItem* pdri)
+{
+	Reset();
+	pOwnerItem = pdri;
+	oRefPoints.clear();
+	oPoints.clear();
+	oPixmap = QPixmap();
+}
+
+void MyZoom::_SetFromOriginalData()
+{
+	oPoints.push_back(pOwnerItem->refPoint);
+
+	switch (pOwnerItem->dtType)
+	{
+		case DrawableType::dtCross:
+			{
+				DrawableCross* pCross = dynamic_cast<DrawableCross*>(pOwnerItem);
+				if (pCross)
+					oPoints.push_back(QPointF(pCross->length, pCross->length));
+			}
+			break;
+		case DrawableType::dtEllipse:
+			{
+				DrawableEllipse* pEllipse = dynamic_cast<DrawableEllipse*>(pOwnerItem);
+				if (pEllipse)
+				{
+					oPoints.push_back(pEllipse->rect.topLeft());
+					oPoints.push_back(pEllipse->rect.bottomRight());
+				}
+			}
+			break;
+		case DrawableType::dtScreenShot:
+			{
+				DrawableScreenShot* pScreenShot = dynamic_cast<DrawableScreenShot*>(pOwnerItem);
+				if (pScreenShot)
+					oPixmap = pScreenShot->Image(true);	// original, non rotated image
+			}
+		case DrawableType::dtLine:
+			{
+				DrawableLine* pLine = dynamic_cast<DrawableLine*>(pOwnerItem);
+				if (pLine)
+					oPoints.push_back(pLine->endPoint);
+			}
+			break;
+		case DrawableType::dtRectangle:
+			{
+				DrawableRectangle* pRect = dynamic_cast<DrawableRectangle*>(pOwnerItem);
+				if (pRect)
+				{
+					oPoints.push_back(pRect->rect.topLeft());
+					oPoints.push_back(pRect->rect.bottomRight());
+				}
+			}
+			break;
+		case DrawableType::dtScribble:
+			{
+				DrawableScribble* pScribble = dynamic_cast<DrawableScribble*>(pOwnerItem);
+				if (pScribble)
+					oPoints += pScribble->points;
+			}
+			break;
+		default:
+			break;
+	}
+}
+
+void MyZoom::Setup(DrawableItem* pOwnerItem)
+{
+	_SetupCommon(pOwnerItem);		 // original reference point is saved
+	_SetFromOriginalData();
+}
+
+bool MyZoom::CanZoom(bool zoomIn, const QPointF center, int steps)
+{
+	QRectF rect = pOwnerItem->Area();
+	rect = QRectF(_ZoomPoint(rect.topLeft()), _ZoomPoint(rect.bottomRight()));
+	if (rect.x() < 0 || rect.y() < 0)
+		return false;
+	return true;
+}
+
+void MyZoom::_SetupZoomData(bool zoomIn, const QPointF center, int steps)
+{
+	int zoomDir = (zoomIn ? 1 : -1);
+	if (!zoomDirection)  // no zoom yet and level is 0, factor is 1.0
+		zoomDirection = zoomDir;
+
+	if (zoomDirection == zoomDir)  // zoom in the same direction
+	{
+		if ((level += steps) > maxZoomLevel) 
+			level = maxZoomLevel;
+	}
+	else        // zoom in the opposite direction           
+	{
+		level -= steps;  // this many steps in the other direction
+		if (!level)
+			Reset();
+		else
+		{
+			if (level < 0)                  // zoom changes direction
+			{
+				level -= level;
+				zoomDirection = zoomDir = -zoomDir;
+			}
+		}
+	}
+}
+
+void MyZoom::_PerformZoom()
+{
+	pOwnerItem->refPoint = _ZoomPoint(oPoints[0]);
+	switch (pOwnerItem->dtType)
+	{
+		case DrawableType::dtCross:
+			{
+				DrawableCross* pCross = dynamic_cast<DrawableCross*>(pOwnerItem);
+				QPointF pt = _ZoomPoint(oPoints[1]);
+				if (pCross)
+					pCross->length = pt.x();
+			}
+			break;
+		case DrawableType::dtEllipse:
+			{
+				QPointF tl = _ZoomPoint(oPoints[1]), br = _ZoomPoint(oPoints[2]);
+				DrawableEllipse* pEllipse = dynamic_cast<DrawableEllipse*>(pOwnerItem);
+				if (pEllipse)
+					pEllipse->rect = QRectF(tl, br);
+			}
+			break;
+		case DrawableType::dtScreenShot:	// handle in DrawableScreenShot::Zoom
+			//{
+			//	DrawableScreenShot* pScreenShot = dynamic_cast<DrawableScreenShot*>(pOwnerItem);
+			//	if (pScreenShot)
+			//		pScreenShot->SetImage(oPixmap);	// original, non rotated image
+			//}
+			break;
+		case DrawableType::dtLine:
+			{
+				DrawableLine* pLine = dynamic_cast<DrawableLine*>(pOwnerItem);
+				if (pLine)
+					pLine->endPoint = _ZoomPoint(oPoints[1]);
+			}
+			break;
+		case DrawableType::dtRectangle:
+			{
+				QPointF tl = _ZoomPoint(oPoints[1]), br = _ZoomPoint(oPoints[2]);
+				DrawableRectangle* pRect = dynamic_cast<DrawableRectangle*>(pOwnerItem);
+				if (pRect)
+					pRect->rect = QRectF(tl, br);
+			}
+		break;
+		case DrawableType::dtScribble:
+			{
+				DrawableScribble* pScribble = dynamic_cast<DrawableScribble*>(pOwnerItem);
+				if (pScribble)
+				{
+					for (int i =0; i < oPoints.size(); ++i)
+						pScribble->points[i] = _ZoomPoint(oPoints[i]);
+				}
+			}
+		break;
+		default:
+			break;
+	}
+}
+
+void MyZoom::_Init()
+{
+	if (!initted)
+	{
+		zoomFactors.resize(2 * maxZoomLevel + 1);
+
+
+		zoomFactors[0] = dFactor;
+		zoomFactors[maxZoomLevel] = 1.0 / dFactor;
+		for (int i = 1; i < maxZoomLevel; ++i)
+		{
+			zoomFactors[i] = zoomFactors[i - 1] * dFactor;
+			zoomFactors[maxZoomLevel + i] = 1.0 / zoomFactors[i];
+		}
+		initted = true;
+	}
+}
+
+
+int MyZoom::Zoom(bool zoomIn, const QPointF center, int steps) //  returns next level
+{
+	_SetupZoomData(zoomIn, center, steps);
+	_PerformZoom();
+	return level;
+}
+
+
 /* *********************** MyRotation ********************/
 
 constexpr qreal MyRotation::AngleForType(Type myrot)
@@ -508,8 +778,6 @@ void DrawablePen::SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, 
 	// painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
 	painter->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform, true);
 }
-			
-
 
 // -----------------------------------------------------------------
 //									DrawableItem
@@ -815,6 +1083,14 @@ bool DrawableCross::Rotate(MyRotation arot, QPointF center)
 		return true;
 	}
 	return false;
+}
+
+void DrawableCross::Zoom(bool zoomIn, QPointF center, int steps)
+{
+	QPolygonF p;
+	p << QPointF(length, 0);
+	DrawableItem::Zoom(zoomIn, center, steps);
+	length = p[0].x();
 }
 
 void DrawableCross::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR)

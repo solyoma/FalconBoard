@@ -407,6 +407,30 @@ struct HistoryPenColorChangeItem : public HistoryItem
 };
 
             //--------------------------------------------
+			//      HistoryZoomItem
+            // increase coorindates of marked items by 
+            // a given factor, but not changing the line widths
+			// from the center point of the zoomed area
+            // can't zoom outside the "paper"
+            //--------------------------------------------
+struct HistoryZoomItem : public HistoryItem
+{
+	QRectF zoomedRect;      // this rectangle containes the items after zoom
+                            // items may be zoomed already
+							// and the center of the zoom is the center of this rectangle
+	DrawableIndexVector zoomedItemsList;    // these items are zoomed
+	bool zoomIn;                            // in this direction
+    int steps;
+	HistoryZoomItem(History* pHist, QRectF r, bool zoomIn, int steps);
+	HistoryZoomItem(const HistoryZoomItem& o);
+	HistoryZoomItem& operator=(const HistoryZoomItem& o);
+	int Undo() override;
+	int Redo() override;
+private:
+	void _SetZoomedRectangle();
+};
+
+            //--------------------------------------------
 			//      HistoryRubberBandItem
             //--------------------------------------------
 struct HistoryRubberBandItem : public HistoryItem
@@ -417,7 +441,6 @@ struct HistoryRubberBandItem : public HistoryItem
 	HistoryRubberBandItem& operator=(const HistoryRubberBandItem& o);
 	int Undo() override;
 	int Redo() override;
-	QPointF TopLeft() const override { return rect.topLeft(); }
 };
 
 //--------------------------------------------
@@ -625,6 +648,7 @@ public: // functions
     HistoryItem* AddRemoveSpaceItem(QRectF &rect);
     HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
 	HistoryItem* AddRubberBand(QRectF rect);
+	HistoryItem* AddZoomItem(QRectF rect, bool zoomIn, int steps);   // from the center of the rubberRect rectangle 'rect'
 // --------------------- replace Item -----------------------------------
     void ReplaceLastItemWith(DrawableItem& di);
 // --------------------- drawing -----------------------------------

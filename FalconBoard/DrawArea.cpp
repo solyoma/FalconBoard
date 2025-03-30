@@ -674,7 +674,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				bBracketKey = (key == Qt::Key_BracketLeft || key == Qt::Key_BracketRight),
 				bRemove = (bDelete || bCopy || bCut || bPaste) ||
 					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
-					key != Qt::Key_F7 &&  key != Qt::Key_Space && !bMovementKeys),
+					key != Qt::Key_F7 &&  key != Qt::Key_Space && key != Qt::Key_Plus && key != Qt::Key_Minus && !bMovementKeys),
 				bCollected = pHistory->SelectedSize(),
 				bRecolor = (key >= Qt::Key_1 && key <= Qt::Key_7),
 
@@ -871,6 +871,29 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				 if(!_erasemode)
 					pHistory->AddToSelection(-1);
 				update();
+			}
+			else if(_mods.testFlag(Qt::ControlModifier) && (key == Qt::Key_Plus || key == Qt::Key_Minus))	// zoom in or out
+			{
+				bool zoomIn = key == Qt::Key_Plus ? true:false;
+				bool canZoom = true;
+				QRectF r = _rubberRect.translated(_topLeft);
+				pHistory->CollectDrawablesInside(r); // into pHist->_driSelectedDrawables
+				for (auto& dri : pHistory->SelectedDrawables())
+				{
+					if (!pHistory->Drawable(dri)->zoom.CanZoom(zoomIn, r.center(), 1))
+					{
+						canZoom = false;
+						break;
+					}
+				}
+				if (canZoom)
+				{
+					HistoryZoomItem* pdz = (HistoryZoomItem*)pHistory->AddZoomItem(_rubberRect.translated(_topLeft), zoomIn, 5);
+					_rubberRect = pdz->zoomedRect.translated(-_topLeft);
+					_rubberBand->setGeometry(_rubberRect.toRect());
+					_Redraw();
+				}
+
 			}
 			else if (bRemove)			   // delete rubberband for any keypress except pure modifiers  or space bar
 				HideRubberBand(true);

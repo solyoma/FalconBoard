@@ -52,6 +52,7 @@ enum class HistEvent {
     heSpaceDeleted,         // empty space is deleted
     heVertSpace,            // insert vertical space
 	heRubberBand,           // rubber band is shown set only when established, add a new one when sprite is dropped
+	heZoom,                 // zoom in or out all itemms in rubberRect
                             // remove it when paste items is undone TODO
                 };
 
@@ -97,9 +98,57 @@ bool IsItemsEqual(const int& i1, const int& i2);
 QuadArea AreaForQRect(QRectF rect);
 
             //----------------------------------------------------
+            // ------------------- MyZoom::Type -------------
+            // expects only zooming in or out in steps
+            // If you zoomed n times you will unzoom max n times
+			// before the orignal state is reached
+            //----------------------------------------------------
+
+struct DrawableItem;
+
+struct MyZoom
+{
+	static const int maxZoomLevel;
+    static bool initted;
+	static QVector<qreal> zoomFactors;  // zoom in and out factors
+	static double dFactor;  // zoom in step, zoom out step is 1/dFactor
+	qreal ZoomFactor(int level) const;
+
+	int zoomDirection = 0;  // 1: zoom in, -1: zoom out 0: no zoom
+	int level = 0;          // zoomed this many times from the original state
+    DrawableItem* pOwnerItem = nullptr;
+
+                            // when a shape is zoomed in or out its points are 
+                            // always calculated from these stored data
+    QPolygonF oRefPoints;   // zoom relative to these reference points
+    QPolygonF oPoints;      // original points 0-th item is always the 'refPoint'
+                            // followed by
+	                        //  2 points of 'rect'  for ellipse and rectangle (topLeft, bottomRight)
+	                        //  1 point both coordinates are length of cross
+	QPixmap   oPixmap;      // original, non rotated pixmap for screen shots
+
+    MyZoom();
+	MyZoom(const MyZoom& o);
+	MyZoom& operator=(const MyZoom& o);
+	MyZoom(MyZoom&& o) noexcept;
+	MyZoom& operator=(MyZoom&& o) noexcept;
+
+    void Reset();    // parameters but not the base data 
+    void Setup(DrawableItem *pOwnerItem);
+    bool CanZoom(bool zoomIn, const QPointF center, int steps = 1);
+    int  Zoom(bool zoomIn, const QPointF center, int steps = 1); //  returns next level
+private:
+    QPointF _ZoomPoint(const QPointF& p) const;
+    void _SetupCommon(DrawableItem* pdri);
+    void _SetFromOriginalData();
+    void _SetupZoomData(bool zoomIn, const QPointF center, int steps);
+    void _PerformZoom();
+    void _Init();
+};
+            //----------------------------------------------------
             // ------------------- MyRotation::Type -------------
             //----------------------------------------------------
-// Rotations and flips are not kommutative. However a flip followed by a rotation
+// Rotations and flips are not commutative. However a flip followed by a rotation
 // with an angle is the same as a rotation of -1 times the angle followed by the same
 // flip. each flip is its own inverse and two different consecutive flips are
 // equivalent to a rotation with 180 degrees 
@@ -227,6 +276,7 @@ struct DrawableItem : public DrawablePen
     QPointF refPoint;       // position of reference point relative to logical (0,0) of 'paper roll' 
                             // (widget coord: topLeft + DrawArea::_topLeft is used) 
                             // May be the first point or top left of area or the center point of the drawable!
+    MyZoom zoom;
     MyRotation rot;         // used to store the actual state of the rotations and check if rotation is possible
     int   zOrder = -1;      // not saved on disk. Drawables are saved from lowest zOrder to highest zOrder
     bool  isVisible = true; // property not saved in file
@@ -245,7 +295,12 @@ struct DrawableItem : public DrawablePen
                                  // may intersect the visible lines only because of the pen width!
 
     DrawableItem() = default;
-    DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) {}
+    DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlackOrWhite, 
+                 qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) 
+    {
+		zoom.Setup(this);
+    }
+
     DrawableItem(const DrawableItem& other):DrawablePen(other) { *this = other; }
     virtual ~DrawableItem()
     {
@@ -288,9 +343,14 @@ struct DrawableItem : public DrawablePen
         return pt.x() >= 0 && pt.y() >= 0;
     }
 
-    virtual bool Translate(QPointF dr, qreal minY);            // only if not deleted and top is > minY. Override this only for scribbles
+    virtual bool Translate(QPointF dr, qreal minY);             // only if not deleted and top is > minY. Override this only for scribbles
 
-    virtual bool Rotate(MyRotation rot, QPointF center);    // alpha used only for 'rotAngle'
+    virtual bool Rotate(MyRotation rot, QPointF center);        // alpha used only for 'rotAngle'
+
+    virtual void Zoom(bool zoomIn, QPointF center, int steps)   // zoom in or out from the center with a zoom factor
+    { 
+		zoom.Zoom(zoomIn, center, steps);
+    }
     /*=============================================================
      * TASK: Function to override in all subclass
      * PARAMS:  painter              - existing painter
@@ -405,6 +465,7 @@ struct DrawableCross : public DrawableItem      // refPoint is the center
     bool CanRotate(MyRotation rot, QPointF center) const override;
     bool Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY. Override this only for scribbles
     bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
+    void Zoom(bool zoomIn, QPointF center, int steps) override;
     virtual MyRotation::Type RotationType() { return MyRotation::flipNone;  /* yet */ }
     QRectF Area() const override;    // includes half of pen width+1 pixel
     void Draw(QPainter* painter, QPointF startPosOfVisibleArea, const QRectF& clipR) override;
@@ -515,7 +576,7 @@ struct DrawableEllipse : public DrawableItem    // refPoint is the center
     virtual void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
 private:
     QPolygonF _points;       // used when rotated by not an angle not a multiple of 90 degrees or not a flip
-    QRectF _rotatedRect;         // used for Area(), same as 'rect' unless rotated
+    QRectF _rotatedRect;     // used for Area(), same as 'rect' when unrotated
 
     void _ToPolygonF()
     {
