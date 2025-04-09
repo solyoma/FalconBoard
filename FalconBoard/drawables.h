@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #ifndef _DRAWABLES_H
 #define _DRAWABLES_H
@@ -98,7 +98,7 @@ bool IsItemsEqual(const int& i1, const int& i2);
 QuadArea AreaForQRect(QRectF rect);
 
             //----------------------------------------------------
-            // ------------------- MyZoom::Type -------------
+            // ------------------- Zoomer::Type -------------
             // expects only zooming in or out in steps
             // If you zoomed n times you will unzoom max n times
 			// before the orignal state is reached
@@ -106,46 +106,131 @@ QuadArea AreaForQRect(QRectF rect);
 
 struct DrawableItem;
 
-struct MyZoom
+struct ZoomParams     // describes one zoom  step
+{
+    int steps = 1;      // level will be changed by this number
+	int level = 0;      // zoomed this many times from the original state, 0: not zoomed yet
+	int zoomDir = 0;    // 1: zoom in, -1: zoom out 0: no zoom
+	QPointF zoomCenter; // center of zoom
+
+    void Reset();    // parameters but not the base data 
+};
+
+/*
+* Embedded into every drawable is a Zoomer object.
+* This object stores the original data (points, reference point and pixmap - depending on the
+* type of the drawable) of the actual drawable before zoom. 
+* When the drawable is zoomed the zoomer object calculates the zoomed data using the original data
+* and sets them into the drawable.
+* When an object is saved on disk the zoom data is lost, but it doesn't matter because 
+* undo data is not carried into the next session.
+* until an object is zoomed in or out the zoomer object is not initialized with the drawable's data.
+* 
+* Zooming history is stored elswhere (history), the zoomer only uses the actual ZoomParams parameters.
+*/
+struct Zoomer
 {
 	static const int maxZoomLevel;
-    static bool initted;
-	static QVector<qreal> zoomFactors;  // zoom in and out factors
-	static double dFactor;  // zoom in step, zoom out step is 1/dFactor
-	qreal ZoomFactor(int level) const;
-
-	int zoomDirection = 0;  // 1: zoom in, -1: zoom out 0: no zoom
-	int level = 0;          // zoomed this many times from the original state
-    DrawableItem* pOwnerItem = nullptr;
+	static const double dFactor;  // for zooming in 1 step, zoom out step is 1/dFactor
+	static QVector<qreal> zoomFactors;  // zoom in and out factors. Index:0 => zoom to level 1, 1 => zoom to level 2, ...
 
                             // when a shape is zoomed in or out its points are 
                             // always calculated from these stored data
-    QPolygonF oRefPoints;   // zoom relative to these reference points
-    QPolygonF oPoints;      // original points 0-th item is always the 'refPoint'
+	QPointF oRefPoint;      // each drawable has one reference point
                             // followed by
 	                        //  2 points of 'rect'  for ellipse and rectangle (topLeft, bottomRight)
 	                        //  1 point both coordinates are length of cross
-	QPixmap   oPixmap;      // original, non rotated pixmap for screen shots
 
-    MyZoom();
-	MyZoom(const MyZoom& o);
-	MyZoom& operator=(const MyZoom& o);
-	MyZoom(MyZoom&& o) noexcept;
-	MyZoom& operator=(MyZoom&& o) noexcept;
+    Zoomer();
+	Zoomer(const Zoomer& o);
+	Zoomer& operator=(const Zoomer& o);
+	Zoomer(Zoomer&& o) noexcept;
+	Zoomer& operator=(Zoomer&& o) noexcept;
 
-    void Reset();    // parameters but not the base data 
-    void Setup(DrawableItem *pOwnerItem);
-    bool CanZoom(bool zoomIn, const QPointF center, int steps = 1);
-    int  Zoom(bool zoomIn, const QPointF center, int steps = 1); //  returns next level
-private:
-    QPointF _ZoomPoint(const QPointF& p) const;
-    void _SetupCommon(DrawableItem* pdri);
-    void _SetFromOriginalData();
-    void _SetupZoomData(bool zoomIn, const QPointF center, int steps);
-    void _PerformZoom();
+    void SetOwner(DrawableItem* pOwnerItem);     // resets _zoomParams
+    virtual void Setup();
+    inline ZoomParams& GetZoomParams()
+    {
+        return _zoomParams;
+    }
+	inline void SetZoomParams(const ZoomParams& zp) { _zoomParams = zp; }
+    inline qreal ZoomFactor() const { return _ZoomFactor(_level); }
+    virtual bool CanZoom(const ZoomParams& params) const;
+	inline  bool CanZoom() const { return CanZoom(_zoomParams); }
+
+	QRectF ZoomARect(const QRectF& r, const ZoomParams& params) const;
+    QPointF ZoomAPoint(const QPointF& p, const ZoomParams &params) const;   // always from act level
+    int  Zoom();    //  uses actual _zoomParams and changes to the next level
+	virtual void ResetZoom() { _zoomParams.Reset(); } // resets zoom level to 0
+protected:
+    DrawableItem* _pOwnerItem = nullptr;
+
+	ZoomParams _zoomParams;  
+    static bool _initted;
+	int  _level = 0;          
+
     void _Init();
+	qreal _ZoomFactor(int level) const; // value detemined by '_level' and 'zoomDirection'
+    
+    virtual void _PerformZoom();
 };
-            //----------------------------------------------------
+
+using PointZoomer = Zoomer;
+
+struct CrossZoomer : public Zoomer
+{
+    void Setup() override;
+    bool CanZoom(const ZoomParams& params) const override;
+protected:
+	int _olength = 0;      // length of the cross;
+    void _PerformZoom() override;
+};
+
+struct EllipseZoomer : public Zoomer
+{
+    void Setup() override;
+    bool CanZoom(const ZoomParams& params) const override;
+protected:
+	QRectF _oRect;      // original rectangle
+    void _PerformZoom() override;
+};
+struct LineZoomer : public Zoomer
+{
+    void Setup() override;
+    bool CanZoom(const ZoomParams& params) const override;
+protected:
+    QPointF _endPoint;
+    void _PerformZoom() override;
+};
+
+struct RectangleZoomer : public Zoomer
+{
+	void Setup() override;
+	bool CanZoom(const ZoomParams& params) const override;
+protected:
+	QRectF _oRect;      // original rectangle
+	void _PerformZoom() override;
+};
+
+struct ScribbleZoomer : public Zoomer
+{
+	void Setup() override;
+	bool CanZoom(const ZoomParams& params) const override;
+protected:
+    QPolygonF _oPoints;      // original points 0-th item is always the 'refPoint'
+	void _PerformZoom() override;
+};
+
+struct ScreenshotZoomer : public Zoomer
+{
+    void Setup() override;
+    bool CanZoom(const ZoomParams& params) const override;
+protected:
+	QPixmap   _oPixmap;      // original, non rotated pixmap for screen shots
+    void _PerformZoom() override;
+};
+
+//----------------------------------------------------
             // ------------------- MyRotation::Type -------------
             //----------------------------------------------------
 // Rotations and flips are not commutative. However a flip followed by a rotation
@@ -208,11 +293,11 @@ struct MyRotation
         _SetRot((angle = -angle));
     }
 
-    bool ResultsInNoRotation(MyRotation& arot, bool markIfNoRotation = false);    // returns true if it is a no-rotation state
+    bool ResultsInNoRotation(MyRotation& arot, bool markIfNoRotation = false) const;    // returns true if it totates to a non-rotatrd state
 
     // in the following rotation functions it is assumed that any rectangle or image has sides parallel to the
-    // coordinate axes. No such assumption is made for point and polygons
-    //--------- order of rotations: first rotate by angle then flip. |angle| <= 180 
+    // coordinate axes. No such assumption is made for points and polygons
+    //--------- order of rotations: first rotate by angle around center then flip. |angle| <= 180 
     bool RotateRect(QRectF& rect, QPointF center, bool noCheck = false) const; // assumes outer edge of rectangle is inside center
 
     bool RotatePoly(QPolygonF& points, QPointF center, bool noCheck = false) const;
@@ -228,10 +313,10 @@ struct MyRotation
 };
 QDataStream& operator<<(QDataStream& ofs, const MyRotation& mr);
 QDataStream& operator>>(QDataStream& ifs, MyRotation& mr);
-            //----------------------------------------------------
+
+//----------------------------------------------------
             // ------------------- Drawable Pen -------------
             //----------------------------------------------------
-
 
 class DrawablePen
 {
@@ -276,7 +361,7 @@ struct DrawableItem : public DrawablePen
     QPointF refPoint;       // position of reference point relative to logical (0,0) of 'paper roll' 
                             // (widget coord: topLeft + DrawArea::_topLeft is used) 
                             // May be the first point or top left of area or the center point of the drawable!
-    MyZoom zoom;
+    Zoomer zoomer;
     MyRotation rot;         // used to store the actual state of the rotations and check if rotation is possible
     int   zOrder = -1;      // not saved on disk. Drawables are saved from lowest zOrder to highest zOrder
     bool  isVisible = true; // property not saved in file
@@ -294,11 +379,14 @@ struct DrawableItem : public DrawablePen
     QVector<EraserData> erasers; // a polygon(s) confined to the bounding rectangle of points for eraser strokes (above points)
                                  // may intersect the visible lines only because of the pen width!
 
-    DrawableItem() = default;
+    DrawableItem() : DrawablePen() 
+    { 
+        zoomer.SetOwner(this);    
+    }
     DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlackOrWhite, 
                  qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) 
     {
-		zoom.Setup(this);
+        zoomer.SetOwner(this);
     }
 
     DrawableItem(const DrawableItem& other):DrawablePen(other) { *this = other; }
@@ -349,7 +437,12 @@ struct DrawableItem : public DrawablePen
 
     virtual void Zoom(bool zoomIn, QPointF center, int steps)   // zoom in or out from the center with a zoom factor
     { 
-		zoom.Zoom(zoomIn, center, steps);
+		zoomer.Setup(); // init zoomer unless already initted and save original, non rotated data if it wasn't saved already
+        ZoomParams zp = zoomer.GetZoomParams();
+		zp.zoomCenter = center;
+		zp.steps = steps;  
+		zoomer.SetZoomParams(zp);
+		zoomer.Zoom();
     }
     /*=============================================================
      * TASK: Function to override in all subclass
@@ -486,8 +579,12 @@ struct DrawableDot : public DrawableItem
     DrawableDot() : DrawableItem()
     {
         dtType = DrawableType::dtDot;
+		zoomer.Setup();
     }
-    DrawableDot(QPointF pos, int zorder, FalconPenKind penKind, qreal penWidth) : DrawableItem(DrawableType::dtDot, pos, zorder, penKind, penWidth) { }
+    DrawableDot(QPointF pos, int zorder, FalconPenKind penKind, qreal penWidth) : DrawableItem(DrawableType::dtDot, pos, zorder, penKind, penWidth) 
+    { 
+        zoomer.Setup();
+    }
     DrawableDot(const DrawableDot& o) = default;
     ~DrawableDot() = default;
     QRectF Area() const override    // includes half od pen width+1 pixel
@@ -512,6 +609,7 @@ struct DrawableEllipse : public DrawableItem    // refPoint is the center
     DrawableEllipse() : DrawableItem()
     {
         dtType = DrawableType::dtEllipse;
+        zoomer.Setup();
     }
     DrawableEllipse(QRectF rect, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);
     DrawableEllipse(QPointF refPoint, qreal radius, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);    // circle
@@ -599,10 +697,11 @@ struct DrawableLine : public DrawableItem
     DrawableLine() : DrawableItem()
     {
         dtType = DrawableType::dtLine;
+        zoomer.Setup();
     }
     DrawableLine(QPointF refPoint, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth);
     DrawableLine(const DrawableLine& ol);
-    DrawableLine(DrawableLine&& ol);
+    DrawableLine(DrawableLine&& ol) noexcept;
     ~DrawableLine() {}
     DrawableLine& operator=(const DrawableLine& ol);
     DrawableLine& operator=(const DrawableLine&& ol);
@@ -639,6 +738,7 @@ struct DrawableRectangle : public DrawableItem
     DrawableRectangle() : DrawableItem()
     {
         dtType = DrawableType::dtRectangle;
+        zoomer.Setup();
     }
     DrawableRectangle(QRectF rect, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);
     DrawableRectangle(const DrawableRectangle& o);
@@ -706,14 +806,16 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot refPoint
     DrawableScreenShot() : DrawableItem()
     {
         dtType = DrawableType::dtScreenShot;
+        zoomer.Setup();
     }
     DrawableScreenShot(const DrawableScreenShot& other) : DrawableItem(other), _image(other._image), _rotatedImage(other._rotatedImage), _rotatedArea(other._rotatedArea)
     {
-    
+        zoomer.Setup();
     }
     DrawableScreenShot(QPointF topLeft, int zOrder, const QPixmap &image) : DrawableItem(DrawableType::dtScreenShot, topLeft, zOrder), _image(image) 
     {
         _rotatedArea = QRectF(refPoint, image.size());
+        zoomer.Setup();
     }
     ~DrawableScreenShot() = default;
 
@@ -775,6 +877,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
     DrawableScribble() : DrawableItem()
     {
         dtType = DrawableType::dtScribble;
+        zoomer.Setup();
     }
     DrawableScribble(FalconPenKind penKind, qreal penWidth, int zorder) noexcept;
     DrawableScribble(const DrawableScribble& di);
@@ -842,10 +945,12 @@ struct DrawableText : public DrawableItem
     DrawableText() : DrawableItem()       // default constructor            TODO
     {
         dtType = DrawableType::dtText;
+        zoomer.Setup();
     }
     DrawableText(QPointF topLeft, int zorder) noexcept
     {
         ;  // TODO 
+        zoomer.Setup();
     }
 
     DrawableText(const DrawableText& di) = default;             // TODO

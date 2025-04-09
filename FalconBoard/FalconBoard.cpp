@@ -1,6 +1,4 @@
 ﻿#include <QSpinBox>
-#include <QSpinBox>
-#include <QSpinBox>
 #include <QLabel>
 #include <QScreen>
 #include <QPainter>
@@ -15,7 +13,6 @@
 #include "FalconBoard.h"
 #include "myprinter.h"   // for MyPrinterData
 #include "helpdialog.h"
-#include "config.h"
 
 QSize FalconBoard::screenSize;
 

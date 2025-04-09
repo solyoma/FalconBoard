@@ -1,4 +1,4 @@
-#include <QApplication>
+﻿#include <QApplication>
 #include <QMouseEvent>
 
 #include <QFileDialog>
@@ -878,20 +878,30 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 				bool canZoom = true;
 				QRectF r = _rubberRect.translated(_topLeft);
 				pHistory->CollectDrawablesInside(r); // into pHist->_driSelectedDrawables
-				for (auto& dri : pHistory->SelectedDrawables())
+				if (pHistory->SelectedSize())
 				{
-					if (!pHistory->Drawable(dri)->zoom.CanZoom(zoomIn, r.center(), 1))
+					ZoomParams zp;
+					for (auto& dri : pHistory->SelectedDrawables())
 					{
-						canZoom = false;
-						break;
+						zp.zoomCenter = r.center();
+						zp.zoomDir = zoomIn;
+						if (!pHistory->Drawable(dri)->zoomer.CanZoom(zp))		// TODO: when steps != 1
+						{
+							canZoom = false;
+							break;
+						}
 					}
-				}
-				if (canZoom)
-				{
-					HistoryZoomItem* pdz = (HistoryZoomItem*)pHistory->AddZoomItem(_rubberRect.translated(_topLeft), zoomIn, 5);
-					_rubberRect = pdz->zoomedRect.translated(-_topLeft);
-					_rubberBand->setGeometry(_rubberRect.toRect());
-					_Redraw();
+					qreal zf = pHistory->Drawable(pHistory->SelectedDrawables()[0])->zoomer.ZoomFactor();
+					if (canZoom)
+					{
+						HistoryZoomItem* pdz = (HistoryZoomItem*)pHistory->AddZoomItem(_rubberRect.translated(_topLeft), zoomIn, 1);	// TODO: when steps != 1
+						pdz->Redo();
+						QPointF center = _rubberRect.center();
+						_rubberRect = pdz->zoomedRect.translated(-_topLeft);
+						_rubberRect = QRectF((_rubberRect.topLeft() - center) * zf + center, (_rubberRect.bottomRight() - center) * zf + center);
+						_rubberBand->setGeometry(_rubberRect.toRect());
+						_Redraw();
+					}
 				}
 
 			}

@@ -1610,6 +1610,8 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 												break;
 			default: break;
 		}
+		if (pdrwh && (int)di.dtType != (int)DrawableType::dtNonDrawableStart)	// pen has no zoom
+			pdrwh->zoomer.Setup();
 		globalDrawColors = drawColors;
 		if(pdrwh && (int)di.dtType < (int)DrawableType::dtNonDrawableStart)	// only add drawables
 			(void)AddDrawableItem(*pdrwh);		// this will set its zOrder too

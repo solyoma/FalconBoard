@@ -84,7 +84,7 @@ static QSplashScreen* splashScreen = nullptr;
 
 void ShowSplashScreen(bool addMessage)
 {
-#ifndef DEBUG
+#if !defined DEBUG && ! defined _DEBUG
     if (!splashScreen)
     {
         splashScreen = new QSplashScreen(QPixmap(":/FalconBoard/Resources/falconboard-splash.png"));
