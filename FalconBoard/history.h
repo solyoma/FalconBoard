@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef _HISTORY_H
 #define _HISTORY_H
 
@@ -711,8 +711,9 @@ private:
         bool _lastSavedAsSnapshot = false;  // set in 'Save()' or before loading a snapshot
         bool _inLoad = false;               // in function Load() / needed for correct z- order settings
         int _readCount = 0;                 // undo works until this index is reached
-        int _savedItemCount = 0;            // the count of _items when data was saved, after read it is _readCount
-        // used to check if data is changed
+        int _savedItemCount = 0;            // the count of _items when data was saved by the user,
+                                            // but not for autosave. After read it is the same as '_readCount'
+                                            // used to check if data is changed
 
         // unscribble items have no indices in here
         bool _loaded = false;               // if it was loaded from disk already
@@ -746,6 +747,7 @@ private:
             _driSelectedDrawablesAtRight.clear();
             _driSelectedDrawablesAtLeft.clear();
         }
+        void _RemoveSnapshot();
 
         void _NameFromTmpData(QString& nameOfSnapshot);
 

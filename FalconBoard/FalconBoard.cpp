@@ -28,7 +28,11 @@ QString FB_WARNING = QMainWindow::tr("falconBoard - Warning"),
 #ifndef _Viewer
 const QString appName = "FalconBoard.exe";
 const QString keyName = "FalconBoardKey";
+    #ifndef _DEBUG
 const QString pipeName = "FalconBoardPipe";
+    #else
+const QString pipeName = "FalconBoardPipe-debug";
+    #endif
 #else
 const QString appName = "FalconBoardViewer.exe";
 const QString keyName = "FalconBoardViewerKey";

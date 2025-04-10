@@ -1,4 +1,4 @@
-#include <QApplication>
+﻿#include <QApplication>
 #include <QMessageBox>
 #include <QMainWindow>
 #include <QTemporaryFile>
@@ -1283,7 +1283,6 @@ SaveResult History::Save(bool asSnapshot)
 
 	f.rename(name);	
 
-	_savedItemCount = _items.count();	// saved at this point
 
 	if (asSnapshot)
 	{
@@ -1291,10 +1290,9 @@ SaveResult History::Save(bool asSnapshot)
 	}
 	else // remove snapshot files
 	{
-		_lastSavedAsSnapshot = false;
-		QFile::remove(snapshotName);
-		QFile::remove(snapshotName+".dat");
-	}	
+		_savedItemCount = _items.count();	// saved at this point
+		_RemoveSnapshot();
+	}
 	_loaded = true;	// if saved, then already is in memory as if it was loaded
 
 	return srSaveSuccess;
@@ -1317,6 +1315,16 @@ void History::SetName(QString name, bool clear)
 
 	if(clear)
 		Clear();
+}
+
+void History::_RemoveSnapshot()
+{
+	_lastSavedAsSnapshot = false;
+	if (!_snapshotName.isEmpty())
+	{
+		QFile::remove(FBSettings::homePath + _snapshotName);
+		QFile::remove(FBSettings::homePath + _snapshotName + ".dat");
+	}
 }
 
 void History::_NameFromTmpData(QString &nameOfSnapshot)
@@ -1371,7 +1379,23 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 
 	DrawableItem::yOffset = 0.0;
 
+	if (_lastSavedAsSnapshot && QFile::exists(fname))		 // snapshot file found
+	{														 // chack if its newer than file '_fileName'
+		QFileInfo fi(fname);
+
+		if (!_fileName.isEmpty())
+		{
+			QFileInfo ffi(_fileName);
+			if (ffi.exists() && ffi.lastModified() > fi.lastModified())	// '_filename' file is newer
+			{
+				fname = _fileName;										// use it instead of snapshot
+				_lastSavedAsSnapshot = false;
+				_RemoveSnapshot();
+			}
+		}
+	}
 	QFile f(fname);
+
 	f.open(QIODevice::ReadOnly);
 	if (!f.isOpen())
 		return -1;			// File not found
@@ -1941,7 +1965,11 @@ HistoryItem* History::Undo()      // returns item on top of _items or null
 {
 	int actItem = _items.size();
 	if (!actItem || actItem == _readCount)		// no more undo
+	{
+		_savedItemCount = _items.size();
+		_RemoveSnapshot();
 		return nullptr;
+	}
 
 	// ------------- first Undo top item
 	HistoryItem* phi = _items[--actItem];
@@ -1963,6 +1991,8 @@ HistoryItem* History::Undo()      // returns item on top of _items or null
 		_items.pop_back();	// we need _items for removing the
 		--actItem;
 	}
+	if (_savedItemCount == _items.size())
+		_RemoveSnapshot();
 //	_modified = true;
 
 	return actItem >= 0 ? _items[actItem] : nullptr;

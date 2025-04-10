@@ -1068,6 +1068,7 @@ DrawableCross::DrawableCross(QPointF pos, qreal len, int zOrder, FalconPenKind p
 		length(len), DrawableItem(DrawableType::dtCross, pos, zOrder, penKind, penWidth) 
 {
 	zoomer.Setup();
+	_Setup();
 }
 
 void DrawableCross::_Setup()
