@@ -1,4 +1,4 @@
-#include "common.h"
+﻿#include "common.h"
 #include "config.h"
 #include "drawables.h"
 
@@ -150,7 +150,7 @@ const char       // DEFAULTS
 *PEN_DEFAULT_DARK_BROWN     = "#e77400",
 *PEN_DEFAULT_LIGHT_MAGENTA  = "#aa1147",
 *PEN_DEFAULT_DARK_MAGENTA   = "#e81763",
-*PEN_DEFAULT_LIGHT_GRAY     = "#D9D9D9",
+*PEN_DEFAULT_LIGHT_GRAY     = "#C1C1C1",
 *PEN_DEFAULT_DARK_GRAY      = "#323232";
 
 
