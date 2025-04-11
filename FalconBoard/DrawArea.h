@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef _DRAWAREA_H
 #define _DRAWAREA_H
 
@@ -220,6 +220,7 @@ protected:
     void MyMoveEvent(MyPointerEvent* pe);
     void MyButtonReleaseEvent(MyPointerEvent* pe);
 
+
 #ifndef _VIEWER
 
 private:
@@ -392,6 +393,8 @@ private:
     QPainter *_GetPainter(QImage *pCanvas);
 #ifndef _VIEWER
     void _ModifyIfSpecialDirection(QPointF & qp);   // modify qp by multiplying with the start vector
+    void _KeyPressWithRubberband(QKeyEvent* event);
+    void _DrawCross(QPointF p, int halflen); // p rel. to Document top/left
 #endif
     void _SetOrigin(QPointF qp);  // sets new topleft and displays it on label
     void _ShiftOrigin(QPointF &delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down

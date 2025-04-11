@@ -593,7 +593,281 @@ void DrawArea::_ChangePenByKeyboard(int key)
 	emit PenKindChange(pk);
 }
 
+// draw a cross at a given point
+void DrawArea::_DrawCross(QPointF p, int halflen) // p rel. to Document top/left
+{
+	_actPenWidth = _penWidth;
+	_lastDrawableCross = DrawableCross(p, halflen, pHistory->GetZorder(false), _actPenKind, _actPenWidth);
+
+	_PaintOnActCanvas(&_lastDrawableCross);
+
+	(void)pHistory->AddDrawableItem(_lastDrawableCross);
+	pHistory->AddToSelection(-1);
+	update();
+};
+
+void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
+{
+	_mods = event->modifiers();
+	int key = event->key();
+
+		// keys that common with drawing with no rubberband
+		// an exact copy of the code is in keyPressEvent()
+
+	bool bPaste = // _itemsCopied &&
+		((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
+			(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
+			),
+		bMovementKeys = key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left ||
+		key == Qt::Key_Right || key == Qt::Key_PageUp || key == Qt::Key_PageDown ||
+		key == Qt::Key_Home || key == Qt::Key_End;
+
+	// keys only used when there's a rubber band
+
+	bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
+		bCut = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
+		((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
+		bCopy = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
+		_mods.testFlag(Qt::ControlModifier),
+		bBracketKey = (key == Qt::Key_BracketLeft || key == Qt::Key_BracketRight),
+		bRemove = (bDelete || bCopy || bCut || bPaste) ||
+		(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
+			key != Qt::Key_F7 && key != Qt::Key_Space && key != Qt::Key_Plus && key != Qt::Key_Minus && !bMovementKeys),
+		bCollected = pHistory->SelectedSize(),
+		bRecolor = (key >= Qt::Key_1 && key <= Qt::Key_7),
+
+		bRotate = (key == Qt::Key_0 ||  // rotate right by 90 degrees
+			key == Qt::Key_8 ||  // rotate by 180 degrees
+			key == Qt::Key_9 ||  // rotate left by 90 degrees
+			key == Qt::Key_F7 || // rotate by any degrees or repeat last rotation
+			key == Qt::Key_H ||  // flip horizontally
+			(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
+			);
+	if (bCollected && bBracketKey)
+	{
+		const qreal D = 0.5;
+		if (key == Qt::Key_BracketLeft) // decrease pen width for all drawables inside selection by 1
+		{
+			if (_rubberRect.width() > 1 && _rubberRect.height() > 1)
+			{		   // delta		x	 y	   w	 h
+				_rubberRect.adjust(D, D, -D, -D);
+				_rubberBand->setGeometry(_rubberRect.toRect());
+				pHistory->AddPenWidthChange(-1);
+				_ShowCoordinates(_lastCursorPos);
+			}
+			_Redraw();
+		}
+		else if (key == Qt::Key_BracketRight) // increase pen width for all drawables inside selection by 1
+		{
+			QRectF r = _rubberRect;
+			// delta   x	 y	   w	 h
+			r.adjust(-D, -D, D, D);
+			if (r.left() > 0 && r.top() > 0)
+			{
+				_rubberRect = r;
+				_rubberBand->setGeometry(_rubberRect.toRect());
+				pHistory->AddPenWidthChange(1);
+				_ShowCoordinates(_lastCursorPos);
+			}
+			_Redraw();
+		}
+	}
+	if ((bCopy || bRecolor) && bCollected && !bDelete && !bRotate)
+	{
+		pHistory->CopySelected();
+		_itemsCopied = true;        // never remove selected list
+	}
+
+	if (bMovementKeys && _mods.testFlag(Qt::ControlModifier))
+	{
+		QPointF dr;	// _totalMoves must be empty here!
+		qreal step = 1;
+		static int cntRepetition = 0;
+		if (!event->isAutoRepeat())
+			cntRepetition = 0;
+		else
+		{
+			step += ++cntRepetition / 5.0;
+
+			// qDebug("%s:%d repetition:%d. Step:%g", __FILE__,__LINE__,cntRepetition,step);
+		}
+		switch (key)
+		{
+			case Qt::Key_Up: dr = QPointF(0, -step); break;
+			case Qt::Key_Right:dr = QPointF(step, 0); break;
+			case Qt::Key_Down: dr = QPointF(0, step); break;
+			case Qt::Key_Left: dr = QPointF(-step, 0); break;
+			default: break;
+		}
+		if (pHistory->MoveItems(dr, pHistory->SelectedDrawables()))
+		{
+			_totalMoves += dr;
+			_rubberRect.adjust(dr.x(), dr.y(), dr.x(), dr.y());
+			_rubberBand->setGeometry(_rubberRect.toRect());
+			_Redraw();
+		}
+	}
+	// if !bCollected then history's _selectedList is empty, but the rubberRect is set into _selectionRect
+	else if ((bCut || bDelete) && bCollected)
+	{
+		pHistory->AddDeleteItems();
+		HideRubberBand(true);
+		_Redraw();
+	}
+	else if (bDelete && !bCollected)     // delete area marked by the rubber band
+	{
+		QRectF rect = _rubberRect.translated(_topLeft);
+		if (pHistory->AddRemoveSpaceItem(rect))     // there was something (not delete below the last item)
+		{
+			HideRubberBand(true);
+			_Redraw();
+		}
+	}
+	else if (bRecolor)
+	{
+		RecolorSelected(key);
+	}
+
+	else if (bRotate && bCollected)
+	{
+		MyRotation rot;
+		switch (key)
+		{
+			case Qt::Key_0: userRotationAngle = 90; rot = MyRotation::rotR90; break;
+			case Qt::Key_8: userRotationAngle = -90; rot = MyRotation::rot180; break;
+			case Qt::Key_9: userRotationAngle = 180; rot = MyRotation::rotL90; break;
+			case Qt::Key_F7:	if (userRotationAngle == 0 || !_mods.testFlag(Qt::ShiftModifier))
+			{
+				RotateInputDialog* prd = new RotateInputDialog(this, userRotationAngle);
+				if (!prd->exec())
+					userRotationAngle = 0; // no rotation on cancel
+				delete prd;
+			}
+						   rot = userRotationAngle;
+						   break;
+			case Qt::Key_H: rot = MyRotation::rotFlipH; break;
+			case Qt::Key_V: rot = MyRotation::rotFlipV; break;
+			default: rot = MyRotation::flipNone; break;
+		}
+		//QRectF rr = _rubberRect;
+		if (!rot.IsNull() && pHistory->AddRotationItem(rot)) // items in _driSelectedDrawables, using History::_SelectionRect (== _rubberRect)
+		{
+			_rubberRect = pHistory->SelectionRect().translated(-_topLeft);
+			_rubberBand->setGeometry(_rubberRect.toRect());
+
+			_Redraw();
+			_ShowCoordinates(_lastCursorPos);
+		}
+	}
+	else if (key == Qt::Key_R)    // draw rectangle around (at the outside) of selection
+	{							  // if CTrl+R was pressed add an inside margin, when Shift+R pressed fill the inside
+		_actPenWidth = _penWidth; // adjust the selection. never draw a rectangle partially or fully outside "paper"
+
+		// when any drawables is selected draw the rectangle around them, otherwise the outer edge of the rectangle should be inside the marked area 
+		// leaving _actPenWidth/2+1 pixel margins on each sides
+		qreal adjustment = ((qreal)_actPenWidth + 1) / 2 + 1;
+		qreal sizeDelta = 0.0;
+
+		bool bCtrlPlusAltDown = _mods.testFlag(Qt::ControlModifier) && !_mods.testFlag(Qt::AltModifier);
+		if (!pHistory->SelectedSize() && !bCtrlPlusAltDown)		// nothing inside selected area or Ctrl+Alt was pressed to keep marked area as
+			sizeDelta = -adjustment;	// rectangle inside area
+		else
+			sizeDelta = adjustment;		// rectangle outside area
+
+		sizeDelta += (bCtrlPlusAltDown ? adjustment : 0);
+		QRectF r = _rubberRect;
+		if (sizeDelta >= 0)
+			r.adjust(-sizeDelta, -sizeDelta, sizeDelta, sizeDelta);
+		if (r.left() < 0 || r.top() < 0)
+			QMessageBox::warning(this, FB_WARNING, tr("With this pen width drawing would be outside of \"paper\""));
+		else
+		{
+			if (sizeDelta < 0)	// no shrinking or rubberBand, but shrink rectangle
+				r.adjust(-sizeDelta, -sizeDelta, sizeDelta, sizeDelta);
+			else
+				_rubberRect = r; //  .adjust(-margin, -margin, margin, margin);	// will also resizes _rubberRect
+
+			_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), pHistory->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
+
+			_PaintOnActCanvas(&_lastRectangleItem);
+			update(r.adjusted(-_penWidth, -_penWidth, _penWidth, _penWidth).toRect());
+			//				_rubberRect = r.adjusted(-adjustment, -adjustment, adjustment, adjustment);
+			_rubberBand->setGeometry(_rubberRect.toRect());
+			(void)pHistory->AddDrawableItem(_lastRectangleItem);
+			if (!_erasemode)
+				pHistory->AddToSelection(-1);
+		}
+	}
+	else if (key == Qt::Key_C && !bCopy)   // draw ellipse
+	{
+		_actPenWidth = _penWidth;
+		qreal adjustment = -((qreal)_actPenWidth + 1) / 2 + 1;	// inside area
+		QRectF r = _rubberRect.adjusted(-adjustment, -adjustment, adjustment, adjustment);
+		_lastEllipseItem = DrawableEllipse(r.translated(_topLeft), pHistory->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
+
+		_PaintOnActCanvas(&_lastEllipseItem);
+		update(_rubberRect.toRect());
+
+
+
+		(void)pHistory->AddDrawableItem(_lastEllipseItem);
+		if (!_erasemode)
+			pHistory->AddToSelection(-1);
+	}
+	else if (key == Qt::Key_X && !bCut)   // mark center with cross
+	{
+		_DrawCross(_rubberRect.translated(_topLeft).center(), 10);
+	}
+	else if (key == Qt::Key_Period)   // mark center with cross or a period
+	{
+		_actPenWidth = _penWidth;
+		_lastDotItem = DrawableDot(_rubberRect.translated(_topLeft).center(), pHistory->GetZorder(false), _actPenKind, _actPenWidth);
+
+		_PaintOnActCanvas(&_lastDotItem);
+
+		(void)pHistory->AddDrawableItem(_lastDotItem);
+		if (!_erasemode)
+			pHistory->AddToSelection(-1);
+		update();
+	}
+	else if (_mods.testFlag(Qt::ControlModifier) && (key == Qt::Key_Plus || key == Qt::Key_Minus))	// zoom in or out
+	{
+		bool zoomIn = key == Qt::Key_Plus ? true : false;
+		bool canZoom = true;
+		QRectF r = _rubberRect.translated(_topLeft);
+		pHistory->CollectDrawablesInside(r); // into pHist->_driSelectedDrawables
+		if (pHistory->SelectedSize())
+		{
+			ZoomParams zp;
+			for (auto& dri : pHistory->SelectedDrawables())
+			{
+				zp.zoomCenter = r.center();
+				zp.zoomDir = zoomIn;
+				if (!pHistory->Drawable(dri)->zoomer.CanZoom(zp))		// TODO: when steps != 1
+				{
+					canZoom = false;
+					break;
+				}
+			}
+			qreal zf = pHistory->Drawable(pHistory->SelectedDrawables()[0])->zoomer.ZoomFactor();
+			if (canZoom)
+			{
+				HistoryZoomItem* pdz = (HistoryZoomItem*)pHistory->AddZoomItem(_rubberRect.translated(_topLeft), zoomIn, 1);	// TODO: when steps != 1
+				pdz->Redo();
+				QPointF center = _rubberRect.center();
+				_rubberRect = pdz->zoomedRect.translated(-_topLeft);
+				_rubberRect = QRectF((_rubberRect.topLeft() - center) * zf + center, (_rubberRect.bottomRight() - center) * zf + center);
+				_rubberBand->setGeometry(_rubberRect.toRect());
+				_Redraw();
+			}
+		}
+
+	}
+	else if (bRemove)			   // delete rubberband for any keypress except pure modifiers  or space bar
+		HideRubberBand(true);
+}
 #endif
+
 
 void DrawArea::keyPressEvent(QKeyEvent* event)
 {
@@ -640,6 +914,7 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 	{
 #ifndef _VIEWER
 		// key presses for both rubberBand and no rubberBand situations
+		// an exact copy of the code is in _KeyPressWithRubberband()
 		bool bPaste = // _itemsCopied &&
 			((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
 				(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
@@ -649,265 +924,8 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 							key == Qt::Key_Home || key == Qt::Key_End;
 
 
-		// lambda to draw a cross at a given point
-		auto __DrawCross = [&](QPointF p, int halflen) // p rel. to Document top/left
-		{
-			_actPenWidth = _penWidth;
-			_lastDrawableCross = DrawableCross(p, halflen, pHistory->GetZorder(false), _actPenKind, _actPenWidth);
-
-			_PaintOnActCanvas(&_lastDrawableCross);
-
-			(void)pHistory->AddDrawableItem(_lastDrawableCross);
-			pHistory->AddToSelection(-1);
-			update();
-		};
-
-
-		if (_rubberBand) 
-		{
-				// keys when there's a rubber band
-			bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
-				bCut = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
-						((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
-				bCopy = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
-													_mods.testFlag(Qt::ControlModifier),
-				bBracketKey = (key == Qt::Key_BracketLeft || key == Qt::Key_BracketRight),
-				bRemove = (bDelete || bCopy || bCut || bPaste) ||
-					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
-					key != Qt::Key_F7 &&  key != Qt::Key_Space && key != Qt::Key_Plus && key != Qt::Key_Minus && !bMovementKeys),
-				bCollected = pHistory->SelectedSize(),
-				bRecolor = (key >= Qt::Key_1 && key <= Qt::Key_7),
-
-				bRotate = (key == Qt::Key_0 ||  // rotate right by 90 degrees
-					key == Qt::Key_8 ||  // rotate by 180 degrees
-					key == Qt::Key_9 ||  // rotate left by 90 degrees
-					key == Qt::Key_F7 || // rotate by any degrees or repeat last rotation
-					key == Qt::Key_H ||  // flip horizontally
-					(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
-					);
-			if (bCollected && bBracketKey)
-			{
-				const qreal D = 0.5;
-				if (key == Qt::Key_BracketLeft) // decrease pen width for all drawables inside selection by 1
-				{
-					if (_rubberRect.width() > 1 && _rubberRect.height() > 1)
-					{		   // delta		x	 y	   w	 h
-						_rubberRect.adjust(D, D, -D, -D);
-						_rubberBand->setGeometry(_rubberRect.toRect());
-						pHistory->AddPenWidthChange(-1);
-						_ShowCoordinates(_lastCursorPos);
-					}
-					_Redraw();
-				}
-				else if (key == Qt::Key_BracketRight) // increase pen width for all drawables inside selection by 1
-				{
-					QRectF r = _rubberRect;
-					// delta   x	 y	   w	 h
-					r.adjust(-D, -D, D, D);
-					if (r.left() > 0 && r.top() > 0)
-					{
-						_rubberRect = r;
-						_rubberBand->setGeometry(_rubberRect.toRect());
-						pHistory->AddPenWidthChange(1);
-						_ShowCoordinates(_lastCursorPos);
-					}
-					_Redraw();
-				}
-			}
-			if ( (bCopy || bRecolor) && bCollected && !bDelete && !bRotate )
-			{
-				pHistory->CopySelected();
-				_itemsCopied = true;        // never remove selected list
-			}
-
-			if (bMovementKeys && _mods.testFlag(Qt::ControlModifier))
-			{
-				QPointF dr;	// _totalMoves must be empty here!
-				qreal step = 1;
-				static int cntRepetition = 0;
-				if (!event->isAutoRepeat())
-					cntRepetition = 0;
-				else
-				{
-					step += ++cntRepetition / 5.0;
-
-					// qDebug("%s:%d repetition:%d. Step:%g", __FILE__,__LINE__,cntRepetition,step);
-				}
-				switch (key)
-				{
-					case Qt::Key_Up: dr = QPointF(0, -step); break;
-					case Qt::Key_Right:dr = QPointF(step, 0); break;
-					case Qt::Key_Down: dr = QPointF(0, step); break;
-					case Qt::Key_Left: dr = QPointF(-step, 0); break;
-					default: break;
-				}
-				if (pHistory->MoveItems(dr, pHistory->SelectedDrawables()))
-				{
-					_totalMoves += dr;
-					_rubberRect.adjust(dr.x(), dr.y(),dr.x(),dr.y());
-					_rubberBand->setGeometry(_rubberRect.toRect());
-					_Redraw();
-				}
-			}
-			// if !bCollected then history's _selectedList is empty, but the rubberRect is set into _selectionRect
-			else if ((bCut || bDelete) && bCollected)
-			{
-				pHistory->AddDeleteItems();
-				HideRubberBand(true);
-				_Redraw();
-			}
-			else if (bDelete && !bCollected)     // delete area marked by the rubber band
-			{
-				QRectF rect = _rubberRect.translated(_topLeft);
-				if (pHistory->AddRemoveSpaceItem(rect))     // there was something (not delete below the last item)
-				{
-					HideRubberBand(true);
-					_Redraw();
-				}
-			}
-			else if (bRecolor)
-			{
-				RecolorSelected(key);
-			}
-
-			else if (bRotate && bCollected)
-			{
-				MyRotation rot;
-				switch (key)
-				{
-					case Qt::Key_0: userRotationAngle =  90; rot = MyRotation::rotR90; break;
-					case Qt::Key_8: userRotationAngle = -90; rot = MyRotation::rot180; break;
-					case Qt::Key_9: userRotationAngle = 180; rot = MyRotation::rotL90; break;
-					case Qt::Key_F7:	if(userRotationAngle == 0 || !_mods.testFlag(Qt::ShiftModifier))
-										{
-											RotateInputDialog *prd = new RotateInputDialog(this, userRotationAngle);
-											if (!prd->exec())
-												userRotationAngle = 0; // no rotation on cancel
-											delete prd;
-										}  
-										rot = userRotationAngle; 
-									 break;	  	
-					case Qt::Key_H: rot = MyRotation::rotFlipH; break;
-					case Qt::Key_V: rot = MyRotation::rotFlipV; break;
-					default: rot = MyRotation::flipNone; break;
-				}
-				//QRectF rr = _rubberRect;
-				if(!rot.IsNull() && pHistory->AddRotationItem(rot) ) // items in _driSelectedDrawables, using History::_SelectionRect (== _rubberRect)
-				{
-					_rubberRect = pHistory->SelectionRect().translated(-_topLeft);
-					_rubberBand->setGeometry(_rubberRect.toRect());
-
-					_Redraw();
-					_ShowCoordinates(_lastCursorPos);
-				}
-			}
-			else if (key == Qt::Key_R)    // draw rectangle around (at the outside) of selection
-			{							  // if CTrl+R was pressed add an inside margin, when Shift+R pressed fill the inside
-				_actPenWidth = _penWidth; // adjust the selection. never draw a rectangle partially or fully outside "paper"
-
-				// when any drawables is selected draw the rectangle around them, otherwise the outer edge of the rectangle should be inside the marked area 
-				// leaving _actPenWidth/2+1 pixel margins on each sides
-				qreal adjustment = ((qreal)_actPenWidth + 1) / 2 + 1;
-				qreal sizeDelta=0.0;
-
-				bool bCtrlPlusAltDown = _mods.testFlag(Qt::ControlModifier) && !_mods.testFlag(Qt::AltModifier);
-				if (!pHistory->SelectedSize() && !bCtrlPlusAltDown )		// nothing inside selected area or Ctrl+Alt was pressed to keep marked area as
-					sizeDelta = -adjustment;	// rectangle inside area
-				else
-					sizeDelta = adjustment;		// rectangle outside area
-
-				sizeDelta += (bCtrlPlusAltDown ? adjustment : 0);
-				QRectF r = _rubberRect;
-				if(sizeDelta >= 0)
-					r.adjust(-sizeDelta, -sizeDelta, sizeDelta, sizeDelta);
-				if (r.left() < 0 || r.top() < 0)
-					QMessageBox::warning(this, FB_WARNING, tr("With this pen width drawing would be outside of \"paper\""));
-				else
-				{
-					if(sizeDelta < 0)	// no shrinking or rubberBand, but shrink rectangle
-						r.adjust(-sizeDelta, -sizeDelta, sizeDelta, sizeDelta);
-					else
-						_rubberRect = r; //  .adjust(-margin, -margin, margin, margin);	// will also resizes _rubberRect
-
-					_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), pHistory->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
-
-					_PaintOnActCanvas(&_lastRectangleItem);
-					update(r.adjusted(-_penWidth,-_penWidth,_penWidth,_penWidth).toRect());
-					//				_rubberRect = r.adjusted(-adjustment, -adjustment, adjustment, adjustment);
-					_rubberBand->setGeometry(_rubberRect.toRect());
-					(void)pHistory->AddDrawableItem(_lastRectangleItem);
-					if (!_erasemode)
-						pHistory->AddToSelection(-1);
-				}
-			}
-			else if (key == Qt::Key_C && !bCopy)   // draw ellipse
-			{
-				_actPenWidth = _penWidth;
-				qreal adjustment = -((qreal)_actPenWidth + 1) / 2 + 1;	// inside area
-				QRectF r = _rubberRect.adjusted(-adjustment, -adjustment, adjustment, adjustment);
-				_lastEllipseItem = DrawableEllipse(r.translated(_topLeft), pHistory->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
-				
-				_PaintOnActCanvas(&_lastEllipseItem);
-				update(_rubberRect.toRect());
-
-
-
-				(void) pHistory->AddDrawableItem(_lastEllipseItem);
-				 if(!_erasemode)
-					pHistory->AddToSelection(-1);
-			}
-			else if (key == Qt::Key_X && !bCut)   // mark center with cross
-			{
-				__DrawCross(_rubberRect.translated(_topLeft).center(), 10);
-			}
-			else if (key == Qt::Key_Period)   // mark center with cross or a period
-			{
-				_actPenWidth = _penWidth;
-				_lastDotItem = DrawableDot(_rubberRect.translated(_topLeft).center(), pHistory->GetZorder(false), _actPenKind, _actPenWidth);
-
-				_PaintOnActCanvas(&_lastDotItem);
-
-				(void) pHistory->AddDrawableItem(_lastDotItem);
-				 if(!_erasemode)
-					pHistory->AddToSelection(-1);
-				update();
-			}
-			else if(_mods.testFlag(Qt::ControlModifier) && (key == Qt::Key_Plus || key == Qt::Key_Minus))	// zoom in or out
-			{
-				bool zoomIn = key == Qt::Key_Plus ? true:false;
-				bool canZoom = true;
-				QRectF r = _rubberRect.translated(_topLeft);
-				pHistory->CollectDrawablesInside(r); // into pHist->_driSelectedDrawables
-				if (pHistory->SelectedSize())
-				{
-					ZoomParams zp;
-					for (auto& dri : pHistory->SelectedDrawables())
-					{
-						zp.zoomCenter = r.center();
-						zp.zoomDir = zoomIn;
-						if (!pHistory->Drawable(dri)->zoomer.CanZoom(zp))		// TODO: when steps != 1
-						{
-							canZoom = false;
-							break;
-						}
-					}
-					qreal zf = pHistory->Drawable(pHistory->SelectedDrawables()[0])->zoomer.ZoomFactor();
-					if (canZoom)
-					{
-						HistoryZoomItem* pdz = (HistoryZoomItem*)pHistory->AddZoomItem(_rubberRect.translated(_topLeft), zoomIn, 1);	// TODO: when steps != 1
-						pdz->Redo();
-						QPointF center = _rubberRect.center();
-						_rubberRect = pdz->zoomedRect.translated(-_topLeft);
-						_rubberRect = QRectF((_rubberRect.topLeft() - center) * zf + center, (_rubberRect.bottomRight() - center) * zf + center);
-						_rubberBand->setGeometry(_rubberRect.toRect());
-						_Redraw();
-					}
-				}
-
-			}
-			else if (bRemove)			   // delete rubberband for any keypress except pure modifiers  or space bar
-				HideRubberBand(true);
-		}
+		if (_rubberBand)
+			_KeyPressWithRubberband(event);
 		else    // no rubberBand
 #endif
 		{
@@ -934,11 +952,12 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 					break;
 				case Qt::Key_X:
 					if(!_mods.testFlag(Qt::ControlModifier) )
-						__DrawCross(_actMousePos, 10);
-				case Qt::Key_1:
-				case Qt::Key_2:
-				case Qt::Key_3:
-				case Qt::Key_4:
+						_DrawCross(_actMousePos, 10);
+					break;
+				case Qt::Key_1: [[fallthrough]];	// since C++17
+				case Qt::Key_2: [[fallthrough]];	// since C++17 
+				case Qt::Key_3: [[fallthrough]];	// since C++17 
+				case Qt::Key_4: [[fallthrough]];	// since C++17 
 				case Qt::Key_5:
 					_ChangePenByKeyboard(key);
 					break;
