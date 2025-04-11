@@ -1,4 +1,4 @@
-#include <QString>
+﻿#include <QString>
 #include <QStringList>
 #include <QtWidgets/QApplication>
 
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 			a.installTranslator(&translator);
 	}
 	ShowSplashScreen(true);	 // add text
-	// set ip window and languages
+	// set up window and languages
 	FalconBoard w(a.screens()[0]->size());
 	w.SetLanguages(fileNames, ixLang);
 

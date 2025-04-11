@@ -74,12 +74,13 @@ void FalconBoard::_RemoveMenus()
 
     // options menu
     pMenu = pMenuActions[3]->menu();    
-                                                    //18: language
-    pMenu->removeAction(pMenu->actions()[17]);      //17:    separator
-    pMenu->removeAction(pMenu->actions()[16]);      //16: Auto save background image
-    pMenu->removeAction(pMenu->actions()[15]);      //15: Auto save before print
-	pMenu->removeAction(pMenu->actions()[14]);      //14: Keep Changes
-    pMenu->removeAction(pMenu->actions()[13]);      //13: Auto save data
+                                                    //19: language
+    pMenu->removeAction(pMenu->actions()[18]);      //18:    separator
+    pMenu->removeAction(pMenu->actions()[17]);      //17: Auto save background image
+    pMenu->removeAction(pMenu->actions()[16]);      //16: Auto save before print
+	pMenu->removeAction(pMenu->actions()[15]);      //15: Keep Changes
+    pMenu->removeAction(pMenu->actions()[14]);      //14: Auto save data
+                                                    //13: Allow multiple program instances
                                                     //12:   separator
     pMenu->removeAction(pMenu->actions()[11]);      //11: Load Background Image 
     pMenu->removeAction(pMenu->actions()[10]);      //10:   separator
@@ -87,11 +88,11 @@ void FalconBoard::_RemoveMenus()
     pMenu->removeAction(pMenu->actions()[8]);       // 8: Define pen colors
                                                     // 7:   separator
     pMenu->removeAction(pMenu->actions()[6]);       // 6: Auto correct tolerance
-                                                    // 5: Allow multiple program instances
-                                                    // 4: Show page guides
-    pMenu->removeAction(pMenu->actions()[3]);       // 3: paper width
-    pMenu->removeAction(pMenu->actions()[2]);       // 2: grid options
-                                                    // 1: grid shown
+                                                    // 5: Show page guides
+    pMenu->removeAction(pMenu->actions()[4]);       // 4: grid options
+                                                    // 3: grid shown
+                                                    // 2: show left margin
+    pMenu->removeAction(pMenu->actions()[1]);       // 1: limit paper width
                                                     // 0: mode
 
 
@@ -133,7 +134,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
     if (!QDir(FBSettings::homePath).exists())
         QDir(FBSettings::homePath).mkdir(FBSettings::homePath);
 
-    _drawArea = static_cast<DrawArea*>(ui.centralWidget);
+    _drawArea = ui.drawArea; // static_cast<DrawArea*>(ui.centralWidget);
     _drawArea->SetPenKind(_actPen, _penWidths[_actPen]); 
     _drawArea->SetScreenSize(screenSize);
 
@@ -182,7 +183,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
     _snapshotTimer.start();
 #endif
 
-    ui.centralWidget->setFocus();
+    ui.drawArea->setFocus();
 }
 
 void FalconBoard::StartListenerThread(QObject* parent)
@@ -280,6 +281,12 @@ void FalconBoard::RestoreState()
         case 's': // default on form
         default: break;
     }
+
+    b = s->value(SHOWLEFTMARGIN, true).toBool();        // left margin
+    ui.actionLeftMargin->setChecked(b);
+    if (!b)
+        ui.marginWidget->setVisible(false);
+
     int n = s->value(GRID, 0).toInt();
     ui.actionFixedGrid->setChecked(n & 2);
 #ifndef _VIEWER
@@ -478,6 +485,7 @@ void FalconBoard::SaveState()
     }
     s->setValue(MODE, qs);
     s->setValue(GRID, (ui.actionShowGrid->isChecked() ? 1 : 0) + (ui.actionFixedGrid->isChecked() ? 2 : 0));
+    s->setValue(SHOWLEFTMARGIN, ui.actionLeftMargin->isChecked());
     s->setValue(PAGEGUIDES, ui.actionShowPageGuides->isChecked() ? 1 : 0);
     s->setValue(LIMITED, ui.actionLimitPaperWidth->isChecked());
 #ifndef _VIEWER
@@ -1198,6 +1206,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
         default:
         case ScreenMode::smSystem:
             _sGridColor = "#d0d0d0";
+            _sMarginColor = "#E0E0E0";
             break;
         case ScreenMode::smLight:
             _sBackgroundColor = "#F0F0F0";
@@ -1206,6 +1215,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sEditBackgroundColor = "#F0F0F0",
             _sEditTextColor = "#000000",
             _sGridColor = "#d0d0d0";
+            _sMarginColor = "#E0E0E0",
             _sPageGuideColor = "#fcd475";
             _sPressedBackground = "#0000bb",
             _sSelectedBackgroundColor = "#007acc",
@@ -1224,6 +1234,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sEditBackgroundColor = "#FFFFFF",
             _sEditTextColor = "#000000",
             _sDisabledColor = "#AAAAAA";
+            _sMarginColor = "#EAEAEA",
             _sGridColor = "#E0E0E0";
             _sPageGuideColor = "#fcd475";
             _sPressedBackground = "#0000bb",
@@ -1244,6 +1255,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sEditTextColor = "#ffffff",
             _sDisabledColor = "#888888";
             _sGridColor = "#202020";
+            _sMarginColor = "#252525",
             _sPageGuideColor = "#413006";
             _sPressedBackground = "#888888";
             _sSelectedBackgroundColor = "#007acc";
@@ -1263,7 +1275,8 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sEditBackgroundColor = "#FFFFFF",
             _sDisabledColor = "#888888";
             _sEditTextColor = "#000000",
-            _sGridColor = "#202020";
+            _sGridColor = "#303030";
+            _sMarginColor = "#202020",
             _sPageGuideColor = "#2e2204";
             _sPressedBackground = "#888888";
             _sSelectedBackgroundColor = "#007acc";
@@ -1294,103 +1307,109 @@ void FalconBoard::_SetupMode(ScreenMode mode)
                 "  color:" + _sEditTextColor + ";\n"
             "}\n"
 
-            "QMenu::separator {  height:1px;\n  margin:1px 3px;\n  background:" + _sTextColor + "\n}\n"
-            "QMenuBar::item, "
-            "QMenu::item {\n"
-            "  color:" + _sTextColor + ";\n"
-            "  background-color:" + _sBackgroundColor + ";\n"
-            "}\n"
-            "QMenuBar::item:selected,\n"
-            "QMenu::item:selected {\n"
-            "  color:"+_sBackgroundColor + ";\n"
-            "  background-color:" + _sTextColor + ";\n"
-            "}\n"
-            "QMenu::item:disabled {\n"
-            "  color:"+ _sDisabledColor + ";\n"
-            "}\n"
+"QMenu::separator {  height:1px;\n  margin:1px 3px;\n  background:" + _sTextColor + "\n}\n"
+"QMenuBar::item, "
+"QMenu::item {\n"
+"  color:" + _sTextColor + ";\n"
+"  background-color:" + _sBackgroundColor + ";\n"
+"}\n"
+"QMenuBar::item:selected,\n"
+"QMenu::item:selected {\n"
+"  color:" + _sBackgroundColor + ";\n"
+"  background-color:" + _sTextColor + ";\n"
+"}\n"
+"QMenu::item:disabled {\n"
+"  color:" + _sDisabledColor + ";\n"
+"}\n"
 
-            "QSpinBox {\n"
-            "  background-color:"+_sBackgroundColor + ";\n"
-            "  color:" + _sTextColor + ";\n"
-            "}\n"
-            //"QSpinBox::up-button,QSpinBox::down-button, QSpinBox::up-arrow,QSpinBox::down-arrow {\n"
-            //"  color:"+_sBackgroundColor + ";\n"
-            //"  background-color:" + _sTextColor + ";\n"
-            //"}\n"
+"QSpinBox {\n"
+"  background-color:" + _sBackgroundColor + ";\n"
+"  color:" + _sTextColor + ";\n"
+"}\n"
+//"QSpinBox::up-button,QSpinBox::down-button, QSpinBox::up-arrow,QSpinBox::down-arrow {\n"
+//"  color:"+_sBackgroundColor + ";\n"
+//"  background-color:" + _sTextColor + ";\n"
+//"}\n"
 
-            "QLineEdit {\n"
-            "  background-color:" + _sEditBackgroundColor + ";\n"
-            "  color:"+_sEditTextColor + ";\n"
-            "  border: 1px solid"+_sGridColor+";\n"
-            "  border-radius:4px;"
-            "  padding:1px 2px;\n"
-            "}\n"
+"QLineEdit {\n"
+"  background-color:" + _sEditBackgroundColor + ";\n"
+"  color:" + _sEditTextColor + ";\n"
+"  border: 1px solid" + _sGridColor + ";\n"
+"  border-radius:4px;"
+"  padding:1px 2px;\n"
+"}\n"
 
-            "QGroupBox{\n"
-            "  margin-top:2em;"
-            "  border: 1px solid"+_sBackgroundHighlightColor+";\n"
-            "  border-radius:4px;\n"
-            "}\n"
-            "QGroupBox::title {\n"
-            "  subcontrol-origin: margin;\n"
-            "  subcontrol-position: 50%;\n"
-            "  padding:4px;\n"
+"QGroupBox{\n"
+"  margin-top:2em;"
+"  border: 1px solid" + _sBackgroundHighlightColor + ";\n"
+"  border-radius:4px;\n"
+"}\n"
+"QGroupBox::title {\n"
+"  subcontrol-origin: margin;\n"
+"  subcontrol-position: 50%;\n"
+"  padding:4px;\n"
 //            "  margin-top:2em;"
-            "}\n"
+"}\n"
 
-            "QPushButton {\n"
-            "  padding: 2px;\n"
-            "  margin: 2px;\n"
-            "  border: 2px solid" + _sGridColor + ";"
-            "\n}\n"
-            "QPushButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n" 
+"QPushButton {\n"
+"  padding: 2px;\n"
+"  margin: 2px;\n"
+"  border: 2px solid" + _sGridColor + ";"
+"\n}\n"
+"QPushButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n"
 
-            "QToolButton:pressed {\n"
-            "  background-color:"+ _sPressedBackground + ";\n"
-            "  border: none;\n"
-            "}\n"
+"QToolButton:pressed {\n"
+"  background-color:" + _sPressedBackground + ";\n"
+"  border: none;\n"
+"}\n"
 
-            "QToolButton:hover {\n  "
-            "  border:1px solid " + _sTabBarActiveTextColor + ";\n"
-            "}\n"
+"QToolButton:hover {\n  "
+"  border:1px solid " + _sTabBarActiveTextColor + ";\n"
+"}\n"
 
-            "QToolBar:disabled, QToolButton:disabled {\n"
-            "  color:" + _sDisabledColor + ";\n"
-            "}"
-            "QStatusBar, QToolBar {\n"
-            " background-color:" + _sToolBarColor + ";\n"
-            " border:1px solid " + _sGridColor + ";\n"        
-            "}\n"
+"QToolBar:disabled, QToolButton:disabled {\n"
+"  color:" + _sDisabledColor + ";\n"
+"}\n"
 
-            "QTabBar::tab {\n"
-            "  color:" + _sTabBarActiveTextColor + ";\n"
-            "  background-color:" + _sBackgroundColor+";\n"
-            "  selection-background-color:"+ _sSelectedBackgroundColor+";\n"
-            "}\n"
-            "QTabBar::tab{\n"
-            "  border-top-left-radius: 4px;\n"
-            "  border-top-right-radius: 4px;\n"
-            "  min-width: 60px;"
-            "  padding: 2px 4px;\n"
-            "  border:1px solid " + _sTabBarActiveTextColor + ";\n"
-            "}\n"
-            "QTabBar::tab:!selected{"
-            "  color:" + _sTabBarInactiveTextColor + ";\n"
-            "  background-color:" + _sUnselectedBackgroundColor+";\n"
-            "  margin-top: 2px;"
-            "  border:1px solid " + _sTabBarInactiveTextColor + ";\n"
-            "}"
-            "QTabBar:selected {\n"
-            "  background-color:" + _sSelectedBackgroundColor + ";\n"
-            "  color:"+_sBackgroundColor+";\n"
-            "}\n"
+"QStatusBar, QToolBar {\n"
+" background-color:" + _sToolBarColor + ";\n"
+" border:1px solid " + _sGridColor + ";\n"
+"}\n"
 
-            "QToolTip {\n" 
-            "  background-color:"+_sToolTipBackground+";\n"
-            "  color:"+_sToolTipTextColor+";\n"
-            "  border 1px solid " + _sToolTipTextColor+";\n"
+"QTabBar::tab {\n"
+"  color:" + _sTabBarActiveTextColor + ";\n"
+"  background-color:" + _sBackgroundColor + ";\n"
+"  selection-background-color:" + _sSelectedBackgroundColor + ";\n"
+"}\n"
+"QTabBar::tab{\n"
+"  border-top-left-radius: 4px;\n"
+"  border-top-right-radius: 4px;\n"
+"  min-width: 60px;"
+"  padding: 2px 4px;\n"
+"  border:1px solid " + _sTabBarActiveTextColor + ";\n"
+"}\n"
+"QTabBar::tab:!selected{"
+"  color:" + _sTabBarInactiveTextColor + ";\n"
+"  background-color:" + _sUnselectedBackgroundColor + ";\n"
+"  margin-top: 2px;"
+"  border:1px solid " + _sTabBarInactiveTextColor + ";\n"
+"}\n"
+"QTabBar:selected {\n"
+"  background-color:" + _sSelectedBackgroundColor + ";\n"
+"  color:" + _sBackgroundColor + ";\n"
+"}\n"
+
+"QToolTip {\n"
+"  background-color:" + _sToolTipBackground + ";\n"
+"  color:" + _sToolTipTextColor + ";\n"
+"  border 1px solid " + _sToolTipTextColor + ";\n"
+"}\n"
+
+"QWidget#marginWidget {\n"
+"  border-right: 1px solid " + _sTextColor + ";\n"
+"  background-color:" + _sMarginColor + ";\n"
             "}\n"
-        ;
+;
 
     ((QApplication*)(QApplication::instance()))->setStyleSheet(ss); // so it cascades down to all sub windows/dialogs, etc
 // DEBUG
@@ -2192,6 +2211,15 @@ void FalconBoard::SlotForActivate()
     activateWindow();
 }
 
+void FalconBoard::on_actionLeftMargin_triggered()
+{
+    if (_busy)
+        return;
+    ++_busy;
+    ui.marginWidget->setVisible(ui.actionLeftMargin->isChecked());
+    --_busy;
+}
+
 void FalconBoard::on_actionShowGrid_triggered()
 {
     if (_busy)
@@ -2245,7 +2273,7 @@ void FalconBoard::slotGridSpacingChanged(int val)
 
 void FalconBoard::slotGridSpacingEditingFinished()
 {
-    ui.centralWidget->setFocus();
+    ui.drawArea->setFocus();
 }
 
 
@@ -2270,7 +2298,7 @@ void FalconBoard::_SetPenCommon(FalconPenKind pk)
     _SetPenKind(pk);
     _SetCursor(csPen);
     _SetPenWidth(pk);
-    ui.centralWidget->setFocus();
+    ui.drawArea->setFocus();
 }
 
 void FalconBoard::on_actionPenBlackOrWhite_triggered()
@@ -2314,7 +2342,7 @@ void FalconBoard::on_actionEraser_triggered()
     _SetPenWidth(_actPen = penEraser);
     _drawArea->SetCursor(csEraser);
     _SelectPenForAction(ui.actionEraser);
-	ui.centralWidget->setFocus();
+	ui.drawArea->setFocus();
 }
 
 void FalconBoard::on_actionRotate_triggered()
@@ -2525,7 +2553,7 @@ void FalconBoard::slotPenWidthChanged(int val)
 
 void FalconBoard::slotPenWidthEditingFinished()
 {
-    ui.centralWidget->setFocus();
+    ui.drawArea->setFocus();
 }
 void FalconBoard::SlotForUndo(bool b)
 {
@@ -2541,7 +2569,7 @@ void FalconBoard::SlotForRedo(bool b)
 
 void FalconBoard::SlotForFocus()
 {
-    ui.centralWidget->setFocus();
+    ui.drawArea->setFocus();
 }
 
 void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sent by tablet

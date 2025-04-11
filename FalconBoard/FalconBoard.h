@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef _FALCONBOARD_H
 #define _FALCONBOARD_H
 
@@ -88,6 +88,7 @@ public slots:
 	void slotGridSpacingEditingFinished();
 
 private slots:
+	void on_actionLeftMargin_triggered();
 	void on_actionShowGrid_triggered();
 	void on_actionFixedGrid_triggered();
 	void on_actionGridSize_triggered();
@@ -297,22 +298,23 @@ private:
 	QPointer<Snipper> _pSnipper = nullptr;		// screen grab label
 #endif
 
-	QString _sBackgroundColor = "#FFFFFF",
-			_sBackgroundHighlightColor="#D8EAF9",
-			_sDisabledColor = "#ccccc",
-			_sEditBackgroundColor="#FFFFFF",
-			_sEditTextColor = "#000000",
-			_sGridColor = "#d0d0d0",
-		    _sPageGuideColor = "#fcd475",
-			_sPressedBackground = "#00aa00",
-			_sSelectedBackgroundColor="#FFF",
-			_sUnselectedBackgroundColor="#d0d0d0",
-			_sTextColor = "#000000",
-			_sToolBarColor = "#cccccc",
-			_sTabBarActiveTextColor = "#FFA0A0",
-			_sTabBarInactiveTextColor = "#808080",
-			_sToolTipTextColor = "#000000",
-			_sToolTipBackground= "#cccccc"
+	QString _sBackgroundColor,			// depends of the mood
+		_sBackgroundHighlightColor,
+		_sDisabledColor,
+		_sEditBackgroundColor,
+		_sEditTextColor,
+		_sGridColor,
+		_sMarginColor,
+		_sPageGuideColor,
+		_sPressedBackground,
+		_sSelectedBackgroundColor,
+		_sTextColor,
+		_sToolBarColor,
+		_sTabBarActiveTextColor,
+		_sTabBarInactiveTextColor,
+		_sToolTipTextColor,
+		_sToolTipBackground,
+		_sUnselectedBackgroundColor
 		;
 
 	bool _useScreenshotTransparency = false;

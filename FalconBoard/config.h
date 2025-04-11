@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
@@ -24,6 +24,7 @@ constexpr const char
 * KEEPCHANGED = "keepChgs",	// keep changed documents on close
 * AUTOSBCKIMG = "saveb",	// automatic save of page background on close
 * AUTOSAVEPRINT = "saveonprint",	// auto save before print/ PDF
+* SHOWLEFTMARGIN = "leftMargin",
 
 * RECENTLIST = "Recent",	// group for recent file list of max 9 recent files
 * CNTRECENT = "cnt",		// count of recent files

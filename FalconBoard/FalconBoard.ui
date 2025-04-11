@@ -23,10 +23,46 @@
   <property name="styleSheet">
    <string notr="true"/>
   </property>
-  <widget class="DrawArea" name="centralWidget">
+  <widget class="QWidget" name="centralWidget">
    <property name="cursor">
     <cursorShape>CrossCursor</cursorShape>
    </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>1</number>
+    </property>
+    <property name="topMargin">
+     <number>1</number>
+    </property>
+    <property name="rightMargin">
+     <number>1</number>
+    </property>
+    <property name="bottomMargin">
+     <number>1</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="marginWidget" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>50</width>
+        <height>0</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="DrawArea" name="drawArea" native="true"/>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -175,11 +211,11 @@
      </property>
     </widget>
     <addaction name="menu_Mode"/>
+    <addaction name="actionLimitPaperWidth"/>
+    <addaction name="actionLeftMargin"/>
     <addaction name="actionShowGrid"/>
     <addaction name="menuGrid"/>
-    <addaction name="actionLimitPaperWidth"/>
     <addaction name="actionShowPageGuides"/>
-    <addaction name="actionAllowMultipleProgramInstances"/>
     <addaction name="actionAutocorrectTolerance"/>
     <addaction name="separator"/>
     <addaction name="actionDefinePenColors"/>
@@ -187,12 +223,14 @@
     <addaction name="separator"/>
     <addaction name="actionLoadBackground"/>
     <addaction name="separator"/>
+    <addaction name="actionAllowMultipleProgramInstances"/>
     <addaction name="actionAutoSaveData"/>
     <addaction name="actionKeepChangedNoAsking"/>
     <addaction name="actionAutoSaveBeforePrintOrExport"/>
     <addaction name="actionAutoSaveBackgroundImage"/>
     <addaction name="separator"/>
     <addaction name="actionLanguages"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
@@ -994,6 +1032,17 @@
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not ask to save data, but&lt;/p&gt;&lt;p&gt;keep it for later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionLeftMargin">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show left margin</string>
    </property>
   </action>
  </widget>

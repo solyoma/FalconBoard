@@ -27,13 +27,13 @@ Nem FalconBoard fájl</translation>
         <translation type="vanished">FalconBoard - Hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2293"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2348"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation>Erőforrás lefoglalási hiba. Nincs elég memória?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2296"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2351"/>
         <source>Can&apos;t find printer</source>
         <translation>Nem találom a nyomtatót</translation>
     </message>
@@ -42,27 +42,27 @@ Not enough memory?</source>
         <translation type="vanished">FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="824"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="782"/>
         <source>With this pen width drawing would be outside of &quot;paper&quot;</source>
         <translation>Ezzel a tolllal a rajz a &quot;papíron&quot; kívül lenne</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2299"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2354"/>
         <source>Print error</source>
         <translation>Nyomtatási hiba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2302"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2357"/>
         <source>Print cancelled</source>
         <translation>Megszakítottad a nyomtatást</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2882"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2937"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 | Kijelölés: x:%6, y:%7, szél.:%8, mag.:%9</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2888"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2943"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation>   Oldal:%1,  X:%2, Y:%3 | Toll poz.:x:%4, y:%5 </translation>
     </message>
@@ -70,43 +70,43 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="627"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="629"/>
         <source>%1...</source>
         <translation>%1...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="679"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="681"/>
         <source>Pen Width:</source>
         <translation>Toll vastagság:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="693"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="695"/>
         <source>Grid size:</source>
         <translation>Rács mérete:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="762"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="764"/>
         <source>Falconboard - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="762"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="764"/>
         <source>Too many open files</source>
         <translation>Túl sok fájl - nem tudok többet megnyitni</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="886"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="888"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation>&lt;i&gt;%1&lt;/i&gt; megváltozott. Elmentsem a változásokat?</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1443"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1450"/>
         <source>C&amp;lear list</source>
         <translation>Lista &amp;Törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1539"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1546"/>
         <source>Automatic snapshot save not finished in 30 seconds!
 Please svae each changed files manually!
 
@@ -116,7 +116,7 @@ Kérlek mentsed el a változásokat!
 A program bezárása elhalasztva.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1675"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1682"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
@@ -127,120 +127,120 @@ A program bezárása elhalasztva.</translation>
  Ezt bármikor megváltoztathatod a &lt;i&gt;Lehetőségek/Lapszélesség korlátozása&lt;/i&gt; menüben.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1682"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1689"/>
         <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
  You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
         <translation>Lekorlátozzam a lap vízszintes méretét a&apos; Lapbeállítás&apos; menüben megadott szélességre?
 Ezt bármikor megváltoztathatod a &apos;Lehetőségek/Lapszélesség korlátozása&apos;  menüben</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1696"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1703"/>
         <source>FalconBoard - Import</source>
         <translation>FalconBoard - Importálás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1769"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1776"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation>Ennél több dokumentumot nem lehet megnyitva. Zárj be egyet a folytatáshoz.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1775"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1782"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation>Valószínűleg túl sok fájlt próbáltál megnyitni! Csak az első %1 darab még nem betöltött fájlt lehet betölteni.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1831"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2000"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1838"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2007"/>
         <source>Load Data</source>
         <translation>Adatok betöltése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1833"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2002"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1840"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2009"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation>FalconBoard fájl (*.mwb);;Minden fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1876"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1883"/>
         <source>FalconBoard - Go to Page</source>
         <translation>FalconBoard - Ugrás adott oldalra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1876"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1883"/>
         <source>Page:</source>
         <translation>Oldal:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1982"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1989"/>
         <source>This file path name is already used for another open document.
 Please enter a different one</source>
         <translation>Egy ilyen elérési útvonalú fájl már szerepel a megnyitottak között\nVálassz egy másik nevet légy szíves</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2054"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2061"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation>Nyilt forráskódú tantermi tábla alkalmazás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2056"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2063"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt;&lt;p&gt;A QuadTree kódot innen vettem:&lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2259"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2275"/>
         <source>FalconBoard - settings</source>
         <translation>FalconBoard - auto javítás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2259"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2275"/>
         <source>Autocorrect tolerance in pixels</source>
         <translation>Automatikus korrekciók toleranciája  pixelben</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2642"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2658"/>
         <source>export</source>
         <translation>export</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1981"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1988"/>
         <source>FalconBoard - Warning</source>
         <oldsource>FalconG - Warning</oldsource>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1928"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1935"/>
         <source>Please restart the program to change the language!</source>
         <translation>Indítsd újra programot a nyelvváltáshoz!</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1969"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2039"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1976"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2046"/>
         <source>Save As</source>
         <translation>Mentés másként</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1970"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1977"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation>FalconBoard fájlok (*.mwb);; Mindenl Fájl (*))</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2017"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2024"/>
         <source>Open Background Image</source>
         <translation>Háttérkép megnyitása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2041"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2048"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation>%1 Fájlok (*.%2);;Mindenl Fájl (*)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2053"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2060"/>
         <source>About FalconBoard</source>
         <translation>FalconBoard - Névjegy</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2055"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2062"/>
         <source>&lt;p&gt;Version </source>
         <translation>&lt;p&gt;Verzió </translation>
     </message>
@@ -249,22 +249,22 @@ Please enter a different one</source>
         <translation type="obsolete">&lt;p&gt;© A. Sólyom (2020-21)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;A Qt &lt;b&gt;Scribble&lt;/b&gt; példaprogramon alapul.&lt;/p&gt; {2020)?}</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2214"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2230"/>
         <source>falconBoard - Grid spacing</source>
         <translation>FalconBoard - rácsméret</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2215"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2231"/>
         <source>Spacing in pixels:</source>
         <translation>A távolság pixelben:</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="195"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="196"/>
         <source>print</source>
         <translation>nyomtatás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="359"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="360"/>
         <source>Do you want to save the document before %1?
 
 (You may set automatic save in the Options menu.)</source>
@@ -272,7 +272,7 @@ Please enter a different one</source>
 (Az Opciók menüben beállíthatod az automatikus mentést.)</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="361"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="362"/>
         <source>FalconBoard - Question</source>
         <translation>FalconBoard - kérdés</translation>
     </message>
@@ -285,47 +285,47 @@ Please enter a different one</source>
         <translation>FalconBoard</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="42"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="78"/>
         <source>&amp;File</source>
         <translation>&amp;Fájl</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="49"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="85"/>
         <source>Recen&amp;t Documents</source>
         <translation>U&amp;tolsó dokumentumok</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="76"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="112"/>
         <source>&amp;Edit</source>
         <translation>Sz&amp;erkesztés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="80"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="116"/>
         <source>Pen Color</source>
         <translation>Toll színe</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="95"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="131"/>
         <source>Transform</source>
         <translation>Transzformáció</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="131"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="167"/>
         <source>&amp;Help</source>
         <translation>&amp;Súgó</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="138"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="174"/>
         <source>&amp;Clear</source>
         <translation>&amp;Törlés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="150"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="186"/>
         <source>&amp;Options</source>
         <translation>&amp;Lehetőségek</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="154"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="190"/>
         <source>&amp;Mode</source>
         <translation>&amp;Mód</translation>
     </message>
@@ -338,17 +338,17 @@ Please enter a different one</source>
         <translation type="vanished">&amp;Papír szélesség</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="174"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="210"/>
         <source>Language</source>
         <translation>Nyelv</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="218"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="256"/>
         <source>&amp;Open...</source>
         <translation>&amp;Megnyitás...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="221"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="259"/>
         <source>Open</source>
         <translation>Megnyitás</translation>
     </message>
@@ -357,296 +357,301 @@ Please enter a different one</source>
         <translation type="vanished">Adatok beolvasása a kiválasztott fülre</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="164"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="200"/>
         <source>Grid options</source>
         <translation>Rács beállításai</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="224"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="262"/>
         <source>Load FalconBoard data into the active tab</source>
         <translation>Falconboard fájl betöltése az ajtív dokumentumba</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="227"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="265"/>
         <source>Ctrl+O</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="236"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="274"/>
         <source>&amp;Save</source>
         <translation>Menté&amp;s</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="239"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="277"/>
         <source>Save...</source>
         <translation>Mentés...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="242"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="280"/>
         <source>Save actual tab into file</source>
         <translation>Aktuális fül elmentése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="245"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="283"/>
         <source>Ctrl+S</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="254"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="292"/>
         <source>S&amp;ave As...</source>
         <translation>Mentés máské&amp;nt...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="257"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="295"/>
         <source>Save actual tab into file with a new name</source>
         <translation>Aktuális fül mentése más néven</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="266"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="304"/>
         <source>E&amp;xit</source>
         <translation>&amp;Kilépés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="269"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="307"/>
         <source>Alt+X</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="284"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="322"/>
         <source>Blac&amp;k</source>
         <translation>&amp;Fekete</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="287"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="325"/>
         <source>1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="299"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="337"/>
         <source>&amp;Red</source>
         <translation>&amp;Piros</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="302"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="340"/>
         <source>2</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="314"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="352"/>
         <source>&amp;Green</source>
         <translation>&amp;Zöld</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="317"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="355"/>
         <source>3</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="329"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="367"/>
         <source>&amp;Blue</source>
         <translation>&amp;Kék</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="332"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="370"/>
         <source>4</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="344"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="382"/>
         <source>Pen T&amp;5</source>
         <translation>&amp;5-ik toll szín</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="359"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="397"/>
         <source>Pen T&amp;6</source>
         <translation>&amp;6-ik toll szín</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="362"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="400"/>
         <source>6</source>
         <translation>6</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="374"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="412"/>
         <source>Pen T&amp;7</source>
         <translation>&amp;7-ik toll szín</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="377"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="415"/>
         <source>7</source>
         <translation>7</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="382"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="420"/>
         <source>?</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="385"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="423"/>
         <source>F1</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="390"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="428"/>
         <source>&amp;About</source>
         <translation>Név&amp;jegy</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="402"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="440"/>
         <source>&amp;Print...</source>
         <translation>N&amp;yomtatás...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="405"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="443"/>
         <source>Ctrl+P</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="410"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="448"/>
         <source>C&amp;lear Roll</source>
         <translation>Teker&amp;cs törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="413"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="451"/>
         <source>Clear whole Whiteboard except background image.</source>
         <translation>Minden törlése, kivéve a háttérképet.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="416"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="454"/>
         <source>Ctrl+Del</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="428"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="466"/>
         <source>&amp;Eraser</source>
         <translation>Ra&amp;dir</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="431"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="469"/>
         <source>E</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="439"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="477"/>
         <source>&amp;Insert vertical space.</source>
         <translation>Fü&amp;ggőleges tér beszúrása.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="442"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="480"/>
         <source>Insert vertical space.</source>
         <translation>Függőleges tér beszúrása.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="445"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="483"/>
         <source>F5</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="457"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="495"/>
         <source>&amp;Undo</source>
         <translation>&amp;Visszavonás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="460"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="498"/>
         <source>Ctrl+Z</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="472"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="510"/>
         <source>Re&amp;do</source>
         <translation>&amp;Ujra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="475"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="513"/>
         <source>Ctrl+Y</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="480"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="518"/>
         <source>Clear Undo &amp;History</source>
         <translation>Szerkesztési &amp;történet elvetése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="489"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="527"/>
         <source>&amp;New</source>
         <translation>Ú&amp;j</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="492"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="530"/>
         <source>Clear whiteboard</source>
         <translation>Minden törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="495"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="533"/>
         <source>Ctrl+N</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="500"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="538"/>
         <source>Loa&amp;d Backgorund Image...</source>
         <translation>Háttérkép &amp;betöltése...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="503"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="541"/>
         <source>Load Background</source>
         <translation>Háttérkép betöltése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="506"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="544"/>
         <source>Load image as background</source>
         <translation>Kp betöltése a háttérbe</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="511"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="549"/>
         <source>Save &amp;Visible</source>
         <translation>&amp;Láthatók  elmentése képként</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="514"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="552"/>
         <source>Save visible image (not the lines themselves)</source>
         <translation>maguk a vonalak nem lesznek elmentve</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="519"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="557"/>
         <source>Clear Bac&amp;kground</source>
         <translation>Háttér &amp;törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="528"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="566"/>
         <source>&amp;Screenshot</source>
         <translation>Képernyő&amp;fotó</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="531"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="569"/>
         <source>Create a snapshot of some part of the screen</source>
         <translation>A képernyő egy részének &quot;lefényképezése&quot;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="534"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="572"/>
         <source>F4</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="979"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="1017"/>
         <source>Auto corr&amp;ect tolerance...</source>
         <translation>Automatikus &amp;vonal tolerancia...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="993"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="1031"/>
         <source>Keep Changed</source>
         <translation>Változások megtartása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="996"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="1034"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Do not ask to save data, but&lt;/p&gt;&lt;p&gt;keep it for later.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ne kérdezz az adatmentésre, hanem&lt;/p&gt;&lt;p&gt;csak tartsd meg a változásokat.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.ui" line="1045"/>
+        <source>Show left margin</source>
+        <translation>Bal margó látható</translation>
     </message>
     <message>
         <source>Auto Save Data</source>
         <translation type="vanished">Adatok automatikus mentése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="548"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="586"/>
         <source>Automatic save of data at exit</source>
         <translation>amikor a programot bezárjuk</translation>
     </message>
@@ -655,32 +660,32 @@ Please enter a different one</source>
         <translation type="vanished">Háttérkép automatikus elmentése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="562"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="600"/>
         <source>Save background image at exit automatically</source>
         <translation>amikor a programot bezárjuk</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="637"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="675"/>
         <source>&amp;System Colors</source>
         <translation>&amp;Rendszerszínek</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="645"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="683"/>
         <source>&amp;Dark</source>
         <translation>&amp;Sötét mód</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="653"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="691"/>
         <source>&amp;Black</source>
         <translation>&amp;Fekete mód</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="966"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="1004"/>
         <source>&amp;Light</source>
         <translation>&amp;Világos mód</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="974"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="1012"/>
         <source>&amp;White</source>
         <translation>&amp;Fehér mód</translation>
     </message>
@@ -689,7 +694,7 @@ Please enter a different one</source>
         <translation type="vanished">Automatikus javítás...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="982"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="1020"/>
         <source>Sets a limit in pixels to auto correct imperfect lines to perfect ones</source>
         <translation>Nem tökéletes vonalak automatikus javításának toleranciája. Pixelben adott érték</translation>
     </message>
@@ -698,87 +703,87 @@ Please enter a different one</source>
         <translation type="vanished">&amp;Sárga</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="347"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="385"/>
         <source>5</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="545"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="583"/>
         <source>Autosave Data</source>
         <translation>Automatikus adatmentés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="559"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="597"/>
         <source>Autosave Background Image</source>
         <translation>Háttérkép automatikus mentése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="570"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="608"/>
         <source>Vertical space...</source>
         <translation>Függőleges terület...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="575"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="613"/>
         <source>Clear Visible &amp;Screen</source>
         <translation>Látható képterület törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="578"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="616"/>
         <source>Clear Visible Screen. Anything left or right of visible screen remains visible.</source>
         <translation>balra és jobbra minden megmarad</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="583"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="621"/>
         <source>Clear Visible Screen and &amp;Above</source>
         <translation>Látható képterület és a felette levők törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="586"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="624"/>
         <source>Clear Visible Screen and Above. Only a visible screen wide vertical band is cleared.</source>
         <translation>Csak a látható képernyőnek megfelelő sávot törli.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="591"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="629"/>
         <source>Clear Visible Screen and &amp;Below</source>
         <translation>Látható képterület és alatta levők törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="594"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="632"/>
         <source>Clear Visible Screen and Below.  Only a visible screen wide vertical band is cleared.</source>
         <translation>Csak a látható képernyőnek megfelelő sávot törli.</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="599"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="637"/>
         <source>Pa&amp;ge Setup...</source>
         <translation>Lap&amp;beállítás...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="607"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="645"/>
         <source>Show &amp;Page Guides</source>
         <translation>Laphatárok &amp;mutatása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="610"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="648"/>
         <source>Show Page Guides</source>
         <translation>Laphatárok mutatása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="615"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="653"/>
         <source>&amp;Export to Pdf ...</source>
         <translation>PDF &amp;Exportálás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="618"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="656"/>
         <source>Export actual TAB to Pdf</source>
         <translation>Az aktuális fül exportálása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="623"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="661"/>
         <source>C&amp;lear List</source>
         <translation>Eőzmények &amp;Törlése</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="626"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="664"/>
         <source>Clear List of prev. documents</source>
         <translation>Előzmények törlése</translation>
     </message>
@@ -795,52 +800,52 @@ Please enter a different one</source>
         <translation type="vanished">Fekete mód</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="661"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="699"/>
         <source>&amp;Show grid</source>
         <translation>Rács lát&amp;ható</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="784"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="822"/>
         <source>C</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="798"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="836"/>
         <source>R</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="849"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="887"/>
         <source>.</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="860"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="898"/>
         <source>Shift+C</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="871"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="909"/>
         <source>Shift+R</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="882"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="920"/>
         <source>X</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="931"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="969"/>
         <source>Autosave Before Print/Export</source>
         <translation>Automatikus mentés nyomtatás/export előtt</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="950"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="988"/>
         <source>Allow m&amp;ultiple program instances</source>
         <translation>A program  több pé&amp;ldányban futhat</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="958"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="996"/>
         <source>Define/&amp;change pen color schemes...</source>
         <translation>Tollszín definiálás és &amp;csere...</translation>
     </message>
@@ -849,212 +854,212 @@ Please enter a different one</source>
         <translation type="vanished">Lát&amp;ható</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="669"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="707"/>
         <source>Fixed</source>
         <translation>Rögzített</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="680"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="718"/>
         <source>Infinite</source>
         <translation>Végtelen</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="691"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="729"/>
         <source>&amp;Limited</source>
         <translation>&amp;Korlátozott</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="696"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="734"/>
         <source>Grid Size...</source>
         <translation>Rács mérete...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="699"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="737"/>
         <source>Select spacing of grid lines</source>
         <translation>Válaszd ki a méretet</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="704"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="742"/>
         <source>New Tab</source>
         <translation>Új fül</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="707"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="745"/>
         <source>Create a new, empty  document in a new TAB</source>
         <translation>Egy új üres dokumentum létrehozása egy új fülön</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="715"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="753"/>
         <source>Screenshot &amp;transparency...</source>
         <translation>Képernyőfotó á&amp;tlátszóság...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="718"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="756"/>
         <source>Select color which will be transparent on screenshots</source>
         <translation>Az itt kiválasztott szín átlátszó lesz a &quot;papiron&quot;</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="723"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="761"/>
         <source>ide</source>
         <translation>???</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="731"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="769"/>
         <source>Rotate Left 9&amp;0°</source>
         <translation>Forgatás 9&amp;0°-al balra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="734"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="772"/>
         <source>Rotates completely selected linesimages to the left</source>
         <translation>Teljesen kiválasztott vonalak és képek forgatása balra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="745"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="783"/>
         <source>Rotate Right &amp;90°</source>
         <translation>Forgatás &amp;90°-al jobbra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="748"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="786"/>
         <source>Rotates completely selected linesimages to the right</source>
         <translation>Teljesen kiválasztott vonalak és képek forgatása jobbra</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="756"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="794"/>
         <source>Flip &amp;Horizontal</source>
         <translation>&amp;Vízszintes tükrözés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="759"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="797"/>
         <source>Flip completely selected lines/images horizontally</source>
         <translation>Kiválasztott vonalak/képektükrözése vízszintesen</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="767"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="805"/>
         <source>Flip &amp;Vertical</source>
         <translation>&amp;Függőleges tükrözés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="770"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="808"/>
         <source>Flip completely selected lines/images vertically</source>
         <translation>Kiválasztott vonalak/képektükrözése függőlegesen</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="778"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="816"/>
         <source>Draw an ellipse or a &amp;Circle</source>
         <translation>&amp;Ellipszis, vagy kör</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="781"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="819"/>
         <source>Right button to draw enclosing rectangle, Hold down Shift for a circle</source>
         <translation>Válassz ki egy téglalap, vagy négyzet alakú területet. Ebbe fogja berajzolni a kört/ellipszist</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="792"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="830"/>
         <source>Draw a &amp;Rectangle</source>
         <translation>&amp;Téglalap</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="795"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="833"/>
         <source>Right button to draw rectangle, Hold down Shift for a square</source>
         <translation>Válassz ki egy téglalap, vagy négyzet alakú területet</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="806"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="844"/>
         <source>Rotate 1&amp;80°</source>
         <translation>Forgatás 18&amp;0°-al</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="809"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="847"/>
         <source>Rotates completely selected lines/images</source>
         <translation>Teljesen kiválasztott vonalak és képek forgatása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="814"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="852"/>
         <source>&amp;Go to page...</source>
         <translation>&amp;Oldalra ugrás...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="817"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="855"/>
         <source>Go to page</source>
         <translation>Oldalra ugrás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="820"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="858"/>
         <source>Ctrl+G</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="825"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="863"/>
         <source>Apply Transparency For Loaded</source>
         <translation>Az átlátszóságot a már betöltött képekre is alkalmazd</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="830"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="868"/>
         <source>C&amp;lose</source>
         <translation>Be&amp;zárás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="833"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="871"/>
         <source>Ctrl+F4</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="838"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="876"/>
         <source>Close All</source>
         <translation>Mindegyik bezárása</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="846"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="884"/>
         <source>Mark Center point of selection</source>
         <translation>Pont a kiválasztás középpontjába</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="857"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="895"/>
         <source>Draw a filled Ellipse or Circle</source>
         <translation>Beszínezett  Ellipszis, vagy kör</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="868"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="906"/>
         <source>Draw a Filled Rectangle</source>
         <translation>Beszínezett Téglalap</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="879"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="917"/>
         <source>&apos;X&apos; to Center point of selection</source>
         <translation>&apos;X&apos; a kiválasztás középpontjába</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="890"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="928"/>
         <source>Rotate...</source>
         <translation>Forgatás...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="893"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="931"/>
         <source>F7</source>
         <translation>F7</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="901"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="939"/>
         <source>Repeat rotation</source>
         <translation>Ismételt forgatás</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="904"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="942"/>
         <source>Shift+F7</source>
         <translation>Shift+F7</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="909"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="947"/>
         <source>&amp;Import image...</source>
         <translation>&amp;Kép beolvasása...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="912"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="950"/>
         <source>Import image to the screenshot list</source>
         <translation>Kép importálása a képernyőfotó listára</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="923"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="961"/>
         <source>Limit paper &amp;width</source>
         <translation>Laps&amp;zélesség korlátozása</translation>
     </message>
@@ -1063,17 +1068,17 @@ Please enter a different one</source>
         <translation type="vanished">Automatikus mentés nyomtatás/export előtt</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="934"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="972"/>
         <source>If not checked asks if you want to save modified documents</source>
         <translation>Ha nincs bejelölve a program mindig rákérdez ha a dokumentum megváltozott</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="939"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="977"/>
         <source>Append...</source>
         <translation>Hozzáadás...</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="942"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="980"/>
         <source>Append FalconBoard file</source>
         <translation>Egy falconBoard adatfájl hozzáadása az aktív adatokhoz</translation>
     </message>
@@ -1082,7 +1087,7 @@ Please enter a different one</source>
         <translation type="vanished">A program  több példányban futhat</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="953"/>
+        <location filename="../FalconBoard/FalconBoard.ui" line="991"/>
         <source>When checked then a new instance of the program is run when you click on  an mwb file</source>
         <translation>Amikor be van jelölve ha rákattintassz e egy mwb fájlra a program egy új példánya indul el. 
 Egyébként a fájl a már futó peogramba töltődik be</translation>
@@ -1995,7 +2000,7 @@ El akarod menteni a változtatásokat?</translation>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="808"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="810"/>
         <source>Save Visi&amp;ble As...</source>
         <translation>&amp;Látható mentése más néven...</translation>
     </message>
@@ -2008,12 +2013,12 @@ El akarod menteni a változtatásokat?</translation>
         <translation>FalconBoard - PDF elmentése más néven</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="28"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="25"/>
         <source>falconBoard - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="29"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="26"/>
         <source>falconBoard - Error</source>
         <translation>FalconBoard - Hiba</translation>
     </message>
@@ -2121,17 +2126,17 @@ El akarod menteni a változtatásokat?</translation>
         <translation>FalconBoard Megjelenítő</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="123"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="125"/>
         <source>Untitled</source>
         <translation>Új fájl</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="937"/>
+        <location filename="../FalconBoard/history.cpp" line="1008"/>
         <source>FalconG - Warning</source>
         <translation>FalconBoard - Figyelmeztetés</translation>
     </message>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="937"/>
+        <location filename="../FalconBoard/history.cpp" line="1008"/>
         <source>Can&apos;t rotate, as part of rotated area would be outside &apos;paper&apos;</source>
         <translation>Nem lehet elforgatni, mert része, vagy az egész a &quot;papíron&quot; kívülr kerülne</translation>
     </message>

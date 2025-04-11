@@ -1569,6 +1569,7 @@ void DrawArea::_DrawGrid(QPainter& painter)
 	if (!_bGridOn)
 		return;
 	int x, y;
+
 	if (_gridIsFixed)
 	{
 		x = _nGridSpacingX; y = _nGridSpacingY;
@@ -1580,6 +1581,8 @@ void DrawArea::_DrawGrid(QPainter& painter)
 	}
 
 	painter.setPen(QPen(_gridColor, 2, Qt::SolidLine));
+	painter.drawLine(0, 0, 0, height());		// left border
+
 	for (; y <= height(); y += _nGridSpacingY)
 		painter.drawLine(0, y, width(), y);
 	for (; x <= width(); x += _nGridSpacingX)
