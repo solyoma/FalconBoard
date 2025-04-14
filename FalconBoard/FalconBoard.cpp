@@ -1215,7 +1215,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sEditBackgroundColor = "#F0F0F0",
             _sEditTextColor = "#000000",
             _sGridColor = "#d0d0d0";
-            _sMarginColor = "#E0E0E0",
+            _sMarginColor = "#EeEeEe",
             _sPageGuideColor = "#fcd475";
             _sPressedBackground = "#0000bb",
             _sSelectedBackgroundColor = "#007acc",
@@ -1234,7 +1234,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sEditBackgroundColor = "#FFFFFF",
             _sEditTextColor = "#000000",
             _sDisabledColor = "#AAAAAA";
-            _sMarginColor = "#EAEAEA",
+            _sMarginColor = "#fafafa",
             _sGridColor = "#E0E0E0";
             _sPageGuideColor = "#fcd475";
             _sPressedBackground = "#0000bb",
@@ -1276,7 +1276,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sDisabledColor = "#888888";
             _sEditTextColor = "#000000",
             _sGridColor = "#303030";
-            _sMarginColor = "#202020",
+            _sMarginColor = "#101010",
             _sPageGuideColor = "#2e2204";
             _sPressedBackground = "#888888";
             _sSelectedBackgroundColor = "#007acc";
