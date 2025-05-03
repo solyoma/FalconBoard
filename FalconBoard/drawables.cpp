@@ -2617,20 +2617,13 @@ void DrawableList::RotateDrawable(int index, MyRotation rot, QPointF& center)   
 
 void DrawableList::VertShiftItemsBelow(int thisY, int dy) // using the y and z-index ordered index '_yOrder'
 {														  // _pQTree must not be NULL
-	// DEBUG
-//#if !defined _VIEWER && defined _DEBUG
-//	_pQTree->pItemTree->DebugPrint();
-//#endif
-	// /DEBUG
-	QuadArea area = _pQTree->Area();
-	QRectF r = QRectF(area.left(), thisY, area.width(), area.height());
-	IntVector iv = _pQTree->GetValues(&_items, r);
-
-	for (auto ind : iv)
+	QRectF area;
+	for (auto& p : _items)
 	{
-		if ((*this)[ind]->Area().top() >= thisY)
-			(*this)[ind]->Translate({ 0, (qreal)dy }, -1);
-	}
+		if (p->Area().top() >= thisY)
+			p->Translate({ 0, (qreal)dy }, -1);
 
-	_pQTree->Resize(_pQTree->Area());
+		area = area.united(p->Area());
+	}
+	_pQTree->ResizeWhenCoordinateOfValuesChanges(area);	// items changed
 }

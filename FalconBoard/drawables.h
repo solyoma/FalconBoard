@@ -1083,6 +1083,13 @@ struct QuadTreeDelegate
         IntVector resv = QVector<int>(iv.begin(), iv.end()); //  ::fromStdVector(iv);	<- deprecated
         return resv;
     }
+    // MOD A. Solyom: added 
+    void ResizeWhenCoordinateOfValuesChanges(QuadArea area, const int* pNewItem = nullptr, bool savePrevVals = true)
+    {
+        pItemTree->_area = area;
+        Resize(area, pNewItem, savePrevVals);
+    }
+
     void Resize(QuadArea area, const int* pNewItem = nullptr, bool savePrevVals = true)
     {
         return pItemTree->Resize(area, pNewItem, savePrevVals);

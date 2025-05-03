@@ -955,10 +955,12 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 						_DrawCross(_actMousePos, 10);
 					break;
 				case Qt::Key_1: [[fallthrough]];	// since C++17
-				case Qt::Key_2: [[fallthrough]];	// since C++17 
-				case Qt::Key_3: [[fallthrough]];	// since C++17 
-				case Qt::Key_4: [[fallthrough]];	// since C++17 
-				case Qt::Key_5:
+				case Qt::Key_2: [[fallthrough]];
+				case Qt::Key_3: [[fallthrough]];
+				case Qt::Key_4: [[fallthrough]];
+				case Qt::Key_5: [[fallthrough]];
+				case Qt::Key_6: [[fallthrough]];
+				case Qt::Key_7:
 					_ChangePenByKeyboard(key);
 					break;
 				default:

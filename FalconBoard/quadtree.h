@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef _QUADTREE_H
 	#define _QUADTREE_H
 
@@ -68,6 +68,7 @@ using real = qreal;
 
 using QuadArea = QRectF;
 
+struct QuadTreeDelegeate;	// A. Solyom 2025.05.03 in drawables.h
 /*=============================================================
  * When constructing a value type and two functions are required.
  *  'getArea(const &T' must return the area of a given value and
@@ -84,6 +85,7 @@ class QuadTree
 	static_assert(std::is_convertible_v<std::invoke_result_t<Equal, const T&, const T&>, bool>,
 		"Equal must be a callable of signature bool(const T&, const T&)");
 
+	friend struct QuadTreeDelegate;		// A. S=lyom 2025.05.3
 public:
 	const int _MIN_WIDTH = 200, _MIN_HEIGHT = 200;
 	const size_t _MAX_ALLOWED_IN_ONE_NODE = 32; // if more than this many items and _maxDepth not reached 
