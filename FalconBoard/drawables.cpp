@@ -1129,6 +1129,9 @@ bool DrawableCross::Translate(QPointF dr, qreal minY)
 
 bool DrawableCross::CanRotate(MyRotation rot, QPointF center)  const
 {
+	if (rot.IsFlip() || rot.IsNull())
+		return true;
+
 	QRectF a = Area();
 	return rot.RotateRect(a,center,false);
 }
@@ -1253,6 +1256,9 @@ bool DrawableEllipse::Translate(QPointF dr, qreal minY)
 
 bool DrawableEllipse::CanRotate(MyRotation arot, QPointF centerOfRotation) const
 {
+	if (rot.IsFlip() || rot.IsNull())	// flips are always good
+		return true;
+
 	MyRotation tmpr = rot;		// previous rotation
 	tmpr.AddRotation(arot);		// check if rotation is possible before doing any changes
 
@@ -1432,6 +1438,9 @@ bool DrawableLine::Translate(QPointF dr, qreal minY)
 
 bool DrawableLine::CanRotate(MyRotation arot, QPointF center) const
 {
+	if (rot.IsFlip() || rot.IsNull())
+		return true;
+
 	arot = arot.AddRotation(rot);
 	QLineF line = QLineF(refPoint, endPoint);
 	if (arot.RotateLine(line, center, false))
@@ -1538,6 +1547,9 @@ bool DrawableRectangle::Translate(QPointF dr, qreal minY)             // only if
 
 bool DrawableRectangle::CanRotate(MyRotation arot, QPointF center) const
 {
+	if (arot.IsFlip() || arot.IsNull())
+		return true;
+
 	MyRotation tmpr = rot;		// previous rotation
 	QRectF r = rect;			// original rectangle. Modified if rotated by any multiple of 90
 
@@ -1673,6 +1685,9 @@ bool DrawableScreenShot::Translate(QPointF dr, qreal minY)
 
 bool DrawableScreenShot::CanRotate(MyRotation arot, QPointF center) const
 {
+	if (rot.IsFlip() || rot.IsNull())
+		return true;
+
 	MyRotation tmpr = rot;		// previous rotation
 
 	QRectF r = QRectF(refPoint - QPointF(_image.size().width() / 2, _image.size().height() / 2), _image.size());
@@ -1696,7 +1711,7 @@ bool DrawableScreenShot::Rotate(MyRotation arot, QPointF center)
 	rot.RotatePixmap(_rotatedImage, refPoint, center, true);
 	if (rot.HasSimpleRotation())
 	{
-		if (EqZero(rot.angle))
+		if (!rot.IsFlip() && EqZero(rot.angle))
 		{
 			rot.angle = 0.0;
 			_rotatedImage = QPixmap();	// "delete"
@@ -2000,6 +2015,9 @@ bool DrawableScribble::Translate(QPointF dr, qreal  minY)
 
 bool DrawableScribble::CanRotate(MyRotation arot, QPointF center) const
 {
+	if (rot.IsFlip() || rot.IsNull())
+		return true;
+
 	MyRotation tmpr = rot;		// previous rotation
 	QRectF r = Area();			// original rectangle. Modified if rotated by any multiple of 90
 

@@ -251,6 +251,10 @@ struct MyRotation
 
     static constexpr qreal AngleForType(Type myrot);
     static constexpr Type TypeForAngle(qreal angle);
+    constexpr inline bool IsFlip() const
+    {
+        return flipType == rotFlipH || flipType == rotFlipV;
+    }
     static constexpr inline bool IsFlipType(Type typ)
     {
         return typ == flipNone || typ == rotFlipH || typ == rotFlipV;
@@ -424,6 +428,9 @@ struct DrawableItem : public DrawablePen
     }
     virtual bool CanRotate(MyRotation arot, const QPointF center) const
     {
+        if (arot.IsFlip() || arot.IsNull())
+            return true;
+
         QPointF pt = refPoint - center;
         QTransform tr;
         tr.rotate(arot.angle);

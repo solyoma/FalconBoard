@@ -1010,7 +1010,7 @@ void History::_CantRotateWarning() const
 
 bool History::CanRotateSelected(MyRotation rot)
 {
-	if (rot.IsNull())	// no rotation or reflection
+	if (rot.IsFlip() || rot.IsNull())	// no rotation or reflection
 		return true;
 
 	QPointF center = _selectionRect.center();
