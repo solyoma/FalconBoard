@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef _COMMON_H
 #define _COMMON_H
 
@@ -35,7 +35,10 @@ enum class ScreenMode { smUseDefault=-1, smSystem, smLight, smWhite, smDark, smB
 using IntVector = QVector<int>;
 inline constexpr qreal EqZero(qreal a) { return qFuzzyIsNull(qAbs(a)); }
 
-const int MAX_DRAWABLE_ID  = 0x7F;
+inline constexpr int MAX_DRAWABLE_ID  = 0x7F;
+
+inline constexpr int SLEEP_COUNTER = 333;       // sleep time = 333*30,s = 9999 ms = 9.999 sec
+inline constexpr std::chrono::milliseconds SLEEP_DURATION(30);
 
 const QColor CHANGED_MARKER_FOREGROUND = "white",
              CHANGED_MARKER_BACKGROUND = "red";
@@ -45,7 +48,8 @@ extern QString FB_WARNING,      // in FalconBoard.cpp
 
 extern QString UNTITLED;     // in falconBoard.cpp
 
-constexpr int penNone=-1,           // default color is none    // not a pen, not included in PEN_COUNT
+inline constexpr int 
+              penNone=-1,           // default color is none    // not a pen, not included in PEN_COUNT
               penEraser=0,          //  transparent
                                     // light  / dark
               penBlackOrWhite = 1,  // black  / white
@@ -61,7 +65,7 @@ using FalconPenKind = int;
 
 //enum FalconPenKind { penNone=-1, penEraser=0, penBlackOrWhite, penT2, penT3, penT4, penT5, PEN_COUNT};
 
-// cursors for drawing: arrow, cross for draing, opena and closed hand for moving, 
+// cursors for drawing: arrow, cross for drawing, open and closed hand for moving, 
 enum DrawCursorShape { csArrow, csCross, csOHand, csCHand, csPen, csEraser };
 
 enum SaveResult 

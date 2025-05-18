@@ -467,9 +467,9 @@ QIcon FalconPens::_RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB) c
 
 QCursor FalconPens::_SetupEraser() const
 {
-    QIcon icon = _RecolorIcon(QIcon(":/FalconBoard/Resources/eraser.png"), _darkMode ? Qt::black : Qt::white, _darkMode ? Qt::white : Qt::black);
+    QIcon icon = _RecolorIcon(QIcon(":/FalconBoard/Resources/pen_eraser.png"), _darkMode ? Qt::black : Qt::white, _darkMode ? Qt::white : Qt::black);
     QPixmap pm = icon.pixmap(64, 64);
-    return /*_pointers[(int)penEraser] =*/ QCursor(pm);
+    return /*_pointers[(int)penEraser] =*/ QCursor(pm, 22, 42);
 }
 
 //----------------------------- FBSettings -------------------

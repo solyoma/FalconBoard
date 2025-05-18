@@ -126,7 +126,10 @@ struct ZoomParams     // describes one zoom  step
 * undo data is not carried into the next session.
 * until an object is zoomed in or out the zoomer object is not initialized with the drawable's data.
 * 
-* Zooming history is stored elswhere (history), the zoomer only uses the actual ZoomParams parameters.
+* Zooming history is stored elsewhere (history), the zoomer only uses the actual ZoomParams parameters.
+* 
+* object zooming is separate from zooming the drawing area, which isn't stored in any file
+* 
 */
 struct Zoomer
 {

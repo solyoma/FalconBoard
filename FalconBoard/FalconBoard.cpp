@@ -1206,6 +1206,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
         default:
         case ScreenMode::smSystem:
             _sGridColor = "#d0d0d0";
+            _sPageGuideColor = "#fcd475";
             _sMarginColor = "#E0E0E0";
             break;
         case ScreenMode::smLight:
@@ -1307,109 +1308,109 @@ void FalconBoard::_SetupMode(ScreenMode mode)
                 "  color:" + _sEditTextColor + ";\n"
             "}\n"
 
-"QMenu::separator {  height:1px;\n  margin:1px 3px;\n  background:" + _sTextColor + "\n}\n"
-"QMenuBar::item, "
-"QMenu::item {\n"
-"  color:" + _sTextColor + ";\n"
-"  background-color:" + _sBackgroundColor + ";\n"
-"}\n"
-"QMenuBar::item:selected,\n"
-"QMenu::item:selected {\n"
-"  color:" + _sBackgroundColor + ";\n"
-"  background-color:" + _sTextColor + ";\n"
-"}\n"
-"QMenu::item:disabled {\n"
-"  color:" + _sDisabledColor + ";\n"
-"}\n"
-
-"QSpinBox {\n"
-"  background-color:" + _sBackgroundColor + ";\n"
-"  color:" + _sTextColor + ";\n"
-"}\n"
-//"QSpinBox::up-button,QSpinBox::down-button, QSpinBox::up-arrow,QSpinBox::down-arrow {\n"
-//"  color:"+_sBackgroundColor + ";\n"
-//"  background-color:" + _sTextColor + ";\n"
-//"}\n"
-
-"QLineEdit {\n"
-"  background-color:" + _sEditBackgroundColor + ";\n"
-"  color:" + _sEditTextColor + ";\n"
-"  border: 1px solid" + _sGridColor + ";\n"
-"  border-radius:4px;"
-"  padding:1px 2px;\n"
-"}\n"
-
-"QGroupBox{\n"
-"  margin-top:2em;"
-"  border: 1px solid" + _sBackgroundHighlightColor + ";\n"
-"  border-radius:4px;\n"
-"}\n"
-"QGroupBox::title {\n"
-"  subcontrol-origin: margin;\n"
-"  subcontrol-position: 50%;\n"
-"  padding:4px;\n"
-//            "  margin-top:2em;"
-"}\n"
-
-"QPushButton {\n"
-"  padding: 2px;\n"
-"  margin: 2px;\n"
-"  border: 2px solid" + _sGridColor + ";"
-"\n}\n"
-"QPushButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n"
-
-"QToolButton:pressed {\n"
-"  background-color:" + _sPressedBackground + ";\n"
-"  border: none;\n"
-"}\n"
-
-"QToolButton:hover {\n  "
-"  border:1px solid " + _sTabBarActiveTextColor + ";\n"
-"}\n"
-
-"QToolBar:disabled, QToolButton:disabled {\n"
-"  color:" + _sDisabledColor + ";\n"
-"}\n"
-
-"QStatusBar, QToolBar {\n"
-" background-color:" + _sToolBarColor + ";\n"
-" border:1px solid " + _sGridColor + ";\n"
-"}\n"
-
-"QTabBar::tab {\n"
-"  color:" + _sTabBarActiveTextColor + ";\n"
-"  background-color:" + _sBackgroundColor + ";\n"
-"  selection-background-color:" + _sSelectedBackgroundColor + ";\n"
-"}\n"
-"QTabBar::tab{\n"
-"  border-top-left-radius: 4px;\n"
-"  border-top-right-radius: 4px;\n"
-"  min-width: 60px;"
-"  padding: 2px 4px;\n"
-"  border:1px solid " + _sTabBarActiveTextColor + ";\n"
-"}\n"
-"QTabBar::tab:!selected{"
-"  color:" + _sTabBarInactiveTextColor + ";\n"
-"  background-color:" + _sUnselectedBackgroundColor + ";\n"
-"  margin-top: 2px;"
-"  border:1px solid " + _sTabBarInactiveTextColor + ";\n"
-"}\n"
-"QTabBar:selected {\n"
-"  background-color:" + _sSelectedBackgroundColor + ";\n"
-"  color:" + _sBackgroundColor + ";\n"
-"}\n"
-
-"QToolTip {\n"
-"  background-color:" + _sToolTipBackground + ";\n"
-"  color:" + _sToolTipTextColor + ";\n"
-"  border 1px solid " + _sToolTipTextColor + ";\n"
-"}\n"
-
-"QWidget#marginWidget {\n"
-"  border-right: 1px solid " + _sTextColor + ";\n"
-"  background-color:" + _sMarginColor + ";\n"
+            "QMenu::separator {  height:1px;\n  margin:1px 3px;\n  background:" + _sTextColor + "\n}\n"
+            "QMenuBar::item, "
+            "QMenu::item {\n"
+            "  color:" + _sTextColor + ";\n"
+            "  background-color:" + _sBackgroundColor + ";\n"
             "}\n"
-;
+            "QMenuBar::item:selected,\n"
+            "QMenu::item:selected {\n"
+            "  color:" + _sBackgroundColor + ";\n"
+            "  background-color:" + _sTextColor + ";\n"
+            "}\n"
+            "QMenu::item:disabled {\n"
+            "  color:" + _sDisabledColor + ";\n"
+            "}\n"
+
+            "QSpinBox {\n"
+            "  background-color:" + _sBackgroundColor + ";\n"
+            "  color:" + _sTextColor + ";\n"
+            "}\n"
+            //"QSpinBox::up-button,QSpinBox::down-button, QSpinBox::up-arrow,QSpinBox::down-arrow {\n"
+            //"  color:"+_sBackgroundColor + ";\n"
+            //"  background-color:" + _sTextColor + ";\n"
+            //"}\n"
+
+            "QLineEdit {\n"
+            "  background-color:" + _sEditBackgroundColor + ";\n"
+            "  color:" + _sEditTextColor + ";\n"
+            "  border: 1px solid" + _sGridColor + ";\n"
+            "  border-radius:4px;"
+            "  padding:1px 2px;\n"
+            "}\n"
+
+            "QGroupBox{\n"
+            "  margin-top:2em;"
+            "  border: 1px solid" + _sBackgroundHighlightColor + ";\n"
+            "  border-radius:4px;\n"
+            "}\n"
+            "QGroupBox::title {\n"
+            "  subcontrol-origin: margin;\n"
+            "  subcontrol-position: 50%;\n"
+            "  padding:4px;\n"
+            //            "  margin-top:2em;"
+            "}\n"
+
+            "QPushButton {\n"
+            "  padding: 2px;\n"
+            "  margin: 2px;\n"
+            "  border: 2px solid" + _sGridColor + ";"
+            "\n}\n"
+            "QPushButton:hover {\n  background-color:" + _sSelectedBackgroundColor + ";\n}\n"
+
+            "QToolButton:pressed {\n"
+            "  background-color:" + _sPressedBackground + ";\n"
+            "  border: none;\n"
+            "}\n"
+
+            "QToolButton:hover {\n  "
+            "  border:1px solid " + _sTabBarActiveTextColor + ";\n"
+            "}\n"
+
+            "QToolBar:disabled, QToolButton:disabled {\n"
+            "  color:" + _sDisabledColor + ";\n"
+            "}\n"
+
+            "QStatusBar, QToolBar {\n"
+            " background-color:" + _sToolBarColor + ";\n"
+            " border:1px solid " + _sGridColor + ";\n"
+            "}\n"
+
+            "QTabBar::tab {\n"
+            "  color:" + _sTabBarActiveTextColor + ";\n"
+            "  background-color:" + _sBackgroundColor + ";\n"
+            "  selection-background-color:" + _sSelectedBackgroundColor + ";\n"
+            "}\n"
+            "QTabBar::tab{\n"
+            "  border-top-left-radius: 4px;\n"
+            "  border-top-right-radius: 4px;\n"
+            "  min-width: 60px;"
+            "  padding: 2px 4px;\n"
+            "  border:1px solid " + _sTabBarActiveTextColor + ";\n"
+            "}\n"
+            "QTabBar::tab:!selected{"
+            "  color:" + _sTabBarInactiveTextColor + ";\n"
+            "  background-color:" + _sUnselectedBackgroundColor + ";\n"
+            "  margin-top: 2px;"
+            "  border:1px solid " + _sTabBarInactiveTextColor + ";\n"
+            "}\n"
+            "QTabBar:selected {\n"
+            "  background-color:" + _sSelectedBackgroundColor + ";\n"
+            "  color:" + _sBackgroundColor + ";\n"
+            "}\n"
+
+            "QToolTip {\n"
+            "  background-color:" + _sToolTipBackground + ";\n"
+            "  color:" + _sToolTipTextColor + ";\n"
+            "  border 1px solid " + _sToolTipTextColor + ";\n"
+            "}\n"
+
+            "QWidget#marginWidget {\n"
+            "  border-right: 1px solid " + _sTextColor + ";\n"
+            "  background-color:" + _sMarginColor + ";\n"
+                        "}\n"
+            ;
 
     ((QApplication*)(QApplication::instance()))->setStyleSheet(ss); // so it cascades down to all sub windows/dialogs, etc
 // DEBUG
@@ -1539,8 +1540,8 @@ void FalconBoard::closeEvent(QCloseEvent* event)
 	auto waitforsnapshot = [this]() -> int  // lambda for waiting for snapshot save
 		{
             int i = 0;
-		    while (_pSnapshotter && i++ < 1000) // wait for snapshot save
-			    std::this_thread::sleep_for(30ms);
+		    while (_pSnapshotter && i++ < SLEEP_COUNTER) // wait for snapshot save for max 3 seconds
+			    std::this_thread::sleep_for(SLEEP_DURATION);
 			return i;
 		};
 #ifndef _VIEWER
@@ -1548,7 +1549,7 @@ void FalconBoard::closeEvent(QCloseEvent* event)
     {
 		savedTabs = historyList.ModifiedItems();
         waitCounter = waitforsnapshot();
-        if (waitCounter != 1000)
+        if (waitCounter != SLEEP_COUNTER)
         {
             _StartSnapshotSaveThread();
             waitCounter = waitforsnapshot();
@@ -1556,7 +1557,7 @@ void FalconBoard::closeEvent(QCloseEvent* event)
 
 		if (waitCounter == 1000)
         {
-            QMessageBox::warning(this, FB_WARNING, tr("Automatic snapshot save not finished in 30 seconds!\nPlease svae each changed files manually!\n\nAborting close."));
+            QMessageBox::warning(this, FB_WARNING, tr("Automatic snapshot save not finished in 30 seconds!\nPlease save each changed files manually!\n\nAborting close."));
 			event->ignore();
             return;
         }
