@@ -1205,9 +1205,9 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     {
         default:
         case ScreenMode::smSystem:
-            _sGridColor = "#d0d0d0";
-            _sPageGuideColor = "#fcd475";
-            _sMarginColor = "#E0E0E0";
+            _sGridColor = "#d0d0d0";            // drawn by the app and not the system
+            _sPageGuideColor = "#fcd475";       // ditto
+            _sMarginColor = "#E0E0E0";          // must be set as style
             break;
         case ScreenMode::smLight:
             _sBackgroundColor = "#F0F0F0";
@@ -1297,7 +1297,14 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     if(_eraserOn)
         _drawArea->SetCursor(csEraser);
 
-    if (mode != ScreenMode::smSystem)
+    if (mode == ScreenMode::smSystem)
+        ss = "QWidget#marginWidget {\n"
+        "  border-right: 1px solid " + _sTextColor + ";\n"
+        "  background-color:" + _sMarginColor + ";\n"
+        "}\n"
+        ;
+
+    else
         ss = "* {\n" 
                   "  background-color:" + _sBackgroundColor + ";\n"
                   "  color:" + _sTextColor + ";\n"

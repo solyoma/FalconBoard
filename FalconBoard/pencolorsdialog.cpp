@@ -1,4 +1,4 @@
-#include <QColorDialog>
+﻿#include <QColorDialog>
 #include <QMessageBox>
 #include "config.h"
 #include "pencolorsdialog.h"
@@ -226,7 +226,7 @@ void PenColorsDialog::on_cbSelectScheme_currentIndexChanged(int index)
 	{
 		QMessageBox::StandardButton yes = 
 			QMessageBox::question(this, tr("FalconBoard - Question"), 
-										tr("Colors were changed. If you continue changes will be lost.\nDo you want to save the changes?"));
+										tr("Colors were changed. Without saving changes will be lost.\nDo you want to save the changes?"));
 		if (yes == QMessageBox::Yes)
 		{
 			on_btnSaveScheme_pressed();
