@@ -526,6 +526,13 @@ public: // functions
 
     QString SnapshotName(bool withPath = false);
 
+    void InterruptSave()
+    {
+        if (_saveInProgress)
+            _saveInterrupted = true;
+    }
+	bool IsSaving() const { return _saveInProgress; } // true when saving is interrupted
+
     bool IsLoaded() const
     {
         return _loaded;
@@ -679,6 +686,9 @@ public: // functions
 
     const QRectF BoundingRect() const { return _selectionRect; }
 
+private: // global
+		bool _saveInterrupted = false; // set when saving was interrupted by the user
+		bool _saveInProgress = false; // set when saving is in progress, cleared after save or error
 private:
         HistoryList* _parent;           // needed for copy and paste
 

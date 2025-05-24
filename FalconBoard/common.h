@@ -37,7 +37,7 @@ inline constexpr qreal EqZero(qreal a) { return qFuzzyIsNull(qAbs(a)); }
 
 inline constexpr int MAX_DRAWABLE_ID  = 0x7F;
 
-inline constexpr int SLEEP_COUNTER = 333;       // sleep time = 333*30,s = 9999 ms = 9.999 sec
+inline constexpr int SLEEP_COUNTER = 100;       // sleep time = 100*30,s = 3000 ms = 3 sec
 inline constexpr std::chrono::milliseconds SLEEP_DURATION(30);
 
 const QColor CHANGED_MARKER_FOREGROUND = "white",
@@ -74,6 +74,7 @@ enum SaveResult
         srFailed,           // write error
         srSaveSuccess, 
         srNoNeedToSave,
+        srInterrupted,
         srNoSave            // user do not want it saved
     };
 enum MyFontStyle { mfsNormal, mfsBold, mfsItalic, mfsSubSupScript, msfAllCaps};

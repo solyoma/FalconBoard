@@ -224,6 +224,7 @@ private slots:
 	   void SignalDrawPenColorBy(int key);
 	   void SignalPenColorChanged(const DrawColors &drwclr);
 	   void SignalToSaveSnapshots(IntVector& which);
+	   void SignalSnapshotInterrupted();
 #endif
    signals:
 	   void SignalGridSpacingChanged(int spacing);
@@ -240,7 +241,7 @@ private:
 		, _snapshotterThread
 #endif
 		;
-
+	bool _listenNoMore = false;	// set when the listener thread is to be closed
 #ifndef _VIEWER
 	QTimer _snapshotTimer;
 #endif
@@ -501,11 +502,14 @@ public:
 	}
 public slots:
 	void SlotToSaveSnapshots();
+	void SlotToInterruptSnapshotSave();
 signals:
 	void SignalFinished();
+	void SignalToStopHistorySave();
 private:
 	FalconBoard* _falconBoard; 
 	IntVector _whose;
+	bool _interrupted = false;
 };
 #endif		// _not VIEWER
 

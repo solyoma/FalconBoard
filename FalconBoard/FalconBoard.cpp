@@ -964,7 +964,9 @@ void FalconBoard::_StartSnapshotSaveThread()
         _drawArea->SetSnapshotterState(true);           // before creating snapshotter is it important?
         _pSnapshotter = new Snapshotter(this, modList);
         _pSnapshotter->moveToThread(&_snapshotterThread);
+        connect(this, &FalconBoard::SignalSnapshotInterrupted, _pSnapshotter, &Snapshotter::SlotToInterruptSnapshotSave);
         connect(_pSnapshotter, &Snapshotter::SignalFinished, this, &FalconBoard::SlotSnapshotSaverFinished);
+        connect(_pSnapshotter, &Snapshotter::SignalToStopHistorySave, _drawArea, &DrawArea::SlotStopHistorySave);
         connect(&_snapshotterThread, &QThread::started, _pSnapshotter, &Snapshotter::SlotToSaveSnapshots);
         _snapshotterThread.start();
     }
@@ -1524,13 +1526,15 @@ void FalconBoard::_SetWindowTitle(QString qs)
  *------------------------------------------------------------*/
 void FalconBoard::closeEvent(QCloseEvent* event)
 {
-    emit  SignalToCloseServer();
-    _listenerThread.quit();
+    _listenNoMore = true;
 #ifndef _VIEWER
+    _snapshotTimer.stop();        // no more autosave
+
+	emit SignalSnapshotInterrupted();
+
     if (ui.actionAutoSaveBackgroundImage->isChecked())
         _SaveBackgroundImage();
 
-    _snapshotTimer.stop();        // no more autosave
 
     size_t tout = std::numeric_limits<size_t>::max();  // timout
     while (tout-- && _pSnapshotter) // wait for snapshot save
@@ -1547,7 +1551,7 @@ void FalconBoard::closeEvent(QCloseEvent* event)
 	auto waitforsnapshot = [this]() -> int  // lambda for waiting for snapshot save
 		{
             int i = 0;
-		    while (_pSnapshotter && i++ < SLEEP_COUNTER) // wait for snapshot save for max 3 seconds
+		    while (_pSnapshotter && i++ < SLEEP_COUNTER) // wait for snapshot save for max SLEEP_COUNTER * SLEEP_DURATION seconds
 			    std::this_thread::sleep_for(SLEEP_DURATION);
 			return i;
 		};
@@ -1562,9 +1566,10 @@ void FalconBoard::closeEvent(QCloseEvent* event)
             waitCounter = waitforsnapshot();
         }
 
-		if (waitCounter == 1000)
+		if (waitCounter == SLEEP_COUNTER)
         {
-            QMessageBox::warning(this, FB_WARNING, tr("Automatic snapshot save not finished in 30 seconds!\nPlease save each changed files manually!\n\nAborting close."));
+            QMessageBox::warning(this, FB_WARNING, tr("Automatic snapshot save not finished!\nPlease save each changed files manually!\n\nAborting close."));
+			_listenNoMore = false;
 			event->ignore();
             return;
         }
@@ -1587,6 +1592,8 @@ void FalconBoard::closeEvent(QCloseEvent* event)
         SaveState();
         SaveTabState(savedTabs);
         event->accept();
+        _listenerThread.quit();
+        emit  SignalToCloseServer();
     }
     else
     {
@@ -2127,6 +2134,8 @@ void FalconBoard::on_actionAllowMultipleProgramInstances_triggered()
 
 void FalconBoard::SlotForAddNewTab(QString name)
 {
+	if (_listenNoMore)
+		return;
     name = QDir::fromNativeSeparators(name);
     bool bOverwritable = IsOverwritable();
     if (bOverwritable)  // then load into current tab 
@@ -2715,15 +2724,22 @@ void FalconBoard::SlotTakeScreenshot(bool hideThisWindow)
 
 // ========================================================= Snapshotter ==========================================
 #ifndef _VIEWER
-void Snapshotter::SlotToSaveSnapshots()       // of all changed files runs in separate thread
+void Snapshotter::SlotToSaveSnapshots()       // of all changed files, runs in separate thread
 {
     History* ph = nullptr;
     for (auto i : _whose)
     {
         ph = historyList[i];
         ph->Save(true);
+		if (_interrupted)
+			break;
     }
     _falconBoard->SaveTabState();
     emit SignalFinished();
+}
+void Snapshotter::SlotToInterruptSnapshotSave()
+{
+	_interrupted = true;
+    emit SignalToStopHistorySave(); // to DrawArea - interrupt if save is in progress and remove temporary file
 }
 #endif

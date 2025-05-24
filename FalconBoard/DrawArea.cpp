@@ -2271,6 +2271,12 @@ void DrawArea::SlotForPenColorRedefined(const DrawColors& drwclr)
 	emit SignalPenColorChanged();
 }
 
+void DrawArea::SlotStopHistorySave()
+{
+	if(pHistory)
+		pHistory->InterruptSave();
+}
+
 bool DrawArea::SetupPage(PageParams::PageSetupType forWhat)
 {
 	bool res = false;

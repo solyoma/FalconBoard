@@ -195,6 +195,7 @@ public slots:
     void SlotForPrimaryScreenChanged(QScreen*);
     void SlotForGridSpacingChanged(int);
     void SlotForPenColorRedefined(const DrawColors &drwclr);
+	void SlotStopHistorySave();
 #ifndef _VIEWER
     void Undo();
     void Redo();

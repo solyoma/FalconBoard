@@ -1214,11 +1214,15 @@ SaveResult History::Save(bool asSnapshot)
 		f.open(QIODevice::WriteOnly);
 		if (!f.isOpen())
 			return srFailed;   // can't write file
+
+
 		QDataStream ofsdat(&f);
 		ofsdat << _fileName;
 		name = name + ".dat";	 // the mwb file
 	}
 					  // *********  start saving ******** 
+	_saveInProgress = true;
+
 	QFile f(name + ".tmp");
 	f.open(QIODevice::WriteOnly);
 
@@ -1248,6 +1252,14 @@ SaveResult History::Save(bool asSnapshot)
 
 	for (auto& pdrwi : drbl)
 	{
+		if (_saveInterrupted)
+		{
+			f.remove();		// remove the file if interrupted
+			_saveInterrupted = false;
+			_saveInProgress = false;
+			return srInterrupted;
+		}
+
 		if (pdrwi->IsVisible())
 			ofs << *pdrwi;
 		if (ofs.status() != QDataStream::Ok)
