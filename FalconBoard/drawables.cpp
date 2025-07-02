@@ -1788,7 +1788,8 @@ DrawableScribble& DrawableScribble::operator=(DrawableScribble&& di)  noexcept
 
 /*=============================================================
  * TASK   : determines if the points are almost or exactly on 
- *			a straight line between the start point and the end point
+ *			a straight line between the start point and the point
+ *			furthest from it
  * PARAMS :
  * EXPECTS:
  * GLOBALS:
@@ -1817,13 +1818,15 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 	if (points.indexOf(refPoint) < 0)
 		return false;
 	// start point has the smallest, end point the largest x coordinate
-	qreal xmin = 999999.0, xmax = 0;
-	int mx = -1, mxx = -1;
+	// taking in account the y coordinates too
+	qreal xmin = 999999.0, xmax = 0,	 // value of x minimum and maximum coordinate
+		ymin = 999999.0, ymax = 0;		 // value of y minimum and maximum coordinate
+	int mix = -1, mxx = -1, miy=-1, mxy=-1;				 // index of these value in 'points[]'
 	for (int i = 0; i < points.size(); ++i)
 	{
 		if (points[i].x() < xmin)
 		{
-			mx = i;
+			mix = i;
 			xmin = points[i].x();
 		}
 		if (points[i].x() > xmax)
@@ -1831,31 +1834,40 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 			mxx = i;
 			xmax = points[i].x();
 		}
+		if (points[i].y() < ymin)
+		{
+			miy = i;
+			ymin = points[i].y();
+		}
+		if (points[i].y() > ymax)
+		{
+			mxy = i;
+			ymax = points[i].y();
+		}
 	}
-	QPointF pfStart, pfEnd;
-	// find start and end points of the dialgonal of the bounding rectangle
-	//if (brect.topLeft() == points[mx])
-	//	pfStart = brect.topLeft();
-	//else
-	//	pfStart = brect.bottomLeft();
-	pfStart = points[mx];
-	pfEnd = points[mxx];
+	if(xmax-xmin < ymax-ymin)	// if the x range is smaller than the y range
+	{	// then we have a vertical line, so use ymin and ymax
+		mix = miy;
+		mxx = mxy;
+	}
 
-	//if (brect.topRight() == points[mxx])
-	//	pfEnd = brect.topRight();
-	//else
-	//	pfEnd = brect.bottomRight();
+	QPointF pfStart, pfEnd; // start and end points
+	pfStart = points[mix];
+	pfEnd = points[mxx];
 
 	//qDebug("brect: (%d,%d),(%d,%d)", (int)brect.topLeft().x(), (int)brect.topLeft().y(), (int)brect.bottomRight().x(), (int)brect.bottomRight().y());
 	// now we have a line going through the start and end points of our scrible
 	// the equation for the distance between points 
-	// d = (|(pfEnd.y() - pfStart.y())*points[i].x() - (pfEnd.x() - pfStart.x())*points[i].y() + pfEnd.x() * pfStart.y() - pfEnd.y() * pfStart.x())/sqrt((pfEnd.y() -pfStart.y())^2+(pfEnd.x() -pfStart.x())^2) 
+	//		|(y2-y1) x[n] - (x2- x1) y[n] + x2*y1-y2*x1|
+	// d = ---------------------------------------------
+	//		length of line betweenR2 and r1
 	qreal r = std::sqrt((pfEnd.y() - pfStart.y()) * (pfEnd.y() - pfStart.y()) + 
-						(pfEnd.x() - pfStart.x()) * (pfEnd.x() - pfStart.x())),
-		  dly = pfEnd.y() - pfStart.y(),
-		  dlx = pfEnd.x() - pfStart.x(),
-		  dd  = pfEnd.x() * pfStart.y() - pfEnd.y() * pfStart.x();
-	auto dist = [&](const QPointF& pt)
+						(pfEnd.x() - pfStart.x()) * (pfEnd.x() - pfStart.x())),		// length of line between start and finish
+		  dly = pfEnd.y() - pfStart.y(),											// delta y = y2-y1
+		  dlx = pfEnd.x() - pfStart.x(),											// delta x = x2-x1
+		  dd  = pfEnd.x() * pfStart.y() - pfEnd.y() * pfStart.x();					// = x2 y1 - y2 x1
+
+	auto dist = [&](const QPointF& pt)	   // disance from straight line
 		{
 			qreal d = std::abs(dly * pt.x() - dlx * pt.y() + dd);
 			return d/r;
