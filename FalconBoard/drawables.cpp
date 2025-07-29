@@ -2282,7 +2282,7 @@ void DrawableList::Clear(bool andDeleteQuadTree)
 	if (_pZorderStore)
 		ResetZorder();
 }
-// these two used only when a new drawable is just added or the top van is remeoved
+// these two used only when a new drawable is just added or the top one is remeoved
 void DrawableList::Undo()    // moves last item to _redoItems w.o. deleting them
 {                       // and removes them from the quad tree
 	int i = _items.size() - 1;
@@ -2425,9 +2425,42 @@ int DrawableList::AddDrawable(DrawableItem* pdrh) // add original, 'pdrh' points
 	_items.push_back(pdrh);
 	if (_pQTree)
 		_pQTree->Add(ix);
+
+	_prevLargestXY = _largestXY; // save previous largest XY
+	QPointF r = pdrh->Area().bottomRight();
+	if(r.x() >_largestXY.x())
+		_largestXY.setX(r.x());
+	if(r.y() >_largestXY.y())
+		_largestXY.setY(r.y());
+
 	return ix;
-	//        IndexVectorIterator ivi = _itemIndices.Insert(ix, pdrh);
-			//return ivi->second;
+}
+
+void DrawableList::RemoveDrawable(int which)
+{
+	if (_pQTree)
+		_pQTree->Remove(which);                 // uses _pItems[which]
+
+	_items.erase(_items.begin() + which);   // remove after not in use
+
+}
+QPointF DrawableList::CalcLargestXY()
+{
+	_prevLargestXY = _largestXY; // save previous largest XY
+	_largestXY = QPointF();
+	for (auto& item : _items)
+	{
+		if (item->IsVisible())
+		{
+			int x = item->Area().bottom();
+			if (x > _largestXY.x())
+				_largestXY.setX(x);
+			x = item->Area().right();
+			if (x > _largestXY.y())
+				_largestXY.setY(x);
+		}
+	}
+	return _largestXY;
 }
 
 // create new object of given parameters on the heap
@@ -2619,13 +2652,7 @@ int/*DrawableItemIndex*/ DrawableList::IndexOfTopMostItemUnder(QPointF point, in
 	}
 	return res.index;
 }
-void DrawableList::Remove(int which)
-{
-	if (_pQTree)
-		_pQTree->Remove(which);                 // uses _pItems[which]
 
-	_items.erase(_items.begin() + which);   // remove after not in use
-}
 bool DrawableList::MoveItems(QPointF dr, const DrawableIndexVector& drl)
 {
 	for (auto& a : drl)

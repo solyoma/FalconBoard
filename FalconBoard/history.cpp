@@ -981,7 +981,7 @@ void History::_RestoreClippingRect()
 QSizeF History::UsedArea()
 {
 	QRectF rect;
-	for (auto item : _drawables.Items())
+	for (auto &item : _drawables.Items())
 	{
 		if (item->IsVisible())
 			rect = rect.united(item->Area());
@@ -1424,6 +1424,7 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 	Clear();
 	
 	int res=0;
+	_inLoad = true;
 	try
 	{
 		if ((version_loaded & 0x00FF0000) < 0x020000)
@@ -1437,6 +1438,7 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 	}
 	f.close();
 	_loaded = true;
+	_inLoad = false;
 	return res;
 }
 
@@ -1736,7 +1738,7 @@ HistoryItem* History::AddDrawableItem(DrawableItem& itm)
 			{
 				if (pdrwi->refPoint == itm.refPoint)
 				{
-					_drawables.Remove(phdi->indexOfDrawable);	// there'll be a gap in zOrders :)
+					_drawables.RemoveDrawable(phdi->indexOfDrawable);	// there'll be a gap in zOrders :)
 					delete pitem;
 					_items.pop_back();
 				}
@@ -2103,7 +2105,7 @@ int History::CollectDrawablesInside(QRectF rect) // only
 
 	// first select all items inside a horizontal band whose top and bottom are set from 'rect'
 	// but it occupies the whole width of the 'paper' into "horizontal band" hb
-	QRectF hb = QRectF(0, rect.top(), _drawables.Area().width(), rect.height());
+	QRectF hb = QRectF(0, rect.top(), _drawables.Area(false).width(), rect.height());
 	DrawableIndexVector iv = _drawables.ListOfItemIndicesInRect(hb);
 	for (int i = iv.size()-1; i >= 0; --i)		// purge partial overlaps with HB
 	{

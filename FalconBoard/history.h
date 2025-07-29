@@ -559,7 +559,21 @@ public: // functions
         _lastSavedAsSnapshot = mark;
     }
 
-    QSizeF UsedArea();   // of all points and images from (0,0) to (right,bottom)
+    QSizeF UsedArea();      // calculate for of all points and images from (0,0) to (right,bottom)
+	constexpr inline QPointF BottomRight()  // calculate bottom right corner of the used area and _maxUsedY
+    {
+        return _drawables.LargestXY();
+    }
+
+    constexpr inline int BottomOfUsedArea() const
+    {
+        return _drawables.LargestY();
+    }
+    inline bool AreaHeightChanged() const
+    {
+        return _drawables.LargestYChanged();
+    }
+
     int CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize); // -1: invalid page for px, -2: invalid page for py i.e. outside used area. First call with getAreaSize=true, others with false
 
     inline HistoryItem* Item(int index) const 

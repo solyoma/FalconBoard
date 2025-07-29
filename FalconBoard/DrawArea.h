@@ -183,6 +183,8 @@ signals:
     void SignalSetGrid(bool on, bool fixed, uint16_t value);
     void SignalPenColorChanged();   // new pens already in global 'drawColors'
 	void SignalTakeScreenshot(bool hideThisWindow);
+    void SignalDocLengthChanged(int pageHeight, int topleft, int maxY);
+    void SignalPositionChanged(int newPos);
 
 public slots:
     void NewData();
@@ -196,6 +198,9 @@ public slots:
     void SlotForGridSpacingChanged(int);
     void SlotForPenColorRedefined(const DrawColors &drwclr);
 	void SlotStopHistorySave();
+
+    void SlotScrollDocTo(int posRelToDocumentTop);
+
 #ifndef _VIEWER
     void Undo();
     void Redo();
@@ -370,7 +375,7 @@ private:
     void _ClearCanvas();
 
     void _SetTopLeftFromItem(HistoryItem *phi);   // possibly sets _topLeft. Must _redraw after it
-    int CollectDrawables(IntVector &hv); // for actual clipping rect
+    int _CollectDrawables(IntVector &hv); // for actual clipping rect
 #ifndef _VIEWER
     void _SetLastPointPosition();           // for actual _history
     bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]

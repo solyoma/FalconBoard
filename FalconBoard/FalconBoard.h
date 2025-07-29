@@ -16,6 +16,7 @@
 #include <QCloseEvent>
 #include <QEvent>
 #include <QActionGroup>
+#include <QScrollBar>
 
 // to check if the application alread run we need these:
 #include <QThread>
@@ -217,18 +218,22 @@ private slots:
 	void SlotForTabMoved(int from, int to);
 	void SlotForTabSwitched(int direction); //1: right, 2: left - no tab history
 
+	void SlotDocLengthChanged(int pageHeight, int topleft, int maxY); // enables vertical scrollbar if maxY > page height
+	void SlotScrollPosChanged(int newPos);
+
 	void SlotForActivate();
 
 #ifndef _VIEWER
    signals:
-	   void SignalDrawPenColorBy(int key);
-	   void SignalPenColorChanged(const DrawColors &drwclr);
-	   void SignalToSaveSnapshots(IntVector& which);
-	   void SignalSnapshotInterrupted();
+	void SignalDrawPenColorBy(int key);
+	void SignalPenColorChanged(const DrawColors &drwclr);
+	void SignalToSaveSnapshots(IntVector& which);
+	void SignalSnapshotInterrupted();
+
 #endif
    signals:
-	   void SignalGridSpacingChanged(int spacing);
-	   void SignalToCloseServer();
+	void SignalGridSpacingChanged(int spacing);
+	void SignalToCloseServer();
 
 private:
 	Ui::FalconBoardClass ui;
@@ -276,6 +281,7 @@ private:
 	QString _sImageName;			// background image
 	QByteArray _fileFormat = "png";
 
+	QScrollBar* _pScrollBar = nullptr;	// scroll bar for the draw area
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -

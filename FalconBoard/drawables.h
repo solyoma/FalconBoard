@@ -1205,7 +1205,28 @@ public:
 
     int CountOfScreenShots();
 
-    QuadArea Area() { return _pQTree ? _pQTree->Area() : QuadArea(); }
+    QuadArea Area(bool forQuadTree) 
+    { 
+        if(forQuadTree)
+            return _pQTree ? _pQTree->Area() : QuadArea(); 
+        return QuadArea(QPoint(), _largestXY);
+    }
+    constexpr inline QPointF LargestXY() const
+    {
+        return _largestXY;
+    }
+    QPointF CalcLargestXY();
+
+    constexpr inline int LargestY() const
+    {
+        return _largestXY.y();
+    }
+    inline bool LargestYChanged() const
+    {
+        bool b = LargestY() != _prevLargestXY.y();
+
+        return b;
+    }
 
     IntVector ListOfItemIndicesInRect(QRectF& r) const; // ordered by z-order then y, then x
     IntVector ListOfItemIndicesInQuadArea(QuadArea& r) const; // ordered by z-order then y, then x
@@ -1226,6 +1247,7 @@ public:
 
     //DrawableItemIndex AddDrawable(DrawableItem* pdrh) // add original, 'pdrh' points to complete object (subclass) which MUST be created on the heap!
     int AddDrawable(DrawableItem* pdrh); // add original, 'pdrh' points to complete object (subclass) which MUST be created on the heap!
+    void RemoveDrawable(int which);
 
     // create new object of given parameters on the heap
                                         // pimage must be set for dtScreenShot
@@ -1243,7 +1265,6 @@ public:
     DrawableScreenShot* FirstVisibleScreenShot(const QRectF& canvasRect);
     DrawableScreenShot* NextVisibleScreenShot();
 
-    void Remove(int which);
     bool MoveItems(QPointF dr, const DrawableIndexVector& drl);
     bool TranslateDrawable(int index, QPointF dr, qreal minY);
     void RotateDrawable(int index, MyRotation rot, QPointF& center);    // alpha used only for 'rotAngle'
@@ -1252,6 +1273,7 @@ public:
 private:
     int _imageIndex = -1;
     QRectF _canvasRect;
+    QPointF _largestXY, _prevLargestXY;
 };
 
 #endif

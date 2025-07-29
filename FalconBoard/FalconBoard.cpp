@@ -138,6 +138,14 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
     _drawArea->SetPenKind(_actPen, _penWidths[_actPen]); 
     _drawArea->SetScreenSize(screenSize);
 
+	_pScrollBar = new QScrollBar(Qt::Vertical, this);
+    _pScrollBar->setTracking(true);
+    _pScrollBar->setEnabled(false);
+	ui.centralWidget->layout()->addWidget(_pScrollBar);
+
+    connect(_pScrollBar, &QScrollBar::valueChanged, _drawArea, &DrawArea::SlotScrollDocTo);
+    connect(_drawArea, &DrawArea::SignalPositionChanged, this, &FalconBoard::SlotScrollPosChanged);
+
     _CreateAndAddActions(); // to toolbar
     connect(_pChkGridOn, &QCheckBox::toggled, ui.actionShowGrid, &QAction::setChecked);
     connect(_pChkGridOn, &QCheckBox::toggled, this, &FalconBoard::SlotForChkGridOn);
@@ -155,11 +163,13 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 #ifndef _VIEWER
     connect(_drawArea, &DrawArea::PointerTypeChange, this, &FalconBoard::SlotForPointerType);
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &FalconBoard::SlotForRubberBandSelection);
-    connect(this, &FalconBoard::SignalPenColorChanged, _drawArea, &DrawArea::SlotForPenColorRedefined);
     connect(_drawArea, &DrawArea::SignalPenColorChanged, this, &FalconBoard::SlotForPenColorChanged);   // set action icon for it from 'globalColors'
 	connect(_drawArea, &DrawArea::SignalTakeScreenshot, this, &FalconBoard::SlotTakeScreenshot);
+
+    connect(this, &FalconBoard::SignalPenColorChanged, _drawArea, &DrawArea::SlotForPenColorRedefined);
 #endif
     connect(_drawArea, &DrawArea::SignalSetGrid, this, &FalconBoard::SlotToSetGrid);
+    connect(_drawArea, &DrawArea::SignalDocLengthChanged, this, &FalconBoard::SlotDocLengthChanged);
     connect(this, &FalconBoard::SignalGridSpacingChanged, _drawArea, &DrawArea::SlotForGridSpacingChanged);
 
     connect(qApp, &QApplication::primaryScreenChanged, _drawArea, &DrawArea::SlotForPrimaryScreenChanged);
@@ -2173,7 +2183,7 @@ void FalconBoard::SlotForTabChanged(int index) // index <0 =>invalidate tab
     }
     else
     {
-        if (_drawArea->SwitchToHistory(index, true))    // then pHistory is st
+        if (_drawArea->SwitchToHistory(index, true))    // then pHistory is set
             qsTabName = pHistory->Name(UNTITLED);
         else
             qsTabName = UNTITLED;
@@ -2220,6 +2230,37 @@ void FalconBoard::SlotForTabSwitched(int direction)
         n = N - 1;
 
     _pTabs->setCurrentIndex(n);
+}
+
+/*=============================================================
+ * TASK   : enables/disables vertical scrollbar and sets parameters
+ * PARAMS : pageHeight: visible height of document viewport, 
+ *          topleft:    start position for viewport
+ *          maxy:       position of last visible pixel
+ * EXPECTS: activated when document source changed, or document 
+ *                      is modified
+ * GLOBALS:
+ * RETURNS:
+ * REMARKS:
+ *------------------------------------------------------------*/
+void FalconBoard::SlotDocLengthChanged(int pageHeight, int topleft, int maxY)
+{
+    ++_busy;
+    if (maxY >= topleft + pageHeight)
+    {
+        _pScrollBar->setRange(0, maxY);
+        _pScrollBar->setPageStep(pageHeight / 2);
+        _pScrollBar->setSliderPosition(topleft);
+        _pScrollBar->setEnabled(true);
+    }
+    else
+        _pScrollBar->setEnabled(false);
+    --_busy;
+}
+
+void FalconBoard::SlotScrollPosChanged(int newPos)
+{
+    _pScrollBar->setValue(newPos);
 }
 
 void FalconBoard::SlotForActivate()

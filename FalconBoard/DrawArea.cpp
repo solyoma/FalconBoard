@@ -211,6 +211,9 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 		globalDrawColors.SetDarkMode(actualMode);
 		setCursor(globalDrawColors.PenPointer(_actPenKind));
 		PageParams::SetScreenWidth();
+		// scrollbar
+		QSize siz = geometry().size();
+		emit SignalDocLengthChanged(_screenHeight, _topLeft.y(), pHistory->Drawables()->BottomRightLimit(siz).y());
 	}
 
 	int res = 1;
@@ -1428,7 +1431,12 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 	if ((!_allowPen && event->fromPen) || (!_allowMouse && !event->fromPen) || (_allowMouse && _allowPen))
 		return;
 
-	if ((event->button == Qt::LeftButton && _scribbling) || _pendown)
+	bool bScribblingFinished = (event->button == Qt::LeftButton && _scribbling) || _pendown;
+
+	int maxYBefore = pHistory->BottomRight().y(),
+		maxYAfter = maxYBefore;
+
+	if (bScribblingFinished)
 	{
 #ifndef _VIEWER
 		if (_pSprite)
@@ -1564,6 +1572,14 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 	_pendown = false;
 	_allowMouse = _allowPen = true;
 	_allowMouse = _allowPen = true;
+
+	if (bScribblingFinished)
+	{
+		int h = height();
+		maxYAfter = pHistory->BottomRight().y();
+		if ((maxYBefore < maxYAfter && h < maxYAfter) || (maxYBefore > maxYAfter && h > maxYAfter))
+			emit SignalDocLengthChanged(h, _topLeft.y(), maxYAfter);
+	}
 }
 
 void DrawArea::_DrawGrid(QPainter& painter)
@@ -2092,7 +2108,7 @@ void DrawArea::_SetTopLeftFromItem(HistoryItem* phi)
 
 }
 
-int DrawArea::CollectDrawables(IntVector& hv)
+int DrawArea::_CollectDrawables(IntVector& hv)
 {
 	return pHistory->GetDrawablesInside(_clippingRect, hv);
 
@@ -2277,6 +2293,17 @@ void DrawArea::SlotStopHistorySave()
 		pHistory->InterruptSave();
 }
 
+void DrawArea::SlotScrollDocTo(int pos)
+{
+	if (_busy)
+		return;
+	if (pos >= 0 && pos != _topLeft.y())
+	{
+		_SetOrigin(QPoint(_topLeft.x(), pos));
+		_Redraw();
+	}
+}
+
 bool DrawArea::SetupPage(PageParams::PageSetupType forWhat)
 {
 	bool res = false;
@@ -2452,7 +2479,7 @@ void DrawArea::_Redraw(bool clear)
 	bool saveEraseMode = _erasemode;
 
 	IntVector /*HistoryItemVector*/ forPage;
-	CollectDrawables(forPage);  // in clipping area
+	_CollectDrawables(forPage);  // in clipping area
 	if (clear)
 		_ClearCanvas();
 	for (auto phi : forPage)
@@ -2669,6 +2696,10 @@ void DrawArea::SetPageGuidesOn(bool on)
 
 void DrawArea::_SetOrigin(QPointF o)
 {
+	if (_busy)
+		return;
+	++_busy;
+	emit SignalPositionChanged(o.y());
 #ifndef _VIEWER
 	HideRubberBand();  // but not delete and store _topLeft into _topLeftWhenRubber
 #endif
@@ -2687,6 +2718,8 @@ void DrawArea::_SetOrigin(QPointF o)
 		qApp->processEvents();
 	else if (watchdog == 100)
 		watchdog = 0;
+
+	--_busy;
 }
 
 
