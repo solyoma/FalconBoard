@@ -141,6 +141,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 	_pScrollBar = new QScrollBar(Qt::Vertical, this);
     _pScrollBar->setTracking(true);
     _pScrollBar->setEnabled(false);
+    _pScrollBar->setCursor(Qt::ArrowCursor);
 	ui.centralWidget->layout()->addWidget(_pScrollBar);
 
     connect(_pScrollBar, &QScrollBar::valueChanged, _drawArea, &DrawArea::SlotScrollDocTo);
