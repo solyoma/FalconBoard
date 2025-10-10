@@ -1,8 +1,0 @@
-scribbles not the same as seen on screen, change when marked
-moving marked blocks stutter
-sometimes after load or in an new document nothing is shown until "paper" is scrolled
-deleteing end of document sometimes? still moves down to that point when Ctrl+End is pressed
-when pen colores redefined cursor color remains the same until not set again
-If the space bar is pressed after F4 paste, and the @paper@ is moved then the rubberrect remains whee it was
-and when after pressing the spacebar again you can move the block both the original rubberband and the new one 
-remains and the original doesn't vanish

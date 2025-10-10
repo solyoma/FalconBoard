@@ -450,7 +450,7 @@ int  HistoryReColorItem::Undo()
 	for (auto drix : selectedList)
 	{
 		DrawableItem* pdri = pHist->Drawable(drix);
-		pdri->SetPenKind( penKindList[iact++]);
+		pdri->pen.SetPenKind( penKindList[iact++]);
 	}
 	return 1;
 }
@@ -460,7 +460,7 @@ int  HistoryReColorItem::Redo()
 	{
 		DrawableItem* pdri = pHist->Drawable(drix);
 		penKindList.push_back(pdri->PenKind());
-		pdri->SetPenKind( pk);
+		pdri->pen.SetPenKind( pk);
 	}
 	return 0;
 }
@@ -657,7 +657,7 @@ int HistorySetTransparencyForAllScreenshotsItems::Undo()
 
 //****************** HistoryEraserStrokeItem ****************
 
-HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& dri) : eraserPenWidth(dri.penWidth), HistoryItem(pHist, HistEvent::heEraserStroke)
+HistoryEraserStrokeItem::HistoryEraserStrokeItem(History* pHist, DrawableItem& dri) : eraserPenWidth(dri.pen.penWidth), HistoryItem(pHist, HistEvent::heEraserStroke)
 {
 	eraserStroke.clear(); // ??
 
@@ -785,10 +785,10 @@ int HistoryPenWidthChangeItem::Undo()
 	for (auto ix : affectedIndexList)
 	{
 		DrawableItem* pdrwi = pHist->Drawable(ix);
-		if (pdrwi && pdrwi->penWidth < 999)
+		if (pdrwi && pdrwi->pen.penWidth < 999)
 		{
-			if ((pdrwi->penWidth -= dw) < 0)
-				pdrwi->penWidth = 0;
+			if ((pdrwi->pen.penWidth -= dw) < 0)
+				pdrwi-> pen.penWidth = 0;
 		}
 	}
 	return 1;
@@ -798,10 +798,10 @@ int HistoryPenWidthChangeItem::Redo()
 	for (auto ix : affectedIndexList)
 	{
 		DrawableItem* pdrwi = pHist->Drawable(ix);
-		if (pdrwi && pdrwi->penWidth < 999)
+		if (pdrwi && pdrwi->pen.penWidth < 999)
 		{
-			if ((pdrwi->penWidth += dw) < 0)
-				pdrwi->penWidth = 0;
+			if ((pdrwi->pen.penWidth += dw) < 0)
+				pdrwi->pen.penWidth = 0;
 		}
 	}
 	return 1;
@@ -1541,14 +1541,14 @@ int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// retu
 
 			qint32 n;
 			ifs >> n; dScrb.zOrder = n;
-			ifs >> n; dScrb.SetPenKind( (FalconPenKind)(n & ~128));
+			ifs >> n; dScrb.pen.SetPenKind( (FalconPenKind)(n & ~128));
 			// DEBUG
 			//if (dScrb.PenKind() == penEraser)
 			//	i = i;
 			// end DEBUG
 			// dScrb.SetPenColor();	// from penKind
 			// bool filled = n & 128;
-			ifs >> n; dScrb.penWidth = n;
+			ifs >> n; dScrb.pen.penWidth = n;
 
 			qint32 x, y;
 			dScrb.Reset();
@@ -1599,9 +1599,9 @@ int History::_ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version)	// retu
 			if (version < 0x56010108)
 			{
 				if (pdrwh->PenKind()== penEraser)
-					pdrwh->SetPenKind(penT5);
+					pdrwh->pen.SetPenKind(penT5);
 				else if (pdrwh->PenKind()== penT5)
-					pdrwh->SetPenKind( penEraser);
+					pdrwh->pen.SetPenKind( penEraser);
 			}
 			// end patch
 			if (ifs.status() != QDataStream::Ok)

@@ -807,28 +807,52 @@ QDataStream& operator>>(QDataStream& ifs, MyRotation& mr)
 	return ifs;
 }
 
+QDataStream& operator<<(QDataStream& ofs, const DrawablePen& dp)
+{
+	ofs << dp.penWidth << dp.penAlpha << (std::byte)dp.Kind();
+	return ofs;
+}
+
+QDataStream& operator>>(QDataStream& ifs, DrawablePen& dp)
+{
+	std::byte pk;
+	ifs >> dp.penWidth >> dp.penAlpha >> pk;
+	dp.SetPenKind((FalconPenKind)pk);
+	return ifs;
+}
+
 
 /* *********************** Drawable pen ********************/
 
-void DrawablePen::SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor)
+void DrawableItem::SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor, qreal alpha)
 {
-	globalDrawColors.SetActualPen(_penKind);
+	globalDrawColors.SetActualPen(pen._penKind);
 	if (clipR.isValid())
 		painter->setClipRect(clipR);  // clipR must be DrawArea relative
 
 #if !defined _VIEWER && defined _DEBUG
-	int sw = penWidth;
+	qreal sw = PenWidth(),sa=pen.penAlpha;
 	if (pencilMode)
-		penWidth = 1;
+	{
+		pen.penWidth = 1.0;
+		pen.penAlpha = 1.0;
+	}
 #endif
-	QPen pen(QPen(PenColor(), penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
-	painter->setPen(pen);
+	QPen mypen(QPen(pen.Color(), PenWidth(), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
+	painter->setPen(mypen);
 #if !defined _VIEWER && defined _DEBUG
 	if (pencilMode)
-		penWidth = sw;
+	{
+		pen.penWidth = sw;
+		pen.penAlpha = sa;
+	}
 #endif
 	if (brushColor.isValid())
+	{
+		if (alpha < 1.0)
+			brushColor.setAlphaF(alpha);
 		painter->setBrush(QBrush(brushColor));
+	}
 	else
 		painter->setBrush(QBrush());
 	// painter's default compositionmode is CompositionMode_SourceOver
@@ -843,12 +867,8 @@ bool DrawableItem::drawStarted;
 
 DrawableItem& DrawableItem::operator=(const DrawableItem& other)
 {
-	*(DrawablePen*)this = (DrawablePen&)other;
-	//penColor = other.penColor;
-	//SetPenKind( other.penKind);
-	//penWidth = other.penWidth;
-
 	dtType = other.dtType;
+	pen = other.pen;
 	refPoint = other.refPoint;
 	zOrder = other.zOrder;
 	rot = other.rot;
@@ -974,7 +994,7 @@ bool DrawableItem::Rotate(MyRotation arot, QPointF center)
 {
 	MyRotation tmpr = rot;
 	tmpr.AddRotation(arot);
-	bool res = tmpr.RotateSinglePoint(refPoint, center, penWidth);	// if res false 'refPoint' did not change
+	bool res = tmpr.RotateSinglePoint(refPoint, center, PenWidth());	// if res false 'refPoint' did not change
 	if (res)
 		rot = tmpr;
 	return true;
@@ -983,9 +1003,12 @@ bool DrawableItem::Rotate(MyRotation arot, QPointF center)
 // drawables MUST be saved in increasing zOrder, so no need to save the zOrder
 // this way all screenshots are saved first, followed by all other drawables
 
+// before V3.0.0 the order was: drawable type, ref. point, pen index, pen width, ref. point  then rotation
+// since V3.0.0 drawable type, pen ref. point rotation
+
 QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 {
-	ofs << (int)di.dtType << di.refPoint << (int)di.PenKind() /*<< di.PenColor()*/ << di.penWidth << di.rot;
+	ofs << (int)di.dtType << di.pen << di.refPoint << di.rot;
 	ofs << di.erasers.size();
 	MyRotation arot = di.rot;
 	arot.InvertAngle();		// for erasers
@@ -1024,11 +1047,20 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 	if (n >= (int)DrawableType::dtNonDrawableStart)
 		return ifs;
 
-	ifs >> di.refPoint;
-	di.refPoint += {0, DrawableItem::yOffset};
-	ifs >> n;
-	di.SetPenKind((FalconPenKind)n);
-	ifs /*>> di.penColor*/ >> di.penWidth >> di.rot;
+	if (file_version_loaded >= 0x56030000l)
+	{
+		ifs >> di.pen;
+		ifs >> di.refPoint;
+		di.refPoint += {0, DrawableItem::yOffset};
+	}
+	else
+	{
+		ifs >> di.refPoint;
+		di.refPoint += {0, DrawableItem::yOffset};
+		ifs >> n;
+		di.pen.SetPenKind((FalconPenKind)n);
+		ifs /*>> di.penColor*/ >> di.pen.penWidth >> di.rot;
+	}
 	ifs >> n;		// number of eraser strokes
 	while (n--)
 	{
@@ -1082,7 +1114,7 @@ void DrawableCross::_Setup()
 QRectF DrawableCross::Area() const    // includes half of pen width+1 pixel
 {
 	//qreal w = penWidth / 2.0;
-	qreal w = penWidth / 2.0,
+	qreal w = PenWidth() / 2.0,
 		x1 = std::min(_ltrb.x1(), _ltrb.x2()),
 		y1 = std::min(_ltrb.y1(), _ltrb.y2()),
 		x2 = std::max(_ltrb.x1(), _ltrb.x2()),
@@ -1349,7 +1381,7 @@ void DrawableEllipse::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, cons
 	{
 		QColor c;
 		if (isFilled)
-			c = PenColor();
+			c = pen.Color();
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
 		if (_points.isEmpty())
 			painter->drawEllipse(_rotatedRect.translated(-topLeftOfVisibleArea));
@@ -1612,7 +1644,7 @@ void DrawableRectangle::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, co
 	{
 		QColor c;
 		if (isFilled)
-			c = PenColor();
+			c = pen.Color();
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), c);
 		if (_points.isEmpty())
 			painter->drawRect(_rotatedRect.translated(-topLeftOfVisibleArea));
@@ -1885,7 +1917,7 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 	// if (r != 0.0 && (/*(r > pwm * penWidth && maxd <= r * lendiv) ||*/ maxd <= pwm * penWidth))
 	if (maxd != 0.0 &&  maxd <= autoCorrectLimit)
 	{	// set up 'the 'lin'
-		lin = DrawableLine(pfStart, pfEnd, zOrder, PenKind(), penWidth);
+		lin = DrawableLine(pfStart, pfEnd, zOrder, PenKind(), PenWidth());
 //		qDebug("TRUE: maxd: %g, start:(%d,%d), end:(%d,%d), len/: %g,  2 x penWidth: %d", maxd, (int)pfStart.x(), (int)pfStart.y(), (int)pfEnd.x(), (int)pfEnd.y(), (r*lendiv), pwm * (int)penWidth);
 		return true;
 	}
@@ -2042,7 +2074,7 @@ bool DrawableScribble::CanRotate(MyRotation arot, QPointF center) const
 
 bool DrawableScribble::Rotate(MyRotation arot, QPointF center)	// rotate around the center of 'center'
 {
-	if(!arot.RotatePoly(points, center, penWidth))
+	if(!arot.RotatePoly(points, center, PenWidth()))
 		return false;
 	_RotateErasers(arot, center);
 
@@ -2061,7 +2093,7 @@ void DrawableScribble::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, con
 {
 	if (drawStarted)
 	{
-		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), isFilled ? PenColor() : QColor());
+		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), isFilled ? pen.Color() : QColor());
 		// draw normally using 'painter' and 'topLeftOfVisibleArea'
 		// DEBUG	@
 		/*if (points[0] == points[1])
@@ -2534,7 +2566,7 @@ QRectF DrawableList::ItemsUnder(QPointF point, IntVector& iv, DrawableType type)
 	QRectF rect;
 	auto addIfNear = [&, this](DrawableItem* pdrw, int i)
 		{
-			if (pdrw->isVisible && pdrw->PointIsNear(point, pdrw->penWidth / 2.0 + 3))
+			if (pdrw->isVisible && pdrw->PointIsNear(point, pdrw->pen.penWidth / 2.0 + 3))
 			{
 				iv.append(i); //  ({ pdrw->dtType, i, pdrw->zOrder });
 				rect = rect.united(pdrw->Area());

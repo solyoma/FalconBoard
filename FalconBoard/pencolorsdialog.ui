@@ -616,7 +616,7 @@
    <item>
     <widget class="QLabel" name="label_15">
      <property name="text">
-      <string>You can use a different set of 2 x 4 colors in each document. 
+      <string>You can use a different set of 2 x 7 colors in each document. 
 The color for Pen #1 is always black (light mode) and white (dark modes) and cannot be redefined. 
 When you create a new document it inherits pen colors from the last active document, but 
 you can select any saved color scheme for it any time in this dialog box</string>

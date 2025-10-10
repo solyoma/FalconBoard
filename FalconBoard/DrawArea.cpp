@@ -1791,9 +1791,9 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
 	// DEBUG
 	_lastScribbleItem.bSmoothDebug = _bSmoothDebug;
 	// end DEBUG
-	_lastScribbleItem.SetPenKind(_actPenKind);
+	_lastScribbleItem.pen.SetPenKind(_actPenKind);
 //	_lastScribbleItem.SetPenColor();
-	_lastScribbleItem.penWidth = _actPenWidth;
+	_lastScribbleItem.pen.penWidth = _actPenWidth;
 	_lastScribbleItem.refPoint = _lastPointC +_topLeft;
 	_lastScribbleItem.zOrder = pHistory->GetZorder(false);
 	if (_lastPointC.x() >= 0)    // else no last point yet
@@ -3062,7 +3062,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	{
 		pdrwi = pSprite->drawables[ix];
 		_actPenKind = pdrwi->PenKind();
-		_actPenWidth = pdrwi->penWidth;
+		_actPenWidth = pdrwi->pen.penWidth;
 		pdrwi->Draw(painter, QPointF(0,0), pSprite->rect);
 		// DEBUG
 		// pSprite->image.save(QString("I%1-%2.png").arg((int)pdrwi->dtType).arg(ix));

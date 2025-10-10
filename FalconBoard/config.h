@@ -2,12 +2,14 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
-// version number 0xMMIISS;     M - major, I-minor, s- sub
 constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is below this number
 
-const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian !! MODIFY this and Save() for big endian processors!
-const qint32 MAGIC_VERSION = 0x56020308; // V 02.03.08	2025.10.20.
-const QString sVersion = "2.3.8";
+// version number 0xMMIISS;     M - major, I-minor, s- sub
+const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian 
+									// MW: for "My Whiteboard", original name of the program
+									// !! MODIFY this and Save() for big endian processors!
+const qint32 MAGIC_VERSION = 0x56030000; // V 03.00.00	 - 2025.10.10.
+const QString sVersion = "3.0.0";
 
 // names in configuration
 

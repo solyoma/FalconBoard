@@ -202,7 +202,7 @@ struct LineZoomer : public Zoomer
     void Setup() override;
     bool CanZoom(const ZoomParams& params) const override;
 protected:
-    QPointF _endPoint;
+    QPointF _endPoint;    // starts at the reference point
     void _PerformZoom() override;
 };
 
@@ -321,15 +321,23 @@ struct MyRotation
 QDataStream& operator<<(QDataStream& ofs, const MyRotation& mr);
 QDataStream& operator>>(QDataStream& ifs, MyRotation& mr);
 
-//----------------------------------------------------
+            //----------------------------------------------------
             // ------------------- Drawable Pen -------------
             //----------------------------------------------------
+// there are only  PEN_COUNT-1 discreet colors
+// as penNone and penEraser are not colors
+// the actual color used is determined by the globalDrawColors object
+// and can change from documents to documents
+// Additionally there is an alpha channel, which may differ from one drawable to the other
+
 
 class DrawablePen
 {
+    friend struct DrawableItem;
     FalconPenKind _penKind = penBlackOrWhite;
 public:
-    qreal penWidth = 1.0;
+    qreal penWidth = 1.0; // in pixels
+	qreal penAlpha = 1.0; // 0.0 .. 1.0  - alpha channel for pen color, since V3.0.0
 
     DrawablePen() = default;
     //DrawablePen(qreal penWidth, QColor penColor) : _penKind(penNone), penWidth(penWidth), penColor(penColor) {}
@@ -345,26 +353,29 @@ public:
         _penKind = pk;
         globalDrawColors.SetActualPen(pk);
     }
+	constexpr const FalconPenKind Kind() const { return _penKind; }
 
-    QColor PenColor() const 
+    QColor Color() const 
     { 
         QColor penColor = globalDrawColors.Color(_penKind);
+		penColor.setAlphaF(penAlpha);
         return penColor; 
     }
-    constexpr FalconPenKind PenKind() const { return _penKind; }
-    void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor());
 };
+QDataStream& operator<<(QDataStream& ofs, const DrawablePen& di);
+QDataStream& operator>>(QDataStream& ifs, DrawablePen& di);
 
             //----------------------------------------------------
             // ------------------- Drawable Header -------------
             //----------------------------------------------------
-struct DrawableItem : public DrawablePen
+struct DrawableItem
 {
     static bool drawStarted;    // when unset then Draw() will call DrawWithErasers(), which sets this then
                                 // calls Draw() to draw the drawable. When Draw() returns erasers are drawn
                                 // over the points of the drawable
 
     DrawableType dtType = DrawableType::dtNone;
+	DrawablePen pen;  // pen used to draw this item
     QPointF refPoint;       // position of reference point relative to logical (0,0) of 'paper roll' 
                             // (widget coord: topLeft + DrawArea::_topLeft is used) 
                             // May be the first point or top left of area or the center point of the drawable!
@@ -386,17 +397,17 @@ struct DrawableItem : public DrawablePen
     QVector<EraserData> erasers; // a polygon(s) confined to the bounding rectangle of points for eraser strokes (above points)
                                  // may intersect the visible lines only because of the pen width!
 
-    DrawableItem() : DrawablePen() 
+    DrawableItem() 
     { 
         zoomer.SetOwner(this);    
     }
     DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlackOrWhite, 
-                 qreal penWidth = 1.0) : dtType(dt), refPoint(refPoint), zOrder(zOrder), DrawablePen(penKind, penWidth) 
+                 qreal penWidth = 1.0) : dtType(dt), pen(penKind, penWidth), refPoint(refPoint), zOrder(zOrder) 
     {
         zoomer.SetOwner(this);
     }
 
-    DrawableItem(const DrawableItem& other):DrawablePen(other) { *this = other; }
+    DrawableItem(const DrawableItem& other) { *this = other; }
     virtual ~DrawableItem()
     {
         erasers.clear();
@@ -424,6 +435,11 @@ struct DrawableItem : public DrawablePen
     {
         return refPoint;
     }
+    constexpr FalconPenKind PenKind() const { return pen._penKind; }
+    constexpr qreal PenWidth() const { return pen.penWidth; }
+    constexpr qreal PenAlpha() const { return pen.penAlpha; }
+    void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor(), qreal alpha = 1.0);
+
     virtual bool CanTranslate(const QPointF dp) const
     { 
         QPointF p = refPoint + dp;
@@ -599,7 +615,7 @@ struct DrawableDot : public DrawableItem
     ~DrawableDot() = default;
     QRectF Area() const override    // includes half od pen width+1 pixel
     { 
-        qreal d = penWidth / 2.0 + 1.0;
+        qreal d = pen.penWidth / 2.0 + 1.0;
         return QRectF(refPoint - QPointF(d, d), QSize(2*d, 2*d) ); 
     }
     // in base class bool PointIsNear(QPointF p, qreal distance) const override// true if the point is near the circumference or for filled ellpse: inside it
@@ -638,7 +654,7 @@ struct DrawableEllipse : public DrawableItem    // refPoint is the center
     bool Rotate(MyRotation rot, QPointF centerOfRotation) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override // includes half of pen width+1 pixel
     {
-        qreal d = penWidth / 2.0 + 1.0;
+        qreal d = pen.penWidth / 2.0 + 1.0;
         return _rotatedRect.adjusted(-d,-d,d,d); 
     }
     QPointF GetLastDrawnPoint() const override
@@ -722,7 +738,7 @@ struct DrawableLine : public DrawableItem
     QRectF Area() const override// includes half of pen width+1 pixel
     {
         QRectF rect = QRectF(refPoint, QSize((endPoint - refPoint).x(), (endPoint - refPoint).y()) ).normalized();
-        qreal d = penWidth / 2.0 + 1.0;
+        qreal d = pen.penWidth / 2.0 + 1.0;
         return rect.adjusted(-d, -d, d, d);
     }
     QPointF GetLastDrawnPoint() const override
@@ -762,7 +778,7 @@ struct DrawableRectangle : public DrawableItem
     bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
-        qreal d = penWidth / 2.0 + 1.0;
+        qreal d = pen.penWidth / 2.0 + 1.0;
         return _rotatedRect.adjusted(-d, -d, d, d);
     }
     QPointF GetLastDrawnPoint() const override
@@ -929,7 +945,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
     bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
     QRectF Area() const override // includes half og pen width+1 pixel
     {
-        qreal d = penWidth / 2.0 + 1.0;
+        qreal d = pen.penWidth / 2.0 + 1.0;
         return points.boundingRect().adjusted(-d, -d, d, d);
     }
     QPointF GetLastDrawnPoint() const override

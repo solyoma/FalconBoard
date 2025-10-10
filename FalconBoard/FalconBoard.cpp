@@ -264,12 +264,12 @@ void FalconBoard::RestoreState()
         qs = s->value(VERSION, "0").toString();       // (immediate toInt() looses digits)
         long ver = qs.toInt(0, 0);                                   // format Major.mInor.Sub
 
-        if ((ver & 0xFFFFFF00) != (MAGIC_VERSION & 0xFFFFFF00))        // sub version number not used
-        {
-            QFile::remove(qsSettingsName);
-            _AddNewTab();
-            return;
-        }
+        //if ((ver & 0xFFFFFF00) != (MAGIC_VERSION & 0xFFFFFF00))        // main.sub.minor: minor version number not used
+        //{
+        //    QFile::remove(qsSettingsName);
+        //    _AddNewTab();
+        //    return;
+        //}
         file_version_loaded = ver;
     }
     bool b = s->value(SINGLE, true).toBool();
@@ -664,7 +664,7 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addSeparator();
     ui.mainToolBar->addAction(ui.actionPrint);
     ui.mainToolBar->addSeparator();
-
+                      // setup color menu with transparency sliders options
     ui.mainToolBar->addAction(ui.actionPenBlackOrWhite);
     ui.mainToolBar->addAction(ui.actionPenT2);
     ui.mainToolBar->addAction(ui.actionPenT3);
