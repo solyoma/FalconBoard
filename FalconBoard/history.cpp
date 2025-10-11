@@ -1250,7 +1250,7 @@ SaveResult History::Save(bool asSnapshot)
 			drblMap.insert(pdrwi->zOrder, pdrwi);
 	}
 
-	for (auto& pdrwi : drbl)
+	for (auto& pdrwi : drblMap)
 	{
 		if (_saveInterrupted)
 		{
