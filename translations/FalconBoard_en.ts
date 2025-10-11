@@ -4,56 +4,56 @@
 <context>
     <name>DrawArea</name>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="310"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="313"/>
         <source>&apos;%1&apos;
 Invalid file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="312"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="315"/>
         <source>File
 &apos;%1&apos;
  not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="314"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="317"/>
         <source>File read problem. %1 records read. Please save the file to correct this error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2350"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2383"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2353"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2386"/>
         <source>Can&apos;t find printer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="782"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2978"/>
+        <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | Selection x:%6 y: %7, width: %8, height: %9</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/DrawArea.cpp" line="785"/>
         <source>With this pen width drawing would be outside of &quot;paper&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2356"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2389"/>
         <source>Print error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2359"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2392"/>
         <source>Print cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2939"/>
-        <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2945"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2984"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -61,194 +61,199 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="636"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="647"/>
         <source>%1...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="688"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="699"/>
         <source>Pen Width:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="702"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="713"/>
         <source>Grid size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="771"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="784"/>
         <source>Falconboard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="771"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="784"/>
         <source>Too many open files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1471"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1487"/>
         <source>C&amp;lear list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1703"/>
-        <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1710"/>
-        <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
- You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1724"/>
-        <source>FalconBoard - Import</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1859"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2028"/>
-        <source>Load Data</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1861"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2030"/>
-        <source>FalconBoard files (*.mwb);;All files (*)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1904"/>
-        <source>FalconBoard - Go to Page</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1904"/>
-        <source>Page:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2009"/>
-        <source>FalconBoard - Warning</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2010"/>
-        <source>This file path name is already used for another open document.
-Please enter a different one</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2082"/>
-        <source>Open source Whiteboard/blackboard application</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2084"/>
-        <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2296"/>
-        <source>FalconBoard - settings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2296"/>
-        <source>Autocorrect tolerance in pixels</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2679"/>
-        <source>export</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1797"/>
-        <source>Maximum number of files reached, no new files can be loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="895"/>
-        <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
-Do you want to save your changes?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1567"/>
-        <source>Automatic snapshot save not finished in 30 seconds!
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1587"/>
+        <source>Automatic snapshot save not finished!
 Please save each changed files manually!
 
 Aborting close.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1803"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1727"/>
+        <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1734"/>
+        <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
+ You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1748"/>
+        <source>FalconBoard - Import</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1883"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2052"/>
+        <source>Load Data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1885"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2054"/>
+        <source>FalconBoard files (*.mwb);;All files (*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1928"/>
+        <source>FalconBoard - Go to Page</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1928"/>
+        <source>Page:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2033"/>
+        <source>FalconBoard - Warning</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2034"/>
+        <source>This file path name is already used for another open document.
+Please enter a different one</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2106"/>
+        <source>Open source Whiteboard/blackboard application</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2108"/>
+        <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2347"/>
+        <source>Background save in progress...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2361"/>
+        <source>FalconBoard - settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2361"/>
+        <source>Autocorrect tolerance in pixels</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2745"/>
+        <source>export</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1821"/>
+        <source>Maximum number of files reached, no new files can be loaded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="908"/>
+        <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
+Do you want to save your changes?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1827"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1956"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1980"/>
         <source>Please restart the program to change the language!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1997"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2067"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2021"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2091"/>
         <source>Save As</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1998"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2022"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2045"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2069"/>
         <source>Open Background Image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2069"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2093"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2081"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2105"/>
         <source>About FalconBoard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2083"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2107"/>
         <source>&lt;p&gt;Version </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2251"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2308"/>
         <source>falconBoard - Grid spacing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2252"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2309"/>
         <source>Spacing in pixels:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="196"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="198"/>
         <source>print</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="361"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="370"/>
         <source>Do you want to save the document before %1?
 
 (You may set automatic save in the Options menu.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="363"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="372"/>
         <source>FalconBoard - Question</source>
         <translation type="unfinished"></translation>
     </message>
@@ -416,23 +421,8 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="382"/>
-        <source>Pen T&amp;5</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="397"/>
-        <source>Pen T&amp;6</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../FalconBoard/FalconBoard.ui" line="400"/>
         <source>6</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="412"/>
-        <source>Pen T&amp;7</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -626,11 +616,6 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.ui" line="691"/>
-        <source>&amp;Black</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../FalconBoard/FalconBoard.ui" line="969"/>
         <source>Autosave Before Print/Export</source>
         <translation type="unfinished"></translation>
@@ -653,6 +638,21 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
     <message>
         <location filename="../FalconBoard/FalconBoard.ui" line="385"/>
         <source>5</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.ui" line="382"/>
+        <source>&amp;Purple</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.ui" line="397"/>
+        <source>B&amp;rown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.ui" line="412"/>
+        <source>Gra&amp;y</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -733,6 +733,11 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
     <message>
         <location filename="../FalconBoard/FalconBoard.ui" line="664"/>
         <source>Clear List of prev. documents</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/FalconBoard.ui" line="691"/>
+        <source>&amp;Black</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1563,14 +1568,6 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/pencolorsdialog.ui" line="619"/>
-        <source>You can use a different set of 2 x 4 colors in each document. 
-The color for Pen #1 is always black (light mode) and white (dark modes) and cannot be redefined. 
-When you create a new document it inherits pen colors from the last active document, but 
-you can select any saved color scheme for it any time in this dialog box</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../FalconBoard/pencolorsdialog.ui" line="98"/>
         <source>Light mode Pen colors</source>
         <translation type="unfinished"></translation>
@@ -1648,6 +1645,14 @@ you can select any saved color scheme for it any time in this dialog box</source
     <message>
         <location filename="../FalconBoard/pencolorsdialog.ui" line="362"/>
         <source>Dark mode Pen colors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/pencolorsdialog.ui" line="619"/>
+        <source>You can use a different set of 2 x 7 colors in each document. 
+The color for Pen #1 is always black (light mode) and white (dark modes) and cannot be redefined. 
+When you create a new document it inherits pen colors from the last active document, but 
+you can select any saved color scheme for it any time in this dialog box</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1775,7 +1780,7 @@ Do you want to save the changes?</source>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="817"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="830"/>
         <source>Save Visi&amp;ble As...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1842,11 +1847,13 @@ Do you want to save the changes?</source>
     </message>
     <message>
         <location filename="../FalconBoard/common.cpp" line="401"/>
+        <location filename="../FalconBoard/common.h" line="231"/>
         <source>Blac&amp;k</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../FalconBoard/common.cpp" line="401"/>
+        <location filename="../FalconBoard/common.h" line="231"/>
         <source>&amp;White</source>
         <translation type="unfinished"></translation>
     </message>

@@ -379,7 +379,7 @@
      <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
    </property>
    <property name="text">
-    <string>Purple</string>
+    <string>&amp;Purple</string>
    </property>
    <property name="shortcut">
     <string>5</string>
