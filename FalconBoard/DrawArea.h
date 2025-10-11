@@ -173,7 +173,7 @@ signals:
     void CanRedo (bool  state);   // state: true -> can redo
     void WantFocus();
     void PointerTypeChange(QTabletEvent::PointerType pt);
-    void TextToToolbar(QString text);
+    void SignalDisplayCoordinates(QString text);
     void IncreaseBrushSize(int quantity);
     void DecreaseBrushSize(int quantity);
     void RubberBandSelection(bool on);  // used when a selection is active

@@ -87,6 +87,7 @@ public slots:
 	void SlotToSetGrid(bool on, bool fixed, uint16_t value);
 	void slotGridSpacingChanged(int val);
 	void slotGridSpacingEditingFinished();
+	void SlotDisplaySnapshotterRunning(bool on);
 
 private slots:
 	void on_actionLeftMargin_triggered();
@@ -180,7 +181,7 @@ private slots:
 	void SlotIncreaseBrushSize(int ds);
 	void SlotDecreaseBrushSize(int ds);
 
-	void SlotForLabel(QString text);
+	void SlotForDisplayCoordinates(QString text);
 	void SlotForPenKindChange(FalconPenKind pk);
 #endif
 	void SlotForPenColorChanged();	// sent when 'history' is changed and pens are changed too changed actions when needed
@@ -287,7 +288,8 @@ private:
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
 	QCheckBox* _pChkGridOn = nullptr;
 	QTabBar  * _pTabs = nullptr;
-	QLabel   * _plblMsg = nullptr;		// put on status bar
+	QLabel   * _plblCoordinates = nullptr;		// put on status bar
+	QLabel   * _plblMsg = nullptr;				// put on status bar after _plblCoordinates
 
 	int		_nLastTab=-1;	// needed for tab change in slot as QTabBar send switch after already switched
 	int _dontCareForTabChange = false; //true: no history switch and invalidate current history
@@ -512,6 +514,7 @@ public slots:
 signals:
 	void SignalFinished();
 	void SignalToStopHistorySave();
+	void SignalSnapshotterRunning(bool);
 private:
 	FalconBoard* _falconBoard; 
 	IntVector _whose;

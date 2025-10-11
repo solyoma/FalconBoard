@@ -2975,7 +2975,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	{
 		QRectF r = _rubberBand->geometry();
 		r.translate(_topLeft);
-		qs = tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | selection x:%6 y: %7, width: %8, height: %9").
+		qs = tr("   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | Selection x:%6 y: %7, width: %8, height: %9").
 			arg(pg).arg(_topLeft.x()).arg(_topLeft.y()).arg(qpt.x()).arg(qpt.y()).
 			arg(r.x()).arg(r.y()).arg(r.width()).arg(r.height());
 	}
@@ -2988,7 +2988,7 @@ void DrawArea::_ShowCoordinates(const QPointF& qp)
 	if (debugMode)
 		qs += " | DM";
 #endif
-	emit TextToToolbar(qs);
+	emit SignalDisplayCoordinates(qs);
 }
 
 void DrawArea::_PaintOnActCanvas(DrawableItem* pdrwi)

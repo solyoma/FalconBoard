@@ -736,6 +736,8 @@ void FalconBoard::_CreateAndAddActions()
     _pTabs->setTabsClosable(true);
 #ifndef _VIEWER
    // status bar
+    _plblCoordinates = new QLabel();
+    statusBar()->addWidget(_plblCoordinates);
     _plblMsg = new QLabel();
     statusBar()->addWidget(_plblMsg);
 
@@ -749,7 +751,7 @@ void FalconBoard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::CanUndo, this, &FalconBoard::SlotForUndo);
     connect(_drawArea, &DrawArea::CanRedo, this, &FalconBoard::SlotForRedo);
     connect(_drawArea, &DrawArea::WantFocus, this, &FalconBoard::SlotForFocus);
-    connect(_drawArea, &DrawArea::TextToToolbar, this, &FalconBoard::SlotForLabel);
+    connect(_drawArea, &DrawArea::SignalDisplayCoordinates, this, &FalconBoard::SlotForDisplayCoordinates);
     connect(_drawArea, &DrawArea::IncreaseBrushSize, this, &FalconBoard::SlotIncreaseBrushSize);
     connect(_drawArea, &DrawArea::DecreaseBrushSize, this, &FalconBoard::SlotDecreaseBrushSize);
 
@@ -977,6 +979,7 @@ void FalconBoard::_StartSnapshotSaveThread()
         _pSnapshotter->moveToThread(&_snapshotterThread);
         connect(this, &FalconBoard::SignalSnapshotInterrupted, _pSnapshotter, &Snapshotter::SlotToInterruptSnapshotSave);
         connect(_pSnapshotter, &Snapshotter::SignalFinished, this, &FalconBoard::SlotSnapshotSaverFinished);
+        connect(_pSnapshotter, &Snapshotter::SignalSnapshotterRunning, this, &FalconBoard::SlotDisplaySnapshotterRunning);
         connect(_pSnapshotter, &Snapshotter::SignalToStopHistorySave, _drawArea, &DrawArea::SlotStopHistorySave);
         connect(&_snapshotterThread, &QThread::started, _pSnapshotter, &Snapshotter::SlotToSaveSnapshots);
         _snapshotterThread.start();
@@ -1236,7 +1239,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sToolBarColor = "#F0F0F0";
             _sTabBarActiveTextColor = "#B30000",
             _sTabBarInactiveTextColor = "#808080";
-            _sTextColor = "#000000";
+            _sTextColor = "#202020";
             _sToolTipTextColor = "#000000";
             _sToolTipBackground = "#cccccc";
             _sUnselectedBackgroundColor = "#d0d0d0";
@@ -1255,7 +1258,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sToolBarColor = "#FFFFFF";
             _sTabBarActiveTextColor = "#B30000",
             _sTabBarInactiveTextColor = "#808080";
-            _sTextColor = "#000000";
+            _sTextColor = "#202020";
             _sToolTipTextColor = "#000000";
             _sToolTipBackground = "#cccccc";
             _sUnselectedBackgroundColor = "#d0d0d0";
@@ -1570,19 +1573,22 @@ void FalconBoard::closeEvent(QCloseEvent* event)
     if (ui.actionKeepChangedNoAsking->isChecked())
     {
 		savedTabs = historyList.ModifiedItems();
-        waitCounter = waitforsnapshot();
-        if (waitCounter != SLEEP_COUNTER)
+        if (savedTabs.size())
         {
-            _StartSnapshotSaveThread();
             waitCounter = waitforsnapshot();
-        }
+            if (!waitCounter)   // no snapshotter running, but there are unsaved changes
+            {
+                _StartSnapshotSaveThread();
+                waitCounter = waitforsnapshot();
+            }
 
-		if (waitCounter == SLEEP_COUNTER)
-        {
-            QMessageBox::warning(this, FB_WARNING, tr("Automatic snapshot save not finished!\nPlease save each changed files manually!\n\nAborting close."));
-			_listenNoMore = false;
-			event->ignore();
-            return;
+            if (waitCounter == SLEEP_COUNTER)   
+            {
+                QMessageBox::warning(this, FB_WARNING, tr("Automatic snapshot save not finished!\nPlease save each changed files manually!\n\nAborting close."));
+                _listenNoMore = false;
+                event->ignore();
+                return;
+            }
         }
     }
     else
@@ -2335,6 +2341,14 @@ void FalconBoard::slotGridSpacingEditingFinished()
     ui.drawArea->setFocus();
 }
 
+void FalconBoard::SlotDisplaySnapshotterRunning(bool on)
+{
+    if (on)
+        _plblMsg->setText(tr("Background save in progress..."));
+    else
+        _plblMsg->setText("");
+}
+
 
 void FalconBoard::on_actionShowPageGuides_triggered()
 {
@@ -2701,10 +2715,11 @@ void FalconBoard::SlotDecreaseBrushSize(int ds)
     _psbPenWidth->setValue(_psbPenWidth->value() - ds);
 }
 
-void FalconBoard::SlotForLabel(QString text)
+void FalconBoard::SlotForDisplayCoordinates(QString text)
 {
-    _plblMsg->setText(text);
+    _plblCoordinates->setText(text);
 }
+
 void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 {
     _SetPenKind(pk);
@@ -2768,6 +2783,7 @@ void FalconBoard::SlotTakeScreenshot(bool hideThisWindow)
 #ifndef _VIEWER
 void Snapshotter::SlotToSaveSnapshots()       // of all changed files, runs in separate thread
 {
+    emit SignalSnapshotterRunning(true);
     History* ph = nullptr;
     for (auto i : _whose)
     {
@@ -2777,6 +2793,7 @@ void Snapshotter::SlotToSaveSnapshots()       // of all changed files, runs in s
 			break;
     }
     _falconBoard->SaveTabState();
+    emit SignalSnapshotterRunning(false);
     emit SignalFinished();
 }
 void Snapshotter::SlotToInterruptSnapshotSave()
