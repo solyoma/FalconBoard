@@ -151,7 +151,7 @@ const char       // DEFAULTS
 *PEN_DEFAULT_LIGHT_MAGENTA  = "#aa1147",
 *PEN_DEFAULT_DARK_MAGENTA   = "#e81763",
 *PEN_DEFAULT_LIGHT_GRAY     = "#C1C1C1",
-*PEN_DEFAULT_DARK_GRAY      = "#323232";
+*PEN_DEFAULT_DARK_GRAY      = "#404040";
 
 
 FalconPens& FalconPens::operator=(const FalconPens& o)

@@ -227,7 +227,8 @@ public:
 
     void Initialize() // call after the GUI is initialized! 
     { 
-        SetBaseColorsInto(_pens); 
+        SetBaseColorsInto(_pens);                // all except penEreaser and penBlackOrWhite
+        _pens.SetupPen(penBlackOrWhite, "#000", "#FFF", QObject::tr("&Black"), QObject::tr("&White"), true);
     }
 
     bool SameColors(const DrawColors& o);
