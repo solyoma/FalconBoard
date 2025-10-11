@@ -843,7 +843,11 @@ QDataStream& operator>>(QDataStream& ifs, DrawablePen& dp)
 	std::byte pk;
 	ifs >> dp.penWidth;
 	if (file_version_loaded >= 0x56030000)
-		ifs >> dp.penAlpha >> dp.penStyle;
+	{
+		ifs >> dp.penAlpha;
+		ifs >> pk;	
+		dp.penStyle = (Qt::PenStyle)pk;
+	}
 	ifs >> pk;
 	dp.SetPenKind((FalconPenKind)pk);
 	return ifs;
@@ -1049,8 +1053,8 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableItem& di)
 	MyRotation arot = di.rot;
 	arot.InvertAngle();		// for erasers
 
-	for (auto e : di.erasers)					  // eraser strokes for items that are rotated AFTER read are saved un-rotated
-	{											  // flip is its own inverse, no need to invert it
+	for (auto e : di.erasers)	// e: cannot be a reference! eraser strokes for items that are rotated AFTER read are saved un-rotated
+	{							// flip is its own inverse, no need to invert it
 		if (di.dtType != DrawableType::dtDot && di.dtType != DrawableType::dtScribble)
 			arot.RotatePoly(e.eraserStroke, di.Area().center(), true);
 		ofs << e.eraserPenWidth << e.eraserStroke;

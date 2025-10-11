@@ -47,7 +47,7 @@ DrawArea::DrawArea(QWidget* parent) : QWidget(parent)
 	setAttribute(Qt::WA_TabletTracking);
 	setCursor(Qt::CrossCursor);
 	setMouseTracking(true);
-	historyList.reserve(10);                  // max number of TABs possible is 10, must be checked
+	historyList.reserve(MAX_NUMBER_OF_TABS);                  // max number of TABs possible is 10, must be checked
 }
 
 void DrawArea::SetScreenSize(QSize screenSize)

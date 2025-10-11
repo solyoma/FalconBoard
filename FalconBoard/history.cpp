@@ -1288,23 +1288,18 @@ SaveResult History::Save(bool asSnapshot)
 	if (QFile::exists(name + "~"))
 		QFile::remove(QString(name + "~"));
 
-	if(asSnapshot)	// then don't use a backup file and delete previous snapshot
-		QFile::remove(QString(name));
-	else			// create backup file from original
-		QFile::rename(name, QString(name + "~"));
+	QFile::rename(name, QString(name + "~"));
+	f.rename(name);	// create backup file from original
 
-	f.rename(name);	
-
-
+	if (asSnapshot)	// then don't use a backup file
+		QFile::remove(QString(name + "~"));
+	
+	_savedItemCount = _items.count();	// saved at this point
 	if (asSnapshot)
-	{
 		_lastSavedAsSnapshot = true;
-	}
 	else // remove snapshot files
-	{
-		_savedItemCount = _items.count();	// saved at this point
 		_RemoveSnapshot();
-	}
+
 	_loaded = true;	// if saved, then already is in memory as if it was loaded
 
 	return srSaveSuccess;

@@ -17,6 +17,8 @@
 #include <QPageSize>
 #include <QSplashScreen>
 
+const int MAX_NUMBER_OF_TABS = 30;
+
 extern quint32 file_version_loaded;	// set in history::Load
 
 #if !defined _VIEWER && defined _DEBUG

@@ -34,7 +34,6 @@
 
 //class DrawArea;
 
-const int MAX_NUMBER_OF_TABS = 30;
 constexpr const char* TO_FRONT = "*toFront";
 constexpr const int   TO_FRONT_SIZE = 8;
 
@@ -301,7 +300,8 @@ private:
 	QStringList _recentList;
 
 
-	QActionGroup* _penGroup, *_modeGroup;		// these are needed for radiobutton like behaviour for actions in the group
+	QActionGroup* _penGroup; //,		// these are needed for radiobutton like behaviour for actions in the group 
+				//*_modeGroup;
 
 #ifndef _VIEWER
 	QPointer<Snipper> _pSnipper = nullptr;		// screen grab label
@@ -418,7 +418,8 @@ private:
 
 	QString _FileNameToTabText(QString fname);
 
-	int _AddNewTab(QString fname = QString(), bool loadIt = true, bool force=false);
+	int  _AddNewTab(QString fname = QString(), bool loadIt = true, bool force=false);
+	int  _AddNewTabForSnapshot(QString fname, bool loadIt = true, bool force=false);
 	void _CloseTab(int index);
 	void _SetResetChangedMark(int index);
 	void _SetTabText(int index, QString fname);

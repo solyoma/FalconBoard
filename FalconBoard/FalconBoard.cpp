@@ -368,7 +368,7 @@ void FalconBoard::RestoreState()
     for (auto& s : paramsList)
         s = QDir::cleanPath(s);     // need not exist
 
-    int argc = 10 - paramsList.size() + 1;     // max 10 tabs can be opened, 0. params is command path
+    int argc = MAX_NUMBER_OF_TABS - paramsList.size() + 1;     // MAX_NUMBER_OF_TABS tabs can be opened, 0. params is command path
     // tabs
 
     s->beginGroup(TABS);
@@ -387,7 +387,10 @@ void FalconBoard::RestoreState()
                 fname = FBSettings::homePath + qs;
             if (paramsList.indexOf(qs) < 0 && QFile::exists(fname) )    // if any of the old files is in the argument list do not use it
             {
-                _AddNewTab(qs, false);  // do not load data yet
+                if(isSnapshot)
+                    _AddNewTabForSnapshot(qs, false);  // do not load data yet
+                else
+                    _AddNewTab(qs, false);  // do not load data yet
                 if (!qs.isEmpty() || !b)
                     b = true, setWindowTitle(sWindowTitle + QString(" - %1").arg(qs));
             }
@@ -688,10 +691,10 @@ void FalconBoard::_CreateAndAddActions()
     _penGroup->addAction(ui.actionEraser);
 #endif
 
-    _modeGroup = new QActionGroup(this);
-    _modeGroup->addAction(ui.actionLightMode);
-    _modeGroup->addAction(ui.actionDarkMode);
-    _modeGroup->addAction(ui.actionBlackMode);
+    //_modeGroup = new QActionGroup(this);
+    //_modeGroup->addAction(ui.actionLightMode);
+    //_modeGroup->addAction(ui.actionDarkMode);
+    //_modeGroup->addAction(ui.actionBlackMode);
 
 #ifndef _VIEWER
     ui.mainToolBar->addSeparator();
@@ -804,6 +807,13 @@ int FalconBoard::_AddNewTab(QString fname, bool loadIt, bool force) // and new h
     // DEBUG
 //*    int m = _pTabs->count();
 //    _pTabs->setAutoHide(_pTabs->count() > 1);
+    return n;
+}
+
+int FalconBoard::_AddNewTabForSnapshot(QString fname, bool loadIt, bool force)
+{
+    int n = _AddNewTab(fname, loadIt, force);
+    _SetResetChangedMark(n);
     return n;
 }
 
