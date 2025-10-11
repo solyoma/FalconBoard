@@ -1632,7 +1632,7 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 	int nRead = _items.count();
 	while (!ifs.atEnd())
 	{
-		ifs >> di;
+		ifs >> di;	 // only reads the common part of DrawableItems
 
 		switch (di.dtType)
 		{

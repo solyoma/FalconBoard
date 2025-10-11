@@ -379,7 +379,7 @@
      <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
    </property>
    <property name="text">
-    <string>Pen T&amp;5</string>
+    <string>Purple</string>
    </property>
    <property name="shortcut">
     <string>5</string>
@@ -394,7 +394,7 @@
      <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
    </property>
    <property name="text">
-    <string>Pen T&amp;6</string>
+    <string>B&amp;rown</string>
    </property>
    <property name="shortcut">
     <string>6</string>
@@ -409,7 +409,7 @@
      <normaloff>:/FalconBoard/Resources/white.png</normaloff>:/FalconBoard/Resources/white.png</iconset>
    </property>
    <property name="text">
-    <string>Pen T&amp;7</string>
+    <string>Gra&amp;y</string>
    </property>
    <property name="shortcut">
     <string>7</string>

@@ -8,6 +8,7 @@
 #include <limits>
 
 #include <QApplication>
+#include <QFlags>
 #include <QtGui>
 #include <QFile>
 #include <QDataStream>
@@ -324,20 +325,25 @@ QDataStream& operator>>(QDataStream& ifs, MyRotation& mr);
             //----------------------------------------------------
             // ------------------- Drawable Pen -------------
             //----------------------------------------------------
+            // 
+			// Each drawable has its own pen, which is saved in the file
 // there are only  PEN_COUNT-1 discreet colors
 // as penNone and penEraser are not colors
-// the actual color used is determined by the globalDrawColors object
-// and can change from documents to documents
-// Additionally there is an alpha channel, which may differ from one drawable to the other
-
+// the actual color used is determined by the global DrawColors object
+// (uses FalconPen objects) and can change from documents to documents
+// Additionally there is an alpha channel and a style, 
+// which may differ from one drawable to the other
 
 class DrawablePen
 {
     friend struct DrawableItem;
     FalconPenKind _penKind = penBlackOrWhite;
+	static DrawablePen _savedPen; // used to save and restore a pen
 public:
     qreal penWidth = 1.0; // in pixels
 	qreal penAlpha = 1.0; // 0.0 .. 1.0  - alpha channel for pen color, since V3.0.0
+	Qt::PenStyle penStyle = Qt::SolidLine; // since V3.0.0 Only stored in data file
+	                                       // if not Qt::SolidLine
 
     DrawablePen() = default;
     //DrawablePen(qreal penWidth, QColor penColor) : _penKind(penNone), penWidth(penWidth), penColor(penColor) {}
@@ -347,6 +353,9 @@ public:
     DrawablePen(const  DrawablePen&) = default;
     DrawablePen& operator=(const DrawablePen& o) = default;
     DrawablePen& operator=(DrawablePen&& o) = default;
+
+    void SavePen();    // into a single static variable
+	void RestorePen(); // restore pen from there
 
     void SetPenKind(FalconPenKind pk)
     {
@@ -438,6 +447,7 @@ struct DrawableItem
     constexpr FalconPenKind PenKind() const { return pen._penKind; }
     constexpr qreal PenWidth() const { return pen.penWidth; }
     constexpr qreal PenAlpha() const { return pen.penAlpha; }
+	// SetPainterPenAndBrush uses 'pen' and 'brushColor' if valid
     void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor(), qreal alpha = 1.0);
 
     virtual bool CanTranslate(const QPointF dp) const
@@ -718,7 +728,16 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableEllipse& di);  // call A
             //----------------------------------------------------
 struct DrawableLine : public DrawableItem
 {
-    QPointF endPoint;
+    enum ArrowType:byte { arrowNone      = 0,
+                          arrowStartOut   = 1, // arrow points outward from the start point
+                          arrowEndOut     = 2, // same for end point
+                          arrowStartIn    = 4, //        - " - inward    - " -
+                          arrowEndIn      = 8, // same for end point 
+                        };
+
+    QPointF endPoint;                   // start point in DrawableItem
+    QFlags<ArrowType> arrowFlags;
+    // ?? Q_DECLARE_FLAGS(options, LineStyle);
 
     DrawableLine() : DrawableItem()
     {
@@ -747,6 +766,8 @@ struct DrawableLine : public DrawableItem
     }
     bool PointIsNear(QPointF p, qreal distance) const override;
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
+  private:
+    void _DrawArrows(QPainter* painter);
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableLine& di);  // call AFTER header is read in

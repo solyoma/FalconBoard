@@ -7,11 +7,13 @@
 	bool isDebugMode = false;
 #endif
 
+DrawablePen DrawablePen::_savedPen;
+
 	// static member
 qreal	DrawableItem::yOffset = 0.0;
 int DrawableScribble::autoCorrectLimit = 6;	// in pixels, set from DrawArea
 
-// *----------- helper --------------
+// *----------- helpers --------------
 static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal r)   // line between p2 and p1 is inside circle w. radius r around point 'ccenter'
 {
 #define SQR(x)  ((x)*(x))
@@ -81,6 +83,28 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
 #undef SQR
 #undef DIST2
 };
+// Draws an arrow at the end of a line from 'start' to 'end'
+// - too short lines are ignored
+// - if direction is 0 (out) the arrow looks like: ----->
+// - if direction is 1 (in ) the arrow looks like: -----<
+// - to draw an arrow to the other end of the line simply exchange start and end
+// - The point of the arrow head is at 'end'
+static void __DrawArrow(QPainter*painter, QPointF start, QPointF end, int direction, qreal arrowSize)
+{
+	QLineF line(end, start);
+	if (line.length() < 2 * arrowSize)
+		return; // too short to draw an arrow
+	painter->save();
+	painter->setBrush(painter->pen().color());
+	painter->translate(end);
+	painter->rotate(-line.angle() + direction*180);
+	QPolygonF arrowHead;
+	arrowHead << QPointF(0, 0)
+		<< QPointF(-arrowSize, arrowSize / 2)
+		<< QPointF(-arrowSize, -arrowSize / 2);
+	painter->drawPolygon(arrowHead);
+	painter->restore();
+}
 
 // ------------ Quad are helper functions ------------
 
@@ -809,20 +833,35 @@ QDataStream& operator>>(QDataStream& ifs, MyRotation& mr)
 
 QDataStream& operator<<(QDataStream& ofs, const DrawablePen& dp)
 {
-	ofs << dp.penWidth << dp.penAlpha << (std::byte)dp.Kind();
+	ofs << dp.penWidth << dp.penAlpha << (std::byte)dp.Kind() 
+		<< (std::byte)0;	// 0 means solid line
 	return ofs;
 }
 
 QDataStream& operator>>(QDataStream& ifs, DrawablePen& dp)
 {
 	std::byte pk;
-	ifs >> dp.penWidth >> dp.penAlpha >> pk;
+	ifs >> dp.penWidth;
+	if (file_version_loaded >= 0x56030000)
+		ifs >> dp.penAlpha >> dp.penStyle;
+	ifs >> pk;
 	dp.SetPenKind((FalconPenKind)pk);
 	return ifs;
 }
 
-
 /* *********************** Drawable pen ********************/
+
+void DrawablePen::SavePen()
+{
+	_savedPen = *this;
+}
+
+void DrawablePen::RestorePen()
+{
+	*this = _savedPen;
+}
+
+/* *********************** DrawableItem ********************/
 
 void DrawableItem::SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor, qreal alpha)
 {
@@ -831,9 +870,9 @@ void DrawableItem::SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR,
 		painter->setClipRect(clipR);  // clipR must be DrawArea relative
 
 #if !defined _VIEWER && defined _DEBUG
-	qreal sw = PenWidth(),sa=pen.penAlpha;
 	if (pencilMode)
 	{
+		pen.SavePen();
 		pen.penWidth = 1.0;
 		pen.penAlpha = 1.0;
 	}
@@ -842,10 +881,7 @@ void DrawableItem::SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR,
 	painter->setPen(mypen);
 #if !defined _VIEWER && defined _DEBUG
 	if (pencilMode)
-	{
-		pen.penWidth = sw;
-		pen.penAlpha = sa;
-	}
+		pen.RestorePen();
 #endif
 	if (brushColor.isValid())
 	{
@@ -1505,15 +1541,30 @@ void DrawableLine::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const Q
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), QColor());
 		painter->drawLine(refPoint-topLeftOfVisibleArea, endPoint-topLeftOfVisibleArea);
+		_DrawArrows(painter);
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
+void DrawableLine::_DrawArrows(QPainter* painter)
+{
+	if(arrowFlags == 0)
+		return;
+
+	if(arrowFlags.testFlag(arrowStartOut))
+		__DrawArrow(painter, endPoint, refPoint, 0, pen.penWidth*10);
+	else if(arrowFlags.testFlag(arrowStartIn))
+		__DrawArrow(painter, endPoint, refPoint, 1, pen.penWidth*10);
+	else if(arrowFlags.testFlag(arrowEndOut))
+		__DrawArrow(painter, refPoint, endPoint, 0, pen.penWidth*10);
+	else if(arrowFlags.testFlag(arrowEndIn))
+		__DrawArrow(painter, refPoint, endPoint, 1, pen.penWidth*10);
+}
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di) // DrawableItem part already saved
 {
-	ofs << di.endPoint;
+	ofs << di.endPoint << di.arrowFlags;
 	return ofs;
 }
 
@@ -1521,6 +1572,10 @@ QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER hea
 {
 	ifs >> di.endPoint;
 	di.endPoint += {0, DrawableItem::yOffset};
+
+	if (file_version_loaded >= 0x56030000)
+		ifs >> di.arrowFlags;
+
 	di.rot = MyRotation();	// endpoints were rotated before save
 	return ifs;
 }

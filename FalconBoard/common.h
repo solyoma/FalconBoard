@@ -57,8 +57,8 @@ inline constexpr int
               penT3 = 3,            // green  / green
               penT4 = 4,            // blue   / light blue
               penT5 = 5,            // purple / yellow
-              penT6 = 6,            // 
-              penT7 = 7,            // gray / gray
+              penT6 = 6,            // brown  / orange
+              penT7 = 7,            // gray   / dark gray
               PEN_COUNT = 8;
 
 using FalconPenKind = int;
@@ -115,12 +115,15 @@ public:
 
 extern MyScreenSizes myScreenSizes;
      
-//******************************************************
+//*********this structure is used to define and modify pens**************
+// it is used in DrawColors and FalconPens
+// Saved in the data file as global pen colors (class DrawColors)
+// In contrast class DrawablePen is used in and saved for each drawable objects 
 struct FalconPen
 {
     FalconPenKind kind = penBlackOrWhite;
     QColor lightColor = Qt::black,    // _dark = false - for light mode
-        darkColor = Qt::white;        // _dark = true  - for dark mode
+           darkColor  = Qt::white;    // _dark = true  - for dark mode
     QString lightName, darkName;      // Menu names for dark and light modes
     QColor defaultLightColor = "black", defaultDarkColor = "white";
 
