@@ -1089,9 +1089,9 @@ QDataStream& operator>>(QDataStream& ifs, DrawableItem& di)		// zorder was not s
 
 	if (file_version_loaded >= 0x56030000l)
 	{
-		ifs >> di.pen;
-		ifs >> di.refPoint;
+		ifs >> di.pen >> di.refPoint;
 		di.refPoint += {0, DrawableItem::yOffset};
+		ifs >> di.rot;
 	}
 	else
 	{

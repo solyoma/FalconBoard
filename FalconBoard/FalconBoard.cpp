@@ -45,7 +45,7 @@ int nUntitledOrder = 1;
 #ifdef _VIEWER
 void FalconBoard::_RemoveMenus()
 {
-    QList<QAction*> pMenuActions = ui.menuBar->actions(); // [0]:file,[1]:Edit,[2]:Clear,[3]:options,[4]:Help
+    QList<QAction*> pMenuActions = ui.menuBar->actions(); // [0]:file,[1]:Edit,[2]:Clear,[3]:Options,[4]:Help
             // (removeAction changes the order of the actions after the removed one
             // therefore this order is important
     ui.menuBar->removeAction(pMenuActions[1] ); // edit
@@ -102,9 +102,9 @@ void FalconBoard::_RemoveMenus()
     //ui.actionAutoSaveData->setVisible(false);
     //ui.actionAutoSaveBackgroundImage->setVisible(false);
     //ui.actionApplyTransparencyToLoaded->setVisible(false);
-    ui.menuGrid->removeAction(ui.menuGrid->actions()[2]);
+    // ui.menuGrid->removeAction(ui.menuGrid->actions()[2]); // no such action
 
-    removeToolBar(ui.mainToolBar);
+    // removeToolBar(ui.mainToolBar);               // only keep TABs
 }
 #endif
 
@@ -156,7 +156,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 #ifdef _VIEWER
     _RemoveMenus();        // viewer has none of these
 #else
-    _AddSaveVisibleAsMenu();                                                                                              
+    _AddSaveVisibleAsMenu();     // format menu                                                                                         
 #endif
 
     QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents); // for tablet
@@ -182,9 +182,9 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 
     _PrepareActionIcons();
     _SetupIconsForPenColors();
+#ifndef _VIEWER
     setAcceptDrops(true);
 
-#ifndef _VIEWER
     #ifdef _DEBUG
         _snapshotTimer.setInterval(10000ms);     // 10 seconds
     #else
@@ -654,9 +654,10 @@ void FalconBoard::_CreateAndAddActions()
         connect(action, &QAction::triggered, this, &FalconBoard::SaveVisibleAsTriggered);
         _saveAsActs.append(action);
     }
-
+#endif
     ui.mainToolBar->addAction(ui.actionExit);
     ui.mainToolBar->addSeparator();
+#ifndef _VIEWER
     ui.mainToolBar->addAction(ui.actionUndo);
     ui.mainToolBar->addAction(ui.actionRedo);
     ui.mainToolBar->addSeparator();
@@ -665,9 +666,11 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.actionSave);
     ui.mainToolBar->addAction(ui.actionSaveAs);
     ui.mainToolBar->addSeparator();
+#endif
     ui.mainToolBar->addAction(ui.actionPrint);
     ui.mainToolBar->addSeparator();
-                      // setup color menu with transparency sliders options
+#ifndef _VIEWER
+    // setup color menu with transparency sliders options
     ui.mainToolBar->addAction(ui.actionPenBlackOrWhite);
     ui.mainToolBar->addAction(ui.actionPenT2);
     ui.mainToolBar->addAction(ui.actionPenT3);
@@ -689,14 +692,7 @@ void FalconBoard::_CreateAndAddActions()
     _penGroup->addAction(ui.actionPenT7);
 
     _penGroup->addAction(ui.actionEraser);
-#endif
 
-    //_modeGroup = new QActionGroup(this);
-    //_modeGroup->addAction(ui.actionLightMode);
-    //_modeGroup->addAction(ui.actionDarkMode);
-    //_modeGroup->addAction(ui.actionBlackMode);
-
-#ifndef _VIEWER
     ui.mainToolBar->addSeparator();
 
     ui.mainToolBar->addWidget(new QLabel(tr("Pen Width:")));
@@ -709,7 +705,7 @@ void FalconBoard::_CreateAndAddActions()
     rect.setWidth(40);
     _psbPenWidth->setGeometry(rect);
     ui.mainToolBar->addWidget(_psbPenWidth);
-
+#endif
     ui.mainToolBar->addSeparator();
 
 //    ui.mainToolBar->addWidget(new QLabel(tr("Grid ")));
@@ -723,11 +719,15 @@ void FalconBoard::_CreateAndAddActions()
     _psbGridSpacing->setMaximum(400);
     _psbGridSpacing->setSingleStep(10);
     _psbGridSpacing->setValue(_nGridSpacing);
+#ifdef _VIEWER
+    QRect rect; 
+#endif
     rect = _psbGridSpacing->geometry();
     rect.setWidth(60);
     _psbGridSpacing->setGeometry(rect);
     ui.mainToolBar->addWidget(_psbGridSpacing);
 
+#ifndef _VIEWER
     ui.mainToolBar->addSeparator();
     ui.mainToolBar->addAction(ui.action_Screenshot);
     ui.mainToolBar->addSeparator();
@@ -1579,7 +1579,6 @@ void FalconBoard::closeEvent(QCloseEvent* event)
 			    std::this_thread::sleep_for(SLEEP_DURATION);
 			return i;
 		};
-#ifndef _VIEWER
     if (ui.actionKeepChangedNoAsking->isChecked())
     {
 		savedTabs = historyList.ModifiedItems();
@@ -1602,7 +1601,6 @@ void FalconBoard::closeEvent(QCloseEvent* event)
         }
     }
     else
-#endif
     {
         while (sr != srCancelled && _drawArea->SearchForModified(n))    // returned : n = (index of first modified after 'n') || 0
         {

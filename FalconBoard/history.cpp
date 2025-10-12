@@ -1235,7 +1235,9 @@ SaveResult History::Save(bool asSnapshot)
 
 	ofs << (uint16_t)gridOptions;
 	ofs << _resolutionIndex << _pageWidthInPixels << _useResInd;
-	for (int i = (int)penT2; i < PEN_COUNT; ++i)
+	// 19 bytes written so far
+
+	for (int i = (int)penT2; i < PEN_COUNT; ++i)	// if no redefined pen doesn't save anything
 		drawColors.SavePen(ofs, (FalconPenKind)i);
 
 					  // save drawables
@@ -1379,7 +1381,7 @@ int History::Load(quint32& version_loaded, bool force, int fromY)
 	QString fname = _lastSavedAsSnapshot ? SnapshotName(true)+".dat" : _fileName;
 
 	if (fname.isEmpty())
-		return 1;			//  no record loaded, but this is not an error
+		return 0;			//  no record loaded, but this is not an error
 
 	if ( (!force && _fileName == _loadedName && !_lastSavedAsSnapshot) || _loaded)	// already loaded?
 		return _items.count();				// can't use _readCount
@@ -1625,10 +1627,13 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 	// set default colors
 	drawColors.Initialize();
 	int nRead = _items.count();
+// DEBUG
+//	ulong l = ifs.device()->pos();
 	while (!ifs.atEnd())
 	{
 		ifs >> di;	 // only reads the common part of DrawableItems
-
+// DEBUG
+//l = ifs.device()->pos();
 		switch (di.dtType)
 		{
 			case DrawableType::dtDot:			(DrawableItem&)dDot   = di; ifs >> dDot;	pdrwh = &dDot;	break;
@@ -1643,6 +1648,8 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 												break;
 			default: break;
 		}
+// DEBUG
+//l = ifs.device()->pos();
 		if (pdrwh && (int)di.dtType != (int)DrawableType::dtNonDrawableStart)	// pen has no zoom
 			pdrwh->zoomer.Setup();
 		globalDrawColors = drawColors;
