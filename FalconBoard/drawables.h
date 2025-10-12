@@ -767,7 +767,9 @@ struct DrawableLine : public DrawableItem
     bool PointIsNear(QPointF p, qreal distance) const override;
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
   private:
-    void _DrawArrows(QPainter* painter);
+    void _DrawArrows(QPainter* painter, QPointF topLeftOfVisibleArea);
+    // which_end: 0 -> at end point, 1: start point, direction:0  ---->, 1 ----<
+    void _DrawSingleArrow(QPainter* painter, QPointF topLeftOfVisibleArea, int which_end, int direction, qreal arrowSize);
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableLine& di);  // call AFTER header is read in

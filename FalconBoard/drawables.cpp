@@ -83,28 +83,6 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
 #undef SQR
 #undef DIST2
 };
-// Draws an arrow at the end of a line from 'start' to 'end'
-// - too short lines are ignored
-// - if direction is 0 (out) the arrow looks like: ----->
-// - if direction is 1 (in ) the arrow looks like: -----<
-// - to draw an arrow to the other end of the line simply exchange start and end
-// - The point of the arrow head is at 'end'
-static void __DrawArrow(QPainter*painter, QPointF start, QPointF end, int direction, qreal arrowSize)
-{
-	QLineF line(end, start);
-	if (line.length() < 2 * arrowSize)
-		return; // too short to draw an arrow
-	painter->save();
-	painter->setBrush(painter->pen().color());
-	painter->translate(end);
-	painter->rotate(-line.angle() + direction*180);
-	QPolygonF arrowHead;
-	arrowHead << QPointF(0, 0)
-		<< QPointF(-arrowSize, arrowSize / 2)
-		<< QPointF(-arrowSize, -arrowSize / 2);
-	painter->drawPolygon(arrowHead);
-	painter->restore();
-}
 
 // ------------ Quad are helper functions ------------
 
@@ -833,8 +811,8 @@ QDataStream& operator>>(QDataStream& ifs, MyRotation& mr)
 
 QDataStream& operator<<(QDataStream& ofs, const DrawablePen& dp)
 {
-	ofs << dp.penWidth << dp.penAlpha << (std::byte)dp.Kind() 
-		<< (std::byte)0;	// 0 means solid line
+	ofs << dp.penWidth << dp.penAlpha << (std::byte)dp.penStyle
+		<< (std::byte)dp.Kind();	// 0 means solid line
 	return ofs;
 }
 
@@ -1477,6 +1455,7 @@ DrawableLine& DrawableLine::operator=(const DrawableLine& ol)
 	*(DrawableItem*)this = (DrawableItem&&)ol;
 
 	endPoint = ol.endPoint;
+	arrowFlags = ol.arrowFlags;
 	return *this;
 }
 
@@ -1485,6 +1464,7 @@ DrawableLine& DrawableLine::operator=(const DrawableLine&& ol)
 	*(DrawableItem*)this = (DrawableItem&&)ol;
 
 	endPoint = ol.endPoint;
+	arrowFlags = ol.arrowFlags;
 	return *this;
 }
 
@@ -1545,25 +1525,74 @@ void DrawableLine::Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const Q
 	{
 		SetPainterPenAndBrush(painter, clipR.translated(-topLeftOfVisibleArea), QColor());
 		painter->drawLine(refPoint-topLeftOfVisibleArea, endPoint-topLeftOfVisibleArea);
-		_DrawArrows(painter);
+		_DrawArrows(painter, topLeftOfVisibleArea);
 	}
 	else
 		DrawWithEraser(painter, topLeftOfVisibleArea, clipR);
 }
 
-void DrawableLine::_DrawArrows(QPainter* painter)
+void DrawableLine::_DrawArrows(QPainter* painter, QPointF topLeftOfVisibleArea)
 {
 	if(arrowFlags == 0)
 		return;
 
 	if(arrowFlags.testFlag(arrowStartOut))
-		__DrawArrow(painter, endPoint, refPoint, 0, pen.penWidth*10);
-	else if(arrowFlags.testFlag(arrowStartIn))
-		__DrawArrow(painter, endPoint, refPoint, 1, pen.penWidth*10);
-	else if(arrowFlags.testFlag(arrowEndOut))
-		__DrawArrow(painter, refPoint, endPoint, 0, pen.penWidth*10);
-	else if(arrowFlags.testFlag(arrowEndIn))
-		__DrawArrow(painter, refPoint, endPoint, 1, pen.penWidth*10);
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, 1, 0, pen.penWidth*10);
+	if(arrowFlags.testFlag(arrowStartIn))
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, 0, 1, pen.penWidth*10);
+	if(arrowFlags.testFlag(arrowEndOut))
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, 0, 0, pen.penWidth*10);
+	if(arrowFlags.testFlag(arrowEndIn))
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, 1, 1, pen.penWidth*10);
+}
+
+/*=============================================================
+ * TASK   :	Draws an arrow at one end point of a line
+ * PARAMS :	painter: 
+ *			which_end: 0: at end point, 1: at start point
+ *			direction: 0: outward: ---> or <---
+ *					   1: inward:  ---< or >---
+ * EXPECTS:	brush and pen already set in painter
+ * GLOBALS:
+ * RETURNS: none
+ * REMARKS:	- too short lines are ignored
+ *------------------------------------------------------------*/
+void DrawableLine::_DrawSingleArrow(QPainter* painter, QPointF topLeftOfVisibleArea, int which_end, int direction, qreal arrowSize)
+{
+	QPointF start	= which_end ? endPoint : refPoint,
+			end		= which_end ? refPoint : endPoint;
+	start -= topLeftOfVisibleArea;
+	end   -= topLeftOfVisibleArea;
+
+	QLineF line(start, end);
+
+	if (line.length() < 2 * arrowSize)
+		return; // too short to draw an arrow
+
+	painter->save();
+	painter->setBrush(painter->pen().color());
+	painter->translate(end);
+
+	/*	direction		which-end	rotate 180
+	*    0 (o)				0 (e)		no
+	*    0 (o)				1 (s)		yes
+	*	 1 (i)				0 (e)		yes
+	*    1 (i)				1 (s)		no
+	*/
+	int angle = (direction==0 ? 0 : 180) - line.angle();
+
+	painter->rotate(angle);
+	// paint line arrow
+	//QPointF arrowHead[3] = { QPointF(-arrowSize, arrowSize / 2), QPointF(0, 0), QPointF(-arrowSize, -arrowSize / 2) };
+	//painter->drawPolyline(arrowHead, 3);
+	 // paint filled arrowhead
+	QPolygonF arrowHead;
+	arrowHead << QPointF(0, 0)
+		<< QPointF(-arrowSize, arrowSize / 2)
+		<< QPointF(-arrowSize, -arrowSize / 2);
+	 painter->drawPolygon(arrowHead);
+	 
+	painter->restore();
 }
 
 QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di) // DrawableItem part already saved
@@ -1574,12 +1603,21 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di) // DrawableIte
 
 QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER header is read in
 {
+	di.arrowFlags = QFlags<DrawableLine::ArrowType>();
 	ifs >> di.endPoint;
 	di.endPoint += {0, DrawableItem::yOffset};
 
 	if (file_version_loaded >= 0x56030000)
 		ifs >> di.arrowFlags;
 
+//// DEBUG 10.12.2025
+//	if (di.arrowFlags == 0)
+//	{
+//		// di.arrowFlags |= DrawableLine::arrowStartOut;
+//		// di.arrowFlags |= DrawableLine::arrowEndOut;
+//		di.arrowFlags.setFlag(DrawableLine::arrowStartIn);
+//		di.arrowFlags.setFlag(DrawableLine::arrowEndIn);
+//	}
 	di.rot = MyRotation();	// endpoints were rotated before save
 	return ifs;
 }
