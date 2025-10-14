@@ -53,6 +53,8 @@ enum class HistEvent {
     heSpaceDeleted,         // empty space is deleted
     heVertSpace,            // insert vertical space
 	heRubberBand,           // rubber band is shown set only when established, add a new one when sprite is dropped
+    heLineStyleChanged,     // from SolidPen to DashDotDotPen, for ellipses, rectangles, lines, scribbles
+    heArrowStyleChanged,    // only for lines arrows at ends outward or inward
 	heZoom,                 // zoom in or out all itemms in rubberRect
                             // remove it when paste items is undone TODO
                 };
@@ -347,7 +349,8 @@ public:
 
     DrawablePen() = default;
     //DrawablePen(qreal penWidth, QColor penColor) : _penKind(penNone), penWidth(penWidth), penColor(penColor) {}
-    DrawablePen(FalconPenKind penKind, qreal penWidth) : _penKind(penKind), penWidth(penWidth) 
+    DrawablePen(FalconPenKind penKind, qreal penWidth, qreal penAlpha, Qt::PenStyle penStyle) : 
+        _penKind(penKind), penWidth(penWidth), penAlpha(penAlpha), penStyle(penStyle)
     {
     }
     DrawablePen(const  DrawablePen&) = default;
@@ -362,7 +365,7 @@ public:
         _penKind = pk;
         globalDrawColors.SetActualPen(pk);
     }
-	constexpr const FalconPenKind Kind() const { return _penKind; }
+	constexpr const FalconPenKind PenKind() const { return _penKind; }
 
     QColor Color() const 
     { 
@@ -410,8 +413,7 @@ struct DrawableItem
     { 
         zoomer.SetOwner(this);    
     }
-    DrawableItem(DrawableType dt, QPointF refPoint, int zOrder = -1, FalconPenKind penKind = penBlackOrWhite, 
-                 qreal penWidth = 1.0) : dtType(dt), pen(penKind, penWidth), refPoint(refPoint), zOrder(zOrder) 
+    DrawableItem(DrawableType dt, QPointF refPoint, DrawablePen pen, int zOrder = -1 ) : dtType(dt), refPoint(refPoint), pen(pen), zOrder(zOrder)
     {
         zoomer.SetOwner(this);
     }
@@ -447,6 +449,7 @@ struct DrawableItem
     constexpr FalconPenKind PenKind() const { return pen._penKind; }
     constexpr qreal PenWidth() const { return pen.penWidth; }
     constexpr qreal PenAlpha() const { return pen.penAlpha; }
+    constexpr Qt::PenStyle PenStyle() const { return pen.penStyle; }
 	// SetPainterPenAndBrush uses 'pen' and 'brushColor' if valid
     void SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR, QColor brushColor = QColor(), qreal alpha = 1.0);
 
@@ -587,7 +590,7 @@ struct DrawableCross : public DrawableItem      // refPoint is the center
         dtType = DrawableType::dtCross;
         _Setup();
     }
-    DrawableCross(QPointF pos, qreal len, int zorder, FalconPenKind penKind, qreal penWidth);
+    DrawableCross(QPointF pos, qreal len, DrawablePen pen, int zorder );
     DrawableCross(const DrawableCross& o) = default;
     ~DrawableCross() = default;
     bool CanTranslate(const QPointF dr) const override;
@@ -617,7 +620,7 @@ struct DrawableDot : public DrawableItem
         dtType = DrawableType::dtDot;
 		zoomer.Setup();
     }
-    DrawableDot(QPointF pos, int zorder, FalconPenKind penKind, qreal penWidth) : DrawableItem(DrawableType::dtDot, pos, zorder, penKind, penWidth) 
+    DrawableDot(QPointF pos, DrawablePen pen, int zorder) : DrawableItem(DrawableType::dtDot, pos, pen, zorder) 
     { 
         zoomer.Setup();
     }
@@ -647,9 +650,9 @@ struct DrawableEllipse : public DrawableItem    // refPoint is the center
         dtType = DrawableType::dtEllipse;
         zoomer.Setup();
     }
-    DrawableEllipse(QRectF rect, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);
-    DrawableEllipse(QPointF refPoint, qreal radius, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);    // circle
-    DrawableEllipse(QPointF refPoint, qreal a, qreal b, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false); // ellipse with principlal half-axes a and b;
+    DrawableEllipse(QRectF rect, DrawablePen pen, bool isFilled = false, int zorder=-1);
+    DrawableEllipse(QPointF refPoint, qreal radius, DrawablePen pen, bool isFilled = false, int zorder=-1);    // circle
+    DrawableEllipse(QPointF refPoint, qreal a, qreal b, DrawablePen pen, bool isFilled = false, int zorder=-1); // ellipse with principlal half-axes a and b;
     DrawableEllipse(const DrawableEllipse& o);
     DrawableEllipse(DrawableEllipse&& o) noexcept;
     ~DrawableEllipse() = default;
@@ -728,23 +731,16 @@ QDataStream& operator>>(QDataStream& ifs,       DrawableEllipse& di);  // call A
             //----------------------------------------------------
 struct DrawableLine : public DrawableItem
 {
-    enum ArrowType:byte { arrowNone      = 0,
-                          arrowStartOut   = 1, // arrow points outward from the start point
-                          arrowEndOut     = 2, // same for end point
-                          arrowStartIn    = 4, //        - " - inward    - " -
-                          arrowEndIn      = 8, // same for end point 
-                        };
-
     QPointF endPoint;                   // start point in DrawableItem
-    QFlags<ArrowType> arrowFlags;
-    // ?? Q_DECLARE_FLAGS(options, LineStyle);
+    
+    ArrowFlags arrowFlags;              // see common.h
 
     DrawableLine() : DrawableItem()
     {
         dtType = DrawableType::dtLine;
         zoomer.Setup();
     }
-    DrawableLine(QPointF refPoint, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth);
+    DrawableLine(QPointF refPoint, QPointF endPoint, DrawablePen pen, int zorder);
     DrawableLine(const DrawableLine& ol);
     DrawableLine(DrawableLine&& ol) noexcept;
     ~DrawableLine() {}
@@ -789,7 +785,7 @@ struct DrawableRectangle : public DrawableItem
         dtType = DrawableType::dtRectangle;
         zoomer.Setup();
     }
-    DrawableRectangle(QRectF rect, int zorder, FalconPenKind penKind, qreal penWidth, bool isFilled = false);
+    DrawableRectangle(QRectF rect, DrawablePen pen, bool isFilled = false, int zorder=-1);
     DrawableRectangle(const DrawableRectangle& o);
     ~DrawableRectangle() = default;
     DrawableRectangle& operator=(const DrawableRectangle& di);
@@ -861,7 +857,7 @@ struct DrawableScreenShot : public DrawableItem     // for a screenshot refPoint
     {
         zoomer.Setup();
     }
-    DrawableScreenShot(QPointF topLeft, int zOrder, const QPixmap &image) : DrawableItem(DrawableType::dtScreenShot, topLeft, zOrder), _image(image) 
+    DrawableScreenShot(QPointF topLeft, int zOrder, const QPixmap &image) : DrawableItem(DrawableType::dtScreenShot, topLeft, DrawablePen(), zOrder), _image(image) 
     {
         _rotatedArea = QRectF(refPoint, image.size());
         zoomer.Setup();
@@ -928,7 +924,7 @@ struct DrawableScribble   : public DrawableItem     // drawn on layer mltScribbl
         dtType = DrawableType::dtScribble;
         zoomer.Setup();
     }
-    DrawableScribble(FalconPenKind penKind, qreal penWidth, int zorder) noexcept;
+    DrawableScribble(DrawablePen pen, int zorder) noexcept;
     DrawableScribble(const DrawableScribble& di);
     DrawableScribble(DrawableScribble&& di) noexcept;
     /* one possibility to rotate all with arbitrary angle is to create a scribble from them
@@ -1290,8 +1286,8 @@ public:
 
     // create new object of given parameters on the heap
                                         // pimage must be set for dtScreenShot
-    int AddDrawable(DrawableType dType, QPixmap* pimage = nullptr, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false);
-    int AddDrawable(DrawableType dType, FalconPenKind penKind = penBlackOrWhite, qreal penWidth = 1, QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false);
+    int AddDrawable(DrawableType dType, QPixmap* pimage = nullptr, DrawablePen pen = DrawablePen(), QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false);
+    int AddDrawable(DrawableType dType, DrawablePen pen = DrawablePen(), QPointF topLeft = QPointF(), QSizeF sizef = QSizeF(), bool isFilled = false);
 
     int Size(DrawableType type = DrawableType::dtNone) const;
 

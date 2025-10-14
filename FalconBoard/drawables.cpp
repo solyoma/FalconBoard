@@ -812,7 +812,7 @@ QDataStream& operator>>(QDataStream& ifs, MyRotation& mr)
 QDataStream& operator<<(QDataStream& ofs, const DrawablePen& dp)
 {
 	ofs << dp.penWidth << dp.penAlpha << (std::byte)dp.penStyle
-		<< (std::byte)dp.Kind();	// 0 means solid line
+		<< (std::byte)dp.PenKind();	// 0 means solid line
 	return ofs;
 }
 
@@ -859,7 +859,7 @@ void DrawableItem::SetPainterPenAndBrush(QPainter* painter, const QRectF& clipR,
 		pen.penAlpha = 1.0;
 	}
 #endif
-	QPen mypen(QPen(pen.Color(), PenWidth(), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
+	QPen mypen(QPen(pen.Color(), PenWidth(), pen.penStyle, Qt::RoundCap, Qt::MiterJoin));
 	painter->setPen(mypen);
 #if !defined _VIEWER && defined _DEBUG
 	if (pencilMode)
@@ -1114,8 +1114,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableDot& di)			  // call AFTER hea
 //=====================================
 // DrawableCross
 //=====================================
-DrawableCross::DrawableCross(QPointF pos, qreal len, int zOrder, FalconPenKind penKind, qreal penWidth) : 
-		length(len), DrawableItem(DrawableType::dtCross, pos, zOrder, penKind, penWidth) 
+DrawableCross::DrawableCross(QPointF pos, qreal len, DrawablePen pen, int zOrder) : 
+		length(len), DrawableItem(DrawableType::dtCross, pos, pen, zOrder) 
 {
 	zoomer.Setup();
 	_Setup();
@@ -1241,20 +1241,20 @@ QDataStream& operator>>(QDataStream& ifs, DrawableCross& di)	  // call AFTER hea
 //=====================================
 // DrawableEllipse
 //=====================================
-DrawableEllipse::DrawableEllipse(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
-		rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtEllipse, rect.center(), zOrder, penKind, penWidth), _rotatedRect(rect) 
+DrawableEllipse::DrawableEllipse(QRectF rect, DrawablePen pen, bool isFilled, int zorder) :
+		rect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtEllipse, rect.center(), pen, zOrder), _rotatedRect(rect) 
 {
 	zoomer.Setup();
 }
-DrawableEllipse::DrawableEllipse(QPointF refPoint, qreal radius, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled): 
+DrawableEllipse::DrawableEllipse(QPointF refPoint, qreal radius, DrawablePen pen, bool isFilled, int zorder):
 		rect(QPointF(refPoint.x() - radius, refPoint.y() - radius), QSize(2*radius, 2*radius)), isFilled(isFilled), 
-		DrawableItem(DrawableType::dtEllipse, refPoint, zOrder, penKind, penWidth), _rotatedRect(rect) 
+		DrawableItem(DrawableType::dtEllipse, refPoint, pen, zOrder), _rotatedRect(rect) 
 {
 	zoomer.Setup();
 }
-DrawableEllipse::DrawableEllipse(QPointF refPoint, qreal a, qreal b, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled): 
+DrawableEllipse::DrawableEllipse(QPointF refPoint, qreal a, qreal b, DrawablePen pen, bool isFilled, int zorder):
 		rect(QPointF(refPoint.x() - a, refPoint.y() -b), QSize(2*a, 2*b)), isFilled(isFilled), 
-		DrawableItem(DrawableType::dtEllipse, refPoint, zOrder, penKind, penWidth), _rotatedRect(rect) 
+		DrawableItem(DrawableType::dtEllipse, refPoint, pen, zOrder), _rotatedRect(rect) 
 {
 	zoomer.Setup();
 }
@@ -1434,8 +1434,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableEllipse& di)	  // call AFTER h
 // DrawableLine
 //=====================================
 
-DrawableLine::DrawableLine(QPointF refPoint, QPointF endPoint, int zorder, FalconPenKind penKind, qreal penWidth) : 
-	endPoint(endPoint), DrawableItem(DrawableType::dtLine, refPoint, zorder, penKind, penWidth)
+DrawableLine::DrawableLine(QPointF refPoint, QPointF endPoint, DrawablePen pen, int zorder) :
+	endPoint(endPoint), DrawableItem(DrawableType::dtLine, refPoint, pen, zorder)
 {
 	zoomer.Setup();
 }
@@ -1536,13 +1536,13 @@ void DrawableLine::_DrawArrows(QPainter* painter, QPointF topLeftOfVisibleArea)
 	if(arrowFlags == 0)
 		return;
 
-	if(arrowFlags.testFlag(arrowStartOut))
+	if(arrowFlags.testFlag(ArrowType::arrowStartOut))
 		_DrawSingleArrow(painter, topLeftOfVisibleArea, 1, 0, pen.penWidth*10);
-	if(arrowFlags.testFlag(arrowStartIn))
+	if(arrowFlags.testFlag(ArrowType::arrowStartIn))
 		_DrawSingleArrow(painter, topLeftOfVisibleArea, 0, 1, pen.penWidth*10);
-	if(arrowFlags.testFlag(arrowEndOut))
+	if(arrowFlags.testFlag(ArrowType::arrowEndOut))
 		_DrawSingleArrow(painter, topLeftOfVisibleArea, 0, 0, pen.penWidth*10);
-	if(arrowFlags.testFlag(arrowEndIn))
+	if(arrowFlags.testFlag(ArrowType::arrowEndIn))
 		_DrawSingleArrow(painter, topLeftOfVisibleArea, 1, 1, pen.penWidth*10);
 }
 
@@ -1603,7 +1603,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di) // DrawableIte
 
 QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER header is read in
 {
-	di.arrowFlags = QFlags<DrawableLine::ArrowType>();
+	di.arrowFlags = ArrowFlags();
 	ifs >> di.endPoint;
 	di.endPoint += {0, DrawableItem::yOffset};
 
@@ -1626,8 +1626,8 @@ QDataStream& operator>>(QDataStream& ifs, DrawableLine& di)		  // call AFTER hea
 //=====================================
 // DrawableRectangle
 //=====================================
-DrawableRectangle::DrawableRectangle(QRectF rect, int zOrder, FalconPenKind penKind, qreal penWidth, bool isFilled) : 
-	rect(rect), _rotatedRect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtRectangle, rect.center(), zOrder, penKind, penWidth) 
+DrawableRectangle::DrawableRectangle(QRectF rect, DrawablePen pen, bool isFilled, int zorder) :
+	rect(rect), _rotatedRect(rect), isFilled(isFilled), DrawableItem(DrawableType::dtRectangle, rect.center(), pen, zOrder) 
 {
 	zoomer.Setup();
 }
@@ -1887,7 +1887,7 @@ QDataStream& operator>>(QDataStream& ifs, DrawableScreenShot& bimg)	  // call AF
 // DrawableScribble
 //=====================================
 
-DrawableScribble::DrawableScribble(FalconPenKind penKind, qreal penWidth, int zorder) noexcept : DrawableItem(DrawableType::dtScribble, points.boundingRect().topLeft(), zorder, penKind, penWidth) 
+DrawableScribble::DrawableScribble(DrawablePen pen, int zorder) noexcept : DrawableItem(DrawableType::dtScribble, points.boundingRect().topLeft(), pen, zorder) 
 {
 	zoomer.Setup();
 }
@@ -2014,7 +2014,7 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 	// if (r != 0.0 && (/*(r > pwm * penWidth && maxd <= r * lendiv) ||*/ maxd <= pwm * penWidth))
 	if (maxd != 0.0 &&  maxd <= autoCorrectLimit)
 	{	// set up 'the 'lin'
-		lin = DrawableLine(pfStart, pfEnd, zOrder, PenKind(), PenWidth());
+		lin = DrawableLine(pfStart, pfEnd, pen, zOrder);
 //		qDebug("TRUE: maxd: %g, start:(%d,%d), end:(%d,%d), len/: %g,  2 x penWidth: %d", maxd, (int)pfStart.x(), (int)pfStart.y(), (int)pfEnd.x(), (int)pfEnd.y(), (r*lendiv), pwm * (int)penWidth);
 		return true;
 	}
@@ -2594,19 +2594,19 @@ QPointF DrawableList::CalcLargestXY()
 
 // create new object of given parameters on the heap
 									// pimage must be set for dtScreenShot
-int DrawableList::AddDrawable(DrawableType dType, QPixmap* pimage, FalconPenKind penKind, qreal penWidth, QPointF topLeft, QSizeF sizef, bool isFilled)
+int DrawableList::AddDrawable(DrawableType dType, QPixmap* pimage, DrawablePen pen, QPointF topLeft, QSizeF sizef, bool isFilled)
 {
 	int ivi = -1;    // _pZorderStore must exist
 
 	switch (dType)
 	{
-		case DrawableType::dtDot:       ivi = Push_back(new DrawableDot(topLeft, _pZorderStore->GetZorder(false), penKind, penWidth)); break;
-		case DrawableType::dtCross:     ivi = Push_back(new DrawableCross(topLeft, sizef.width(), _pZorderStore->GetZorder(false), penKind, penWidth)); break;
-		case DrawableType::dtEllipse:   ivi = Push_back(new DrawableEllipse(QRectF(topLeft, sizef), _pZorderStore->GetZorder(false), penKind, penWidth, isFilled)); break;
-		case DrawableType::dtLine:      ivi = Push_back(new DrawableLine(topLeft, QPointF(sizef.width(), sizef.height()), _pZorderStore->GetZorder(false), penKind, penWidth)); break;
-		case DrawableType::dtRectangle: ivi = Push_back(new DrawableRectangle(QRectF(topLeft, sizef), _pZorderStore->GetZorder(false), penKind, penWidth, isFilled)); break;
+		case DrawableType::dtDot:       ivi = Push_back(new DrawableDot(topLeft, pen, _pZorderStore->GetZorder(false))); break;
+		case DrawableType::dtCross:     ivi = Push_back(new DrawableCross(topLeft, sizef.width(), pen, _pZorderStore->GetZorder(false))); break;
+		case DrawableType::dtEllipse:   ivi = Push_back(new DrawableEllipse(QRectF(topLeft, sizef), pen, isFilled, _pZorderStore->GetZorder(false))); break;
+		case DrawableType::dtLine:      ivi = Push_back(new DrawableLine(topLeft, QPointF(sizef.width(), sizef.height()), pen, _pZorderStore->GetZorder(false))); break;
+		case DrawableType::dtRectangle: ivi = Push_back(new DrawableRectangle(QRectF(topLeft, sizef), pen, isFilled, _pZorderStore->GetZorder(false))); break;
 		case DrawableType::dtScreenShot:ivi = Push_back(new DrawableScreenShot(topLeft, _pZorderStore->GetZorder(true), *pimage)); break;
-		case DrawableType::dtScribble:  ivi = Push_back(new DrawableScribble(penKind, penWidth, _pZorderStore->GetZorder(false))); break;    // add points later
+		case DrawableType::dtScribble:  ivi = Push_back(new DrawableScribble(pen, _pZorderStore->GetZorder(false))); break;    // add points later
 		case DrawableType::dtText:      ivi = Push_back(new DrawableText(topLeft, _pZorderStore->GetZorder(false))); break;                  // add text later
 		default:  break;
 	}
@@ -2616,9 +2616,9 @@ int DrawableList::AddDrawable(DrawableType dType, QPixmap* pimage, FalconPenKind
 
 	//return ivi->second;
 }
-int DrawableList::AddDrawable(DrawableType dType, FalconPenKind penKind, qreal penWidth, QPointF topLeft, QSizeF sizef, bool isFilled)
+int DrawableList::AddDrawable(DrawableType dType, DrawablePen pen, QPointF topLeft, QSizeF sizef, bool isFilled)
 {
-	return AddDrawable(dType, nullptr, penKind, penWidth, topLeft, sizef, isFilled);
+	return AddDrawable(dType, nullptr, pen, topLeft, sizef, isFilled);
 }
 
 int DrawableList::Size(DrawableType type) const

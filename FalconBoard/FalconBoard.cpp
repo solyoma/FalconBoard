@@ -1,4 +1,5 @@
 ﻿#include <QSpinBox>
+#include <QCheckBox>
 #include <QLabel>
 #include <QScreen>
 #include <QPainter>
@@ -135,7 +136,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
         QDir(FBSettings::homePath).mkdir(FBSettings::homePath);
 
     _drawArea = ui.drawArea; // static_cast<DrawArea*>(ui.centralWidget);
-    _drawArea->SetPenKind(_actPen, _penWidths[_actPen]); 
+    _drawArea->SetPen(penBlackOrWhite); 
     _drawArea->SetScreenSize(screenSize);
 
 	_pScrollBar = new QScrollBar(Qt::Vertical, this);
@@ -326,14 +327,13 @@ void FalconBoard::RestoreState()
         qsl.clear();
         qsl << "30" << "3" << "3" << "3" << "3" << "3" << "3" << "3";
     }
-    for (int i = 0; i < PEN_COUNT; ++i)
-        _penWidths[i] = qsl[i].toInt();
-
     if (file_version_loaded < 0x560203)      // in old version files eraser was the last, now it is the first
-        std::swap(_penWidths[0], _penWidths[5]);
+        std::swap(qsl[0], qsl[5]);
 
+    for (int i = 0; i < PEN_COUNT; ++i)
+        _drawArea->pens[i].penWidth = qsl[i].toInt();
 
-    _psbPenWidth->setValue(_penWidths[(int)penBlackOrWhite]); 
+    _psbPenWidth->setValue(_drawArea->pens[(int)penBlackOrWhite].penWidth); 
     
     ui.actionAutoSaveData->setChecked(s->value(AUTOSAVEDATA, false).toBool());
 	ui.actionKeepChangedNoAsking->setChecked(s->value(KEEPCHANGED, true).toBool());
@@ -506,14 +506,14 @@ void FalconBoard::SaveState()
     s->setValue(AUTOCORRECT_LIMIT, _drawArea->AutoCorrectLimit());
     //globalDrawColors.ToSettings(s);   // no restore on start
 
-    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6,%7,%8").arg(_penWidths[0])
-                                                             .arg(_penWidths[1])
-                                                             .arg(_penWidths[2])
-                                                             .arg(_penWidths[3])
-                                                             .arg(_penWidths[4])
-                                                             .arg(_penWidths[5])
-                                                             .arg(_penWidths[6])
-                                                             .arg(_penWidths[7]));
+    s->setValue(PENSIZES , QString("%1,%2,%3,%4,%5,%6,%7,%8").arg(_drawArea->pens[0].penWidth)
+                                                             .arg(_drawArea->pens[1].penWidth)
+                                                             .arg(_drawArea->pens[2].penWidth)
+                                                             .arg(_drawArea->pens[3].penWidth)
+                                                             .arg(_drawArea->pens[4].penWidth)
+                                                             .arg(_drawArea->pens[5].penWidth)
+                                                             .arg(_drawArea->pens[6].penWidth)
+                                                             .arg(_drawArea->pens[7].penWidth));
     s->setValue(AUTOSAVEDATA, ui.actionAutoSaveData->isChecked());
     s->setValue(KEEPCHANGED, ui.actionKeepChangedNoAsking->isChecked());
     s->setValue(AUTOSBCKIMG, ui.actionAutoSaveBackgroundImage->isChecked());
@@ -661,6 +661,7 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addAction(ui.actionUndo);
     ui.mainToolBar->addAction(ui.actionRedo);
     ui.mainToolBar->addSeparator();
+
     ui.mainToolBar->addAction(ui.actionNew);
     ui.mainToolBar->addAction(ui.actionLoad);
     ui.mainToolBar->addAction(ui.actionSave);
@@ -668,7 +669,12 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addSeparator();
 #endif
     ui.mainToolBar->addAction(ui.actionPrint);
+#ifndef _VIEWER
     ui.mainToolBar->addSeparator();
+    ui.mainToolBar->addAction(ui.action_Screenshot);
+#endif
+    ui.mainToolBar->addSeparator();
+
 #ifndef _VIEWER
     // setup color menu with transparency sliders options
     ui.mainToolBar->addAction(ui.actionPenBlackOrWhite);
@@ -700,13 +706,46 @@ void FalconBoard::_CreateAndAddActions()
     _psbPenWidth->setMinimum(1);
     _psbPenWidth->setMaximum(200);
     _psbPenWidth->setSingleStep(1);
-    _psbPenWidth->setValue(_penWidths[0]);
+    _psbPenWidth->setValue(_drawArea->pens[0].PenKind());
     QRect rect = _psbPenWidth->geometry();
     rect.setWidth(40);
     _psbPenWidth->setGeometry(rect);
     ui.mainToolBar->addWidget(_psbPenWidth);
 #endif
     ui.mainToolBar->addSeparator();
+
+    // new items for line style and arrow selections
+    _psbLineStyleCombo = new QComboBox();
+    _psbLineStyleCombo->setFrame(false);
+    _psbLineStyleCombo->setIconSize(QSize(128,16));
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), "");
+    _psbLineStyleCombo->setCurrentIndex(0);
+    ui.mainToolBar->addWidget(_psbLineStyleCombo);
+
+    ui.mainToolBar->addSeparator();
+    _psbUseLineArrow = new QCheckBox();
+    _psbUseLineArrow->setText(tr(""));
+    _psbUseLineArrow->setToolTip(tr("Add arrows to straight lines"));
+    ui.mainToolBar->addWidget(_psbUseLineArrow);
+    ui.mainToolBar->addSeparator();
+    _psbLeftArrowCombo = new QComboBox();
+    _psbLeftArrowCombo->setFrame(false);
+    _psbLeftArrowCombo->addItem(""); // no arrow
+    _psbLeftArrowCombo->addItem(_MakeArrowIcon(false), "");// left arrow
+    _psbLeftArrowCombo->addItem(_MakeArrowIcon(true), ""); // right arrow
+    ui.mainToolBar->addWidget(_psbLeftArrowCombo);
+
+    _psbRightArrowCombo = new QComboBox();
+    _psbRightArrowCombo->setFrame(false);
+    _psbRightArrowCombo->addItem(""); // no arrow
+    _psbRightArrowCombo->addItem(_MakeArrowIcon(true), ""); // right arrow
+    _psbRightArrowCombo->addItem(_MakeArrowIcon(false), ""); // left arrow
+    ui.mainToolBar->addWidget(_psbRightArrowCombo);
+
 
 //    ui.mainToolBar->addWidget(new QLabel(tr("Grid ")));
     _pChkGridOn = new QCheckBox(tr("Grid size:"));
@@ -726,14 +765,11 @@ void FalconBoard::_CreateAndAddActions()
     rect.setWidth(60);
     _psbGridSpacing->setGeometry(rect);
     ui.mainToolBar->addWidget(_psbGridSpacing);
+    ui.mainToolBar->addSeparator();
 
-#ifndef _VIEWER
-    ui.mainToolBar->addSeparator();
-    ui.mainToolBar->addAction(ui.action_Screenshot);
-    ui.mainToolBar->addSeparator();
-#endif
+                   // ------ TABs for open documents ------
     _pTabs = new QTabBar();
-    ui.mainToolBar->addWidget(_pTabs);
+    ui.tabToolBar->addWidget(_pTabs);
     _pTabs->setMovable(true);
     _pTabs->setAutoHide(true);
     _pTabs->setTabsClosable(true);
@@ -747,6 +783,11 @@ void FalconBoard::_CreateAndAddActions()
     // more than one valueChanged() function exists
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenWidthChanged);
     connect(_psbPenWidth, &QSpinBox::editingFinished, this, &FalconBoard::slotPenWidthEditingFinished);
+
+    connect(_psbUseLineArrow,   &QCheckBox::toggled, _drawArea, &DrawArea::SlotUseLineArrowChanged);
+    connect(_psbLineStyleCombo, (void (QComboBox::*)(int))&QComboBox::currentIndexChanged, _drawArea, &DrawArea::SlotLineStyleChanged);
+    connect(_psbLeftArrowCombo, (void (QComboBox::*)(int))&QComboBox::currentIndexChanged, _drawArea, &DrawArea::SlotLineLeftArrowChanged);
+    connect(_psbRightArrowCombo, (void (QComboBox::*)(int))&QComboBox::currentIndexChanged, _drawArea, &DrawArea::SlotLineRightArrowChanged);
 
     connect(_psbGridSpacing, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotGridSpacingChanged);
     connect(_psbGridSpacing, &QSpinBox::editingFinished, this, &FalconBoard::slotGridSpacingEditingFinished);
@@ -833,6 +874,42 @@ void FalconBoard::_CloseTab(int index)
     _drawArea->SwitchToHistory(_nLastTab, !cnt);
     ui.actionAppend->setEnabled(!pHistory->Name().isEmpty());
 }
+
+void FalconBoard::__MakeIconCommon(QPainter& painter, Qt::PenStyle style)
+{
+    QPen pen(_sTextColor);
+    pen.setWidth(3);
+    pen.setStyle(style);
+    painter.setPen(pen);
+}
+
+QIcon FalconBoard::_MakeLineIcon(Qt::PenStyle style)
+{
+    constexpr const int w = 128, h = 16;
+    QPixmap px(w, h);
+    px.fill(Qt::transparent);
+    QPainter painter(&px);
+    __MakeIconCommon(painter, style);
+    int y = (h - painter.pen().width())/2;
+    painter.drawLine(2, y, w-2, y);
+    return QIcon(px);
+}
+
+QIcon FalconBoard::_MakeArrowIcon(bool rightArrow)
+{
+    QPixmap px(32, 32);
+    px.fill(Qt::transparent);
+    QPainter painter(&px);
+    __MakeIconCommon(painter, Qt::SolidLine);
+    // 0x25ba:►  0x25c4:◄
+    QFont font("Arial", 28, 87);
+    painter.setFont(font);
+    QChar ch(rightArrow ? 0x25ba :0x25c4);
+    painter.drawText(QPoint(2,2), ch);
+    return QIcon(px);
+}
+
+
 
 #ifndef _VIEWER
 void FalconBoard::_AddSaveVisibleAsMenu()
@@ -1001,14 +1078,20 @@ bool FalconBoard::_SaveBackgroundImage()
     return _drawArea->SaveVisibleImage(_backgroundImageName, _fileFormat.constData());
 }
 
-void FalconBoard::_SelectPenForAction(QAction* paction)
+void FalconBoard::_SetPenWidthSpinValue()
 {
-    paction->setChecked(true);
+    _eraserOn = _drawArea->actPenIndex == penEraser;
+    if(_drawArea->actPenIndex != penNone)
+	{
+		++_busy;
+		_psbPenWidth->setValue(_drawArea->PenWidth());
+		--_busy;
+	}
 }
 
-void FalconBoard::_SelectPen()     // call after '_actPen' is set
+void FalconBoard::_SelectPen()     // call after '_drawArea->actPenIndex' is set
 {
-    switch (_actPen)
+    switch (_drawArea->actPenIndex)
     {
         default:
         case penBlackOrWhite: ui.actionPenBlackOrWhite->setChecked(true); break;
@@ -1020,39 +1103,12 @@ void FalconBoard::_SelectPen()     // call after '_actPen' is set
         case penT7: ui.actionPenT7->setChecked(true); break;
         case penEraser:on_actionEraser_triggered(); return;
     }
-    _SetPenKind();
+    _SetPenWidthSpinValue();
 }
-
-void FalconBoard::_SetPenKind()
-{
-    _eraserOn = _actPen == penEraser;
-    if(_actPen != penNone)
-	{
-		_drawArea->SetPenKind(_actPen, _penWidths[_actPen]);
-		++_busy;
-		_psbPenWidth->setValue(_penWidths[_actPen]);
-		--_busy;
-	}
-}
-
-void FalconBoard::_SetPenKind(FalconPenKind newPen)
-{
-    _actPen = newPen;
-    _SelectPen();
-}
-
 
 void FalconBoard::_SetCursor(DrawCursorShape cs)
 {
     _drawArea->SetCursor(cs);
-}
-
-void FalconBoard::_SetPenWidth(FalconPenKind pk)
-{
-    _drawArea->SetPenKind(pk, _penWidths[pk]);
-    ++_busy;
-    _psbPenWidth->setValue(_penWidths[pk]);
-    --_busy;
 }
 
 void FalconBoard::_SelectTransparentPixelColor()
@@ -1454,6 +1510,28 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     //    ofs << ss;
     //}
 // /DEBUG
+    int n = _psbLineStyleCombo->currentIndex();
+    _psbLineStyleCombo->clear();
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), "");
+    _psbLineStyleCombo->setCurrentIndex(n);
+
+    n = _psbLeftArrowCombo->currentIndex();
+    _psbLeftArrowCombo->clear();
+    _psbLeftArrowCombo->addItem(""); // no arrow
+    _psbLeftArrowCombo->addItem(_MakeArrowIcon(false), "");// left arrow
+    _psbLeftArrowCombo->addItem(_MakeArrowIcon(true), ""); // right arrow
+    _psbLeftArrowCombo->setCurrentIndex(n);
+
+    n = _psbRightArrowCombo->currentIndex();
+    _psbRightArrowCombo->clear();
+    _psbRightArrowCombo->addItem(""); // no arrow
+    _psbRightArrowCombo->addItem(_MakeArrowIcon(false), "");// Right arrow
+    _psbRightArrowCombo->addItem(_MakeArrowIcon(true), ""); // right arrow
+    _psbRightArrowCombo->setCurrentIndex(n);
 }
 
 void FalconBoard::_ClearRecentMenu()
@@ -1767,7 +1845,7 @@ bool FalconBoard::_LoadData(int index)
     if (res)     // loaded
     {
 #ifndef _VIEWER
-        _SetPenKind();
+        _SetPenWidthSpinValue();
 #endif
         _AddToRecentList(historyList[index]->Name());
         ui.actionAppend->setEnabled(true);
@@ -2375,10 +2453,9 @@ void FalconBoard::on_actionAutocorrectTolerance_triggered()
 
 void FalconBoard::_SetPenCommon(FalconPenKind pk)
 {
+    _drawArea->actPenIndex = pk;
     _drawArea->RecolorSelected(pk);
-    _SetPenKind(pk);
     _SetCursor(csPen);
-    _SetPenWidth(pk);
     ui.drawArea->setFocus();
 }
 
@@ -2420,9 +2497,9 @@ void FalconBoard::on_actionPenT7_triggered()
 void FalconBoard::on_actionEraser_triggered()
 {
     _eraserOn = true;
-    _SetPenWidth(_actPen = penEraser);
+    _drawArea->actPenIndex = penEraser;
     _drawArea->SetCursor(csEraser);
-    _SelectPenForAction(ui.actionEraser);
+    ui.actionEraser->setChecked(true);
 	ui.drawArea->setFocus();
 }
 
@@ -2628,8 +2705,8 @@ void FalconBoard::slotPenWidthChanged(int val)
     if (_busy)		// from program
         return;
     // from user
-    _penWidths[_actPen] = val;
-    _SetPenKind();
+    
+    _drawArea->SetPenWidth(val);
 }
 
 void FalconBoard::slotPenWidthEditingFinished()
@@ -2655,28 +2732,25 @@ void FalconBoard::SlotForFocus()
 
 void FalconBoard::SlotForPointerType(QTabletEvent::PointerType pt)   // only sent by tablet
 {
-    static bool isPenEraser = false;     // set to true if not erasemode just
+    static bool isPenEraser = false;     // set to true if not erase mode just
     static FalconPenKind pk = penBlackOrWhite;
     switch (pt)                         // eraser end of stylus used
     {
         case QTabletEvent::Eraser:      // only when eraser side selected
             if (!_eraserOn)
             {
-                pk = _actPen;           // save for restoring
+                pk = _drawArea->actPenIndex;
+                _drawArea->actPenIndex = penEraser;           // save for restoring
                 isPenEraser = true;
-                _eraserOn = true;
-                _SetPenWidth(_actPen = penEraser);
                 _SetCursor(csEraser);
             }
             break;
         default:
             if (isPenEraser)
             {
-                _SetPenKind(pk);
-                _SetCursor(csPen);
-                _SetPenWidth(pk);
-                _eraserOn = false;
                 isPenEraser = false;
+                _drawArea->actPenIndex = pk;           // save for restoring
+                _SetCursor(csPen);
             }
             break;
     }
@@ -2730,7 +2804,8 @@ void FalconBoard::SlotForDisplayCoordinates(QString text)
 
 void FalconBoard::SlotForPenKindChange(FalconPenKind pk)
 {
-    _SetPenKind(pk);
+    _drawArea->actPenIndex = pk;
+    _SelectPen();
 }
 #endif  // not _VIEWER
 

@@ -17,6 +17,11 @@
 #include <QPageSize>
 #include <QSplashScreen>
 
+// may mark function parameters by these
+#define _INPUT
+#define _OUTPUT
+#define _INOUT
+
 const int MAX_NUMBER_OF_TABS = 30;
 
 extern quint32 file_version_loaded;	// set in history::Load
@@ -50,7 +55,8 @@ extern QString FB_WARNING,      // in FalconBoard.cpp
 
 extern QString UNTITLED;     // in falconBoard.cpp
 
-inline constexpr int 
+using FalconPenKind = int;
+inline constexpr FalconPenKind 
               penNone=-1,           // default color is none    // not a pen, not included in PEN_COUNT
               penEraser=0,          //  transparent
                                     // light  / dark
@@ -63,7 +69,6 @@ inline constexpr int
               penT7 = 7,            // gray   / dark gray
               PEN_COUNT = 8;
 
-using FalconPenKind = int;
 
 //enum FalconPenKind { penNone=-1, penEraser=0, penBlackOrWhite, penT2, penT3, penT4, penT5, PEN_COUNT};
 
@@ -257,7 +262,34 @@ public:
     bool ReadPen(QDataStream& ifs);    // only call if drawable type is dtPen! first data to be read is pen kind
     QDataStream& SavePen(QDataStream& ifs, FalconPenKind pk);    // only saved if pen is changed saves dtPen as first type
 };
+
 extern DrawColors globalDrawColors;
+
+struct LineStyleData
+{
+    int index=0;                      // in actual history's _drawables
+    Qt::PenStyle style=Qt::SolidLine; // original style for data
+};
+
+/* *********************************** for drawableLines *********************** */
+enum class ArrowType :int8_t {
+    arrowNone = 0,
+    arrowStartOut = 1, // arrow points outward from the start point
+    arrowEndOut = 2, // same for end point
+    arrowStartIn = 4, //        - " - inward    - " -
+    arrowEndIn = 8, // same for end point 
+};
+typedef QFlags<ArrowType> ArrowFlags;
+typedef QVector<ArrowType> ArrowTypes;
+
+struct LineVectorHeadData
+{
+    int index=0;      // in actual history's _drawables
+    ArrowFlags flags; // original style for data
+};
+
+
+using LineStyleDataVector = QVector<LineStyleData>;
 
 /*=============================================================
  * TASK:    centralized settings handler
@@ -276,7 +308,7 @@ private:
 
 };
 
-struct FLAG {
+struct COUNTER {
     int b = 0;
     int operator++() { ++b; return b; }
     int operator--() { if (b) --b; return b; }

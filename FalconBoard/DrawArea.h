@@ -41,6 +41,18 @@ class DrawArea : public QWidget
     Q_OBJECT
 
 public:
+    DrawablePen pens[PEN_COUNT] = {
+        {penEraser, 30.0, 1.0, Qt::SolidLine},
+        {penBlackOrWhite,3.0,1.0,Qt::SolidLine},
+        {penT2,3.0,1.0,Qt::SolidLine},
+        {penT3,3.0,1.0,Qt::SolidLine},
+        {penT4,3.0,1.0,Qt::SolidLine},
+        {penT5,3.0,1.0,Qt::SolidLine},
+        {penT6,3.0,1.0,Qt::SolidLine},
+        {penT7,3.0,1.0,Qt::SolidLine},
+    };
+    FalconPenKind actPenIndex = penBlackOrWhite;
+
     qreal userRotationAngle = 0.0;
 
     DrawArea(QWidget* parent = nullptr);
@@ -128,7 +140,8 @@ public:
     }
     int AutoCorrectLimit() const { return DrawableScribble::autoCorrectLimit; }
 
-    void SetPenKind(FalconPenKind newKind, int newWidth);
+    void SetPen(FalconPenKind pk = penNone);
+    //del void SetPen(DrawablePen newPen);
 
     void SetOrigin() { _topLeft = QPointF(); }
 
@@ -143,8 +156,9 @@ public:
 
     int ActHistoryIndex() const { return historyList.ActualHistory(); }
 
-    FalconPenKind PenKind() const { return _actPenKind;  }
-    int PenWidth() const { return    _actPenWidth; }
+    FalconPenKind PenKind() const { return actPenIndex;  }
+    int PenWidth() const { return    pens[actPenIndex].penWidth; }
+    void SetPenWidth(qreal width) { pens[actPenIndex].penWidth = width; }
 
     void SetCursor(DrawCursorShape cs);
 
@@ -198,6 +212,10 @@ public slots:
     void SlotForGridSpacingChanged(int);
     void SlotForPenColorRedefined(const DrawColors &drwclr);
 	void SlotStopHistorySave();
+    void SlotUseLineArrowChanged(bool checked);
+    void SlotLineLeftArrowChanged(int index);
+    void SlotLineRightArrowChanged(int index);
+    void SlotLineStyleChanged(int index);
 
     void SlotScrollDocTo(int posRelToDocumentTop);
 
@@ -262,10 +280,6 @@ private:
     bool    _pendown = false;       // true for pen
     bool    _erasemode = false;
     bool    _itemsCopied = false;   // copy/copy & delete : list of scribbles into 'history::_nSelectedItems';
-
-    int     _penWidth = 1;
-    int     _actPenWidth = 1;
-    FalconPenKind _actPenKind = penBlackOrWhite;
 
     bool    _bPageSetupValid = false;
     bool    _bPageSetupUsed = false;
@@ -335,13 +349,14 @@ private:
     bool _cursorSaved = false;
 
     QPointF _lastCursorPos;  // set in MyMoveEvent()
-
-
+    
     QRectF   _canvasRect;    // document (0,0) relative rectangle
     QRectF   _clippingRect;  // this too, only draw strokes inside this
-    FLAG _busy;
+    COUNTER _busy;
 
     bool _snapShotterRunning = false;       // it runs in a different thread started in FalconCalc
+
+    ArrowFlags _lineArrowTypes= ArrowType::arrowNone;    // no arrows
 
 #ifndef _VIEWER
     enum class _ScrollDirection {scrollNone, scrollUp, scrollDown, scrollLeft,scrollRight };
@@ -381,6 +396,8 @@ private:
     bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
     QPointF _CorrectForDirection(QPointF &newp);     // using _drawStarted and _isHorizontal
 #endif
+
+    inline DrawablePen &ActPen() { return pens[actPenIndex]; }
     
     bool _DrawFreehandLineTo(QPointF endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
     void _DrawLineTo(QPointF endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint

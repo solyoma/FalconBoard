@@ -407,6 +407,22 @@ struct HistoryPenColorChangeItem : public HistoryItem
 };
 
             //--------------------------------------------
+            //      HistoryLineStyleChange
+            //--------------------------------------------
+
+struct HistoryLineStyleChangeItem : public HistoryItem
+{
+	Qt::PenStyle newLineStyle;
+    LineStyleDataVector savedStyles; 
+
+    HistoryLineStyleChangeItem(History* pHist, Qt::PenStyle newLineStyle, const DrawableIndexVector&filteredSelection);
+    HistoryLineStyleChangeItem(const            HistoryLineStyleChangeItem& o);
+    HistoryLineStyleChangeItem& operator=(const HistoryLineStyleChangeItem& o);
+    int Undo() override;
+    int Redo() override;
+};
+
+            //--------------------------------------------
 			//      HistoryZoomItem
             // increase coorindates of marked items by 
             // a given factor, but not changing the line widths
@@ -442,6 +458,8 @@ struct HistoryRubberBandItem : public HistoryItem
 	int Undo() override;
 	int Redo() override;
 };
+
+
 
 //--------------------------------------------
 //      HistoryCanvasMoveItem
@@ -506,282 +524,286 @@ class HistoryList;
  *-------------------------------------------------------*/
 class History  // stores all drawing sections and keeps track of undo and redo
 {
-    //friend class HistoryScreenshotItem;
-    friend struct HistorySetTransparencyForAllScreenshotsItems;
+	//friend class HistoryScreenshotItem;
+	friend struct HistorySetTransparencyForAllScreenshotsItems;
 
 public: // variables
-    GridOptions gridOptions;
-    DrawColors drawColors;         // global for all drawables in this history
+	GridOptions gridOptions;
+	DrawColors drawColors;         // global for all drawables in this history
 
 public: // functions
-    History(HistoryList* parent) noexcept;
-    History(const History& o);
-    History(History&& o) noexcept;
-    virtual ~History();
+	History(HistoryList* parent) noexcept;
+	History(const History& o);
+	History(History&& o) noexcept;
+	virtual ~History();
 
-    QString Name(QString qsDefault=QString()) const    // includes whole path
-    { 
-        return _fileName.isEmpty() ? qsDefault : _fileName;
-    }
+	QString Name(QString qsDefault = QString()) const    // includes whole path
+	{
+		return _fileName.isEmpty() ? qsDefault : _fileName;
+	}
 
-    QString SnapshotName(bool withPath = false);
+	QString SnapshotName(bool withPath = false);
 
-    void InterruptSave()
-    {
-        if (_saveInProgress)
-            _saveInterrupted = true;
-    }
+	void InterruptSave()
+	{
+		if (_saveInProgress)
+			_saveInterrupted = true;
+	}
 	bool IsSaving() const { return _saveInProgress; } // true when saving is interrupted
 
-    bool IsLoaded() const
-    {
-        return _loaded;
-    }
-    bool IsSnapshot() const
-    {
-        return _lastSavedAsSnapshot;
-    }
+	bool IsLoaded() const
+	{
+		return _loaded;
+	}
+	bool IsSnapshot() const
+	{
+		return _lastSavedAsSnapshot;
+	}
 
-    bool IsModified() const 
-    { 
-        return _savedItemCount != _items.size();
-    }
+	bool IsModified() const
+	{
+		return _savedItemCount != _items.size();
+	}
 
-    void SetModifiedState(int resInd, int pageWidth, bool useResInd) // so that IsModified will return true
-    {
-        if(resInd != _resolutionIndex || pageWidth != _pageWidthInPixels || useResInd != _useResInd)
-            _savedItemCount = _items.size() - 1;
-    }
+	void SetModifiedState(int resInd, int pageWidth, bool useResInd) // so that IsModified will return true
+	{
+		if (resInd != _resolutionIndex || pageWidth != _pageWidthInPixels || useResInd != _useResInd)
+			_savedItemCount = _items.size() - 1;
+	}
 
-    void SetName(QString name, bool clear = false);
-    void MarkAsSnapshot(bool mark)
-    {
-        _lastSavedAsSnapshot = mark;
-    }
+	void SetName(QString name, bool clear = false);
+	void MarkAsSnapshot(bool mark)
+	{
+		_lastSavedAsSnapshot = mark;
+	}
 
-    QSizeF UsedArea();      // calculate for of all points and images from (0,0) to (right,bottom)
+	QSizeF UsedArea();      // calculate for of all points and images from (0,0) to (right,bottom)
 	constexpr inline QPointF BottomRight()  // calculate bottom right corner of the used area and _maxUsedY
-    {
-        return _drawables.LargestXY();
-    }
+	{
+		return _drawables.LargestXY();
+	}
 
-    constexpr inline int BottomOfUsedArea() const
-    {
-        return _drawables.LargestY();
-    }
-    inline bool AreaHeightChanged() const
-    {
-        return _drawables.LargestYChanged();
-    }
+	constexpr inline int BottomOfUsedArea() const
+	{
+		return _drawables.LargestY();
+	}
+	inline bool AreaHeightChanged() const
+	{
+		return _drawables.LargestYChanged();
+	}
 
-    int CountOnPage(int px, int py, QSize pageSize, bool &getAreaSize); // -1: invalid page for px, -2: invalid page for py i.e. outside used area. First call with getAreaSize=true, others with false
+	int CountOnPage(int px, int py, QSize pageSize, bool& getAreaSize); // -1: invalid page for px, -2: invalid page for py i.e. outside used area. First call with getAreaSize=true, others with false
 
-    inline HistoryItem* Item(int index) const 
-    { 
-        return _items[index]; 
-    }
+	inline HistoryItem* Item(int index) const
+	{
+		return _items[index];
+	}
 
-    inline HistoryItem* LastItem(bool onlyNew = false) const 
-    { 
-        int n = _items.size(), N = onlyNew ? _readCount : 0;
-        return n > N ? _items[n-1] : nullptr;
-    }
+	inline HistoryItem* LastItem(bool onlyNew = false) const
+	{
+		int n = _items.size(), N = onlyNew ? _readCount : 0;
+		return n > N ? _items[n - 1] : nullptr;
+	}
 
-    int GetZorder(bool isscreenshot, bool increment=true) { return _zorderStore.GetZorder(isscreenshot, increment); }
-    constexpr DrawableList* Drawables()  { return &_drawables; }
-    DrawableItem* Drawable(int i) { return _drawables[i]; }
-    constexpr const DrawableIndexVector &SelectedDrawables() const 
-    { 
-        return _driSelectedDrawables; 
-    }
+	int GetZorder(bool isscreenshot, bool increment = true) { return _zorderStore.GetZorder(isscreenshot, increment); }
+	constexpr DrawableList* Drawables() { return &_drawables; }
+	DrawableItem* Drawable(int i) { return _drawables[i]; }
+	constexpr const DrawableIndexVector& SelectedDrawables() const
+	{
+		return _driSelectedDrawables;
+	}
+    int FilteredSelection(DrawableIndexVector &result, bool onlyLines);
 
-    bool CanRotateSelected(MyRotation rot);
-    bool RotateSelected(MyRotation rot);
+	bool CanRotateSelected(MyRotation rot);
+	bool RotateSelected(MyRotation rot);
 
-    constexpr QPointF TopLeft() const { return _topLeft; }
-    void SetTopLeft(QPointF& topLeft) { _topLeft = topLeft; }
+	constexpr QPointF TopLeft() const { return _topLeft; }
+	void SetTopLeft(QPointF& topLeft) { _topLeft = topLeft; }
 
-    int RightMostInBand(QRectF rect);    // only top and bottom of rect is used
+	int RightMostInBand(QRectF rect);    // only top and bottom of rect is used
 
-    void SetClippingRect(const QRectF& rect) { _clpRect = rect;  }
+	void SetClippingRect(const QRectF& rect) { _clpRect = rect; }
 
-    //DrawableItemIndex AddToDrawables(DrawableItem* pdr)
-    int AddToDrawables(DrawableItem* pdr)
-    {
-        return _drawables.AddDrawable(pdr);
-    }
+	//DrawableItemIndex AddToDrawables(DrawableItem* pdr)
+	int AddToDrawables(DrawableItem* pdr)
+	{
+		return _drawables.AddDrawable(pdr);
+	}
 
-    DrawableScreenShot* ScreenShot(int index) { return (DrawableScreenShot*)_drawables[index]; }
-    int /*DrawableItemIndex*/ ScreenShotAtPos(QPointF& p) const { return _drawables.IndexOfTopMostItemUnder(p, 1, DrawableType::dtScreenShot); } // -1: no such image else index in '_drawables'
-    DrawableScreenShot* FirstVisibleScreenShot(const QRectF& canvasRect) { return _drawables.FirstVisibleScreenShot(canvasRect); }
-    DrawableScreenShot* NextVisibleScreenShot() { return _drawables.NextVisibleScreenShot(); }
+	DrawableScreenShot* ScreenShot(int index) { return (DrawableScreenShot*)_drawables[index]; }
+	int /*DrawableItemIndex*/ ScreenShotAtPos(QPointF& p) const { return _drawables.IndexOfTopMostItemUnder(p, 1, DrawableType::dtScreenShot); } // -1: no such image else index in '_drawables'
+	DrawableScreenShot* FirstVisibleScreenShot(const QRectF& canvasRect) { return _drawables.FirstVisibleScreenShot(canvasRect); }
+	DrawableScreenShot* NextVisibleScreenShot() { return _drawables.NextVisibleScreenShot(); }
 
-    void Clear(bool andDeleteQuadTree = false);
-    void ClearName() { if (_items.isEmpty()) _fileName.clear(); }
+	void Clear(bool andDeleteQuadTree = false);
+	void ClearName() { if (_items.isEmpty()) _fileName.clear(); }
 
-    int Size() const;   // _items's size
-    int CountOfVisible(); // visible 
-    int CountButScreenShots();
-    int SelectedSize() const { return _driSelectedDrawables.size(); }
+	int Size() const;   // _items's size
+	int CountOfVisible(); // visible 
+	int CountButScreenShots();
+	int SelectedSize() const { return _driSelectedDrawables.size(); }
 
-    SaveResult Save(bool asasSnapshot = false);
+    int GetLineStyleDataVector(LineStyleDataVector& resultVector, const DrawableIndexVector& filteredSelection);
 
-    
-    int Load(quint32& version_loaded, bool force=false, int fromY=0);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
-    int Append(QString fileName, quint32& version_loaded);
-    void SetPageParamsFromHistory() const
-    {
-        PageParams::resolutionIndex = _resolutionIndex;
-        PageParams::horizPixels     = _pageWidthInPixels;
-        PageParams::useResInd       = _useResInd;     
-    }
-    void GetPageParamsToHistory()
-    { 
-        _resolutionIndex    = PageParams::resolutionIndex   ;
-        _pageWidthInPixels  = PageParams::horizPixels ;
-        _useResInd          = PageParams::useResInd         ;
-    }
-    bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
-    bool CanRedo() const { return _redoList.size(); }
-    void ClearUndo() { _readCount = _items.size(); }
+	SaveResult Save(bool asasSnapshot = false);
 
-    HistoryItem* LastScribble() const;
-    HistoryItem* operator[](int index);   // index: absolute index in _items
-    HistoryItem* operator[](DrawableItemIndex dri);   // index: absolute index
 
-    QPointF BottomRightLimit(QSize screenSize);      // returns bottom right coordinate of last visible item
+	int Load(quint32& version_loaded, bool force = false, int fromY = 0);       // from '_fileName', returns _items.size() when Ok, -items.size()-1 when read error
+	int Append(QString fileName, quint32& version_loaded);
+	void SetPageParamsFromHistory() const
+	{
+		PageParams::resolutionIndex = _resolutionIndex;
+		PageParams::horizPixels = _pageWidthInPixels;
+		PageParams::useResInd = _useResInd;
+	}
+	void GetPageParamsToHistory()
+	{
+		_resolutionIndex = PageParams::resolutionIndex;
+		_pageWidthInPixels = PageParams::horizPixels;
+		_useResInd = PageParams::useResInd;
+	}
+	bool CanUndo() const { return _items.size() > _readCount; } // only undo until last element read
+	bool CanRedo() const { return _redoList.size(); }
+	void ClearUndo() { _readCount = _items.size(); }
 
-//--------------------- Add Items ------------------------------------------
-    //int AddExistingDrawableItem(DrawableItem* pdrh);  // only add drawable Items here
-    HistoryItem* AddClearRoll();
-    HistoryItem* AddClearVisibleScreen();
-    HistoryItem* AddClearDown();
-    HistoryItem* AddCopiedItems(QPointF topLeft, Sprite *pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
-    HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _driSelectedDrawables a
-    HistoryItem* AddDrawableItem(DrawableItem& dri);
-    HistoryItem* AddEraserItem(DrawableItem& dri);  // add to all scribbles which it intersects
-    HistoryItem* AddInsertVertSpace(int y, int heightInPixels);       // height < 0: delete space
-    HistoryItem* AddMoveItems(QPointF displacement);
-    HistoryItem* AddPenColorChange(const DrawColors& drwclr);
-    HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
-    HistoryItem* AddRecolor(FalconPenKind pk);
-    HistoryItem* AddRotationItem(MyRotation rot);
-    HistoryItem* AddRemoveSpaceItem(QRectF &rect);
-    HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
+	HistoryItem* LastScribble() const;
+	HistoryItem* operator[](int index);   // index: absolute index in _items
+	HistoryItem* operator[](DrawableItemIndex dri);   // index: absolute index
+
+	QPointF BottomRightLimit(QSize screenSize);      // returns bottom right coordinate of last visible item
+
+	//--------------------- Add Items ------------------------------------------
+		//int AddExistingDrawableItem(DrawableItem* pdrh);  // only add drawable Items here
+	HistoryItem* AddClearRoll();
+	HistoryItem* AddClearVisibleScreen();
+	HistoryItem* AddClearDown();
+	HistoryItem* AddCopiedItems(QPointF topLeft, Sprite* pSprite);    // using 'this' and either '_copiedList'  or  pSprite->... lists
+	HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _driSelectedDrawables a
+	HistoryItem* AddDrawableItem(DrawableItem& dri);
+	HistoryItem* AddEraserItem(DrawableItem& dri);  // add to all scribbles which it intersects
+	HistoryItem* AddInsertVertSpace(int y, int heightInPixels);       // height < 0: delete space
+	HistoryItem* AddMoveItems(QPointF displacement);
+	HistoryItem* AddPenColorChange(const DrawColors& drwclr);
+	HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
+	HistoryItem* AddRecolor(FalconPenKind pk);
+	HistoryItem* AddRotationItem(MyRotation rot);
+	HistoryItem* AddRemoveSpaceItem(QRectF& rect);
+	HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);
 	HistoryItem* AddRubberBand(QRectF rect);
 	HistoryItem* AddZoomItem(QRectF rect, bool zoomIn, int steps);   // from the center of the rubberRect rectangle 'rect'
-// --------------------- replace Item -----------------------------------
-    void ReplaceLastItemWith(DrawableItem& di);
-// --------------------- drawing -----------------------------------
-    bool MoveItems(QPointF displacement, const DrawableIndexVector& driv);  // returns false when move is not possible
-    void Rotate(HistoryItem *forItem, MyRotation withRotation); // using _selectedRect
-    void Rotate(int drawableIndex, MyRotation withRotation, QPointF center);
-    void InserVertSpace(int y, int heightInPixels);
+	// --------------------- replace Item -----------------------------------
+    HistoryItem* AddLineStyleChangeItem(Qt::PenStyle newStyle, const DrawableIndexVector& filtered); 
 
-    HistoryItem* Undo();        // returns top item after undo or nullptr
-    HistoryItem* Redo();
+	void ReplaceLastItemWith(DrawableItem& di);
+	// --------------------- drawing -----------------------------------
+	bool MoveItems(QPointF displacement, const DrawableIndexVector& driv);  // returns false when move is not possible
+	void Rotate(HistoryItem* forItem, MyRotation withRotation); // using _selectedRect
+	void Rotate(int drawableIndex, MyRotation withRotation, QPointF center);
+	void InserVertSpace(int y, int heightInPixels);
 
-    int GetDrawablesInside(QRectF rect, IntVector& hv);
+	HistoryItem* Undo();        // returns top item after undo or nullptr
+	HistoryItem* Redo();
 
-    void AddToSelection(int drawableIndex, bool clearSelections = false);
-    QRectF SelectDrawablesUnder(QPointF& p, bool addToPrevious);      // selects clicked (if any) into _driSelectedDrawables, and clears right and left items list
-    int /*DrawableItemIndex*/ SelectTopmostImageUnder(QPointF p);
-    int CollectDrawablesInside(QRectF rect);
-    void CopySelected(Sprite *forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
-                                                             // do the same with images
-    void SetSelectionRect(QRectF& rect)
-    {
-        _selectionRect = rect;
-    }
-    QRectF SelectionRect() const { return _selectionRect; }
+	int GetDrawablesInside(QRectF rect, IntVector& hv);
 
-    void CollectPasted(const QRectF &rect);   // if items pasted copies their drawable indices into '_driSelectedDrawables'
-    void CollectDeleted(HistoryDeleteItems* phd);   // used when a sprite paste is undone
+	void AddToSelection(int drawableIndex, bool clearSelections = false);
+	QRectF SelectDrawablesUnder(QPointF& p, bool addToPrevious);      // selects clicked (if any) into _driSelectedDrawables, and clears right and left items list
+	int /*DrawableItemIndex*/ SelectTopmostImageUnder(QPointF p);
+	int CollectDrawablesInside(QRectF rect);
+	void CopySelected(Sprite* forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
+	// do the same with images
+	void SetSelectionRect(QRectF& rect)
+	{
+		_selectionRect = rect;
+	}
+	QRectF SelectionRect() const { return _selectionRect; }
 
-    const QRectF BoundingRect() const { return _selectionRect; }
+	void CollectPasted(const QRectF& rect);   // if items pasted copies their drawable indices into '_driSelectedDrawables'
+	void CollectDeleted(HistoryDeleteItems* phd);   // used when a sprite paste is undone
+
+	const QRectF BoundingRect() const { return _selectionRect; }
 
 private: // global
-		bool _saveInterrupted = false; // set when saving was interrupted by the user
-		bool _saveInProgress = false; // set when saving is in progress, cleared after save or error
+	bool _saveInterrupted = false; // set when saving was interrupted by the user
+	bool _saveInProgress = false; // set when saving is in progress, cleared after save or error
 private:
-        HistoryList* _parent;           // needed for copy and paste
+	HistoryList* _parent;           // needed for copy and paste
 
-        HistoryItemVector _items,           // items in the order added. Items need not be drawables.
-            // drawables use _drables._pItems
-            _redoList;        // from _items for redo. Items need not be scribbles.
-        // drawable elements on this list may be either visible or hidden
-        DrawableList _drawables;            // contains each type, including screenshots
-        // drawable elements on this list may be either visible or hidden
-        int  _resolutionIndex = 6;           // gives PageSetup::resolutionIndex -> full HD
-        int  _pageWidthInPixels = 1920;     // full HD
-        bool _useResInd = true;              // what to do
-        // if the value is above 100 it is resolution index
+	HistoryItemVector _items,           // items in the order added. Items need not be drawables.
+		// drawables use _drables._pItems
+		_redoList;        // from _items for redo. Items need not be scribbles.
+	// drawable elements on this list may be either visible or hidden
+	DrawableList _drawables;            // contains each type, including screenshots
+	// drawable elements on this list may be either visible or hidden
+	int  _resolutionIndex = 6;           // gives PageSetup::resolutionIndex -> full HD
+	int  _pageWidthInPixels = 1920;     // full HD
+	bool _useResInd = true;              // what to do
+	// if the value is above 100 it is resolution index
 
-        QuadTreeDelegate _quadTreeDelegate; // for fast display, set into _drawables
+	QuadTreeDelegate _quadTreeDelegate; // for fast display, set into _drawables
 
-        ZorderStore _zorderStore;           // max. zorder 
+	ZorderStore _zorderStore;           // max. zorder 
 
-        QPointF _topLeft;                   // temporary, top left of the visible part of this history
-        // document relative
-        QString _fileName,                  // full path name for file, but may be "Untitled" or empty
-            _snapshotName,                   // for timed backup copies. No path. Used for safety copy of named and 
-            // of untitled files in the user's 'FalconBoard' folder
-            // If _fileName is empty the file was not yet saved by the user
-            // if a file is saved at exit or when the tab is closed
-            // then the corresponding temporary is removed
-            // On starting the program the temporary files are loaded too
-            _loadedName;                // set only after the file is loaded, used to check reloads
-        // for not snaphots files it is set to the given name
-        bool _lastSavedAsSnapshot = false;  // set in 'Save()' or before loading a snapshot
-        bool _inLoad = false;               // in function Load() / needed for correct z- order settings
-        int _readCount = 0;                 // undo works until this index is reached
-        int _savedItemCount = 0;            // the count of _items when data was saved by the user,
-                                            // but not for autosave. After read it is the same as '_readCount'
-                                            // used to check if data is changed
+	QPointF _topLeft;                   // temporary, top left of the visible part of this history
+	// document relative
+	QString _fileName,                  // full path name for file, but may be "Untitled" or empty
+		_snapshotName,                   // for timed backup copies. No path. Used for safety copy of named and 
+		// of untitled files in the user's 'FalconBoard' folder
+		// If _fileName is empty the file was not yet saved by the user
+		// if a file is saved at exit or when the tab is closed
+		// then the corresponding temporary is removed
+		// On starting the program the temporary files are loaded too
+		_loadedName;                // set only after the file is loaded, used to check reloads
+	// for not snaphots files it is set to the given name
+	bool _lastSavedAsSnapshot = false;  // set in 'Save()' or before loading a snapshot
+	bool _inLoad = false;               // in function Load() / needed for correct z- order settings
+	int _readCount = 0;                 // undo works until this index is reached
+	int _savedItemCount = 0;            // the count of _items when data was saved by the user,
+	// but not for autosave. After read it is the same as '_readCount'
+	// used to check if data is changed
 
-        // unscribble items have no indices in here
-        bool _loaded = false;               // if it was loaded from disk already
-        bool _isSaved = false;              // clear after every change!
+// unscribble items have no indices in here
+	bool _loaded = false;               // if it was loaded from disk already
+	bool _isSaved = false;              // clear after every change!
 
-        QRectF _clpRect;                    // clipping rectangle for selecting points to draw
-        // before searching operations set this when it is changed
-        QStack<QRectF> _savedClps;          // clipRect saves
+	QRectF _clpRect;                    // clipping rectangle for selecting points to draw
+	// before searching operations set this when it is changed
+	QStack<QRectF> _savedClps;          // clipRect saves
 
-        int _indexOfFirstVisible = -1;      // in _yxorder
+	int _indexOfFirstVisible = -1;      // in _yxorder
 
-        // drawable selection
+	// drawable selection
 
-        DrawableIndexVector _driSelectedDrawables,    // indices into '_drawables', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
-            _driSelectedDrawablesAtRight,       // -"- for elements that were at the right of the rubber band
-            _driSelectedDrawablesAtLeft;        // -"- for elements that were at the left of the rubber band
-        QRectF _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
-        // when _driSelectedDrawables is empty
+	DrawableIndexVector _driSelectedDrawables,    // indices into '_drawables', that are completely inside the rubber band (includes screenshots - zorder < DRAWABLE_ZORDER_BASE)
+		_driSelectedDrawablesAtRight,       // -"- for elements that were at the right of the rubber band
+		_driSelectedDrawablesAtLeft;        // -"- for elements that were at the left of the rubber band
+	QRectF _selectionRect;              // bounding rectangle for selected items OR rectangle in which there are no items
+	// when _driSelectedDrawables is empty
 
+	HistoryItem* _AddItem(HistoryItem* p);
 
+	bool _IsSaveable(int i);
 
-        HistoryItem* _AddItem(HistoryItem* p);
+	void _SaveClippingRect();
+	void _RestoreClippingRect();
+	void _ClearSelectLists()
+	{
+		_driSelectedDrawables.clear();
+		_driSelectedDrawablesAtRight.clear();
+		_driSelectedDrawablesAtLeft.clear();
+	}
+	void _RemoveSnapshot();
 
-        bool _IsSaveable(int i);
+	void _NameFromTmpData(QString& nameOfSnapshot);
 
-        void _SaveClippingRect();
-        void _RestoreClippingRect();
-        void _ClearSelectLists()
-        {
-            _driSelectedDrawables.clear();
-            _driSelectedDrawablesAtRight.clear();
-            _driSelectedDrawablesAtLeft.clear();
-        }
-        void _RemoveSnapshot();
+	int _ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version); // reads items from version 1.X files and returns count of read
+	int _ReadV2(QDataStream& ifs, DrawableItem& di);                 // reads items from version 2.X files and returns count of read
 
-        void _NameFromTmpData(QString& nameOfSnapshot);
+	int _LoadV1(QDataStream& ifs, qint32 version);          // load version 1.X files
+	int _LoadV2(QDataStream& ifs, qint32 version_loaded);   // load version 2.X files
 
-        int _ReadV1(QDataStream& ifs, DrawableItem& di, qint32 version); // reads items from version 1.X files and returns count of read
-        int _ReadV2(QDataStream& ifs, DrawableItem& di);                 // reads items from version 2.X files and returns count of read
+	void _CantRotateWarning() const;
 
-        int _LoadV1(QDataStream& ifs, qint32 version);          // load version 1.X files
-        int _LoadV2(QDataStream& ifs, qint32 version_loaded);   // load version 2.X files
-
-        void _CantRotateWarning() const;
 
 };
 

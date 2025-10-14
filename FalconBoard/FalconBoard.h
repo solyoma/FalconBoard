@@ -238,7 +238,7 @@ private slots:
 private:
 	Ui::FalconBoardClass ui;
 
-	FLAG _busy;
+	COUNTER _busy;
 	bool _firstShown = false;	// main window was shown first
 
 	QThread _listenerThread
@@ -261,8 +261,6 @@ private:
 	QSignalMapper _languageMapper;
 
 	bool	_eraserOn = false;
-	int _penWidths[PEN_COUNT] = {30,3,3,3,3,3,3,3}; // first is the eraser C.f. FalconPenKind
-	FalconPenKind _actPen = penBlackOrWhite;
 
 		// default icons
 	QIcon	_iconPen;	// set from white and change colors as required
@@ -284,6 +282,12 @@ private:
 	QScrollBar* _pScrollBar = nullptr;	// scroll bar for the draw area
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
+	QCheckBox* _psbUseLineArrow = nullptr;
+				// these 3 are icon based:
+	QComboBox* _psbLineStyleCombo = nullptr;
+	QComboBox* _psbLeftArrowCombo = nullptr;
+	QComboBox* _psbRightArrowCombo = nullptr;
+
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
 	QCheckBox* _pChkGridOn = nullptr;
 	QTabBar  * _pTabs = nullptr;
@@ -378,9 +382,7 @@ private:
 
 	}
 	QString _NextUntitledName();
-
 	void _AddSaveVisibleAsMenu();
-
 	void _DoScreenshot(bool hide);	// if hide is true this window will be hidden before screenshot taken
 
 	SaveResult _saveResult = srSaveSuccess;	// because save as slot can't return a value
@@ -394,33 +396,25 @@ private:
 	SaveResult _SaveFile(const QString name);
 	void _StartSnapshotSaveThread();
 	bool _SaveBackgroundImage();
-
 	void _SetPenCommon(FalconPenKind pk);
-		 
 	void _SelectPenForAction(QAction* paction);
-
-	void _SelectPen();	// for _actPen
-
-	void _SetPenKind();
-
+	void _SelectPen();	// for _actPenIndex
+	void _SetPenWidthSpinValue();
 	void _SetPenKind(FalconPenKind color);
-
 	void _SetCursor(DrawCursorShape cs);
-
 	void _SetPenWidth(FalconPenKind pk);
-
-
 	void _SelectTransparentPixelColor();
-
 	void _ConnectScreenshotLabel();
 	void _DisconnectScreenshotLabel();
 #endif
-
 	QString _FileNameToTabText(QString fname);
 
+	void __MakeIconCommon(QPainter& painter, Qt::PenStyle style);
 	int  _AddNewTab(QString fname = QString(), bool loadIt = true, bool force=false);
 	int  _AddNewTabForSnapshot(QString fname, bool loadIt = true, bool force=false);
 	void _CloseTab(int index);
+	QIcon _MakeLineIcon(Qt::PenStyle style);
+	QIcon _MakeArrowIcon(bool rightArrow);
 	void _SetResetChangedMark(int index);
 	void _SetTabText(int index, QString fname);
 	void _PrepareActionIcons();

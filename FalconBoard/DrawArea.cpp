@@ -209,7 +209,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 		ScreenMode actualMode = globalDrawColors.ActualMode();	// as the other item may not bi in the current display mode
 		globalDrawColors = pHistory->drawColors;
 		globalDrawColors.SetDarkMode(actualMode);
-		setCursor(globalDrawColors.PenPointer(_actPenKind));
+		setCursor(globalDrawColors.PenPointer(ActPen().PenKind()));
 		PageParams::SetScreenWidth();
 		// scrollbar
 		QSize siz = geometry().size();
@@ -430,12 +430,18 @@ void DrawArea::SetMode(ScreenMode mode, QString backgroundColor, QString sGridCo
 	SetCursor(_erasemode ? csEraser : csPen);
 }
 
-void DrawArea::SetPenKind(FalconPenKind newKind, int width)
+void DrawArea::SetPen(FalconPenKind pk)
 {
-	_actPenKind = newKind;
-	if (width > 0)
-		_penWidth = width;
+	if (pk == penNone)
+		return;
+	actPenIndex = pk;
 }
+
+//del void DrawArea::SetPen(DrawablePen newPen)
+//{
+//	ActPen().SetPenKind(newPen.PenKind());
+//	ActPen().penWidth = newPen.penWidth;
+//}
 
 void DrawArea::AddScreenShotImage(QPixmap& animage)
 {
@@ -599,8 +605,8 @@ void DrawArea::_ChangePenByKeyboard(int key)
 // draw a cross at a given point
 void DrawArea::_DrawCross(QPointF p, int halflen) // p rel. to Document top/left
 {
-	_actPenWidth = _penWidth;
-	_lastDrawableCross = DrawableCross(p, halflen, pHistory->GetZorder(false), _actPenKind, _actPenWidth);
+//	_actPenWidth = _penWidth;
+	_lastDrawableCross = DrawableCross(p, halflen, ActPen(), pHistory->GetZorder(false));
 
 	_PaintOnActCanvas(&_lastDrawableCross);
 
@@ -764,11 +770,11 @@ void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
 	}
 	else if (key == Qt::Key_R)    // draw rectangle around (at the outside) of selection
 	{							  // if CTrl+R was pressed add an inside margin, when Shift+R pressed fill the inside
-		_actPenWidth = _penWidth; // adjust the selection. never draw a rectangle partially or fully outside "paper"
+		/*_actPenWidth = _penWidth;*/ // adjust the selection. never draw a rectangle partially or fully outside "paper"
 
 		// when any drawables is selected draw the rectangle around them, otherwise the outer edge of the rectangle should be inside the marked area 
 		// leaving _actPenWidth/2+1 pixel margins on each sides
-		qreal adjustment = ((qreal)_actPenWidth + 1) / 2 + 1;
+		qreal adjustment = (ActPen().penWidth + 1) / 2 + 1;
 		qreal sizeDelta = 0.0;
 
 		bool bCtrlPlusAltDown = _mods.testFlag(Qt::ControlModifier) && !_mods.testFlag(Qt::AltModifier);
@@ -790,10 +796,10 @@ void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
 			else
 				_rubberRect = r; //  .adjust(-margin, -margin, margin, margin);	// will also resizes _rubberRect
 
-			_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), pHistory->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
+			_lastRectangleItem = DrawableRectangle(r.translated(_topLeft), ActPen(), _mods.testFlag(Qt::ShiftModifier), pHistory->GetZorder(false));
 
 			_PaintOnActCanvas(&_lastRectangleItem);
-			update(r.adjusted(-_penWidth, -_penWidth, _penWidth, _penWidth).toRect());
+			update(r.adjusted(-ActPen().penWidth, -ActPen().penWidth, ActPen().penWidth, ActPen().penWidth).toRect());
 			//				_rubberRect = r.adjusted(-adjustment, -adjustment, adjustment, adjustment);
 			_rubberBand->setGeometry(_rubberRect.toRect());
 			(void)pHistory->AddDrawableItem(_lastRectangleItem);
@@ -803,10 +809,10 @@ void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
 	}
 	else if (key == Qt::Key_C && !bCopy)   // draw ellipse
 	{
-		_actPenWidth = _penWidth;
-		qreal adjustment = -((qreal)_actPenWidth + 1) / 2 + 1;	// inside area
+		// _actPenWidth = _penWidth;
+		qreal adjustment = -((qreal)ActPen().penWidth + 1) / 2 + 1;	// inside area
 		QRectF r = _rubberRect.adjusted(-adjustment, -adjustment, adjustment, adjustment);
-		_lastEllipseItem = DrawableEllipse(r.translated(_topLeft), pHistory->GetZorder(false), _actPenKind, _actPenWidth, _mods.testFlag(Qt::ShiftModifier));
+		_lastEllipseItem = DrawableEllipse(r.translated(_topLeft), ActPen(), _mods.testFlag(Qt::ShiftModifier), pHistory->GetZorder(false));
 
 		_PaintOnActCanvas(&_lastEllipseItem);
 		update(_rubberRect.toRect());
@@ -823,8 +829,8 @@ void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
 	}
 	else if (key == Qt::Key_Period)   // mark center with cross or a period
 	{
-		_actPenWidth = _penWidth;
-		_lastDotItem = DrawableDot(_rubberRect.translated(_topLeft).center(), pHistory->GetZorder(false), _actPenKind, _actPenWidth);
+		//_actPenWidth = _penWidth;
+		_lastDotItem = DrawableDot(_rubberRect.translated(_topLeft).center(), ActPen(), pHistory->GetZorder(false));
 
 		_PaintOnActCanvas(&_lastDotItem);
 
@@ -1500,7 +1506,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 				else   // autocorrect lines, circles, rectangles
 				{
 					QRectF br = _lastScribbleItem.points.boundingRect();
-					if (br.width() > 25*_penWidth || br.height() > 25*_penWidth)
+					if (br.width() > 25*ActPen().penWidth || br.height() > 25*ActPen().penWidth)
 					{
 						if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostAStraightLine(_lastLineItem))
 						{
@@ -1786,14 +1792,14 @@ void DrawArea::_InitiateDrawingIngFromLastPos()
 		return;
 
 	_lastScribbleItem.Clear();
-	_actPenWidth = _penWidth;
+	//ActPen().penWidth = _penWidth;
 
 	// DEBUG
 	_lastScribbleItem.bSmoothDebug = _bSmoothDebug;
 	// end DEBUG
-	_lastScribbleItem.pen.SetPenKind(_actPenKind);
+	_lastScribbleItem.pen = ActPen();
 //	_lastScribbleItem.SetPenColor();
-	_lastScribbleItem.pen.penWidth = _actPenWidth;
+//	_lastScribbleItem.pen.penWidth = _penWidth;	// same as ActPen().penWidth
 	_lastScribbleItem.refPoint = _lastPointC +_topLeft;
 	_lastScribbleItem.zOrder = pHistory->GetZorder(false);
 	if (_lastPointC.x() >= 0)    // else no last point yet
@@ -2177,11 +2183,13 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 	// qDebug("_DrawLineTo: last:(%4.1f, %4.1f) new:(%4.1f, %4.1f)"), _lastPointC.x(), _lastPointC.y(), endPointC.x(), endPointC.y();
 	// end DEBUG
 
+	int actPenWidth = ActPen().penWidth;
+
 	QPainter painter(_pActCanvas);
 #if !defined _VIEWER && defined _DEBUG
-	QPen pen = QPen(_PenColor(), (pencilMode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+	QPen pen = QPen(_PenColor(), (pencilMode ? 1 : actPenWidth), ActPen().penStyle, Qt::RoundCap, Qt::MiterJoin);
 #else
-	QPen pen = QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+	QPen pen = QPen(_PenColor(), ActPen().penWidth,  ActPen().penStyle, Qt::RoundCap, Qt::MiterJoin);
 #endif
 	painter.setPen(pen);
 //	qDebug("pen:#%02x%02x%02x - DrawLineTo(%g,%g) - D.A.cpp, line #1980", painter.pen().color().red(), painter.pen().color().green(), painter.pen().color().blue(), endPointC.x(), endPointC.y());
@@ -2203,7 +2211,7 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 	else if (_lastPointC.x() >= 0)
 		painter.drawLine(lp, ep);    //? better?
 	//painter.drawLine(_lastPointC, endPointC);
-	int rad = (_actPenWidth / 2) + 2;
+	int rad = (actPenWidth / 2) + 2;
 	update(QRectF(_lastPointC, endPointC + (endPointC == _lastPointC ? QPointF(1, 1) : QPointF(0, 0))).normalized()
 		.adjusted(-rad, -rad, +rad, +rad).toRect());
 
@@ -2293,15 +2301,92 @@ void DrawArea::SlotStopHistorySave()
 		pHistory->InterruptSave();
 }
 
+ void DrawArea::SlotLineStyleChanged(int index)
+{
+#ifndef _VIEWER
+	if (_busy)
+		return;
+	++_busy;
+	Qt::PenStyle lineStyle;
+	switch (index)
+	{
+		default:
+		case 0:lineStyle = Qt::SolidLine; break;
+		case 1:lineStyle = Qt::DashLine; break;
+		case 2:lineStyle = Qt::DotLine; break;
+		case 3:lineStyle = Qt::DashDotLine; break;
+		case 4:lineStyle = Qt::DashDotDotLine; break;
+	}
+
+	ActPen().penStyle = lineStyle;
+
+		// add to history, for undo
+		// if any lines selected, it will modify them
+	if (pHistory && _rubberBand && pHistory->SelectedSize())
+	{
+		DrawableIndexVector filtered;
+		if (pHistory->FilteredSelection(filtered, false))	// not just lines, but scribbles etc too
+		{
+			pHistory->AddLineStyleChangeItem(lineStyle, filtered);
+			_Redraw();
+		}
+	}
+	--_busy;
+#endif
+}
+
+static bool bAllowArrowChanges = false;
+
+void DrawArea::SlotUseLineArrowChanged(bool checked)
+{
+#ifndef _VIEWER
+	if (_busy)
+		return;
+	++_busy;
+	bAllowArrowChanges = checked;
+	--_busy;
+#endif
+}
+
+void DrawArea::SlotLineLeftArrowChanged(int index)
+{
+#ifndef _VIEWER
+	if (_busy)
+		return;
+	++_busy;
+	if (bAllowArrowChanges)
+	{
+
+	}
+	--_busy;
+#endif
+}
+
+void DrawArea::SlotLineRightArrowChanged(int index)
+{
+#ifndef _VIEWER
+	if (_busy)
+		return;
+	++_busy;
+	if (bAllowArrowChanges)
+	{
+
+	}
+	--_busy;
+#endif
+}
+
 void DrawArea::SlotScrollDocTo(int pos)
 {
 	if (_busy)
 		return;
+	++_busy;
 	if (pos >= 0 && pos != _topLeft.y())
 	{
 		_SetOrigin(QPoint(_topLeft.x(), pos));
 		_Redraw();
 	}
+	--_busy;
 }
 
 bool DrawArea::SetupPage(PageParams::PageSetupType forWhat)
@@ -2474,8 +2559,9 @@ void DrawArea::_Redraw(bool clear)
 	}
 
 	_redrawPending = false;
-	int savewidth = _penWidth;
-	FalconPenKind savekind = _actPenKind;
+
+	ActPen().SavePen();
+
 	bool saveEraseMode = _erasemode;
 
 	IntVector /*HistoryItemVector*/ forPage;
@@ -2485,8 +2571,8 @@ void DrawArea::_Redraw(bool clear)
 	for (auto phi : forPage)
 		_ReplotDrawableItem(pHistory->Drawable(phi));
 
-	_actPenKind = savekind;
-	_penWidth = savewidth;
+	ActPen().RestorePen();
+
 	_erasemode = saveEraseMode;
 }
 
@@ -2509,7 +2595,7 @@ QColor DrawArea::_PenColor()
 	//default:
 	//	return color = globalDrawColors[_actPenKind];
 	//}
-	return globalDrawColors.Color();
+	return globalDrawColors.Color(actPenIndex);
 }
 
 void DrawArea::_SaveCursorAndReplaceItWith(QCursor newCursor)
@@ -2535,9 +2621,9 @@ QPainter *DrawArea::_GetPainter(QImage *pCanvas)
 {
 	QPainter *painter = new QPainter(pCanvas);
 #if !defined _VIEWER && defined _DEBUG
-	QPen pen = QPen(_PenColor(), (pencilMode ? 1 : _actPenWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+	QPen pen = QPen(_PenColor(), (pencilMode ? 1 : ActPen().penWidth), Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
 #else
-	QPen pen = QPen(_PenColor(), _actPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
+	QPen pen = QPen(_PenColor(), ActPen().penWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin);
 #endif
 	painter->setPen(pen);
 #if !defined _VIEWER && defined _DEBUG
@@ -2662,7 +2748,7 @@ void DrawArea::SetCursor(DrawCursorShape cs)
 	case csArrow: setCursor(Qt::ArrowCursor); break;
 	case csOHand: setCursor(Qt::OpenHandCursor); break;
 	case csCHand: setCursor(Qt::ClosedHandCursor); break;
-	case csPen:   setCursor(globalDrawColors.PenPointer(_actPenKind) ); break;
+	case csPen:   setCursor(globalDrawColors.PenPointer(ActPen().PenKind()) ); break;
 #ifndef _VIEWER
 	case csEraser: setCursor(globalDrawColors.PenPointer(penEraser)  ); 
 		_erasemode = true; 
@@ -3039,8 +3125,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	pSprite->image.fill(Qt::transparent);     // transparent
 
 	// save color and line width
-	FalconPenKind pk = _actPenKind;
-	int pw = _actPenWidth;
+	ActPen().SavePen();
 	bool em = _erasemode;
 	_erasemode = false;
 	QPainter *painter = _GetPainter(&pSprite->image);
@@ -3061,8 +3146,8 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	for (; ix < siz; ++ix )	// then the other Drawables
 	{
 		pdrwi = pSprite->drawables[ix];
-		_actPenKind = pdrwi->PenKind();
-		_actPenWidth = pdrwi->pen.penWidth;
+		ActPen().SetPenKind(pdrwi->PenKind() );
+		ActPen().penWidth = pdrwi->pen.penWidth;
 		pdrwi->Draw(painter, QPointF(0,0), pSprite->rect);
 		// DEBUG
 		// pSprite->image.save(QString("I%1-%2.png").arg((int)pdrwi->dtType).arg(ix));
@@ -3082,8 +3167,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 	delete painter;
 
 	// restore data
-	_actPenKind = pk;
-	_actPenWidth = pw;
+	ActPen().RestorePen();
 	_erasemode = em;
 
 	return pSprite;

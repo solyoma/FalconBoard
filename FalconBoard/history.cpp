@@ -841,6 +841,88 @@ int HistoryPenColorChangeItem::Redo()
 }
 
 
+
+//****************** used for HistoryLineStyleChanged and line arrows ****************
+int History::FilteredSelection(DrawableIndexVector& filtered, bool onlyLines)
+{
+	filtered.clear();
+	DrawableItem* pdri;
+	auto CorrectType = [](const DrawableType dt, bool onlyLines) {
+		if(onlyLines)
+			return dt == DrawableType::dtLine;
+		else
+			return dt == DrawableType::dtLine || dt == DrawableType::dtEllipse || dt == DrawableType::dtRectangle || dt == DrawableType::dtScribble;
+		};
+	for (auto& d : _driSelectedDrawables)
+	{
+		pdri = Drawable(d);
+		if (CorrectType(pdri->dtType, onlyLines))
+			filtered.push_back(d);
+	}
+	return filtered.size();
+}
+
+int History::GetLineStyleDataVector(LineStyleDataVector &lsdv, const DrawableIndexVector &filteredSelection)
+{	
+	DrawableItem* pdri;
+	LineStyleData ld;
+	lsdv.clear();
+
+	for (auto& d : filteredSelection)
+	{
+		pdri = Drawable(d);
+		ld.index = d;
+		ld.style = pdri->pen.penStyle;	// previous style
+		lsdv.push_back(ld);
+	}
+	return lsdv.size();
+}
+
+//****************** HistoryLineStyleChangeItem ****************
+HistoryLineStyleChangeItem::HistoryLineStyleChangeItem(History* pHist, Qt::PenStyle newStyle, const DrawableIndexVector &filtered) : HistoryItem(pHist, HistEvent::heLineStyleChanged)
+{
+	newLineStyle = newStyle;
+	pHist->GetLineStyleDataVector(savedStyles, filtered);
+	Redo();
+}
+
+HistoryLineStyleChangeItem::HistoryLineStyleChangeItem(const HistoryLineStyleChangeItem& o) : HistoryItem(o)
+{
+	*this = o;
+}
+
+HistoryLineStyleChangeItem& HistoryLineStyleChangeItem::operator=(const HistoryLineStyleChangeItem& o)
+{
+	(HistoryItem&)(*this) = (HistoryItem&)o;
+	savedStyles = o.savedStyles;
+	newLineStyle = o.newLineStyle;
+	return *this;
+}
+
+int HistoryLineStyleChangeItem::Undo()
+{
+	for(int i = 0; i < savedStyles.size(); ++i)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(savedStyles[i].index);
+		if (pdrwi)
+			pdrwi->pen.penStyle = savedStyles[i].style;
+	}
+	return 1;
+}
+
+int HistoryLineStyleChangeItem::Redo()
+{
+	for (int i = 0; i < savedStyles.size(); ++i)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(savedStyles[i].index);
+		if (pdrwi)
+			pdrwi->pen.penStyle = newLineStyle;
+	}
+	return 1;
+}
+
+
+
 //****************** HistoryRubberBandItem ****************
 HistoryRubberBandItem::HistoryRubberBandItem(History* pHist, QRectF r) : rect(r), HistoryItem(pHist, HistEvent::heRubberBand)
 {
@@ -905,7 +987,9 @@ int HistoryZoomItem::Redo()
 
 void HistoryZoomItem::_SetZoomedRectangle()
 {
-	DrawableRectangle* pdr = new DrawableRectangle(zoomedRect, -1, penBlackOrWhite, 1, false);
+	DrawablePen dp;
+	dp.SetPenKind(penBlackOrWhite);
+	DrawableRectangle* pdr = new DrawableRectangle(zoomedRect, dp, false, 1);
 	pdr->Zoom(zoomIn, zoomedRect.center(), steps);
 	zoomedRect = pdr->Area();
 }
@@ -1922,6 +2006,12 @@ HistoryItem* History::AddZoomItem(QRectF rect, bool zoomIn, int steps)
 {
 	HistoryZoomItem* phzi = new HistoryZoomItem(this, rect, zoomIn, steps);
 	return _AddItem(phzi);
+}
+
+HistoryItem* History::AddLineStyleChangeItem(Qt::PenStyle style, const DrawableIndexVector &filtered)
+{
+	HistoryLineStyleChangeItem* phlti = new HistoryLineStyleChangeItem(this, style, filtered);
+	return _AddItem(phlti);
 }
 
 void History::ReplaceLastItemWith(DrawableItem& di)
