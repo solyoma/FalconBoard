@@ -421,6 +421,7 @@ void DrawArea::GotoPage(int page)
 void DrawArea::SetMode(ScreenMode mode, QString backgroundColor, QString sGridColor, QString sPageGuideColor)
 {
 	//qDebug("	Set mode to %s, %s:%d", darkMode ? "dark" : "light", __FILE__, __LINE__);
+	_darkMode = mode > ScreenMode::smWhite;
 	_backgroundColor = backgroundColor;
 	_gridColor = sGridColor;
 	_pageGuideColor = sPageGuideColor;
