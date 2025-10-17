@@ -213,7 +213,7 @@ bool DrawArea::SwitchToHistory(int index, bool redraw, bool invalidate)   // use
 		PageParams::SetScreenWidth();
 		// scrollbar
 		QSize siz = geometry().size();
-		emit SignalDocLengthChanged(_screenHeight, _topLeft.y(), pHistory->Drawables()->BottomRightLimit(siz).y());
+		emit SignalDocLengthChanged(siz.height() /*_screenHeight*/, _topLeft.y(), pHistory->Drawables()->BottomRightLimit(QSize()).y());
 	}
 
 	int res = 1;

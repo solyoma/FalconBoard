@@ -2289,7 +2289,7 @@ IntVector DrawableList::ListOfItemIndicesInQuadArea(QuadArea& q) const
 	return _pQTree ? _pQTree->GetValues(&_items, q) : IntVector();
 }
 
-QPointF DrawableList::BottomRightLimit(QSize screenSize)
+QPointF DrawableList::BottomRightLimit(const QSize viewportSize)
 {
 	QPointF pt;
 	int ixBottom = 0;
@@ -2298,13 +2298,17 @@ QPointF DrawableList::BottomRightLimit(QSize screenSize)
 	{
 		ixBottom = _pQTree->BottomItem();
 		DrawableItem* pdri = (*this)[ixBottom];
-		pt = pdri->Area().topLeft();
-		pt.setY(pt.y() - screenSize.height() / 2);
-		pt.setX(pt.x() - screenSize.width());
-		if (pt.x() < 0)
-			pt.setX(0);
-		if (pt.y() < 0)
-			pt.setY(0);
+		pt = pdri->Area().bottomRight();
+		if (viewportSize.isValid())	// then return top left so that drawable with
+		{							// largest bottom coordinates will still be visible
+
+			pt.setY(pt.y() - viewportSize.height() / 2);
+			pt.setX(pt.x() - viewportSize.width());
+			if (pt.x() < 0)
+				pt.setX(0);
+			if (pt.y() < 0)
+				pt.setY(0);
+		}
 	}
 	return pt;
 }

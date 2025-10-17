@@ -1265,7 +1265,7 @@ public:
 
     IntVector ListOfItemIndicesInRect(QRectF& r) const; // ordered by z-order then y, then x
     IntVector ListOfItemIndicesInQuadArea(QuadArea& r) const; // ordered by z-order then y, then x
-    QPointF BottomRightLimit(QSize screenSize);
+    QPointF BottomRightLimit(const QSize screenSize);
 
     DrawableItem* FirstVisibleDrawable(QRectF& r);  // smallest in zOrder
 

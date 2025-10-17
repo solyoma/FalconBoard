@@ -2336,13 +2336,13 @@ void FalconBoard::SlotForTabSwitched(int direction)
  * RETURNS:
  * REMARKS:
  *------------------------------------------------------------*/
-void FalconBoard::SlotDocLengthChanged(int pageHeight, int topleft, int maxY)
+void FalconBoard::SlotDocLengthChanged(int viewportHeight, int topleft, int maxY)
 {
     ++_busy;
-    if (maxY >= topleft + pageHeight)
+    if (maxY >= topleft + viewportHeight)
     {
         _pScrollBar->setRange(0, maxY);
-        _pScrollBar->setPageStep(pageHeight / 2);
+        _pScrollBar->setPageStep(viewportHeight / 2);
         _pScrollBar->setSliderPosition(topleft);
         _pScrollBar->setEnabled(true);
     }
