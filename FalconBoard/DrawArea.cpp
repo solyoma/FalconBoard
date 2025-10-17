@@ -2381,13 +2381,12 @@ void DrawArea::SlotScrollDocTo(int pos)
 {
 	if (_busy)
 		return;
-	++_busy;
 	if (pos >= 0 && pos != _topLeft.y())
 	{
 		_SetOrigin(QPoint(_topLeft.x(), pos));
 		_Redraw();
+		setFocus();
 	}
-	--_busy;
 }
 
 bool DrawArea::SetupPage(PageParams::PageSetupType forWhat)
