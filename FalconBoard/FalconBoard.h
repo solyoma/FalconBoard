@@ -189,6 +189,12 @@ private slots:
 	void SlotForSnapshotTimer();
 	void SlotSnapshotSaverFinished();
 	void SlotTakeScreenshot(bool hideThisWindow);
+
+	void SlotToggleArrowheadEnabled(bool b);
+	void SlotLineStyleTextActivated (const QString& text);
+	void SlotLeftArrowTextActivated (const QString& text);
+	void SlotRightArrowTextActivated(const QString& text);
+
 #endif
 	void on_actionPageSetup_triggered();
 	void on_actionPrint_triggered() 
@@ -274,6 +280,10 @@ private:
 	QIcon   _iconUndo		   ;
 	QIcon   _iconRedo		   ;
 	QIcon   _iconScreenShot	   ;
+	QIcon	_iconLeftArrStart  ;
+	QIcon	_iconRightArrStart ;
+	QIcon	_iconLeftArrEnd    ;
+	QIcon	_iconRightArrEnd   ;
 
 	QString _backgroundImageName;	// get format from extension
 	QString _sImageName;			// background image
@@ -414,7 +424,7 @@ private:
 	int  _AddNewTabForSnapshot(QString fname, bool loadIt = true, bool force=false);
 	void _CloseTab(int index);
 	QIcon _MakeLineIcon(Qt::PenStyle style);
-	QIcon _MakeArrowIcon(bool rightArrow);
+	QIcon _MakeArrowIcon(ArrowType type);
 	void _SetResetChangedMark(int index);
 	void _SetTabText(int index, QString fname);
 	void _PrepareActionIcons();

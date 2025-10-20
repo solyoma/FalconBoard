@@ -200,6 +200,10 @@ signals:
     void SignalDocLengthChanged(int pageHeight, int topleft, int maxY);
     void SignalPositionChanged(int newPos);
 
+    void SignalLineStyleActivated();
+    void SignalLeftArrowActivated();
+    void SignalRightArrowActivated();
+
 public slots:
     void NewData();
     void ClearRoll();
@@ -212,7 +216,8 @@ public slots:
     void SlotForGridSpacingChanged(int);
     void SlotForPenColorRedefined(const DrawColors &drwclr);
 	void SlotStopHistorySave();
-    void SlotUseLineArrowChanged(bool checked);
+
+    void SlotUseArrowStyleChanged(bool checked);
     void SlotLineLeftArrowChanged(int index);
     void SlotLineRightArrowChanged(int index);
     void SlotLineStyleChanged(int index);
@@ -356,7 +361,7 @@ private:
 
     bool _snapShotterRunning = false;       // it runs in a different thread started in FalconCalc
 
-    ArrowFlags _lineArrowTypes= ArrowType::arrowNone;    // no arrows
+    ArrowFlags _lineArrowTypes = ArrowFlags();     // no arrows
 
 #ifndef _VIEWER
     enum class _ScrollDirection {scrollNone, scrollUp, scrollDown, scrollLeft,scrollRight };

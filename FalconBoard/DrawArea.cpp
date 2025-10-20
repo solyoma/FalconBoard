@@ -2336,9 +2336,9 @@ void DrawArea::SlotStopHistorySave()
 #endif
 }
 
-static bool bAllowArrowChanges = false;
+static bool bAllowArrowChanges = false; // only set arrow type when this is true
 
-void DrawArea::SlotUseLineArrowChanged(bool checked)
+void DrawArea::SlotUseArrowStyleChanged(bool checked) // for checkbox
 {
 #ifndef _VIEWER
 	if (_busy)
@@ -2352,12 +2352,17 @@ void DrawArea::SlotUseLineArrowChanged(bool checked)
 void DrawArea::SlotLineLeftArrowChanged(int index)
 {
 #ifndef _VIEWER
-	if (_busy)
+	if (_busy || !bAllowArrowChanges)
 		return;
 	++_busy;
-	if (bAllowArrowChanges)
+	if (pHistory && _rubberBand && pHistory->SelectedSize())
 	{
-
+		DrawableIndexVector filtered;
+		if (pHistory->FilteredSelection(filtered, true))	// just lines
+		{
+			pHistory->AddArrowStyleChangeItem(index, 0, filtered);	   // left arrow, set arrow type for index
+			_Redraw();
+		}
 	}
 	--_busy;
 #endif
@@ -2366,12 +2371,17 @@ void DrawArea::SlotLineLeftArrowChanged(int index)
 void DrawArea::SlotLineRightArrowChanged(int index)
 {
 #ifndef _VIEWER
-	if (_busy)
+	if (_busy || !bAllowArrowChanges)
 		return;
 	++_busy;
-	if (bAllowArrowChanges)
+	if (pHistory && _rubberBand && pHistory->SelectedSize())
 	{
-
+		DrawableIndexVector filtered;
+		if (pHistory->FilteredSelection(filtered, true))	// just lines
+		{
+			pHistory->AddArrowStyleChangeItem(index, 1, filtered);	   // right arrow, set arrow type for index
+			_Redraw();
+		}
 	}
 	--_busy;
 #endif
@@ -3006,8 +3016,8 @@ void DrawArea::_End(bool toBottom)
 	else  // just go end of rightmost scribble in actual viewport
 	{
 		int x = pHistory->RightMostInBand(_canvasRect) - width();
-		if (x < 0)
-			x = 0;
+		if (x < 0) // no need to move
+			return; //  x = 0;
 		x += 20;	// leave empty space to the right
 		_SetOrigin(_topLeft+QPointF(x, 0));
 		_Redraw();

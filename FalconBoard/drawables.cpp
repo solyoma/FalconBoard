@@ -1536,50 +1536,57 @@ void DrawableLine::_DrawArrows(QPainter* painter, QPointF topLeftOfVisibleArea)
 	if(arrowFlags == 0)
 		return;
 
-	if(arrowFlags.testFlag(ArrowType::arrowStartOut))
-		_DrawSingleArrow(painter, topLeftOfVisibleArea, 1, 0, pen.penWidth*10);
-	if(arrowFlags.testFlag(ArrowType::arrowStartIn))
-		_DrawSingleArrow(painter, topLeftOfVisibleArea, 0, 1, pen.penWidth*10);
-	if(arrowFlags.testFlag(ArrowType::arrowEndOut))
-		_DrawSingleArrow(painter, topLeftOfVisibleArea, 0, 0, pen.penWidth*10);
-	if(arrowFlags.testFlag(ArrowType::arrowEndIn))
-		_DrawSingleArrow(painter, topLeftOfVisibleArea, 1, 1, pen.penWidth*10);
+	if(arrowFlags & (arrowStartOut))
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowStartOut, pen.penWidth*10);
+	if(arrowFlags &(arrowStartIn))
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowStartIn, pen.penWidth*10);
+	if(arrowFlags &(arrowEndOut))
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowEndOut, pen.penWidth*10);
+	if(arrowFlags & (arrowEndIn))
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowEndIn, pen.penWidth*10);
 }
 
 /*=============================================================
  * TASK   :	Draws an arrow at one end point of a line
  * PARAMS :	painter: 
- *			which_end: 0: at end point, 1: at start point
- *			direction: 0: outward: ---> or <---
- *					   1: inward:  ---< or >---
+ *			type: start inward: |>--- start outward: <|---
+ *				  end   inward:  ---<| end outward ---|>
  * EXPECTS:	brush and pen already set in painter
  * GLOBALS:
  * RETURNS: none
  * REMARKS:	- too short lines are ignored
+ *			- start point is the point that has smaller x 
+ *				coordinate or if the line is vertical is at 
+ *				the bottom
  *------------------------------------------------------------*/
-void DrawableLine::_DrawSingleArrow(QPainter* painter, QPointF topLeftOfVisibleArea, int which_end, int direction, qreal arrowSize)
+void DrawableLine::_DrawSingleArrow(QPainter* painter, QPointF topLeftOfVisibleArea, ArrowType type, qreal arrowSize)
 {
-	QPointF start	= which_end ? endPoint : refPoint,
-			end		= which_end ? refPoint : endPoint;
-	start -= topLeftOfVisibleArea;
-	end   -= topLeftOfVisibleArea;
+	if (!type)		// no arrows set
+		return;
 
+	QPointF start = refPoint-topLeftOfVisibleArea,
+			end	  = endPoint-topLeftOfVisibleArea;
+	if (start.x() > end.x() || (start.x() == end.x() && start.y() < end.y()))
+		qSwap(start, end);
 	QLineF line(start, end);
+	int angle = -line.angle();	  // < 360°	   line from left to right downwards has an angle > 180°
 
+	// rotate 180° relative to line angle for arrowStartOut and arrowEndIn
+	if (type == arrowEndIn || type == arrowStartOut)
+	{
+		angle += 180;
+		if (angle > 360)
+			angle -= 360;
+	}
 	if (line.length() < 2 * arrowSize)
 		return; // too short to draw an arrow
 
 	painter->save();
 	painter->setBrush(painter->pen().color());
-	painter->translate(end);
-
-	/*	direction		which-end	rotate 180
-	*    0 (o)				0 (e)		no
-	*    0 (o)				1 (s)		yes
-	*	 1 (i)				0 (e)		yes
-	*    1 (i)				1 (s)		no
-	*/
-	int angle = (direction==0 ? 0 : 180) - line.angle();
+	QPen pen = painter->pen();		// Arrow heads always have solid line border
+	pen.setStyle(Qt::SolidLine);
+	painter->setPen(pen);
+	painter->translate( (type < arrowEndOut) ? start : end);
 
 	painter->rotate(angle);
 	// paint line arrow

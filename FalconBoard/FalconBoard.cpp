@@ -5,6 +5,8 @@
 #include <QPainter>
 #include <QThread>
 #include <QSettings>
+#include <QListView>
+#include <QStyledItemDelegate>
 
 #include "config.h"
 #include "pagesetup.h"
@@ -607,6 +609,10 @@ void FalconBoard::_LoadIcons()
     _iconUndo = QIcon(":/FalconBoard/Resources/undo.png");
     _iconRedo = QIcon(":/FalconBoard/Resources/redo.png");
     _iconScreenShot = QIcon(":/FalconBoard/Resources/screenshot.png");
+    _iconLeftArrStart = _MakeArrowIcon(arrowStartOut);    // <|-
+    _iconRightArrStart = _MakeArrowIcon(arrowStartIn);    // |>-
+    _iconLeftArrEnd = _MakeArrowIcon(arrowEndIn);         // -<|
+    _iconRightArrEnd = _MakeArrowIcon(arrowEndOut);       // -|>
 }
 
 void FalconBoard::_SetupIconsForPenColors(DrawColors *pdrclr)
@@ -640,6 +646,59 @@ void FalconBoard::_SetupIconsForPenColors(DrawColors *pdrclr)
 #endif
 }
 
+//********************** IconOnlyDelegate ***************
+// delegate to draw combo box icons without an empty text box
+// used in combo boxes on the toolbar
+class IconOnlyDelegate : public QStyledItemDelegate {
+public:
+    IconOnlyDelegate(QObject* parent = nullptr, QSize iconSize = QSize(24, 24))
+        : QStyledItemDelegate(parent), m_iconSize(iconSize) {
+    }
+
+    void paint(QPainter* painter, const QStyleOptionViewItem& option,
+        const QModelIndex& index) const override {
+        QStyleOptionViewItem opt = option;
+        initStyleOption(&opt, index);
+        opt.text.clear();  // Suppress text
+        opt.decorationSize = m_iconSize;
+        QStyledItemDelegate::paint(painter, opt, index);
+    }
+
+    QSize sizeHint(const QStyleOptionViewItem& option,
+        const QModelIndex& index) const override {
+        return m_iconSize;  // Uniform height = icon height
+    }
+
+private:
+    QSize m_iconSize;
+};
+static QString toolBarComboBoxStyle = R"(
+    QComboBox {
+        padding-left: 0px;
+        min-width: 0px;
+    }
+    QComboBox::drop-down {
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 20px;
+    }
+)";
+static void __SetupComboForToolbar(QComboBox* comboBox, int iconWidth)
+{
+    QSize iconSize(iconWidth,16); // c.f. with MakeLineIcon() and MakeArrowIcon()
+    comboBox->setIconSize(iconSize);
+    comboBox->setItemDelegate(new IconOnlyDelegate(comboBox, iconSize));
+    comboBox->setStyleSheet(toolBarComboBoxStyle);
+
+    QListView* popupView = new QListView;
+    popupView->setSpacing(0);
+    popupView->setUniformItemSizes(true);  // Ensures consistent height
+    popupView->setItemDelegate(new IconOnlyDelegate(popupView, iconSize));
+    comboBox->setView(popupView);
+}
+
+
+//**********************************************
 void FalconBoard::_CreateAndAddActions()
 {   
     _LoadIcons();
@@ -714,39 +773,6 @@ void FalconBoard::_CreateAndAddActions()
 #endif
     ui.mainToolBar->addSeparator();
 
-    // new items for line style and arrow selections
-    _psbLineStyleCombo = new QComboBox();
-    _psbLineStyleCombo->setFrame(false);
-    _psbLineStyleCombo->setIconSize(QSize(128,16));
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), "");
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine), "");
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine), "");
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), "");
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), "");
-    _psbLineStyleCombo->setCurrentIndex(0);
-    ui.mainToolBar->addWidget(_psbLineStyleCombo);
-
-    ui.mainToolBar->addSeparator();
-    _psbUseLineArrow = new QCheckBox();
-    _psbUseLineArrow->setText(tr(""));
-    _psbUseLineArrow->setToolTip(tr("Add arrows to straight lines"));
-    ui.mainToolBar->addWidget(_psbUseLineArrow);
-    ui.mainToolBar->addSeparator();
-    _psbLeftArrowCombo = new QComboBox();
-    _psbLeftArrowCombo->setFrame(false);
-    _psbLeftArrowCombo->addItem(""); // no arrow
-    _psbLeftArrowCombo->addItem(_MakeArrowIcon(false), "");// left arrow
-    _psbLeftArrowCombo->addItem(_MakeArrowIcon(true), ""); // right arrow
-    ui.mainToolBar->addWidget(_psbLeftArrowCombo);
-
-    _psbRightArrowCombo = new QComboBox();
-    _psbRightArrowCombo->setFrame(false);
-    _psbRightArrowCombo->addItem(""); // no arrow
-    _psbRightArrowCombo->addItem(_MakeArrowIcon(true), ""); // right arrow
-    _psbRightArrowCombo->addItem(_MakeArrowIcon(false), ""); // left arrow
-    ui.mainToolBar->addWidget(_psbRightArrowCombo);
-
-
 //    ui.mainToolBar->addWidget(new QLabel(tr("Grid ")));
     _pChkGridOn = new QCheckBox(tr("Grid size:"));
     ui.mainToolBar->addWidget(_pChkGridOn);
@@ -767,6 +793,50 @@ void FalconBoard::_CreateAndAddActions()
     ui.mainToolBar->addWidget(_psbGridSpacing);
     ui.mainToolBar->addSeparator();
 
+
+    // new items for line style and arrow selections
+    _psbLineStyleCombo = new QComboBox();
+    _psbLineStyleCombo->setFrame(false);
+	_psbLineStyleCombo->setToolTip(tr("Select line style"));
+    _psbLineStyleCombo->setIconSize(QSize(128,16));
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine),  QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine),   QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), QString());
+    __SetupComboForToolbar(_psbLineStyleCombo, 128);
+    _psbLineStyleCombo->setCurrentIndex(0);
+    ui.mainToolBar->addWidget(_psbLineStyleCombo);
+
+    ui.mainToolBar->addSeparator();
+    _psbUseLineArrow = new QCheckBox();
+    _psbUseLineArrow->setText(tr(""));
+    _psbUseLineArrow->setToolTip(tr("Allow arrows to straight lines"));
+    ui.mainToolBar->addWidget(_psbUseLineArrow);
+
+    ui.mainToolBar->addSeparator();
+    _psbLeftArrowCombo = new QComboBox();
+    _psbLeftArrowCombo->setFrame(false);
+    _psbLeftArrowCombo->addItem(""); // no arrow
+	_psbLeftArrowCombo->setToolTip(tr("Select left arrow type"));
+    _psbLeftArrowCombo->addItem(_iconLeftArrStart , QString());
+    _psbLeftArrowCombo->addItem(_iconRightArrStart, QString());
+    __SetupComboForToolbar(_psbLeftArrowCombo,32);
+    _psbLeftArrowCombo->setStyleSheet(toolBarComboBoxStyle);
+    _psbLeftArrowCombo->setEnabled(false);
+    ui.mainToolBar->addWidget(_psbLeftArrowCombo);
+
+    _psbRightArrowCombo = new QComboBox();
+    _psbRightArrowCombo->setFrame(false);
+    _psbRightArrowCombo->addItem(""); // no arrow
+    _psbRightArrowCombo->addItem(_iconRightArrEnd, QString());
+    _psbRightArrowCombo->addItem(_iconLeftArrEnd, QString());
+	_psbRightArrowCombo->setToolTip(tr("Select right arrow type"));
+    __SetupComboForToolbar(_psbRightArrowCombo,32);
+    _psbRightArrowCombo->setStyleSheet(toolBarComboBoxStyle);
+    _psbRightArrowCombo->setEnabled(false);
+    ui.mainToolBar->addWidget(_psbRightArrowCombo);
+
                    // ------ TABs for open documents ------
     _pTabs = new QTabBar();
     ui.tabToolBar->addWidget(_pTabs);
@@ -784,10 +854,19 @@ void FalconBoard::_CreateAndAddActions()
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenWidthChanged);
     connect(_psbPenWidth, &QSpinBox::editingFinished, this, &FalconBoard::slotPenWidthEditingFinished);
 
-    connect(_psbUseLineArrow,   &QCheckBox::toggled, _drawArea, &DrawArea::SlotUseLineArrowChanged);
-    connect(_psbLineStyleCombo, (void (QComboBox::*)(int))&QComboBox::currentIndexChanged, _drawArea, &DrawArea::SlotLineStyleChanged);
-    connect(_psbLeftArrowCombo, (void (QComboBox::*)(int))&QComboBox::currentIndexChanged, _drawArea, &DrawArea::SlotLineLeftArrowChanged);
-    connect(_psbRightArrowCombo, (void (QComboBox::*)(int))&QComboBox::currentIndexChanged, _drawArea, &DrawArea::SlotLineRightArrowChanged);
+    connect(_psbUseLineArrow,   &QCheckBox::toggled, _drawArea, &DrawArea::SlotUseArrowStyleChanged);
+    connect(_psbUseLineArrow,   &QCheckBox::toggled, this, &FalconBoard::SlotToggleArrowheadEnabled);
+    // QCombobox has methods overloaded and we must select the one we want
+    // either this way:
+    //connect(_psbLineStyleCombo, (void (QComboBox::*)(int))&QComboBox::currentIndexChanged, _drawArea, &DrawArea::SlotLineStyleChanged);
+    //connect(_psbLeftArrowCombo, (void (QComboBox::*)(int))&QComboBox::currentIndexChanged, _drawArea, &DrawArea::SlotLineLeftArrowChanged);
+    // or this way:
+    //connect(_psbRightArrowCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), _drawArea, &DrawArea::SlotLineRightArrowChanged);
+
+    connect(_psbLineStyleCombo,  &QComboBox::textActivated, this, &FalconBoard::SlotLineStyleTextActivated );
+    connect(_psbLeftArrowCombo,  &QComboBox::textActivated, this, &FalconBoard::SlotLeftArrowTextActivated );
+    connect(_psbRightArrowCombo, &QComboBox::textActivated, this, &FalconBoard::SlotRightArrowTextActivated);
+
 
     connect(_psbGridSpacing, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotGridSpacingChanged);
     connect(_psbGridSpacing, &QSpinBox::editingFinished, this, &FalconBoard::slotGridSpacingEditingFinished);
@@ -895,17 +974,22 @@ QIcon FalconBoard::_MakeLineIcon(Qt::PenStyle style)
     return QIcon(px);
 }
 
-QIcon FalconBoard::_MakeArrowIcon(bool rightArrow)
+QIcon FalconBoard::_MakeArrowIcon(ArrowType type)
 {
-    QPixmap px(32, 32);
+	QSize iconSize(64, 32);
+    QPixmap px(iconSize);
     px.fill(Qt::transparent);
     QPainter painter(&px);
     __MakeIconCommon(painter, Qt::SolidLine);
-    // 0x25ba:►  0x25c4:◄
-    QFont font("Arial", 28, 87);
-    painter.setFont(font);
-    QChar ch(rightArrow ? 0x25ba :0x25c4);
-    painter.drawText(QPoint(2,2), ch);
+  //DrawArrowheadIcon(QPainter* painter, QSize iconSize, QColor color, qreal arrowSize, ArrowType type)
+    DrawArrowheadIcon(&painter, iconSize, QColor(_sTextColor), 20.0, type);
+    //// 0x25ba:►  0x25c4:◄
+    //QFont font("Arial", 28, 87);
+    //painter.setFont(font);
+    //QChar ch(rightArrow ? 0x25ba :0x25c4);
+    //painter.drawText(QPoint(2,2), ch);
+    // DEBUG
+	//px.save(QString("%1-arrow.png").arg(rightArrow? "right" : "left"));
     return QIcon(px);
 }
 
@@ -1512,25 +1596,28 @@ void FalconBoard::_SetupMode(ScreenMode mode)
 // /DEBUG
     int n = _psbLineStyleCombo->currentIndex();
     _psbLineStyleCombo->clear();
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), "");
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine), "");
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine), "");
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), "");
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), "");
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), QString());
+    __SetupComboForToolbar(_psbLineStyleCombo, 128);
     _psbLineStyleCombo->setCurrentIndex(n);
 
     n = _psbLeftArrowCombo->currentIndex();
     _psbLeftArrowCombo->clear();
-    _psbLeftArrowCombo->addItem(""); // no arrow
-    _psbLeftArrowCombo->addItem(_MakeArrowIcon(false), "");// left arrow
-    _psbLeftArrowCombo->addItem(_MakeArrowIcon(true), ""); // right arrow
+    _psbLeftArrowCombo->addItem(QString());                                                         // no arrow
+    _psbLeftArrowCombo->addItem(_ColoredIcon(_iconLeftArrStart, Qt::black, Qt::white), QString());  // <|-
+    _psbLeftArrowCombo->addItem(_ColoredIcon(_iconRightArrStart, Qt::black, Qt::white), QString()); // |>-
+    __SetupComboForToolbar(_psbLeftArrowCombo, 32);
     _psbLeftArrowCombo->setCurrentIndex(n);
 
     n = _psbRightArrowCombo->currentIndex();
     _psbRightArrowCombo->clear();
-    _psbRightArrowCombo->addItem(""); // no arrow
-    _psbRightArrowCombo->addItem(_MakeArrowIcon(false), "");// Right arrow
-    _psbRightArrowCombo->addItem(_MakeArrowIcon(true), ""); // right arrow
+    _psbRightArrowCombo->addItem("");                                                               // no arrow
+    _psbRightArrowCombo->addItem(_ColoredIcon(_iconRightArrEnd, Qt::black, Qt::white), QString());  // -|>
+    _psbRightArrowCombo->addItem(_ColoredIcon(_iconLeftArrEnd, Qt::black, Qt::white), QString());   // -<|
+    __SetupComboForToolbar(_psbRightArrowCombo, 32);
     _psbRightArrowCombo->setCurrentIndex(n);
 }
 
@@ -2859,6 +2946,29 @@ void FalconBoard::SlotSnapshotSaverFinished()
 void FalconBoard::SlotTakeScreenshot(bool hideThisWindow)
 {
 	_DoScreenshot(hideThisWindow);
+}
+void FalconBoard::SlotToggleArrowheadEnabled(bool b)
+{
+    _psbLeftArrowCombo->setEnabled(b);
+    _psbRightArrowCombo->setEnabled(b);
+}
+void FalconBoard::SlotLineStyleTextActivated(const QString& text)
+{
+    int i = _psbLineStyleCombo->currentIndex();
+    _drawArea->SlotLineStyleChanged(i);
+    //emit _psbLineStyleCombo->currentIndexChanged(i);
+}
+void FalconBoard::SlotLeftArrowTextActivated(const QString& text)
+{
+    int i = _psbLeftArrowCombo->currentIndex();
+    //emit _psbLeftArrowCombo->currentIndexChanged(i);
+    _drawArea->SlotLineLeftArrowChanged(i);
+}
+void FalconBoard::SlotRightArrowTextActivated(const QString& text)
+{
+    int i = _psbRightArrowCombo->currentIndex();
+    //emit _psbRightArrowCombo->currentIndexChanged(i);
+    _drawArea->SlotLineRightArrowChanged(i);
 }
 #endif
 

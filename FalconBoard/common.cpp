@@ -465,6 +465,40 @@ QIcon FalconPens::_RecolorIcon(QIcon sourceIcon, QColor colorW, QColor colorB) c
     return QIcon(pmW);
 }
 
+void DrawArrowheadIcon(QPainter* painter, QSize iconSize, QColor color, qreal arrowSize, ArrowType type)    // draw arrow to line end/start in direction
+{                                    // startIn: >-, startOut: <-, endIn: -<, endOut: -> 
+    painter->save();
+    QPen pen = painter->pen();
+    pen.setColor(color);
+    painter->setBrush(color);
+
+    bool rotation = false;
+    int offset = 2;
+
+    if (type == arrowStartOut)                  // -|> rotation 180 : <|-
+        rotation = true;
+    else if (type == arrowStartIn)              // |>- rotation 0 : |>-
+        offset = arrowSize;                     
+    else if (type == arrowEndOut)               // -|> no rotation
+        offset = 2*arrowSize;                     
+    else                                        // -<|
+        offset = 2+arrowSize,rotation=true;       
+
+    painter->translate(QPoint(offset, iconSize.height()/2));
+    if(rotation) 
+        painter->rotate(180);
+
+    // in the coord. system of the painter head always drawn pointing to the right
+
+    QPolygonF arrowHead;
+    arrowHead << QPointF(0, 0)                     //
+        << QPointF(-arrowSize, arrowSize / 2)      //  |
+        << QPointF(-arrowSize, -arrowSize / 2);    //  |
+    painter->drawPolygon(arrowHead);
+    painter->restore();
+    painter->drawLine( QLineF(2, iconSize.height() / 2, 2 + 2*arrowSize, iconSize.height() / 2));
+}
+
 QCursor FalconPens::_SetupEraser() const
 {
     QIcon icon = _RecolorIcon(QIcon(":/FalconBoard/Resources/pen_eraser.png"), _darkMode ? Qt::black : Qt::white, _darkMode ? Qt::white : Qt::black);

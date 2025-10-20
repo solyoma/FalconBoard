@@ -733,7 +733,7 @@ struct DrawableLine : public DrawableItem
 {
     QPointF endPoint;                   // start point in DrawableItem
     
-    ArrowFlags arrowFlags;              // see common.h
+    ArrowFlags arrowFlags = 0;              // see common.h
 
     DrawableLine() : DrawableItem()
     {
@@ -750,9 +750,10 @@ struct DrawableLine : public DrawableItem
     bool CanRotate(MyRotation rot, QPointF center) const override;
     bool Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
     bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
-    QRectF Area() const override// includes half of pen width+1 pixel
-    {
+    QRectF Area() const override// includes half of pen width+1 pixel + arrows
+    {          // first rectangle without arrows
         QRectF rect = QRectF(refPoint, QSize((endPoint - refPoint).x(), (endPoint - refPoint).y()) ).normalized();
+        // adjust for arrows
         qreal d = pen.penWidth / 2.0 + 1.0;
         return rect.adjusted(-d, -d, d, d);
     }
@@ -763,9 +764,9 @@ struct DrawableLine : public DrawableItem
     bool PointIsNear(QPointF p, qreal distance) const override;
     void Draw(QPainter* painter, QPointF topLeftOfVisibleArea, const QRectF& clipR) override;
   private:
-    void _DrawArrows(QPainter* painter, QPointF topLeftOfVisibleArea);
+    void _DrawArrows(QPainter* painter, QPointF topLeftOfVisibleArea); // using 'arrowFlags'
     // which_end: 0 -> at end point, 1: start point, direction:0  ---->, 1 ----<
-    void _DrawSingleArrow(QPainter* painter, QPointF topLeftOfVisibleArea, int which_end, int direction, qreal arrowSize);
+    void _DrawSingleArrow(QPainter* painter, QPointF topLeftOfVisibleArea, ArrowType arrowType, qreal arrowSize);
 };
 QDataStream& operator<<(QDataStream& ofs, const DrawableLine& di);
 QDataStream& operator>>(QDataStream& ifs,       DrawableLine& di);  // call AFTER header is read in

@@ -272,24 +272,26 @@ struct LineStyleData
 };
 
 /* *********************************** for drawableLines *********************** */
-enum class ArrowType :int8_t {
-    arrowNone = 0,
-    arrowStartOut = 1, // arrow points outward from the start point
-    arrowEndOut = 2, // same for end point
-    arrowStartIn = 4, //        - " - inward    - " -
-    arrowEndIn = 8, // same for end point 
-};
-typedef QFlags<ArrowType> ArrowFlags;
+typedef int8_t ArrowType;   // low 2 bits: arrow at start (0: none, 1: out, 2: in
+constexpr ArrowType    noArrowAtStart = 0x03,      // these for bits to clear
+	                   noArrowAtEnd   = 0x0C,      // so these are never set into ArrowFlags!
+                       arrowStartOut   = 1,  // arrow points outward from the start point   <|-
+                       arrowStartIn    = 2,  //        - " - inward    - " -                |>-
+                       arrowEndOut     = 4,  // same for end point                          -|>
+                       arrowEndIn      = 8;  // same for end point                          -<|
+
+typedef int8_t ArrowFlags;
 typedef QVector<ArrowType> ArrowTypes;
 
 struct LineVectorHeadData
 {
-    int index=0;      // in actual history's _drawables
-    ArrowFlags flags; // original style for data
+    int index=0;      // for line in actual history's _drawables
+    ArrowFlags flags; // original arrow data
 };
 
 
 using LineStyleDataVector = QVector<LineStyleData>;
+using LineArrowDataVector = QVector<LineVectorHeadData>;
 
 /*=============================================================
  * TASK:    centralized settings handler
@@ -314,6 +316,8 @@ struct COUNTER {
     int operator--() { if (b) --b; return b; }
     operator bool() { return b; }
 };
+
+void DrawArrowheadIcon(QPainter* painter, QSize iconSize, QColor color, qreal arrowSize, ArrowType type);    // draw arrow to line end/start in direction
 
 
 #endif // _COMMON_H

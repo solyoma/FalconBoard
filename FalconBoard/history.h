@@ -423,6 +423,24 @@ struct HistoryLineStyleChangeItem : public HistoryItem
 };
 
             //--------------------------------------------
+            //      HistoryArrowStyleChange
+            //--------------------------------------------
+
+struct HistoryArrowStyleChangeItem : public HistoryItem
+{
+    ArrowType newType = ArrowType();
+    LineArrowDataVector savedArrows; 
+
+                                  // type= 0: none, 1:arrow right, 2:arrow left
+                                  // whichEnd= 0: start of line, 1: end of line
+    HistoryArrowStyleChangeItem(History* pHist, ArrowType newType, const DrawableIndexVector& filtered);
+    HistoryArrowStyleChangeItem(const            HistoryArrowStyleChangeItem& o);
+    HistoryArrowStyleChangeItem& operator=(const HistoryArrowStyleChangeItem& o);
+    int Undo() override;
+    int Redo() override;
+};
+
+            //--------------------------------------------
 			//      HistoryZoomItem
             // increase coorindates of marked items by 
             // a given factor, but not changing the line widths
@@ -643,7 +661,8 @@ public: // functions
 	int CountButScreenShots();
 	int SelectedSize() const { return _driSelectedDrawables.size(); }
 
-    int GetLineStyleDataVector(LineStyleDataVector& resultVector, const DrawableIndexVector& filteredSelection);
+    int GetLineStyleDataVector(Qt::PenStyle newStyle, LineStyleDataVector& resultVector, const DrawableIndexVector& filteredSelection);
+    int GetLineArrowDataVector(ArrowType newType, LineArrowDataVector& resultVector, const DrawableIndexVector& filteredSelection);
 
 	SaveResult Save(bool asasSnapshot = false);
 
@@ -693,6 +712,7 @@ public: // functions
 	HistoryItem* AddZoomItem(QRectF rect, bool zoomIn, int steps);   // from the center of the rubberRect rectangle 'rect'
 	// --------------------- replace Item -----------------------------------
     HistoryItem* AddLineStyleChangeItem(Qt::PenStyle newStyle, const DrawableIndexVector& filtered); 
+    HistoryItem* AddArrowStyleChangeItem(int arrowTypeIndex, int whichEnd, const DrawableIndexVector& filtered); 
 
 	void ReplaceLastItemWith(DrawableItem& di);
 	// --------------------- drawing -----------------------------------

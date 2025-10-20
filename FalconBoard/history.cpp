@@ -862,7 +862,7 @@ int History::FilteredSelection(DrawableIndexVector& filtered, bool onlyLines)
 	return filtered.size();
 }
 
-int History::GetLineStyleDataVector(LineStyleDataVector &lsdv, const DrawableIndexVector &filteredSelection)
+int History::GetLineStyleDataVector(Qt::PenStyle newStyle, LineStyleDataVector &lsdv, const DrawableIndexVector &filteredSelection)
 {	
 	DrawableItem* pdri;
 	LineStyleData ld;
@@ -873,16 +873,36 @@ int History::GetLineStyleDataVector(LineStyleDataVector &lsdv, const DrawableInd
 		pdri = Drawable(d);
 		ld.index = d;
 		ld.style = pdri->pen.penStyle;	// previous style
-		lsdv.push_back(ld);
+		if(ld.style != newStyle)		// do not push if not changed
+			lsdv.push_back(ld);
 	}
 	return lsdv.size();
+}
+
+int History::GetLineArrowDataVector(ArrowType newType, LineArrowDataVector& ladv, const DrawableIndexVector& filteredSelection)
+{								  // newFlags either arrowNone or any combination of the arrow types
+	DrawableLine* pdri;
+	LineVectorHeadData vhd;
+	ladv.clear();
+	for (auto& d : filteredSelection)	//only DrawableLines can have arrows
+	{
+		pdri = dynamic_cast<DrawableLine*>(Drawable(d));
+		vhd.index = d;
+		vhd.flags = pdri->arrowFlags;
+		if(((newType == noArrowAtStart || newType == noArrowAtEnd) && (int8_t(pdri->arrowFlags) & int8_t(newType)) == 0)
+			|| (newType != noArrowAtStart && newType != noArrowAtEnd && (pdri->arrowFlags) & int8_t(newType))) // already set
+				continue;
+			else
+				ladv.push_back(vhd);
+	}
+	return ladv.size();
 }
 
 //****************** HistoryLineStyleChangeItem ****************
 HistoryLineStyleChangeItem::HistoryLineStyleChangeItem(History* pHist, Qt::PenStyle newStyle, const DrawableIndexVector &filtered) : HistoryItem(pHist, HistEvent::heLineStyleChanged)
 {
 	newLineStyle = newStyle;
-	pHist->GetLineStyleDataVector(savedStyles, filtered);
+	pHist->GetLineStyleDataVector(newStyle, savedStyles, filtered);
 	Redo();
 }
 
@@ -917,6 +937,55 @@ int HistoryLineStyleChangeItem::Redo()
 		DrawableItem* pdrwi = pHist->Drawable(savedStyles[i].index);
 		if (pdrwi)
 			pdrwi->pen.penStyle = newLineStyle;
+	}
+	return 1;
+}
+
+//****************** HistoryArrowStyleChangeItem ****************
+
+HistoryArrowStyleChangeItem::HistoryArrowStyleChangeItem(History* pHist, ArrowType newType, const DrawableIndexVector& filtered) :
+	newType(newType), HistoryItem(pHist, HistEvent::heArrowStyleChanged)
+{
+	pHist->GetLineArrowDataVector(newType, savedArrows, filtered);
+	if(savedArrows.count())
+		Redo();
+}
+
+HistoryArrowStyleChangeItem::HistoryArrowStyleChangeItem(const HistoryArrowStyleChangeItem& o) : HistoryItem(o)
+{
+	*this = o;
+}
+
+HistoryArrowStyleChangeItem& HistoryArrowStyleChangeItem::operator=(const HistoryArrowStyleChangeItem& o)
+{
+	(HistoryItem&)(*this) = (HistoryItem&)o;
+	savedArrows = o.savedArrows;
+	newType = o.newType;
+	return *this;
+}
+
+
+int HistoryArrowStyleChangeItem::Undo()
+{
+	for (int i = 0; i < savedArrows.size(); ++i)
+	{
+		DrawableLine* pdrwi = dynamic_cast<DrawableLine*>(pHist->Drawable(savedArrows[i].index));
+		if (pdrwi)
+			pdrwi->arrowFlags = savedArrows[i].flags;
+	}
+	return 1;
+}
+
+int HistoryArrowStyleChangeItem::Redo()
+{
+	for (int i = 0; i < savedArrows.size(); ++i)
+	{
+		DrawableLine* pdrwi = dynamic_cast<DrawableLine*>(pHist->Drawable(savedArrows[i].index));
+		if (pdrwi)
+			if (newType == noArrowAtStart || newType == noArrowAtEnd)
+				pdrwi->arrowFlags &= ~(int8_t)newType;
+			else
+				pdrwi->arrowFlags |= newType;
 	}
 	return 1;
 }
@@ -2012,6 +2081,31 @@ HistoryItem* History::AddLineStyleChangeItem(Qt::PenStyle style, const DrawableI
 {
 	HistoryLineStyleChangeItem* phlti = new HistoryLineStyleChangeItem(this, style, filtered);
 	return _AddItem(phlti);
+}
+
+HistoryItem* History::AddArrowStyleChangeItem(int type, int whichEnd, const DrawableIndexVector& filtered)
+{
+	int8_t newType = 0;
+	// type, whichEnd, flag
+//   0       0     arrowNone		   no arrow at start
+//   0       1     arrowNone		   no arrow at end
+//   1 >     0     arrowStartIn        |>---
+//   1 >     1     arrowEndOut         ---|>
+//   2 <     0     arrowStartOut       <|---
+//   2 <     1     arrowEndIn          ---<|
+	switch (type)
+	{
+		default:
+		case 0: newType = whichEnd ? noArrowAtEnd :noArrowAtStart; break;
+		case 1: newType = whichEnd ? arrowEndOut : arrowStartOut; break;
+		case 2: newType = whichEnd ? arrowEndIn : arrowStartIn; break;
+	}
+
+	HistoryArrowStyleChangeItem* phlai = new HistoryArrowStyleChangeItem(this, newType, filtered);
+	if(phlai->savedArrows.size())
+		return _AddItem(phlai);
+	delete phlai;
+	return nullptr;
 }
 
 void History::ReplaceLastItemWith(DrawableItem& di)
