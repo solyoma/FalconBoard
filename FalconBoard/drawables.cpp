@@ -1514,6 +1514,51 @@ bool DrawableLine::Rotate(MyRotation arot, QPointF center)
 	return true;
 }
 
+QRectF DrawableLine::Area() const // includes half of pen width+1 pixel + arrows
+{
+	// adjust for pen width
+	qreal d = pen.penWidth / 2.0 + 1.0;
+	if(!arrowFlags)
+		return LineArea();
+	// translate an arrow head to get the x and y changes
+	QLineF line(refPoint, endPoint);
+	qreal angle = line.angle();
+
+	QPolygonF arrowHead;
+	arrowHead << QPointF(ArrowSize(), 0)
+		<< QPointF(0,  ArrowSize() / 2)
+		<< QPointF(0, -ArrowSize() / 2);
+
+	QTransform tr;
+	tr.rotate(-angle);
+	arrowHead = tr.map(arrowHead);
+
+	QRectF br = arrowHead.boundingRect();
+
+	QRectF rect(refPoint, endPoint);
+	rect = rect.normalized();
+	rect.adjust(-d, -d, d, d);
+	qreal dxS=0, dyS=0, dxE=0, dyE=0;
+	if (arrowFlags & arrowStartIn)
+	{
+		dxS = -br.width();
+		dyS = angle < 180 ? br.height() : -br.height();
+	}
+	if (arrowFlags & arrowEndIn)
+	{
+		dxE = br.width();
+		dyE = angle < 180 ? -br.height() : br.height();
+	}
+	return rect.adjusted(dxS - d, dyS - d, dxE + d, dyE + d);
+}
+
+constexpr QRectF DrawableLine::LineArea() const
+{
+	qreal d = pen.penWidth / 2.0 + 1.0;
+	return QRectF(refPoint, endPoint).normalized().adjusted(-d, -d, d, d);
+}
+
+
 bool DrawableLine::PointIsNear(QPointF p, qreal distance) const
 {
 	return __IsLineNearToPoint(refPoint, endPoint, p, distance);
@@ -1537,13 +1582,13 @@ void DrawableLine::_DrawArrows(QPainter* painter, QPointF topLeftOfVisibleArea)
 		return;
 
 	if(arrowFlags & (arrowStartOut))
-		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowStartOut, pen.penWidth*10);
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowStartOut, ArrowSize());
 	if(arrowFlags &(arrowStartIn))
-		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowStartIn, pen.penWidth*10);
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowStartIn, ArrowSize());
 	if(arrowFlags &(arrowEndOut))
-		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowEndOut, pen.penWidth*10);
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowEndOut, ArrowSize());
 	if(arrowFlags & (arrowEndIn))
-		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowEndIn, pen.penWidth*10);
+		_DrawSingleArrow(painter, topLeftOfVisibleArea, arrowEndIn, ArrowSize());
 }
 
 /*=============================================================

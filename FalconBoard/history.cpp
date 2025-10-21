@@ -1241,19 +1241,12 @@ HistoryItem* History::_AddItem(HistoryItem* p)
 		return nullptr;
 
 	_items.push_back(p);
-	//	  // no undo after new item added
+	  // no redo after new item added
 	if (p->type == HistEvent::heDrawable)
 	{
 		_drawables.ClearRedo();			// any  Undo()-t drawbles must be removed
 		_redoList.clear();
 	}
-	//for(auto a: _redoList)
-	//	if (a->type == HistEvent::heDrawable)
-	//	{
-	//		_drawables.ClearRedo();			// any  Undo()-t drawbles must be removed
-	//		break;
-	//	}
-	//_redoList.clear();	
 
 	p = _items.last();
 
@@ -2290,7 +2283,7 @@ int History::CollectDrawablesInside(QRectF rect) // only
 	_selectionRect = QRectF();     // minimum size of selection document (0,0) relative!
 
 	// first select all items inside a horizontal band whose top and bottom are set from 'rect'
-	// but it occupies the whole width of the 'paper' into "horizontal band" hb
+	// but occupies the whole width of the 'paper' into "horizontal band" hb
 	QRectF hb = QRectF(0, rect.top(), _drawables.Area(false).width(), rect.height());
 	DrawableIndexVector iv = _drawables.ListOfItemIndicesInRect(hb);
 	for (int i = iv.size()-1; i >= 0; --i)		// purge partial overlaps with HB
@@ -2308,7 +2301,7 @@ int History::CollectDrawablesInside(QRectF rect) // only
 		for (auto ix : iv)
 		{
 			DrawableItem* pdri = _drawables[ix];
-			QRectF area = pdri->Area();
+			QRectF area = pdri->dtType == DrawableType::dtLine ? ((DrawableLine*)pdri)->LineArea() : pdri->Area();
 			if (rect.contains(area))
 			{
 				_driSelectedDrawables.push_back(ix);

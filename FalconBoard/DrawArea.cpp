@@ -621,8 +621,8 @@ void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
 	_mods = event->modifiers();
 	int key = event->key();
 
-		// keys that common with drawing with no rubberband
-		// an exact copy of the code is in keyPressEvent()
+		// keys that common with drawing without a rubberband
+		// have an exact copy of the code in keyPressEvent()
 
 	bool bPaste = // _itemsCopied &&
 		((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
@@ -1551,7 +1551,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 #endif 
 	}
 #ifndef _VIEWER
-	else if (_rubberBand)		// comes here when Ctrl + MyButtonPressed is followed by MyButtonrelease
+	else if (_rubberBand)		// also comes here when Ctrl + MyButtonPressed is followed by MyButtonRelease
 	{
 		// DEBUG
 		//#if defined _DEBUG
@@ -2332,6 +2332,7 @@ void DrawArea::SlotStopHistorySave()
 			_Redraw();
 		}
 	}
+	setFocus();
 	--_busy;
 #endif
 }
@@ -2346,6 +2347,7 @@ void DrawArea::SlotUseArrowStyleChanged(bool checked) // for checkbox
 	++_busy;
 	bAllowArrowChanges = checked;
 	--_busy;
+	setFocus();
 #endif
 }
 
@@ -2364,6 +2366,7 @@ void DrawArea::SlotLineLeftArrowChanged(int index)
 			_Redraw();
 		}
 	}
+	setFocus();
 	--_busy;
 #endif
 }
@@ -2383,6 +2386,7 @@ void DrawArea::SlotLineRightArrowChanged(int index)
 			_Redraw();
 		}
 	}
+	setFocus();
 	--_busy;
 #endif
 }

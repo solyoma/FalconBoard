@@ -729,14 +729,14 @@ public: // functions
 	void AddToSelection(int drawableIndex, bool clearSelections = false);
 	QRectF SelectDrawablesUnder(QPointF& p, bool addToPrevious);      // selects clicked (if any) into _driSelectedDrawables, and clears right and left items list
 	int /*DrawableItemIndex*/ SelectTopmostImageUnder(QPointF p);
-	int CollectDrawablesInside(QRectF rect);
+	int CollectDrawablesInside(QRectF rect); // into 3 lists for items inside, left and right of selection rect
 	void CopySelected(Sprite* forThisSprite = nullptr);      // copies selected scribbles into array. origin will be relative to (0,0)
 	// do the same with images
-	void SetSelectionRect(QRectF& rect)
+	constexpr void SetSelectionRect(QRectF& rect)
 	{
 		_selectionRect = rect;
 	}
-	QRectF SelectionRect() const { return _selectionRect; }
+	constexpr QRectF SelectionRect() const { return _selectionRect; }
 
 	void CollectPasted(const QRectF& rect);   // if items pasted copies their drawable indices into '_driSelectedDrawables'
 	void CollectDeleted(HistoryDeleteItems* phd);   // used when a sprite paste is undone

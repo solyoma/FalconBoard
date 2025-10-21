@@ -750,13 +750,9 @@ struct DrawableLine : public DrawableItem
     bool CanRotate(MyRotation rot, QPointF center) const override;
     bool Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
     bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
-    QRectF Area() const override// includes half of pen width+1 pixel + arrows
-    {          // first rectangle without arrows
-        QRectF rect = QRectF(refPoint, QSize((endPoint - refPoint).x(), (endPoint - refPoint).y()) ).normalized();
-        // adjust for arrows
-        qreal d = pen.penWidth / 2.0 + 1.0;
-        return rect.adjusted(-d, -d, d, d);
-    }
+    constexpr qreal ArrowSize() const { return pen.penWidth * 5.0; }
+    QRectF Area() const override;// includes half of pen width+1 pixel + arrows
+    inline constexpr QRectF LineArea() const;    // only the line w.o. the arrows
     QPointF GetLastDrawnPoint() const override
     {
         return endPoint;
@@ -795,7 +791,7 @@ struct DrawableRectangle : public DrawableItem
     bool CanTranslate(const QPointF dr) const override;
     bool CanRotate(MyRotation rot, QPointF center) const override;
     bool Translate(QPointF dr, qreal minY) override;            // only if not deleted and top is > minY
-    bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
+    bool Rotate(MyRotation rot, QPointF center) override;       // angle used only for 'rotAngle'
     QRectF Area() const override// includes half of pen width+1 pixel
     {
         qreal d = pen.penWidth / 2.0 + 1.0;
