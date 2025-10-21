@@ -1552,13 +1552,6 @@ QRectF DrawableLine::Area() const // includes half of pen width+1 pixel + arrows
 	return rect.adjusted(dxS - d, dyS - d, dxE + d, dyE + d);
 }
 
-constexpr QRectF DrawableLine::LineArea() const
-{
-	qreal d = pen.penWidth / 2.0 + 1.0;
-	return QRectF(refPoint, endPoint).normalized().adjusted(-d, -d, d, d);
-}
-
-
 bool DrawableLine::PointIsNear(QPointF p, qreal distance) const
 {
 	return __IsLineNearToPoint(refPoint, endPoint, p, distance);

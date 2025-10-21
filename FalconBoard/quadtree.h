@@ -495,7 +495,7 @@ private:
 #if !defined _VIEWER && defined _DEBUG
 	void _DebugAreaPrint(std::ofstream &f, QuadArea area)
 	{
-		f << "(" << area.Left() << "," << area.Top() << " " << area.Width() << " x " << area.Height() << ") ";
+		f << "(" << area.left() << "," << area.top() << " " << area.width() << " x " << area.height() << ") ";
 	}
 	void _DebugPrint(std::ofstream& f, QuadNode* node, QuadArea areaOfParent, int quadrant, std::string indent)
 	{

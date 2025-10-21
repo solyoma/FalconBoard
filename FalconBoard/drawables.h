@@ -752,7 +752,11 @@ struct DrawableLine : public DrawableItem
     bool Rotate(MyRotation rot, QPointF center) override;    // alpha used only for 'rotAngle'
     constexpr qreal ArrowSize() const { return pen.penWidth * 5.0; }
     QRectF Area() const override;// includes half of pen width+1 pixel + arrows
-    inline constexpr QRectF LineArea() const;    // only the line w.o. the arrows
+    constexpr QRectF LineArea() const    // only the line w.o. the arrows
+    {
+        qreal d = pen.penWidth / 2.0 + 1.0;
+        return QRectF(refPoint, endPoint).normalized().adjusted(-d, -d, d, d);
+    }
     QPointF GetLastDrawnPoint() const override
     {
         return endPoint;
