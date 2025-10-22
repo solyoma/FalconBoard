@@ -46,7 +46,7 @@ inline constexpr int MAX_DRAWABLE_ID  = 0x7F;
 inline constexpr int LINE_ICON_WIDTH = 64, 
                      LINE_COMBO_WIDTH = 64,
                      COMBO_ICON_HEIGHT = 16,
-                     ARROW_HEAD_SIZE = 16,
+                     ARROW_HEAD_SIZE = 12,
                      ARROW_ICON_WIDTH = 16,
                      ARROW_COMBO_WIDTH = 32;
 
