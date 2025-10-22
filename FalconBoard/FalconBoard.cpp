@@ -798,13 +798,13 @@ void FalconBoard::_CreateAndAddActions()
     _psbLineStyleCombo = new QComboBox();
     _psbLineStyleCombo->setFrame(false);
 	_psbLineStyleCombo->setToolTip(tr("Select line style"));
-    _psbLineStyleCombo->setIconSize(QSize(128,16));
+    _psbLineStyleCombo->setIconSize(QSize(LINE_ICON_WIDTH,COMBO_ICON_HEIGHT));
     _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), QString());
     _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine),  QString());
     _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine),   QString());
     _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), QString());
     _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), QString());
-    __SetupComboForToolbar(_psbLineStyleCombo, 128);
+    __SetupComboForToolbar(_psbLineStyleCombo, LINE_COMBO_WIDTH);
     _psbLineStyleCombo->setCurrentIndex(0);
     ui.mainToolBar->addWidget(_psbLineStyleCombo);
 
@@ -964,7 +964,7 @@ void FalconBoard::__MakeIconCommon(QPainter& painter, Qt::PenStyle style)
 
 QIcon FalconBoard::_MakeLineIcon(Qt::PenStyle style)
 {
-    constexpr const int w = 128, h = 16;
+    constexpr const int w = LINE_ICON_WIDTH, h = COMBO_ICON_HEIGHT;
     QPixmap px(w, h);
     px.fill(Qt::transparent);
     QPainter painter(&px);
@@ -976,13 +976,13 @@ QIcon FalconBoard::_MakeLineIcon(Qt::PenStyle style)
 
 QIcon FalconBoard::_MakeArrowIcon(ArrowType type)
 {
-	QSize iconSize(64, 32);
+	QSize iconSize(ARROW_COMBO_WIDTH, COMBO_ICON_HEIGHT);
     QPixmap px(iconSize);
     px.fill(Qt::transparent);
     QPainter painter(&px);
     __MakeIconCommon(painter, Qt::SolidLine);
   //DrawArrowheadIcon(QPainter* painter, QSize iconSize, QColor color, qreal arrowSize, ArrowType type)
-    DrawArrowheadIcon(&painter, iconSize, QColor(_sTextColor), 20.0, type);
+    DrawArrowheadIcon(&painter, iconSize, QColor(_sTextColor), ARROW_HEAD_SIZE, type);
     //// 0x25ba:►  0x25c4:◄
     //QFont font("Arial", 28, 87);
     //painter.setFont(font);
@@ -1341,7 +1341,7 @@ void FalconBoard::_PrepareActionIcons()
     _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine), QString());
     _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), QString());
     _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), QString());
-    __SetupComboForToolbar(_psbLineStyleCombo, 128);
+    __SetupComboForToolbar(_psbLineStyleCombo, LINE_COMBO_WIDTH);
     _psbLineStyleCombo->setCurrentIndex(n);
 
     n = _psbLeftArrowCombo->currentIndex();
@@ -1349,7 +1349,7 @@ void FalconBoard::_PrepareActionIcons()
     _psbLeftArrowCombo->addItem(QString());                                                         // no arrow
     _psbLeftArrowCombo->addItem(_MakeArrowIcon(arrowStartOut), QString());  // <|-
     _psbLeftArrowCombo->addItem(_MakeArrowIcon(arrowStartIn), QString()); // |>-
-    __SetupComboForToolbar(_psbLeftArrowCombo, 32);
+    __SetupComboForToolbar(_psbLeftArrowCombo, ARROW_COMBO_WIDTH);
     _psbLeftArrowCombo->setCurrentIndex(n);
 
     n = _psbRightArrowCombo->currentIndex();
@@ -1357,7 +1357,7 @@ void FalconBoard::_PrepareActionIcons()
     _psbRightArrowCombo->addItem("");                                                               // no arrow
     _psbRightArrowCombo->addItem(_MakeArrowIcon(arrowEndOut), QString());  // -|>
     _psbRightArrowCombo->addItem(_MakeArrowIcon(arrowEndIn), QString());   // -<|
-    __SetupComboForToolbar(_psbRightArrowCombo, 32);
+    __SetupComboForToolbar(_psbRightArrowCombo, ARROW_COMBO_WIDTH);
     _psbRightArrowCombo->setCurrentIndex(n);
 }
 

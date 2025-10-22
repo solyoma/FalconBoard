@@ -43,6 +43,12 @@ using IntVector = QVector<int>;
 inline constexpr qreal EqZero(qreal a) { return qFuzzyIsNull(qAbs(a)); }
 
 inline constexpr int MAX_DRAWABLE_ID  = 0x7F;
+inline constexpr int LINE_ICON_WIDTH = 64, 
+                     LINE_COMBO_WIDTH = 64,
+                     COMBO_ICON_HEIGHT = 16,
+                     ARROW_HEAD_SIZE = 16,
+                     ARROW_ICON_WIDTH = 16,
+                     ARROW_COMBO_WIDTH = 32;
 
 inline constexpr int SLEEP_COUNTER = 100;       // sleep time = 100*30,s = 3000 ms = 3 sec
 inline constexpr std::chrono::milliseconds SLEEP_DURATION(30);
