@@ -292,7 +292,7 @@ void FalconBoard::RestoreState()
         case 'd': ui.actionDarkMode->setChecked(true);  on_actionDarkMode_triggered();  break;
         case 'l': ui.actionLightMode->setChecked(true); on_actionLightMode_triggered(); break;
         case 'w': ui.actionWhiteMode->setChecked(true); on_actionWhiteMode_triggered(); break;
-        case 's': // default on form
+        case 's': on_actionSystemMode_triggered(); break; // default on form
         default: break;
     }
 
