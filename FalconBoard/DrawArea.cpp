@@ -2837,7 +2837,7 @@ void DrawArea::_SetOrigin(QPointF o)
  *          - delta.y() > 0 - move viewport down
  *			- delta is modified
  *-------------------------------------------------------*/
-void DrawArea::_ShiftOrigin(QPointF &delta)
+bool DrawArea::_ShiftOrigin(QPointF &delta)
 {
 	QPointF o = _topLeft;       // origin of screen top left relative to "paper"
 
@@ -2853,21 +2853,31 @@ void DrawArea::_ShiftOrigin(QPointF &delta)
 	//	o.setY(0);
 	_SanitizePointF(o);
 
+	if (o == _topLeft)
+		return false;
 	_SetOrigin(o);
+	return true;
 }
 // 
 
 /*=============================================================
- * TASK:    shifts rectangular part of _pActCanvas to
- *          canvas _pOtherCanvas then exchanges canvases
- * PARAMS:  delta value in pixels
+ * TASK:    copies rectangular part of _pActCanvas shifted by
+ *          delta to _pOtherCanvas, then exchanges canvases
+ * PARAMS:  delta  - value in pixels
+ *			clipH  - transparent horizontal area on destination to fill
+ *          clipV  - transparent vertical area on destination to fill
  * GLOBALS: _pActCanvas, _pOtherCanvas
  * RETURNS: nothing The two clipping areas will be filled
  * REMARKS: - both canvases have same size and other attributes
- *          - using memcpy, so the horizontal pixel position
+ *			- _pActCanvas will have transparent areas these
+ *				must be filled in caller
+ *          - uses memcpy, so the horizontal pixel position
  *            uses units of bytes/pixel (pixelSizeInBytes)
+ *			- delta.x() >= 0 => shift left, 
+ * 			  delta.y() >= 0 => shift up
+ *			- clipH and clipV does not overlap
  *------------------------------------------------------------*/
-void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
+void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clipH, QRectF& clipV)
 {
 	_pOtherCanvas->fill(Qt::transparent);
 
@@ -2887,7 +2897,7 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
 	int blockWidth = (w - dx) * pixelSizeInBytes,
 		blockHeight = (h - dy);
 
-	clip2 = clip1 = QRectF();
+	clipV = clipH = QRectF();
 
 	if (dx || dy)
 	{
@@ -2897,8 +2907,8 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
 			srcSCol = dx;
 			dstRow = 0;
 			dstCol = 0;
-			clip1 = QRectF(0, h - dy, w - dx, dy);
-			clip2 = QRectF(w - dx, 0, dx, h - dy);
+			clipH = QRectF(0, h - dy, w - dx, dy);	// dy tall and w-dx wide horizontal strip at bottom left
+			clipV = QRectF(w - dx, 0, dx, h - dy);	// dx wide and h - dy tall vertical strip at top right
 		}
 		else if ((delta.y() < 0 && delta.x() <= 0) || (delta.x() < 0 && delta.y() <= 0))
 		{
@@ -2906,8 +2916,8 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
 			srcSCol = 0;
 			dstRow = dy;
 			dstCol = dx;
-			clip1 = QRectF(0, 0, w, dy);
-			clip2 = QRectF(0, dy, dx, h - dy);
+			clipH = QRectF(0, 0, w, dy);			// w wide and dy tall horizontal strip at the top
+			clipV = QRectF(0, dy, dx, h - dy);		// dx wide and h - dy tall vertical strip at left till the bottom
 		}
 		else if (delta.x() > 0 && delta.y() < 0)
 		{
@@ -2915,8 +2925,8 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
 			srcSCol = dx;
 			dstRow = dy;
 			dstCol = 0;
-			clip1 = QRectF(0, 0, w, dy);
-			clip2 = QRectF(w - dx, dy, dx, h - dy);
+			clipH = QRectF(0, 0, w, dy);			// w wide and dy tall horizontal strip at top left
+			clipV = QRectF(w - dx, dy, dx, h - dy); // dx wide and (h - dy) tall vertical block from top right
 		}
 		else // if (delta.x() < 0 && delta.y() > 0)
 		{
@@ -2924,8 +2934,8 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
 			srcSCol = 0;
 			dstRow = 0;
 			dstCol = dx;
-			clip1 = QRectF(dx, h - dy, w, dy);
-			clip2 = QRectF(0, 0, dx, h - dy);
+			clipH = QRectF(dx, h - dy, w, dy);
+			clipV = QRectF(0, 0, dx, h - dy);
 		}
 		srcSCol *= pixelSizeInBytes;
 		dstCol *= pixelSizeInBytes;
@@ -2934,8 +2944,8 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
 			memcpy(_pOtherCanvas->scanLine(dstRow) + dstCol, _pActCanvas->scanLine(srcSRow) + srcSCol, blockWidth);
 	}
 	std::swap(_pActCanvas, _pOtherCanvas);
-	clip1.translate(_topLeft);
-	clip2.translate(_topLeft);
+	clipH.translate(_topLeft);
+	clipV.translate(_topLeft);
 }
 
 /*========================================================
@@ -2966,29 +2976,30 @@ void DrawArea::_ShiftAndDisplayBy(QPointF delta/*, bool smooth*/)    // delta ch
 	if (/*smooth && */ (dx <= PageParams::screenPageWidth / 10) && (dy <= _screenHeight / 10))
 	{                      // use smooth transform only for up/down/left/right never for pgUp, etc
 
-		QRectF clip1, clip2;
+		QRectF clipH, clipV;
 
-		_ShiftOrigin(delta);
-		_ShiftRectangle(delta, clip1, clip2);           // shift original content
-														// then draw to actual canvas
-		if (clip1.isValid())
+		if (_ShiftOrigin(delta))
 		{
-			_clippingRect = clip1;
-			_Redraw(false);
+			_ShiftRectangle(delta, clipH, clipV);           // shift original content
+			// then draw to actual canvas
+			if (clipH.isValid())
+			{
+				_clippingRect = clipH;
+				_Redraw(false);
+			}
+			if (clipV.isValid())
+			{
+				_clippingRect = clipV;
+				_Redraw(false);
+			}
+			_clippingRect = _canvasRect;
+			update();
 		}
-		if (clip2.isValid())
-		{
-			_clippingRect = clip2;
-			_Redraw(false);
-		}
-		_clippingRect = _canvasRect;
-		update();
-
 	}
 	else
 	{
-		_ShiftOrigin(delta);
-		_Redraw();
+		if(_ShiftOrigin(delta) )
+			_Redraw();
 	}
 }
 void DrawArea::_PageUp()

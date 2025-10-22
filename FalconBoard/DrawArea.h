@@ -425,8 +425,8 @@ private:
     void _DrawCross(QPointF p, int halflen); // p rel. to Document top/left
 #endif
     void _SetOrigin(QPointF qp);  // sets new topleft and displays it on label
-    void _ShiftOrigin(QPointF &delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down
-    void _ShiftRectangle(QPointF delta, QRectF &clip1, QRectF &clip2);
+    bool _ShiftOrigin(QPointF &delta);    // delta changes _topLeft, delta.x < 0: scroll right, delta y < 0 scroll down
+    void _ShiftRectangle(QPointF delta, QRectF &clipH, QRectF &clipV);
     void _ShiftAndDisplayBy(QPointF delta/*, bool smooth = false*/);
     void _PageUp();
     void _PageDown();
