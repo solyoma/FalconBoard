@@ -357,7 +357,7 @@ private:
 #ifdef _VIEWER
 	void _RemoveMenus();
 #endif
-	QIcon _ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB = QColor());
+	QIcon _ColoredIcon(const QIcon& sourceIcon, QColor colorW, QColor colorB = QColor());
 	void _LoadIcons();
 	void _SetupIconsForPenColors(DrawColors *fromColors = nullptr);		// depend on mode
 

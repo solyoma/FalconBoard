@@ -1217,7 +1217,7 @@ void FalconBoard::_SelectTransparentPixelColor()
  * RETURNS: new icon with new colors set
  * REMARKS: -
  *-------------------------------------------------------*/
-QIcon FalconBoard::_ColoredIcon(QIcon& sourceIcon, QColor colorW, QColor colorB)
+QIcon FalconBoard::_ColoredIcon(const QIcon& sourceIcon, QColor colorW, QColor colorB)
 {
     QPixmap pm, pmW, pmB;
     pmW = pmB = pm = sourceIcon.pixmap(64, 64);
@@ -1319,30 +1319,46 @@ void FalconBoard::_SetTabText(int index, QString fname)
 
 void FalconBoard::_PrepareActionIcons()
 {
+    QColor cw, cb;
 	if (globalDrawColors.IsDarkMode())
-	{
-		ui.actionExit->setIcon(_ColoredIcon(_iconExit, Qt::black, Qt::white));
-		ui.actionEraser->setIcon(_ColoredIcon(_iconEraser, Qt::black, Qt::white));
-		ui.actionNew->setIcon(_ColoredIcon(_iconNew, Qt::black, Qt::white));
-		ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, Qt::black, Qt::white));
-		ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, Qt::black, Qt::white));
-		ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, Qt::black, Qt::white));
-		ui.actionPrint->setIcon(_ColoredIcon(_iconPrint, Qt::black, Qt::white));
-		ui.actionSave->setIcon(_ColoredIcon(_iconSave, Qt::black, Qt::white));
-		ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, Qt::black, Qt::white));
-	}
-	else
-	{
-		ui.actionExit->setIcon(_iconExit);
-		ui.actionEraser->setIcon(_iconEraser);
-		ui.actionNew->setIcon(_iconNew);
-		ui.actionLoad->setIcon(_iconOpen);
-		ui.actionPrint->setIcon(_iconPrint);
-		ui.actionRedo->setIcon(_iconRedo);
-		ui.actionUndo->setIcon(_iconUndo);
-		ui.actionSave->setIcon(_iconSave);
-		ui.action_Screenshot->setIcon(_iconScreenShot);
-	}
+        cw = Qt::black, cb = Qt::white;
+    else
+        cb = Qt::black, cw = Qt::white;
+	ui.actionExit->setIcon(_ColoredIcon(_iconExit, cw,cb));
+	ui.actionEraser->setIcon(_ColoredIcon(_iconEraser, cw,cb));
+	ui.actionNew->setIcon(_ColoredIcon(_iconNew, cw,cb));
+	ui.actionLoad->setIcon(_ColoredIcon(_iconOpen, cw,cb));
+	ui.actionRedo->setIcon(_ColoredIcon(_iconRedo, cw,cb));
+	ui.actionUndo->setIcon(_ColoredIcon(_iconUndo, cw,cb));
+	ui.actionPrint->setIcon(_ColoredIcon(_iconPrint, cw,cb));
+	ui.actionSave->setIcon(_ColoredIcon(_iconSave, cw,cb));
+	ui.action_Screenshot->setIcon(_ColoredIcon(_iconScreenShot, cw,cb));
+
+    int n = _psbLineStyleCombo->currentIndex();
+    _psbLineStyleCombo->clear();
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), QString());
+    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), QString());
+    __SetupComboForToolbar(_psbLineStyleCombo, 128);
+    _psbLineStyleCombo->setCurrentIndex(n);
+
+    n = _psbLeftArrowCombo->currentIndex();
+    _psbLeftArrowCombo->clear();
+    _psbLeftArrowCombo->addItem(QString());                                                         // no arrow
+    _psbLeftArrowCombo->addItem(_MakeArrowIcon(arrowStartOut), QString());  // <|-
+    _psbLeftArrowCombo->addItem(_MakeArrowIcon(arrowStartIn), QString()); // |>-
+    __SetupComboForToolbar(_psbLeftArrowCombo, 32);
+    _psbLeftArrowCombo->setCurrentIndex(n);
+
+    n = _psbRightArrowCombo->currentIndex();
+    _psbRightArrowCombo->clear();
+    _psbRightArrowCombo->addItem("");                                                               // no arrow
+    _psbRightArrowCombo->addItem(_MakeArrowIcon(arrowEndOut), QString());  // -|>
+    _psbRightArrowCombo->addItem(_MakeArrowIcon(arrowEndIn), QString());   // -<|
+    __SetupComboForToolbar(_psbRightArrowCombo, 32);
+    _psbRightArrowCombo->setCurrentIndex(n);
 }
 
 void FalconBoard::_SetupMode(ScreenMode mode)
@@ -1374,6 +1390,7 @@ void FalconBoard::_SetupMode(ScreenMode mode)
             _sGridColor = "#d0d0d0";            // drawn by the app and not the system
             _sPageGuideColor = "#fcd475";       // ditto
             _sMarginColor = "#E0E0E0";          // must be set as style
+            _sTextColor = "#202020";
             break;
         case ScreenMode::smLight:
             _sBackgroundColor = "#F0F0F0";
@@ -1594,31 +1611,6 @@ void FalconBoard::_SetupMode(ScreenMode mode)
     //    ofs << ss;
     //}
 // /DEBUG
-    int n = _psbLineStyleCombo->currentIndex();
-    _psbLineStyleCombo->clear();
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::SolidLine), QString());
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashLine), QString());
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DotLine), QString());
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotLine), QString());
-    _psbLineStyleCombo->addItem(_MakeLineIcon(Qt::DashDotDotLine), QString());
-    __SetupComboForToolbar(_psbLineStyleCombo, 128);
-    _psbLineStyleCombo->setCurrentIndex(n);
-
-    n = _psbLeftArrowCombo->currentIndex();
-    _psbLeftArrowCombo->clear();
-    _psbLeftArrowCombo->addItem(QString());                                                         // no arrow
-    _psbLeftArrowCombo->addItem(_ColoredIcon(_iconLeftArrStart, Qt::black, Qt::white), QString());  // <|-
-    _psbLeftArrowCombo->addItem(_ColoredIcon(_iconRightArrStart, Qt::black, Qt::white), QString()); // |>-
-    __SetupComboForToolbar(_psbLeftArrowCombo, 32);
-    _psbLeftArrowCombo->setCurrentIndex(n);
-
-    n = _psbRightArrowCombo->currentIndex();
-    _psbRightArrowCombo->clear();
-    _psbRightArrowCombo->addItem("");                                                               // no arrow
-    _psbRightArrowCombo->addItem(_ColoredIcon(_iconRightArrEnd, Qt::black, Qt::white), QString());  // -|>
-    _psbRightArrowCombo->addItem(_ColoredIcon(_iconLeftArrEnd, Qt::black, Qt::white), QString());   // -<|
-    __SetupComboForToolbar(_psbRightArrowCombo, 32);
-    _psbRightArrowCombo->setCurrentIndex(n);
 }
 
 void FalconBoard::_ClearRecentMenu()

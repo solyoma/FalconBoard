@@ -625,34 +625,34 @@ void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
 		// have an exact copy of the code in keyPressEvent()
 
 	bool bPaste = // _itemsCopied &&
-		((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
-			(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
-			),
+						((key == Qt::Key_Insert && _mods.testFlag(Qt::ShiftModifier)) ||
+							(key == Qt::Key_V && _mods.testFlag(Qt::ControlModifier))
+						),
 		bMovementKeys = key == Qt::Key_Up || key == Qt::Key_Down || key == Qt::Key_Left ||
-		key == Qt::Key_Right || key == Qt::Key_PageUp || key == Qt::Key_PageDown ||
-		key == Qt::Key_Home || key == Qt::Key_End;
+						key == Qt::Key_Right || key == Qt::Key_PageUp || key == Qt::Key_PageDown ||
+						key == Qt::Key_Home || key == Qt::Key_End;
 
 	// keys only used when there's a rubber band
 
 	bool bDelete = key == Qt::Key_Delete || key == Qt::Key_Backspace,
 		bCut = ((key == Qt::Key_X) && _mods.testFlag(Qt::ControlModifier)) ||
-		((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
+				((key == Qt::Key_Insert) && _mods.testFlag(Qt::ShiftModifier)),
 		bCopy = (key == Qt::Key_Insert || key == Qt::Key_C || key == Qt::Key_X) &&
-		_mods.testFlag(Qt::ControlModifier),
+				_mods.testFlag(Qt::ControlModifier),
 		bBracketKey = (key == Qt::Key_BracketLeft || key == Qt::Key_BracketRight),
 		bRemove = (bDelete || bCopy || bCut || bPaste) ||
-		(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
-			key != Qt::Key_F7 && key != Qt::Key_Space && key != Qt::Key_Plus && key != Qt::Key_Minus && !bMovementKeys),
+					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
+						key != Qt::Key_F7 && key != Qt::Key_Space && key != Qt::Key_Plus && key != Qt::Key_Minus && !bMovementKeys),
 		bCollected = pHistory->SelectedSize(),
 		bRecolor = (key >= Qt::Key_1 && key <= Qt::Key_7),
 
-		bRotate = (key == Qt::Key_0 ||  // rotate right by 90 degrees
-			key == Qt::Key_8 ||  // rotate by 180 degrees
-			key == Qt::Key_9 ||  // rotate left by 90 degrees
-			key == Qt::Key_F7 || // rotate by any degrees or repeat last rotation
-			key == Qt::Key_H ||  // flip horizontally
-			(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
-			);
+		bRotate = (	key == Qt::Key_0 ||  // rotate right by 90 degrees
+					key == Qt::Key_8 ||  // rotate by 180 degrees
+					key == Qt::Key_9 ||  // rotate left by 90 degrees
+					key == Qt::Key_F7 || // rotate by any degrees or repeat last rotation
+					key == Qt::Key_H ||  // flip horizontally
+					(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
+				);
 	if (bCollected && bBracketKey)
 	{
 		const qreal D = 0.5;
@@ -992,25 +992,29 @@ void DrawArea::keyPressEvent(QKeyEvent* event)
 		else if (bMovementKeys && (!_rubberBand || (_rubberBand && !_mods.testFlag(Qt::ControlModifier)) ) )
 		{
 			int stepSize = _mods.testFlag(Qt::ControlModifier) ? LargeStep : (_mods.testFlag(Qt::ShiftModifier) ? SmallStep : NormalStep);
-			if (key == Qt::Key_PageUp)
-				_PageUp();
-			else  if (key == Qt::Key_PageDown)
-				_PageDown();
-			else  if (key == Qt::Key_Home)
-				_Home(_mods.testFlag(Qt::ControlModifier));
-			else  if (key == Qt::Key_End)
-				_End(_mods.testFlag(Qt::ControlModifier));
-		//            else if (key == Qt::Key_Shift)
-		//				_shiftKeyDown = true;
-
-			else if (key == Qt::Key_Up)
-				_Up(stepSize);
-			else if (key == Qt::Key_Down)
-				_Down(stepSize);
-			else if (key == Qt::Key_Left)
-				_Left(stepSize);
-			else if (key == Qt::Key_Right)
-				_Right(stepSize);
+			switch (key)
+			{
+				case Qt::Key_PageUp:
+					_PageUp(); break;
+				case Qt::Key_PageDown:
+					_PageDown(); break;
+				case Qt::Key_Home:
+					_Home(_mods.testFlag(Qt::ControlModifier));
+					break;
+				case Qt::Key_End:
+					_End(_mods.testFlag(Qt::ControlModifier));
+					break;
+				case Qt::Key_Up:
+					_Up(stepSize);	 break;
+				case  Qt::Key_Down:
+					_Down(stepSize); break;
+				case Qt::Key_Left:
+					_Left(stepSize); break;
+				case Qt::Key_Right:
+					_Right(stepSize); break;
+				default:
+					break;
+			}
 			_ReshowRubberBand();
 		}
 		if (key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt)
@@ -2948,17 +2952,12 @@ void DrawArea::_ShiftRectangle(QPointF delta, QRectF& clip1, QRectF& clip2)
  *-------------------------------------------------------*/
 void DrawArea::_ShiftAndDisplayBy(QPointF delta/*, bool smooth*/)    // delta changes _topLeft, delta.x < 0 scroll right, delta.y < 0 scroll 
 {
-	if (_topLeft.y() + delta.y() < 0)
-		delta.setY(-_topLeft.y());
-	if (_topLeft.x() + delta.x() < 0)
+	if (_topLeft.y() + delta.y() < 0)	// then _topLeft.y() == 0
+		delta.setY(-_topLeft.y());		// so we'll move to y = 0 below
+	if (_topLeft.x() + delta.x() < 0)	// then _topLeft.x() == 0
 		delta.setX(-_topLeft.x());
 	if (delta.x() > 0 && _limited && delta.x() + width() >= PageParams::screenPageWidth)
 		delta.setX(PageParams::screenPageWidth - width());
-
-	if ((_topLeft + delta).x() < 0)
-		delta .setX(-_topLeft.x());
-	if ((_topLeft + delta).y() < 0)
-		delta .setY(-_topLeft.y());
 
 	if (delta.isNull())
 		return;      // nothing to do
