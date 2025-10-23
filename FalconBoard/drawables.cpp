@@ -816,7 +816,7 @@ QDataStream& operator<<(QDataStream& ofs, const DrawablePen& dp)
 	return ofs;
 }
 
-QDataStream& operator>>(QDataStream& ifs, DrawablePen& dp)
+QDataStream& operator>>(QDataStream& ifs, DrawablePen& dp)	 // transparency also
 {
 	std::byte pk;
 	ifs >> dp.penWidth;
@@ -1941,8 +1941,6 @@ DrawableScribble::DrawableScribble(DrawableScribble&& di) noexcept :DrawableItem
 DrawableScribble& DrawableScribble::operator=(const DrawableScribble& di)
 {
 	*(DrawableItem*)this = (DrawableItem&)di;
-	//SetPenKind( di.penKind);
-	//penWidth = di.penWidth;
 	dtType = di.dtType;
 	zOrder = di.zOrder;
 	points = di.points;

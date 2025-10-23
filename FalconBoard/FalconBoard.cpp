@@ -770,6 +770,17 @@ void FalconBoard::_CreateAndAddActions()
     rect.setWidth(40);
     _psbPenWidth->setGeometry(rect);
     ui.mainToolBar->addWidget(_psbPenWidth);
+
+    ui.mainToolBar->addWidget(new QLabel(tr(" Alpha:")));
+    _psbPenAlpha = new QSpinBox();
+    _psbPenAlpha->setMinimum(5);
+    _psbPenAlpha->setMaximum(100);
+    _psbPenAlpha->setSingleStep(1);
+    _psbPenAlpha->setValue(_drawArea->pens[0].penAlpha*100);
+    rect = _psbPenAlpha->geometry();
+    rect.setWidth(40);
+    _psbPenAlpha->setGeometry(rect);
+    ui.mainToolBar->addWidget(_psbPenAlpha);
 #endif
     ui.mainToolBar->addSeparator();
 
@@ -853,6 +864,9 @@ void FalconBoard::_CreateAndAddActions()
     // more than one valueChanged() function exists
     connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenWidthChanged);
     connect(_psbPenWidth, &QSpinBox::editingFinished, this, &FalconBoard::slotPenWidthEditingFinished);
+
+    connect(_psbPenAlpha, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenAlphaChanged);
+    connect(_psbPenAlpha, &QSpinBox::editingFinished, this, &FalconBoard::slotPenAlphaEditingFinished);
 
     connect(_psbUseLineArrow,   &QCheckBox::toggled, _drawArea, &DrawArea::SlotUseArrowStyleChanged);
     connect(_psbUseLineArrow,   &QCheckBox::toggled, this, &FalconBoard::SlotToggleArrowheadEnabled);
@@ -1173,6 +1187,18 @@ void FalconBoard::_SetPenWidthSpinValue()
 	}
 }
 
+void FalconBoard::_SetPenAlphaSpinValue()
+{
+    if (_drawArea->actPenIndex == penEraser)
+        return;
+    if(_drawArea->actPenIndex != penNone)
+	{
+		++_busy;
+		_psbPenAlpha->setValue(_drawArea->PenAlpha());
+		--_busy;
+	}
+}
+
 void FalconBoard::_SelectPen()     // call after '_drawArea->actPenIndex' is set
 {
     switch (_drawArea->actPenIndex)
@@ -1188,6 +1214,7 @@ void FalconBoard::_SelectPen()     // call after '_drawArea->actPenIndex' is set
         case penEraser:on_actionEraser_triggered(); return;
     }
     _SetPenWidthSpinValue();
+    _SetPenAlphaSpinValue();
 }
 
 void FalconBoard::_SetCursor(DrawCursorShape cs)
@@ -1925,6 +1952,7 @@ bool FalconBoard::_LoadData(int index)
     {
 #ifndef _VIEWER
         _SetPenWidthSpinValue();
+        _SetPenAlphaSpinValue();
 #endif
         _AddToRecentList(historyList[index]->Name());
         ui.actionAppend->setEnabled(true);
@@ -2533,6 +2561,12 @@ void FalconBoard::on_actionAutocorrectTolerance_triggered()
 void FalconBoard::_SetPenCommon(FalconPenKind pk)
 {
     _drawArea->actPenIndex = pk;
+    if (!_busy)
+    {
+        ++_busy;
+        _psbPenAlpha->setValue(_drawArea->PenAlpha()*100.0);
+        --_busy;
+    }
     _drawArea->RecolorSelected(pk);
     _SetCursor(csPen);
     ui.drawArea->setFocus();
@@ -2788,10 +2822,25 @@ void FalconBoard::slotPenWidthChanged(int val)
     _drawArea->SetPenWidth(val);
 }
 
+void FalconBoard::slotPenAlphaChanged(int val)
+{
+    if (_busy)		// from program
+        return;
+    // from user
+    
+    _drawArea->SetPenAlpha(val);
+}
+
 void FalconBoard::slotPenWidthEditingFinished()
 {
     ui.drawArea->setFocus();
 }
+
+void FalconBoard::slotPenAlphaEditingFinished()
+{
+    ui.drawArea->setFocus();
+}
+
 void FalconBoard::SlotForUndo(bool b)
 {
     ui.actionUndo->setEnabled(b);

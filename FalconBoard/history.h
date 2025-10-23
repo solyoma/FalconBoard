@@ -271,20 +271,25 @@ struct HistoryPasteItemTop : public HistoryItem
 
 struct HistoryReColorItem : public HistoryItem
 {
-    DrawableIndexVector selectedList;     // indices to drawable elements in '*pHist'
-    QVector<FalconPenKind> penKindList;   // colors for elements in selectedList
+    struct PenData {
+        int index = -1;  // in drawables
+        FalconPenKind pk = penBlackOrWhite;
+        qreal alpha = 1.0;
+    };
+    QVector<PenData> selectedList;     // indices to drawable elements in '*pHist'
     FalconPenKind pk;                           
+    qreal alpha;
     QRectF boundingRectangle;             // to scroll here when undo/redo
 
     int Undo() override;
     int Redo() override;
-    HistoryReColorItem(History* pHist, DrawableIndexVector&selectedList, FalconPenKind pk);
+    HistoryReColorItem(History* pHist, DrawableIndexVector&selectedList, FalconPenKind pk, qreal alpha);
     HistoryReColorItem(HistoryReColorItem& other);
     HistoryReColorItem& operator=(const HistoryReColorItem& other);
     HistoryReColorItem(HistoryReColorItem&& other) noexcept;
     HistoryReColorItem& operator=(const HistoryReColorItem&& other) noexcept;
     QRectF Area() const override;
-    QPointF TopLeft() const override { return _TopLeftFrom(selectedList); }
+    QPointF TopLeft() const override { return boundingRectangle.topLeft(); }
 };
 
             //--------------------------------------------
@@ -402,6 +407,26 @@ struct HistoryPenColorChangeItem : public HistoryItem
     HistoryPenColorChangeItem(History* pHist, const DrawColors &origc, const DrawColors &newc);
     HistoryPenColorChangeItem(const HistoryPenColorChangeItem& o);
     HistoryPenColorChangeItem& operator=(const HistoryPenColorChangeItem& o);
+    int Undo() override;
+    int Redo() override;
+};
+
+            //--------------------------------------------
+            //      HistoryPenAlphaChangeItem
+            //--------------------------------------------
+struct HistoryPenAlphaChangeItem : public HistoryItem
+{
+    int newAlpha;
+    struct AlphaValue
+    {
+        int index=-1;      // in drawables
+		qreal alpha=0.0;    // 0.2...0.1 => 20%..100%
+    };
+    QVector<AlphaValue> affectedList;
+
+    HistoryPenAlphaChangeItem(History* pHist, const int &newAlpha);
+    HistoryPenAlphaChangeItem(const HistoryPenAlphaChangeItem& o);
+    HistoryPenAlphaChangeItem& operator=(const HistoryPenAlphaChangeItem& o);
     int Undo() override;
     int Redo() override;
 };
@@ -704,7 +729,8 @@ public: // functions
 	HistoryItem* AddMoveItems(QPointF displacement);
 	HistoryItem* AddPenColorChange(const DrawColors& drwclr);
 	HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
-	HistoryItem* AddRecolor(FalconPenKind pk);
+	HistoryItem* AddPenAlphaChange(int alphaTimes100);  // for all selected drawables
+	HistoryItem* AddRecolor(FalconPenKind pk, qreal alpha);
 	HistoryItem* AddRotationItem(MyRotation rot);
 	HistoryItem* AddRemoveSpaceItem(QRectF& rect);
 	HistoryItem* AddScreenShotTransparencyToLoadedItems(QColor trColor, qreal fuzzyness);

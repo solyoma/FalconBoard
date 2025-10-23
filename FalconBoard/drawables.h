@@ -54,6 +54,7 @@ enum class HistEvent {
     heVertSpace,            // insert vertical space
 	heRubberBand,           // rubber band is shown set only when established, add a new one when sprite is dropped
     heLineStyleChanged,     // from SolidPen to DashDotDotPen, for ellipses, rectangles, lines, scribbles
+	hePenAlphaChanged,      // change pen alpha for all drawables selected
     heArrowStyleChanged,    // only for lines arrows at ends outward or inward
 	heZoom,                 // zoom in or out all itemms in rubberRect
                             // remove it when paste items is undone TODO

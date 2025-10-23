@@ -168,6 +168,8 @@ private slots:
 
 	void slotPenWidthChanged(int val);
 	void slotPenWidthEditingFinished();
+	void slotPenAlphaChanged(int val);
+	void slotPenAlphaEditingFinished();
 
 	void SlotForUndo(bool b);
 	void SlotForRedo(bool b);
@@ -292,6 +294,7 @@ private:
 	QScrollBar* _pScrollBar = nullptr;	// scroll bar for the draw area
 	DrawArea * _drawArea;
 	QSpinBox * _psbPenWidth = nullptr;	// put on toolbar
+	QSpinBox * _psbPenAlpha = nullptr;	// put on toolbar
 	QCheckBox* _psbUseLineArrow = nullptr;
 				// these 3 are icon based:
 	QComboBox* _psbLineStyleCombo = nullptr;
@@ -407,12 +410,10 @@ private:
 	void _StartSnapshotSaveThread();
 	bool _SaveBackgroundImage();
 	void _SetPenCommon(FalconPenKind pk);
-	void _SelectPenForAction(QAction* paction);
 	void _SelectPen();	// for _actPenIndex
 	void _SetPenWidthSpinValue();
-	void _SetPenKind(FalconPenKind color);
+	void _SetPenAlphaSpinValue();
 	void _SetCursor(DrawCursorShape cs);
-	void _SetPenWidth(FalconPenKind pk);
 	void _SelectTransparentPixelColor();
 	void _ConnectScreenshotLabel();
 	void _DisconnectScreenshotLabel();

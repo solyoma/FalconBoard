@@ -324,11 +324,6 @@ bool DrawColors::SetDarkMode(ScreenMode mode) // returns previous mode: never us
     return _IsDarkMode();
 }
 
-void DrawColors::SetActualPen(FalconPenKind pk)
-{
-    _pkActual = pk;
-}
-
 bool DrawColors::ReadPen(QDataStream& ifs)      // type already read in
 {
     int cnt = 0;

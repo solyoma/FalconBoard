@@ -120,7 +120,7 @@ public:
 
     void InsertVertSpace();         // from top left of rubber band with height of rubber rectangle
     FalconPenKind PenKindFromKey(int key);  // keyboard press/menu click
-    bool RecolorSelected(FalconPenKind pk); // true: recolored
+    bool RecolorSelected(int which); // true: recolored
     void SetLimitedPage(bool limited) { _limited = limited; }
 
     void SynthesizeKeyEvent(Qt::Key key, Qt::KeyboardModifier mod=Qt::NoModifier);
@@ -157,8 +157,12 @@ public:
     int ActHistoryIndex() const { return historyList.ActualHistory(); }
 
     FalconPenKind PenKind() const { return actPenIndex;  }
-    int PenWidth() const { return    pens[actPenIndex].penWidth; }
+    constexpr int PenWidth() const { return pens[actPenIndex].penWidth; }
+    constexpr qreal PenAlpha() const { 
+        return pens[actPenIndex].penAlpha; 
+    }
     void SetPenWidth(qreal width) { pens[actPenIndex].penWidth = width; }
+    void SetPenAlpha(qreal alpha) { pens[actPenIndex].penAlpha = alpha/100.0; }
 
     void SetCursor(DrawCursorShape cs);
 

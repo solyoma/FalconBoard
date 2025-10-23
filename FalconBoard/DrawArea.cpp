@@ -543,14 +543,14 @@ FalconPenKind DrawArea::PenKindFromKey(int key)
 		default: return penNone;
 	}
 }
-bool DrawArea::RecolorSelected(FalconPenKind pk)
+bool DrawArea::RecolorSelected(int which)
 {
 	if (!_rubberBand)
 		return false;
 	if (!pHistory->SelectedSize())
 		pHistory->CollectDrawablesInside(_rubberRect.translated(_topLeft));
 
-	HistoryItem* phi = pHistory->AddRecolor(pk);
+	HistoryItem* phi = pHistory->AddRecolor(pens[which].PenKind(), pens[which].penAlpha);
 
 	if (phi)
 		_Redraw();
@@ -2196,6 +2196,9 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 #else
 	QPen pen = QPen(_PenColor(), ActPen().penWidth,  ActPen().penStyle, Qt::RoundCap, Qt::MiterJoin);
 #endif
+	QColor c = pen.color();
+	c.setAlpha(ActPen().penAlpha*100);
+	pen.setColor(c);
 	painter.setPen(pen);
 //	qDebug("pen:#%02x%02x%02x - DrawLineTo(%g,%g) - D.A.cpp, line #1980", painter.pen().color().red(), painter.pen().color().green(), painter.pen().color().blue(), endPointC.x(), endPointC.y());
 #if !defined _VIEWER && defined _DEBUG
@@ -3172,6 +3175,7 @@ Sprite* DrawArea::_PrepareSprite(Sprite* pSprite, QPointF cursorPos, QRectF rect
 		pdrwi = pSprite->drawables[ix];
 		ActPen().SetPenKind(pdrwi->PenKind() );
 		ActPen().penWidth = pdrwi->pen.penWidth;
+		ActPen().penAlpha = pdrwi->pen.penAlpha;
 		pdrwi->Draw(painter, QPointF(0,0), pSprite->rect);
 		// DEBUG
 		// pSprite->image.save(QString("I%1-%2.png").arg((int)pdrwi->dtType).arg(ix));

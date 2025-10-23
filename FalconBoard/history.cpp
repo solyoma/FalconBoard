@@ -402,17 +402,21 @@ QRectF HistoryPasteItemTop::Area() const
 //--------------------------------------------------- 
 // HistoryReColorItem
 //---------------------------------------------------
-HistoryReColorItem::HistoryReColorItem(History* pHist, DrawableIndexVector& listOfSelected, FalconPenKind pk) :
-	HistoryItem(pHist, HistEvent::heRecolor), selectedList(listOfSelected), pk(pk)
+HistoryReColorItem::HistoryReColorItem(History* pHist, DrawableIndexVector& listOfSelected, FalconPenKind pk, qreal alpha) :
+	HistoryItem(pHist, HistEvent::heRecolor), pk(pk), alpha(alpha)
 {
-	int siz = selectedList.size() - 1;
-	for (int ix = siz; ix >= 0; --ix)
+	PenData penData;
+	for (auto &index: listOfSelected)
 	{
-		DrawableItem* pdrwi = pHist->Drawable(selectedList[ix]);
+		penData.index = index;
+		DrawableItem* pdrwi = pHist->Drawable(index);
 		if (pdrwi->dtType != DrawableType::dtScreenShot)
+		{
 			boundingRectangle = boundingRectangle.united(pdrwi->Area());
-		else
-			selectedList.remove(ix);
+			penData.pk = pdrwi->pen.PenKind();
+			penData.alpha = pdrwi->pen.penAlpha;
+			selectedList.push_back(penData);
+		}
 	}
 	Redo();		// get original colors and set new color tp pk
 }
@@ -425,14 +429,16 @@ HistoryReColorItem::HistoryReColorItem(HistoryReColorItem& other) : HistoryItem(
 HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem& other)
 {
 	selectedList = other.selectedList;
-	penKindList = other.penKindList;
 	pk = other.pk;
+	alpha = other.alpha;
 	return *this;
 }
 
-HistoryReColorItem::HistoryReColorItem(HistoryReColorItem&& other)  noexcept : HistoryReColorItem(other.pHist, other.selectedList, other.pk)
+HistoryReColorItem::HistoryReColorItem(HistoryReColorItem&& other)  noexcept 
+	: HistoryReColorItem((HistoryReColorItem&)other)
 {
 	*this = other;
+	other.selectedList.clear();
 }
 
 HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem&& other) noexcept
@@ -440,27 +446,28 @@ HistoryReColorItem& HistoryReColorItem::operator=(const HistoryReColorItem&& oth
 	type = HistEvent::heRecolor;
 	pHist = other.pHist;
 	selectedList = other.selectedList;
-	penKindList = other.penKindList;
 	pk = other.pk;
+	alpha = other.alpha;
 	return *this;
 }
 int  HistoryReColorItem::Undo()
 {
 	int iact = 0;
-	for (auto drix : selectedList)
+	for (auto &drix : selectedList)
 	{
-		DrawableItem* pdri = pHist->Drawable(drix);
-		pdri->pen.SetPenKind( penKindList[iact++]);
+		DrawableItem* pdri = pHist->Drawable(drix.index);
+		pdri->pen.SetPenKind( drix.pk);
+		pdri->pen.penAlpha = drix.alpha;
 	}
 	return 1;
 }
 int  HistoryReColorItem::Redo()
 {
-	for (auto drix : selectedList)	// selectedlist: indices of drawables in pHist
+	for (auto& drix : selectedList)	// selectedlist: indices of drawables in pHist
 	{
-		DrawableItem* pdri = pHist->Drawable(drix);
-		penKindList.push_back(pdri->PenKind());
+		DrawableItem* pdri = pHist->Drawable(drix.index);
 		pdri->pen.SetPenKind( pk);
+		pdri->pen.penAlpha = alpha;
 	}
 	return 0;
 }
@@ -990,6 +997,52 @@ int HistoryArrowStyleChangeItem::Redo()
 	return 1;
 }
 
+//****************** HistoryPenAlphaChangeItem ****************
+HistoryPenAlphaChangeItem::HistoryPenAlphaChangeItem(History* pHist, const int& newAlpha) 
+		:newAlpha(newAlpha), HistoryItem(pHist, HistEvent::hePenAlphaChanged)
+{
+	AlphaValue aval;
+	for (auto& d : pHist->SelectedDrawables())
+	{
+		aval.index = d;
+		aval.alpha = pHist->Drawable(d)->pen.penAlpha;
+		affectedList.push_back(aval);
+	}
+	Redo();
+}
+
+HistoryPenAlphaChangeItem::HistoryPenAlphaChangeItem(const HistoryPenAlphaChangeItem& o) : HistoryItem(o)
+{
+	*this = o;
+}
+
+HistoryPenAlphaChangeItem& HistoryPenAlphaChangeItem::operator=(const HistoryPenAlphaChangeItem& o)
+{
+	(HistoryItem&)(*this) = (HistoryItem&)o;
+	newAlpha = o.newAlpha;	
+	affectedList = o.affectedList;
+	return *this;
+}
+
+int HistoryPenAlphaChangeItem::Undo()
+{
+	for(auto& aval : affectedList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(aval.index);
+		pdrwi->pen.penAlpha = aval.alpha;
+	}
+	return 1;
+}
+
+int HistoryPenAlphaChangeItem::Redo()
+{
+	for(auto& aval : affectedList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(aval.index);
+		pdrwi->pen.penAlpha = newAlpha;
+	}
+	return 1;
+}
 
 
 //****************** HistoryRubberBandItem ****************
@@ -1999,12 +2052,12 @@ HistoryItem* History::AddCopiedItems(QPointF topLeft, Sprite* pSprite)			   // t
 	return p;	// last added item
 }
 
-HistoryItem* History::AddRecolor(FalconPenKind pk)
+HistoryItem* History::AddRecolor(FalconPenKind pk, qreal alpha)
 {
 	if (!_driSelectedDrawables.size())
 		return nullptr;          // do not add an empty list
 
-	HistoryReColorItem* p = new HistoryReColorItem(this, _driSelectedDrawables, pk);
+	HistoryReColorItem* p = new HistoryReColorItem(this, _driSelectedDrawables, pk, alpha);
 	if (p->selectedList.isEmpty())
 	{
 		delete p;
@@ -2120,6 +2173,12 @@ HistoryItem* History::AddPenWidthChange(int increment)
 		_selectionRect.adjust(-d, -d, d, d);
 	}
 	return _AddItem(ppwch);
+}
+
+HistoryItem* History::AddPenAlphaChange(int alphaTimes100)
+{
+	HistoryPenAlphaChangeItem* pha = new HistoryPenAlphaChangeItem(this, alphaTimes100);
+	return _AddItem(pha);
 }
 
 HistoryItem* History::AddPenColorChange(const DrawColors& newdc)
@@ -2627,3 +2686,4 @@ void HistoryList::GetFromClipboard()
 		}
 	}
 }
+
