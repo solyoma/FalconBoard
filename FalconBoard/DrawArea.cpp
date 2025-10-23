@@ -2197,7 +2197,7 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 	QPen pen = QPen(_PenColor(), ActPen().penWidth,  ActPen().penStyle, Qt::RoundCap, Qt::MiterJoin);
 #endif
 	QColor c = pen.color();
-	c.setAlpha(ActPen().penAlpha*100);
+	c.setAlphaF(ActPen().penAlpha);
 	pen.setColor(c);
 	painter.setPen(pen);
 //	qDebug("pen:#%02x%02x%02x - DrawLineTo(%g,%g) - D.A.cpp, line #1980", painter.pen().color().red(), painter.pen().color().green(), painter.pen().color().blue(), endPointC.x(), endPointC.y());
@@ -2599,24 +2599,7 @@ void DrawArea::_Redraw(bool clear)
 
 QColor DrawArea::_PenColor()
 {
-	//static FalconPenKind _prevKind = penNone;
-	//static QColor color;
-	//if (_actPenKind == _prevKind)
-	//{
-	//	if (_actPenKind != penBlackOrWhite)
-	//		return color;
-	//	return _darkMode ? QColor(Qt::white) : QColor(Qt::black);
-	//}
-
-	//_prevKind = _actPenKind;
-
-	//switch (_actPenKind)
-	//{
-	//case penBlackOrWhite: return  color = _darkMode ? QColor(Qt::white) : QColor(Qt::black);
-	//default:
-	//	return color = globalDrawColors[_actPenKind];
-	//}
-	return globalDrawColors.Color(actPenIndex);
+	return ActPen().Color();
 }
 
 void DrawArea::_SaveCursorAndReplaceItWith(QCursor newCursor)

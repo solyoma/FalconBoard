@@ -406,7 +406,10 @@ private:
     QPointF _CorrectForDirection(QPointF &newp);     // using _drawStarted and _isHorizontal
 #endif
 
-    inline DrawablePen &ActPen() { return pens[actPenIndex]; }
+    inline DrawablePen &ActPen() 
+    { 
+        return pens[actPenIndex]; 
+    }
     
     bool _DrawFreehandLineTo(QPointF endPoint); // uses _DrawLineTo but checks for special lines (vertical or horizontal)
     void _DrawLineTo(QPointF endPoint);   // from _lastPointC to endPoint, on _canvas then sets _lastPoint = endPoint
@@ -419,7 +422,7 @@ private:
     void _Redraw(bool clear=true);   // before plot
     void _DrawGrid(QPainter &painter);
     void _DrawPageGuides(QPainter& painter);
-    QColor _PenColor();
+    QColor _PenColor(); // for actual pen
     void _SaveCursorAndReplaceItWith(QCursor newCursor);
     void _RestoreCursor();
     QPainter *_GetPainter(QImage *pCanvas);
