@@ -13,9 +13,9 @@ output and more (see below).
 saved drawings, but cannot modify them or create PDFs.**
 
 ## Screenshots:
-![FalconBoard - dark mode](https://github.com/solyoma/FalconBoard/assets/37068759/151e3386-1ac8-496b-8951-05c45c14ae08)
-![FalconBoard - light mode](https://github.com/solyoma/FalconBoard/assets/37068759/9a4c7e8e-0f54-47ef-a6e1-d0562f34babb)
-![FalconBoard - light mode with no grid shown](https://github.com/solyoma/FalconBoard/assets/37068759/00180553-6d94-454f-b714-362582734162)
+![FalconBoard - dark mode](https://github.com/user-attachments/assets/5b44a7e7-83f7-46e8-9cf8-446611badeb7)
+![FalconBoard - system mode](https://github.com/user-attachments/assets/d09ae2a4-0c50-4d30-ad93-31efc33051e9)
+![FalconBoard - light mode with grid shown](https://github.com/user-attachments/assets/7700d2de-4b21-4e06-8368-9f9510e08caa)
 ## Features (Version 3.x) : 
 
   - Works under Windows and Linux, and (I hope) on Macs too.
