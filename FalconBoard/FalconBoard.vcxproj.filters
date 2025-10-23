@@ -179,7 +179,5 @@
     <None Include="..\translations\FalconBoard_hu.qm">
       <Filter>Translation Files</Filter>
     </None>
-    <None Include="drawables.hu" />
-    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>
