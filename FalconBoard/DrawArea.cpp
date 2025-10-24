@@ -494,14 +494,14 @@ bool DrawArea::IsModified(int index, bool snapsToo) const
 	if (index < 0)
 		index = historyList.ActualHistory();
 
-	return (historyList[index]->IsModified() || (snapsToo ? historyList[index]->IsSnapshot() : false) );
+	return (historyList[index]->IsModified() || (snapsToo ? historyList[index]->LastSavedAsSnapshot() : false) );
 }
 
-int DrawArea::HistoryIsSnapshot(int index) const
+int DrawArea::HistoryLastSavedAsSnapshot(int index) const
 {
 	if (index < 0)
 		index = historyList.ActualHistory();
-	return historyList[index]->IsSnapshot();
+	return historyList[index]->LastSavedAsSnapshot();
 }
 
 /*=============================================================
@@ -516,7 +516,7 @@ int DrawArea::HistoryIsSnapshot(int index) const
 int DrawArea::SearchForModified(int &afterThisIndex) const
 {
 	while (++afterThisIndex < HistoryListSize())
-		if (historyList[afterThisIndex]->IsSnapshot() ||  historyList[afterThisIndex]->IsModified())
+		if (historyList[afterThisIndex]->LastSavedAsSnapshot() ||  historyList[afterThisIndex]->IsModified())
 			return  ++afterThisIndex;
 	return 0;
 }
@@ -1474,8 +1474,11 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 			}
 			else    // scribbles were selected
 			{
-				_rubberBand->setGeometry(r.translated(-_topLeft).toRect());
-				_rubberRect = _rubberBand->geometry();      // pHistory->BoundingRect().translated(-_topLeft);
+				if (_rubberBand)
+				{
+					_rubberBand->setGeometry(r.translated(-_topLeft).toRect());
+					_rubberRect = _rubberBand->geometry();      // pHistory->BoundingRect().translated(-_topLeft);
+				}
 			}
 			_ShowCoordinates(event->pos);
 		}
@@ -1505,6 +1508,13 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 						(DrawableItem&)_lastLineItem = (DrawableItem&)_lastScribbleItem;
 						_lastLineItem.dtType = DrawableType::dtLine;
 						_lastLineItem.endPoint = _lastScribbleItem.points[1];
+						if (!_erasemode)		// eraser dont't have arrows
+						{
+							ArrowFlags aflags = 0;
+							emit SignalGetArrowFlags(aflags);
+							_lastLineItem.arrowFlags = aflags;
+							modified = true;
+						}
 						_pLastDrawableItem = &_lastLineItem;
 					}
 				}
@@ -2196,9 +2206,9 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 #else
 	QPen pen = QPen(_PenColor(), ActPen().penWidth,  ActPen().penStyle, Qt::RoundCap, Qt::MiterJoin);
 #endif
-	QColor c = pen.color();
-	c.setAlphaF(ActPen().penAlpha);
-	pen.setColor(c);
+	////QColor c = pen.color();
+	////c.setAlphaF(ActPen().penAlpha);
+	////pen.setColor(c);
 	painter.setPen(pen);
 //	qDebug("pen:#%02x%02x%02x - DrawLineTo(%g,%g) - D.A.cpp, line #1980", painter.pen().color().red(), painter.pen().color().green(), painter.pen().color().blue(), endPointC.x(), endPointC.y());
 #if !defined _VIEWER && defined _DEBUG
@@ -2219,7 +2229,7 @@ void DrawArea::_DrawLineTo(QPointF endPointC)     // 'endPointC' canvas relative
 	else if (_lastPointC.x() >= 0)
 		painter.drawLine(lp, ep);    //? better?
 	//painter.drawLine(_lastPointC, endPointC);
-	int rad = (actPenWidth / 2) + 2;
+	int rad = (actPenWidth) + 2;
 	update(QRectF(_lastPointC, endPointC + (endPointC == _lastPointC ? QPointF(1, 1) : QPointF(0, 0))).normalized()
 		.adjusted(-rad, -rad, +rad, +rad).toRect());
 
@@ -2741,6 +2751,19 @@ void DrawArea::ChangePenColorSlot(int key)
 }
 
 #endif
+void DrawArea::SetPenAlpha(qreal alpha)
+{
+	if (!_rubberBand)
+	{
+		pens[actPenIndex].penAlpha = alpha / 100.0;
+		return;
+	}
+	// with rubber band: change alpha of selected items
+	HistoryItem* phi = pHistory->AddPenAlphaChange(alpha*100);
+	if (phi)
+		_Redraw();
+}
+
 void DrawArea::SetCursor(DrawCursorShape cs)
 {
 	_erasemode = false;

@@ -587,35 +587,35 @@ public: // functions
 
 	QString SnapshotName(bool withPath = false);
 
-	void InterruptSave()
+	constexpr void InterruptSave()
 	{
 		if (_saveInProgress)
 			_saveInterrupted = true;
 	}
-	bool IsSaving() const { return _saveInProgress; } // true when saving is interrupted
+	constexpr bool IsSaving() const { return _saveInProgress; } // true when saving is interrupted
 
-	bool IsLoaded() const
+	constexpr bool IsLoaded() const
 	{
 		return _loaded;
 	}
-	bool IsSnapshot() const
+	constexpr bool LastSavedAsSnapshot() const
 	{
 		return _lastSavedAsSnapshot;
 	}
 
-	bool IsModified() const
+    bool IsModified() const
 	{
 		return _savedItemCount != _items.size();
 	}
 
-	void SetModifiedState(int resInd, int pageWidth, bool useResInd) // so that IsModified will return true
+    constexpr void SetModifiedState(int resInd, int pageWidth, bool useResInd) // so that IsModified will return true
 	{
 		if (resInd != _resolutionIndex || pageWidth != _pageWidthInPixels || useResInd != _useResInd)
 			_savedItemCount = _items.size() - 1;
 	}
 
 	void SetName(QString name, bool clear = false);
-	void MarkAsSnapshot(bool mark)
+    constexpr void MarkAsSnapshot(bool mark)
 	{
 		_lastSavedAsSnapshot = mark;
 	}

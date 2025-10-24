@@ -84,7 +84,7 @@ static bool __IsLineNearToPoint(QPointF p1, QPointF p2, QPointF& ccenter, qreal 
 #undef DIST2
 };
 
-// ------------ Quad are helper functions ------------
+// ------------ Quad area helper functions ------------
 
 QuadArea AreaForItem(const int& i)
 {

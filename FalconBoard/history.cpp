@@ -1157,7 +1157,7 @@ History::~History()
 	Clear(true);
 }
 
-QString History::SnapshotName(bool withPath)
+QString History::SnapshotName(bool withPath)  // creates a snapshot name when there's none set
 {
 	if (_snapshotName.isEmpty())
 	{
@@ -1509,11 +1509,11 @@ SaveResult History::Save(bool asSnapshot)
 
 void History::SetName(QString name, bool clear)
 {
-	bool isSnapshotName = name.indexOf('/') < 0;
-	if(!isSnapshotName)
+	bool LastSavedAsSnapshotName = name.indexOf('/') < 0;
+	if(!LastSavedAsSnapshotName)
 		_fileName = name;
 
-	if (isSnapshotName)
+	if (LastSavedAsSnapshotName)
 	{
 		_snapshotName = name;
 		_lastSavedAsSnapshot = true;
@@ -1827,12 +1827,12 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 	drawColors.Initialize();
 	int nRead = _items.count();
 // DEBUG
-//	ulong l = ifs.device()->pos();
+//	int ____cnt = 0;
+
 	while (!ifs.atEnd())
 	{
-		ifs >> di;	 // only reads the common part of DrawableItems
 // DEBUG
-//l = ifs.device()->pos();
+//		++____cnt;
 		switch (di.dtType)
 		{
 			case DrawableType::dtDot:			(DrawableItem&)dDot   = di; ifs >> dDot;	pdrwh = &dDot;	break;
@@ -1847,14 +1847,17 @@ int History::_ReadV2(QDataStream& ifs, DrawableItem& di)
 												break;
 			default: break;
 		}
-// DEBUG
-//l = ifs.device()->pos();
+
 		if (pdrwh && (int)di.dtType != (int)DrawableType::dtNonDrawableStart)	// pen has no zoom
 			pdrwh->zoomer.Setup();
 		globalDrawColors = drawColors;
 		if(pdrwh && (int)di.dtType < (int)DrawableType::dtNonDrawableStart)	// only add drawables
 			(void)AddDrawableItem(*pdrwh);		// this will set its zOrder too
 		di.erasers.clear();
+		ifs >> di;	 // only reads the common part of DrawableItems
+// DEBUG 3 lines
+		//if(____cnt==500)
+		//	____cnt = 0;
 	}
 
 	return _items.count()-nRead;

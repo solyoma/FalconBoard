@@ -87,6 +87,7 @@ public slots:
 	void slotGridSpacingChanged(int val);
 	void slotGridSpacingEditingFinished();
 	void SlotDisplaySnapshotterRunning(bool on);
+	void SlotGetArrowFlags(ArrowFlags& out);
 
 private slots:
 	void on_actionLeftMargin_triggered();
@@ -405,7 +406,7 @@ private:
 #ifndef _VIEWER
 			// for _SaveXX() 0: cancelled, -1 error, 1 success
 	bool _StopSnapshotTimerAndWaitForIt();	// returns true if timer was running, false otherwise
-	SaveResult _SaveIfYouWant(int index, bool mustAsk = false, bool onClose = false);
+	SaveResult _SaveConditionally(int index, bool mustAsk = false, bool onClose = false);
 	SaveResult _SaveFile(const QString name);
 	void _StartSnapshotSaveThread();
 	bool _SaveBackgroundImage();

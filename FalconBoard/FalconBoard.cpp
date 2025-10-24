@@ -171,6 +171,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 	connect(_drawArea, &DrawArea::SignalTakeScreenshot, this, &FalconBoard::SlotTakeScreenshot);
 
     connect(this, &FalconBoard::SignalPenColorChanged, _drawArea, &DrawArea::SlotForPenColorRedefined);
+    connect(_drawArea, &DrawArea::SignalGetArrowFlags, this, &FalconBoard::SlotGetArrowFlags);
 #endif
     connect(_drawArea, &DrawArea::SignalSetGrid, this, &FalconBoard::SlotToSetGrid);
     connect(_drawArea, &DrawArea::SignalDocLengthChanged, this, &FalconBoard::SlotDocLengthChanged);
@@ -384,12 +385,12 @@ void FalconBoard::RestoreState()
             qs = QString().setNum(n);
             fname = qs = s->value(qs, QString()).toString();
 
-            bool isSnapshot = qs.indexOf('/') < 0;
-            if (isSnapshot)
+            bool LastSavedAsSnapshot = qs.indexOf('/') < 0;
+            if (LastSavedAsSnapshot)
                 fname = FBSettings::homePath + qs;
             if (paramsList.indexOf(qs) < 0 && QFile::exists(fname) )    // if any of the old files is in the argument list do not use it
             {
-                if(isSnapshot)
+                if(LastSavedAsSnapshot)
                     _AddNewTabForSnapshot(qs, false);  // do not load data yet
                 else
                     _AddNewTab(qs, false);  // do not load data yet
@@ -561,7 +562,7 @@ void FalconBoard::_SaveTabStates(QSettings*& s, IntVector& tabs)
         {
             ph = historyList[n];
             qs = QString().setNum(n);
-            qsn = ph->IsSnapshot() ? ph->SnapshotName(false) : ph->Name();      // no path name for snapshots
+            qsn = ph->LastSavedAsSnapshot() ? ph->SnapshotName(false) : ph->Name();      // no path name for snapshots
             s->setValue(qs, qsn);
         }
         s->setValue("TABSIZE", siz);
@@ -1031,52 +1032,72 @@ bool FalconBoard::_StopSnapshotTimerAndWaitForIt()
 }
 
 /*========================================================
- * TASK:    check index-th history for change 
+ * TASK:    if index-th history was modified
  *          conditionally asks for save confirmation 
- *          then saves it
- * PARAMS:  index: save this history if changed
- *          mustAsk: do not autosave it, always ask
- *          onTabClose: true: do not switch to index-th history
- *                  false: do not switch to 
- * GLOBALS: ui.actionAutoSaveData, _historyList
- * RETURNS: srNoSave : no save was required or file was saved
- *          srCanceed: save is cancelled
+ *          then saves/discards it
+ * PARAMS:  index: save this history if data are changed
+ *          mustAsk: true: do not autosave it, always ask
+ *                   false: autosave if autosave is set
+ *          onTabClose: true: switch to index-th history
+ *                     false: do not switch to index-th history 
+ * GLOBALS: ui.actionAutoSaveData: if checked named files
+ *                    are saved automatically without asking
+ *          _historyList: for all open histories
+ * RETURNS: srNoNeedToSave : no save was required (not modified)
+ *          srCancelled: save is cancelled
  *          srFailed : save error
  *          srSaveSuccess: saved
- * REMARKS: - set 'mustAsk' to true when the user closes
+ * REMARKS: - files may be named files with or without a snapshot
+ *              or unnamed, which may have a saved snapshot
+ *          - if the data are not modified and the file has no
+ *            snapshot saved then no save is required
+ *            In other cases save may be reuired if mustAsk is true
+ *          - set 'mustAsk' to true when the user closes
  *              a changed TAB
  *          - not just the active history can be saved
- *          - when autosave is in effect and 
- *              the file has no name set yet, saves into 
- *              the snapshot, otherwise saves the file first
+ *          - if the file has no name set yet then
+ *              - when autosave is in effect and mustAsk is false
+ *              saves a snapshot with new or existing snapshot name
+ *              even for files that were already saved as named files
+ *              - when autosave is not in effect or mustAsk is true
+ *              
+ *              may ask for saves the file first
  *              and then deletes the snapshot files
  *-------------------------------------------------------*/
-SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onTabClose)
+SaveResult FalconBoard::_SaveConditionally(int index, bool mustAsk, bool onTabClose)
 {
-    bool isTimerIsRunning = _StopSnapshotTimerAndWaitForIt();  // save timer state
+    bool wasSnapshotTimerRunning = _StopSnapshotTimerAndWaitForIt();  // save timer state
 
-    _saveResult = srSaveSuccess;
+    _saveResult = srNoNeedToSave;
 
     _drawArea->SwitchToHistory(index, false);    // but do not redraw
 
     const QString & saveName = pHistory->Name();
+    bool isUntitled = saveName.isEmpty() || saveName.left(UNTITLED.length()) == UNTITLED;
 
-    bool hasSnapshot = pHistory->IsSnapshot();
-    if (!pHistory->IsModified() && !hasSnapshot) //?? other cases?
+    bool lastSavedAsSnapshot = pHistory->LastSavedAsSnapshot();
+    // for unmodified data just restart the snapshot timer
+	// unless this is a named file for which a snapshot was saved
+    // and mustAsk is true
+
+    bool doAutoSaveData = ui.actionAutoSaveData->isChecked() && !mustAsk;
+
+    auto restartSnapshotTimerIfNeeded = [&]()
     {
-       if(isTimerIsRunning)
-           _snapshotTimer.start();
-        return _saveResult;
-    }
+        if (wasSnapshotTimerRunning)
+            _snapshotTimer.start();
+    };
 
-    QString snapshotName = pHistory->SnapshotName(true);
+    if (!pHistory->IsModified() && (!lastSavedAsSnapshot || !mustAsk) ) 
+    {                                                    
+		restartSnapshotTimerIfNeeded();
+        return _saveResult = srNoNeedToSave;
+    }
+    QString snapshotName = pHistory->SnapshotName(true);  // always returns a snapshot name (with path)
 
     QMessageBox::StandardButton ret = QMessageBox::Save;
 
-    bool isAutoSaveSet = ui.actionAutoSaveData->isChecked() && !mustAsk;
-    bool isUntitled = saveName.isEmpty() || saveName.left(UNTITLED.length()) == UNTITLED;
-
-            // when a tab was closed
+            // when a tab was closed switch to another one
     auto handleTabClose = [&]()
         {
             if (!onTabClose)
@@ -1085,52 +1106,73 @@ SaveResult FalconBoard::_SaveIfYouWant(int index, bool mustAsk, bool onTabClose)
                 ui.actionAppend->setEnabled(!pHistory->Name().isEmpty());
             }       
         };
+    auto removeSnapshotFiles = [&]()
+        {
+            if (lastSavedAsSnapshot)
+            {
+                QFile::remove(snapshotName);
+                QFile::remove(snapshotName + ".dat");
+            }
+		};
 
-    
-    if (!isAutoSaveSet )         // otherwise don't ask user, not even for untitled
+    if (doAutoSaveData)
     {
-        ret = QMessageBox::warning(this, tr(WindowTitle),
+	    // auto save file only if it is a changed named file 
+	    // without saved snapshots or an unchanged one with saved snapshot
+        if (!pHistory->IsModified())
+        {
+            if(lastSavedAsSnapshot && !isUntitled)
+            {
+                _saveResult = pHistory->Save(false);    // save named file
+                if (_saveResult == srSaveSuccess)
+                {
+                    removeSnapshotFiles();
+                    handleTabClose();
+                }
+            }
+            restartSnapshotTimerIfNeeded();
+            return _saveResult;
+        }
+        else 
+        {
+			_saveResult = pHistory->Save(saveName.isEmpty());  // save both named files and unnamed files (as snapshots)
+            if (_saveResult == srSaveSuccess)
+            {
+                removeSnapshotFiles();
+                handleTabClose();
+            }
+            restartSnapshotTimerIfNeeded();
+            return _saveResult;
+        }
+    }
+    
+    // manual save file if the user wants it
+    
+    ret = QMessageBox::warning(this, tr(WindowTitle),
                                         tr("<i>%1</i> have been modified.\n"
                                             "Do you want to save your changes?").arg(saveName.isEmpty() ? _NextUntitledName() : saveName),
                                                     QMessageBox::Save | QMessageBox::No | QMessageBox::Cancel);
 
-        if (ret == QMessageBox::Save)
+    if (ret == QMessageBox::Save)
+    {
+        on_actionSave_triggered(); // sets _saveResult, unnnamed files use "Save As"
+        if (_saveResult == srSaveSuccess)
         {
-            on_actionSave_triggered();
-            if (_saveResult == srSaveSuccess)
-            {
-                pHistory->SetName(_lastSaveName, true);
-                if (_drawArea->HistoryIsSnapshot(-1))
-                {
-                    QFile::remove(snapshotName);
-                    QFile::remove(snapshotName + ".dat");
-                }
-                handleTabClose();
-            }
-            if (isTimerIsRunning)
-                _snapshotTimer.start();
-            return _saveResult = srFailed;
-        }
-        else if (ret == QMessageBox::Cancel)
-        {
-            if (isTimerIsRunning)
-                _snapshotTimer.start();
-            return _saveResult = srCancelled;
-        }
-        else if (ret == QMessageBox::No)
-        {
-            if (isTimerIsRunning)
-                _snapshotTimer.start();
-            return _saveResult = srNoSave;
+            pHistory->SetName(_lastSaveName, true);
+			removeSnapshotFiles();
+            handleTabClose();
         }
     }
+    else if (ret == QMessageBox::Cancel)
+        _saveResult = srCancelled;
+    else if (ret == QMessageBox::No)
+    {
+        _saveResult = srNoSave;
+		removeSnapshotFiles();
+        handleTabClose();
+    }
 
-    // auto save file
-    _saveResult = pHistory->Save(saveName.isEmpty());    // save file or snapshot
-
-    if (isTimerIsRunning)
-        _snapshotTimer.start();
-
+	restartSnapshotTimerIfNeeded();
     return _saveResult;
 }
 
@@ -1194,7 +1236,7 @@ void FalconBoard::_SetPenAlphaSpinValue()
     if(_drawArea->actPenIndex != penNone)
 	{
 		++_busy;
-		_psbPenAlpha->setValue(_drawArea->PenAlpha());
+		_psbPenAlpha->setValue(_drawArea->PenAlpha()*100);
 		--_busy;
 	}
 }
@@ -1286,8 +1328,8 @@ void FalconBoard::_DisconnectScreenshotLabel()
 
 QString FalconBoard::_FileNameToTabText(QString fname)
 {
-    bool isSnapshot = fname.indexOf('/') < 0;
-    if (isSnapshot)
+    bool LastSavedAsSnapshot = fname.indexOf('/') < 0;
+    if (LastSavedAsSnapshot)
     {
         QFile f(FBSettings::homePath + fname);
         f.open(QIODevice::ReadOnly);
@@ -1788,7 +1830,7 @@ void FalconBoard::closeEvent(QCloseEvent* event)
     {
         while (sr != srCancelled && _drawArea->SearchForModified(n))    // returned : n = (index of first modified after 'n') || 0
         {
-            if ((sr = _SaveIfYouWant(--n, !bAuto, true)) == srSaveSuccess || sr == srNoNeedToSave)
+            if ((sr = _SaveConditionally(--n, !bAuto, true)) == srSaveSuccess || sr == srNoNeedToSave)
                 savedTabs.push_back(n);
         }
     }
@@ -1919,9 +1961,6 @@ void FalconBoard::on_actionNew_triggered()
         QMessageBox::warning(this, "falconBoard", tr("Maximum mumber of TABs reached. Please close some TABs to proceed."));
         return;
     }
-// no need to save: creating new TAB
-//    if (!_SaveIfYouWant(true))    // must ask if data changed, false: cancelled
-//        return;
 
     bool b = QMessageBox::question(this, "falconBoard", tr("Do you want to limit the editable area horizontally to the pixel width set in Page Setup?\n"
                                                            " You may change this any time in 'Options/Limit Paper Width'"), QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes;
@@ -2069,9 +2108,6 @@ void FalconBoard::_LoadFiles(QStringList names)
  *-------------------------------------------------------*/
 void FalconBoard::on_actionLoad_triggered()
 {
-//#ifndef _VIEWER
-//    _SaveIfYouWant(true);   // must ask when data changed
-//#endif
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Load Data"), 
                                                     _lastDir, // QDir::currentPath(),
@@ -2399,7 +2435,7 @@ void FalconBoard::SlotForTabCloseRequested(int index)
 {
 #ifndef _VIEWER
     _drawArea->HideRubberBand(true);
-    if (!_drawArea->IsModified(index, true) || _SaveIfYouWant(index, true, true)!= srCancelled)
+    if (!_drawArea->IsModified(index, true) || _SaveConditionally(index, true) == srNoNeedToSave || _saveResult == srSaveSuccess || _saveResult == srNoSave)
     {
 #endif
         _CloseTab(index);
@@ -2542,6 +2578,11 @@ void FalconBoard::SlotDisplaySnapshotterRunning(bool on)
         _plblMsg->setText("");
 }
 
+void FalconBoard::SlotGetArrowFlags(ArrowFlags& out)
+{
+    out =   _psbLeftArrowCombo->currentIndex();
+    out |=  _psbRightArrowCombo->currentIndex()*4;  // smae index 4 x arrow flag
+}
 
 void FalconBoard::on_actionShowPageGuides_triggered()
 {
@@ -2828,7 +2869,8 @@ void FalconBoard::slotPenAlphaChanged(int val)
         return;
     // from user
     
-    _drawArea->SetPenAlpha(val);
+    _drawArea->SetPenAlpha(val); // will keep the alpha value here
+                                 // reset it when the rubber band is removed
 }
 
 void FalconBoard::slotPenWidthEditingFinished()

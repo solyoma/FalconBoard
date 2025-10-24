@@ -92,7 +92,7 @@ public:
     {
         _snapShotterRunning = on;
     }
-    constexpr bool IsSnapShotterRunning() const
+    constexpr bool LastSavedAsSnapshotterRunning() const
     { 
         return _snapShotterRunning;  
     }
@@ -150,7 +150,7 @@ public:
     int HistoryListSize() const { return (int)historyList.size(); }
 
     bool IsModified(int fromIndex, bool alsoCheckForSnapshot = false) const;
-    int HistoryIsSnapshot(int index = -1) const;
+    int HistoryLastSavedAsSnapshot(int index = -1) const;
 
     int SearchForModified(int &afterThisIndex) const;  // check afterThisIndex+1 -th history first, include snapshots
 
@@ -162,7 +162,7 @@ public:
         return pens[actPenIndex].penAlpha; 
     }
     void SetPenWidth(qreal width) { pens[actPenIndex].penWidth = width; }
-    void SetPenAlpha(qreal alpha) { pens[actPenIndex].penAlpha = alpha/100.0; }
+    void SetPenAlpha(qreal alpha);
 
     void SetCursor(DrawCursorShape cs);
 
@@ -203,10 +203,7 @@ signals:
 	void SignalTakeScreenshot(bool hideThisWindow);
     void SignalDocLengthChanged(int pageHeight, int topleft, int maxY);
     void SignalPositionChanged(int newPos);
-
-    void SignalLineStyleActivated();
-    void SignalLeftArrowActivated();
-    void SignalRightArrowActivated();
+    void SignalGetArrowFlags(ArrowFlags& flags);
 
 public slots:
     void NewData();
