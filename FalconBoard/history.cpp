@@ -2178,9 +2178,9 @@ HistoryItem* History::AddPenWidthChange(int increment)
 	return _AddItem(ppwch);
 }
 
-HistoryItem* History::AddPenAlphaChange(int alphaTimes100)
+HistoryItem* History::AddPenAlphaChange(qreal alpha)
 {
-	HistoryPenAlphaChangeItem* pha = new HistoryPenAlphaChangeItem(this, alphaTimes100);
+	HistoryPenAlphaChangeItem* pha = new HistoryPenAlphaChangeItem(this, alpha);
 	return _AddItem(pha);
 }
 

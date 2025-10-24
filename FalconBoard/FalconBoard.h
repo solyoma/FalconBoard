@@ -88,6 +88,7 @@ public slots:
 	void slotGridSpacingEditingFinished();
 	void SlotDisplaySnapshotterRunning(bool on);
 	void SlotGetArrowFlags(ArrowFlags& out);
+	void SlotGetActAlpha(int& alpha);	// 0.. 100
 
 private slots:
 	void on_actionLeftMargin_triggered();
@@ -167,10 +168,10 @@ private slots:
 
 	void SlotForRubberBandSelection(int on);
 
-	void slotPenWidthChanged(int val);
-	void slotPenWidthEditingFinished();
-	void slotPenAlphaChanged(int val);
-	void slotPenAlphaEditingFinished();
+	void SlotPenWidthChanged(int val);
+	void SlotPenWidthEditingFinished();
+	void SlotPenAlphaChanged(int val);
+	void SlotPenAlphaEditingFinished();
 
 	void SlotForUndo(bool b);
 	void SlotForRedo(bool b);

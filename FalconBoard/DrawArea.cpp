@@ -61,7 +61,7 @@ void DrawArea::SetMyPrinterData(const MyPrinterData& prdata)
 	_prdata = prdata;
 }
 
-void DrawArea::ClearRoll()
+void DrawArea::SlotClearRoll()
 {
 #ifndef _VIEWER
 	HideRubberBand(true);
@@ -70,7 +70,7 @@ void DrawArea::ClearRoll()
 	_ClearCanvas();
 }
 
-void DrawArea::ClearVisibleScreen()
+void DrawArea::SlotClearVisibleScreen()
 {
 #ifndef _VIEWER
 	HideRubberBand(true);
@@ -79,7 +79,7 @@ void DrawArea::ClearVisibleScreen()
 	_ClearCanvas();
 }
 
-void DrawArea::ClearDown()
+void DrawArea::SlotClearDown()
 {
 #ifndef _VIEWER
 	HideRubberBand(true);
@@ -563,7 +563,7 @@ void DrawArea::SynthesizeKeyEvent(Qt::Key key, Qt::KeyboardModifier mod)
 }
 #endif
 
-void DrawArea::NewData()    // current history
+void DrawArea::SlotNewData()    // current history
 {
 	pHistory->Clear();
 	ClearBackground();
@@ -2273,7 +2273,7 @@ void DrawArea::_ResizeCanvas(QImage* canvas, const QSize& newSize, bool isTransp
 	*canvas = newImage;
 }
 
-void DrawArea::ClearHistory()
+void DrawArea::SlotClearHistory()
 {
 	pHistory->ClearUndo();
 
@@ -2570,7 +2570,7 @@ void DrawArea::Print(QString name, QString* pdir)
 	_prdata.bExportPdf = false;
 }
 
-void DrawArea::ExportPdf(QString fileName, QString& directory)
+void DrawArea::SlotExportPdf(QString fileName, QString& directory)
 {
 	if (PageSetup(PageParams::wtdExportPdf))                // else cancelled
 		Print(fileName, &directory);
@@ -2752,14 +2752,15 @@ void DrawArea::ChangePenColorSlot(int key)
 
 #endif
 void DrawArea::SetPenAlpha(qreal alpha)
-{
+{	
+	alpha /= 100.0;
 	if (!_rubberBand)
 	{
-		pens[actPenIndex].penAlpha = alpha / 100.0;
+		pens[actPenIndex].penAlpha = alpha;
 		return;
 	}
 	// with rubber band: change alpha of selected items
-	HistoryItem* phi = pHistory->AddPenAlphaChange(alpha*100);
+	HistoryItem* phi = pHistory->AddPenAlphaChange(alpha);
 	if (phi)
 		_Redraw();
 }

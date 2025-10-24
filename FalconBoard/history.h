@@ -729,7 +729,7 @@ public: // functions
 	HistoryItem* AddMoveItems(QPointF displacement);
 	HistoryItem* AddPenColorChange(const DrawColors& drwclr);
 	HistoryItem* AddPenWidthChange(int increment);  // for all selected drawables increment can be negative
-	HistoryItem* AddPenAlphaChange(int alphaTimes100);  // for all selected drawables
+	HistoryItem* AddPenAlphaChange(qreal alphaBetween0_1);  // for all selected drawables
 	HistoryItem* AddRecolor(FalconPenKind pk, qreal alpha);
 	HistoryItem* AddRotationItem(MyRotation rot);
 	HistoryItem* AddRemoveSpaceItem(QRectF& rect);

@@ -169,9 +169,10 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
     connect(_drawArea, &DrawArea::RubberBandSelection, this, &FalconBoard::SlotForRubberBandSelection);
     connect(_drawArea, &DrawArea::SignalPenColorChanged, this, &FalconBoard::SlotForPenColorChanged);   // set action icon for it from 'globalColors'
 	connect(_drawArea, &DrawArea::SignalTakeScreenshot, this, &FalconBoard::SlotTakeScreenshot);
+    connect(_drawArea, &DrawArea::SignalGetArrowFlags, this, &FalconBoard::SlotGetArrowFlags);
+    connect(_drawArea, &DrawArea::SignalGetActAlpha, this, &FalconBoard::SlotGetActAlpha);
 
     connect(this, &FalconBoard::SignalPenColorChanged, _drawArea, &DrawArea::SlotForPenColorRedefined);
-    connect(_drawArea, &DrawArea::SignalGetArrowFlags, this, &FalconBoard::SlotGetArrowFlags);
 #endif
     connect(_drawArea, &DrawArea::SignalSetGrid, this, &FalconBoard::SlotToSetGrid);
     connect(_drawArea, &DrawArea::SignalDocLengthChanged, this, &FalconBoard::SlotDocLengthChanged);
@@ -863,11 +864,11 @@ void FalconBoard::_CreateAndAddActions()
     statusBar()->addWidget(_plblMsg);
 
     // more than one valueChanged() function exists
-    connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenWidthChanged);
-    connect(_psbPenWidth, &QSpinBox::editingFinished, this, &FalconBoard::slotPenWidthEditingFinished);
+    connect(_psbPenWidth, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::SlotPenWidthChanged);
+    connect(_psbPenWidth, &QSpinBox::editingFinished, this, &FalconBoard::SlotPenWidthEditingFinished);
 
-    connect(_psbPenAlpha, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::slotPenAlphaChanged);
-    connect(_psbPenAlpha, &QSpinBox::editingFinished, this, &FalconBoard::slotPenAlphaEditingFinished);
+    connect(_psbPenAlpha, QOverload<int>::of(&QSpinBox::valueChanged), this, &FalconBoard::SlotPenAlphaChanged);
+    connect(_psbPenAlpha, &QSpinBox::editingFinished, this, &FalconBoard::SlotPenAlphaEditingFinished);
 
     connect(_psbUseLineArrow,   &QCheckBox::toggled, _drawArea, &DrawArea::SlotUseArrowStyleChanged);
     connect(_psbUseLineArrow,   &QCheckBox::toggled, this, &FalconBoard::SlotToggleArrowheadEnabled);
@@ -893,7 +894,7 @@ void FalconBoard::_CreateAndAddActions()
     connect(_drawArea, &DrawArea::IncreaseBrushSize, this, &FalconBoard::SlotIncreaseBrushSize);
     connect(_drawArea, &DrawArea::DecreaseBrushSize, this, &FalconBoard::SlotDecreaseBrushSize);
 
-    connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::ClearHistory);
+    connect(ui.actionClearHistory, &QAction::triggered, _drawArea, &DrawArea::SlotClearHistory);
 #endif
     connect(_drawArea, &DrawArea::CloseTab, this, &FalconBoard::SlotForTabCloseRequested);
     connect(_drawArea, &DrawArea::TabSwitched, this, &FalconBoard::SlotForTabSwitched);
@@ -1970,7 +1971,7 @@ void FalconBoard::on_actionNew_triggered()
     _AddNewTab(QString(), false, true);
     ui.actionAppend->setEnabled(false);
 
-    //_drawArea->NewData();
+    //_drawArea->SlotNewData();
     setWindowTitle(sWindowTitle);
     _backgroundImageName.clear();
 }
@@ -2584,6 +2585,11 @@ void FalconBoard::SlotGetArrowFlags(ArrowFlags& out)
     out |=  _psbRightArrowCombo->currentIndex()*4;  // smae index 4 x arrow flag
 }
 
+void FalconBoard::SlotGetActAlpha(int& alpha)
+{
+    alpha = _psbPenAlpha->value();
+}
+
 void FalconBoard::on_actionShowPageGuides_triggered()
 {
     _drawArea->SetPageGuidesOn(ui.actionShowPageGuides->isChecked());
@@ -2756,17 +2762,17 @@ void FalconBoard::on_actionScreenshotTransparency_triggered()
 
 void FalconBoard::on_actionClearRoll_triggered()
 {
-    _drawArea->ClearRoll();
+    _drawArea->SlotClearRoll();
 }
 
 void FalconBoard::on_actionClearThisScreen_triggered()
 {
-    _drawArea->ClearVisibleScreen();    // from _topLeft
+    _drawArea->SlotClearVisibleScreen();    // from _topLeft
 }
 
 void FalconBoard::on_actionClearDownward_triggered()
 {
-    _drawArea->ClearDown(); // from _topLeft
+    _drawArea->SlotClearDown(); // from _topLeft
 }
 
 void FalconBoard::on_actionClearBackgroundImage_triggered()
@@ -2854,7 +2860,7 @@ void FalconBoard::SlotForRubberBandSelection(int on)
     ui.actionXToCenterPoint->setEnabled(on);
 }
 
-void FalconBoard::slotPenWidthChanged(int val)
+void FalconBoard::SlotPenWidthChanged(int val)
 {
     if (_busy)		// from program
         return;
@@ -2863,7 +2869,7 @@ void FalconBoard::slotPenWidthChanged(int val)
     _drawArea->SetPenWidth(val);
 }
 
-void FalconBoard::slotPenAlphaChanged(int val)
+void FalconBoard::SlotPenAlphaChanged(int val)
 {
     if (_busy)		// from program
         return;
@@ -2873,12 +2879,12 @@ void FalconBoard::slotPenAlphaChanged(int val)
                                  // reset it when the rubber band is removed
 }
 
-void FalconBoard::slotPenWidthEditingFinished()
+void FalconBoard::SlotPenWidthEditingFinished()
 {
     ui.drawArea->setFocus();
 }
 
-void FalconBoard::slotPenAlphaEditingFinished()
+void FalconBoard::SlotPenAlphaEditingFinished()
 {
     ui.drawArea->setFocus();
 }
@@ -3000,7 +3006,7 @@ void FalconBoard::on_actionExportToPdf_triggered()
     QString saveName = pHistory->Name();
     int pos = saveName.lastIndexOf('/');
     QString name = _lastPDFDir + saveName.mid(pos+1);
-    _drawArea->ExportPdf(name, _lastPDFDir);
+    _drawArea->SlotExportPdf(name, _lastPDFDir);
 }
 
 void FalconBoard::SlotForChkGridOn(bool checked)

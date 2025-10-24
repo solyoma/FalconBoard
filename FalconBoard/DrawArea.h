@@ -204,15 +204,16 @@ signals:
     void SignalDocLengthChanged(int pageHeight, int topleft, int maxY);
     void SignalPositionChanged(int newPos);
     void SignalGetArrowFlags(ArrowFlags& flags);
+    void SignalGetActAlpha(int &alpha); // 0.. 100
 
 public slots:
-    void NewData();
-    void ClearRoll();
-    void ClearVisibleScreen();
-    void ClearDown();
-    void ClearHistory();
+    void SlotNewData();
+    void SlotClearRoll();
+    void SlotClearVisibleScreen();
+    void SlotClearDown();
+    void SlotClearHistory();
     void Print(QString fileName, QString *pdir=nullptr);
-    void ExportPdf(QString fileName, QString &directory);   // filename w.o. directory
+    void SlotExportPdf(QString fileName, QString &directory);   // filename w.o. directory
     void SlotForPrimaryScreenChanged(QScreen*);
     void SlotForGridSpacingChanged(int);
     void SlotForPenColorRedefined(const DrawColors &drwclr);
