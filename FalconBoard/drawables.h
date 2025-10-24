@@ -39,6 +39,7 @@ enum class HistEvent {
     heBackgroundUnloaded,   // image unloaded from background
     heClearCanvas,          // visible image erased
     heEraserStroke,         // eraser stroke added
+    heHideEaserStroke,   // eraser stroke hidden
     heItemsDeleted,         // store the list of items deleted in this event
     heItemsPastedBottom,    // list of draw events added first drawn item is at index 'drawableItem'
     heItemsPastedTop,       // list of draw events added first drawn item is at index 'drawableItem'
@@ -409,6 +410,7 @@ struct DrawableItem
 
     QVector<EraserData> erasers; // a polygon(s) confined to the bounding rectangle of points for eraser strokes (above points)
                                  // may intersect the visible lines only because of the pen width!
+	bool showEraserStrokes = true; // whether to draw this eraser stroke or not
 
     DrawableItem() 
     { 
@@ -551,14 +553,17 @@ struct DrawableItem
 #if !defined _VIEWER && defined _DEBUG
             }
 #endif
-            for (auto &er : erasers)
+            if (showEraserStrokes)
             {
-                QPen pen(QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
-                myPainter.setPen(pen);
-                if (er.eraserStroke.size() == 1)
-                    myPainter.drawPoint(er.eraserStroke.at(0) - tl);
-                else
-                    myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
+                for (auto& er : erasers)
+                {
+                    QPen pen(QPen(Qt::black, er.eraserPenWidth, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
+                    myPainter.setPen(pen);
+                    if (er.eraserStroke.size() == 1)
+                        myPainter.drawPoint(er.eraserStroke.at(0) - tl);
+                    else
+                        myPainter.drawPolyline(er.eraserStroke.translated(-tl));    // do not close path
+                }
             }
             painter->setClipRect(clipR.translated(-topLeftOfVisibleArea) );
             painter->drawImage(tl - topLeftOfVisibleArea, pimg);

@@ -370,12 +370,30 @@ struct HistoryEraserStrokeItem : public HistoryItem
 {
     int eraserPenWidth=0;       
     QPolygonF   eraserStroke;
-    DrawableIndexVector affectedIndexList;   // these images were re-created with transparent color set
+    DrawableIndexVector affectedIndexList;   // these images were re-created with transparent color strokes
+    QVector<bool> showEraserStrokes;
     IntVector subStrokesForAffected;         // number of strokes added to the it-th item on affectedIndexList
 
     HistoryEraserStrokeItem(History* pHist, DrawableItem& dri);
     HistoryEraserStrokeItem(const HistoryEraserStrokeItem &o);
     HistoryEraserStrokeItem& operator=(const HistoryEraserStrokeItem& o);
+
+    int Undo() override;
+    int Redo() override;
+    QPointF TopLeft() const override { return _TopLeftFrom(affectedIndexList); }
+};
+
+            //--------------------------------------------
+            //      HistoryHideEaserStrokeItem
+            //--------------------------------------------
+
+struct HistoryHideEaserStrokeItem : public HistoryItem
+{
+    DrawableIndexVector affectedIndexList;   // these images were re-created with transparent color set
+
+    HistoryHideEaserStrokeItem(History* pHist);
+    HistoryHideEaserStrokeItem(const HistoryHideEaserStrokeItem &o);
+    HistoryHideEaserStrokeItem& operator=(const HistoryHideEaserStrokeItem & o);
 
     int Undo() override;
     int Redo() override;
@@ -478,8 +496,8 @@ struct HistoryZoomItem : public HistoryItem
                             // items may be zoomed already
 							// and the center of the zoom is the center of this rectangle
 	DrawableIndexVector zoomedItemsList;    // these items are zoomed
-	bool zoomIn;                            // in this direction
-    int steps;
+	bool zoomIn=false;                      // in this direction
+    int steps=0;
 	HistoryZoomItem(History* pHist, QRectF r, bool zoomIn, int steps);
 	HistoryZoomItem(const HistoryZoomItem& o);
 	HistoryZoomItem& operator=(const HistoryZoomItem& o);
@@ -725,6 +743,7 @@ public: // functions
 	HistoryItem* AddDeleteItems(Sprite* pSprite = nullptr);                  // using 'this' and _driSelectedDrawables a
 	HistoryItem* AddDrawableItem(DrawableItem& dri);
 	HistoryItem* AddEraserItem(DrawableItem& dri);  // add to all scribbles which it intersects
+	HistoryItem* AddHideEaserStrokeItem();  // add to all scribbles which it intersects
 	HistoryItem* AddInsertVertSpace(int y, int heightInPixels);       // height < 0: delete space
 	HistoryItem* AddMoveItems(QPointF displacement);
 	HistoryItem* AddPenColorChange(const DrawColors& drwclr);

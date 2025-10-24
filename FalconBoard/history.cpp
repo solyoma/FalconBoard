@@ -751,12 +751,66 @@ int HistoryEraserStrokeItem::Undo()
 
 int HistoryEraserStrokeItem::Redo()
 {
-	int nStrokes;
+	int nStrokes = 0;
 	for (auto ix : affectedIndexList)
 	{
 		DrawableItem* pdrwi = pHist->Drawable(ix);
+		if(showEraserStrokes.isEmpty())
+			showEraserStrokes.push_back(true);
 		nStrokes = pdrwi->AddEraserStroke(eraserPenWidth, eraserStroke); // it may add more than one stroke to given DrawableItem
 		subStrokesForAffected << nStrokes;
+	}
+	return 1;
+}
+
+//****************** HistoryHideEaserStrokeItem ****************
+
+HistoryHideEaserStrokeItem::HistoryHideEaserStrokeItem(History* pHist) : HistoryItem(pHist, HistEvent::heHideEaserStroke)
+{
+	DrawableIndexVector driv;
+	driv = pHist->SelectedDrawables();
+	// not all drawables inside dri's area are really affected by 
+	// the eraser strokes (or rectangle, or ellipse
+	if (driv.isEmpty())				// will not be used or saved in callers!
+		return;
+	for(auto ix : driv)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(ix);
+		if (!pdrwi->erasers.isEmpty() && pdrwi->showEraserStrokes)
+			affectedIndexList.push_back(ix);
+	}
+	Redo();
+}
+
+HistoryHideEaserStrokeItem::HistoryHideEaserStrokeItem(const HistoryHideEaserStrokeItem& o)  
+	:  HistoryItem(o), affectedIndexList(o.affectedIndexList)
+{
+	Redo();
+}
+
+HistoryHideEaserStrokeItem& HistoryHideEaserStrokeItem::operator=(const HistoryHideEaserStrokeItem& o)
+{
+	(HistoryItem&)(*this) = (HistoryItem&)o;
+	affectedIndexList = o.affectedIndexList; 
+	return *this;
+}
+
+int HistoryHideEaserStrokeItem::Undo()
+{
+	for (auto ix : affectedIndexList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(ix);
+		pdrwi->showEraserStrokes = true;
+	}
+	return 1;
+}
+
+int HistoryHideEaserStrokeItem::Redo()
+{
+	for (auto ix : affectedIndexList)
+	{
+		DrawableItem* pdrwi = pHist->Drawable(ix);
+		pdrwi->showEraserStrokes = false;
 	}
 	return 1;
 }
@@ -1054,6 +1108,12 @@ HistoryRubberBandItem::HistoryRubberBandItem(const HistoryRubberBandItem& o) : r
 {
 }
 
+HistoryRubberBandItem& HistoryRubberBandItem::operator=(const HistoryRubberBandItem& o)
+{
+	// TODO: insert return statement here
+	return *this;
+}
+
 int HistoryRubberBandItem::Undo()
 {
 	return 0;
@@ -1073,6 +1133,7 @@ HistoryZoomItem::HistoryZoomItem(History* pHist, QRectF r, bool zoomIn, int step
 
 HistoryZoomItem::HistoryZoomItem(const HistoryZoomItem& o) : HistoryItem(o)
 {
+	steps = o.steps;
 	zoomIn = o.zoomIn;
 	zoomedRect = o.zoomedRect;
 	zoomedItemsList = o.zoomedItemsList;
@@ -1965,6 +2026,17 @@ HistoryItem* History::AddEraserItem(DrawableItem& era)
 		return nullptr;
 	}
 	return _AddItem(phe);
+}
+
+HistoryItem* History::AddHideEaserStrokeItem()
+{
+	HistoryHideEaserStrokeItem* phr = new HistoryHideEaserStrokeItem(this);
+	if (phr->affectedIndexList.isEmpty())
+	{
+		delete phr;
+		return nullptr;
+	}
+	return _AddItem(phr);
 }
 
 

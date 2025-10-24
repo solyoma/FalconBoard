@@ -65,6 +65,7 @@ void FalconBoard::_RemoveMenus()
                                                     //11: separator
                                                     //10: save visible
     pMenu->removeAction(pMenu->actions()[9]);       // 9: separator
+    pMenu->removeAction(pMenu->actions()[9]);       // 9: separator
     pMenu->removeAction(pMenu->actions()[8]);       // 8: Save As
     pMenu->removeAction(pMenu->actions()[7]);       // 7: Save
                                                     // 6: separator
@@ -171,6 +172,7 @@ FalconBoard::FalconBoard(QSize scrSize, QWidget *parent)	: QMainWindow(parent)
 	connect(_drawArea, &DrawArea::SignalTakeScreenshot, this, &FalconBoard::SlotTakeScreenshot);
     connect(_drawArea, &DrawArea::SignalGetArrowFlags, this, &FalconBoard::SlotGetArrowFlags);
     connect(_drawArea, &DrawArea::SignalGetActAlpha, this, &FalconBoard::SlotGetActAlpha);
+    connect(_drawArea, &DrawArea::SignalSetPenAlpha, this, &FalconBoard::SlotSetPenAlphaFromDrawArea);
 
     connect(this, &FalconBoard::SignalPenColorChanged, _drawArea, &DrawArea::SlotForPenColorRedefined);
 #endif
@@ -2887,6 +2889,13 @@ void FalconBoard::SlotPenWidthEditingFinished()
 void FalconBoard::SlotPenAlphaEditingFinished()
 {
     ui.drawArea->setFocus();
+}
+
+void FalconBoard::SlotSetPenAlphaFromDrawArea(int value)
+{
+    ++_busy;
+    _psbPenAlpha->setValue((int)value % 100);
+    --_busy;
 }
 
 void FalconBoard::SlotForUndo(bool b)

@@ -643,6 +643,7 @@ void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
 		bRemove = (bDelete || bCopy || bCut || bPaste) ||
 					(!bBracketKey && key != Qt::Key_Control && key != Qt::Key_Shift && key != Qt::Key_Alt && key != Qt::Key_R && key != Qt::Key_C &&
 						key != Qt::Key_F7 && key != Qt::Key_Space && key != Qt::Key_Plus && key != Qt::Key_Minus && !bMovementKeys),
+		bHideEaserStrokes = key == Qt::Key_U && _mods.testFlag(Qt::AltModifier),
 		bCollected = pHistory->SelectedSize(),
 		bRecolor = (key >= Qt::Key_1 && key <= Qt::Key_7),
 
@@ -653,32 +654,40 @@ void DrawArea::_KeyPressWithRubberband(QKeyEvent* event)
 					key == Qt::Key_H ||  // flip horizontally
 					(key == Qt::Key_V && !_mods)       // flip vertically when no modifier keys pressed
 				);
-	if (bCollected && bBracketKey)
+	if (bCollected)
 	{
-		const qreal D = 0.5;
-		if (key == Qt::Key_BracketLeft) // decrease pen width for all drawables inside selection by 1
+		if(bBracketKey)
 		{
-			if (_rubberRect.width() > 1 && _rubberRect.height() > 1)
-			{		   // delta		x	 y	   w	 h
-				_rubberRect.adjust(D, D, -D, -D);
-				_rubberBand->setGeometry(_rubberRect.toRect());
-				pHistory->AddPenWidthChange(-1);
-				_ShowCoordinates(_lastCursorPos);
-			}
-			_Redraw();
-		}
-		else if (key == Qt::Key_BracketRight) // increase pen width for all drawables inside selection by 1
-		{
-			QRectF r = _rubberRect;
-			// delta   x	 y	   w	 h
-			r.adjust(-D, -D, D, D);
-			if (r.left() > 0 && r.top() > 0)
+			const qreal D = 0.5;
+			if (key == Qt::Key_BracketLeft) // decrease pen width for all drawables inside selection by 1
 			{
-				_rubberRect = r;
-				_rubberBand->setGeometry(_rubberRect.toRect());
-				pHistory->AddPenWidthChange(1);
-				_ShowCoordinates(_lastCursorPos);
+				if (_rubberRect.width() > 1 && _rubberRect.height() > 1)
+				{		   // delta		x	 y	   w	 h
+					_rubberRect.adjust(D, D, -D, -D);
+					_rubberBand->setGeometry(_rubberRect.toRect());
+					pHistory->AddPenWidthChange(-1);
+					_ShowCoordinates(_lastCursorPos);
+				}
+				_Redraw();
 			}
+			else if (key == Qt::Key_BracketRight) // increase pen width for all drawables inside selection by 1
+			{
+				QRectF r = _rubberRect;
+				// delta   x	 y	   w	 h
+				r.adjust(-D, -D, D, D);
+				if (r.left() > 0 && r.top() > 0)
+				{
+					_rubberRect = r;
+					_rubberBand->setGeometry(_rubberRect.toRect());
+					pHistory->AddPenWidthChange(1);
+					_ShowCoordinates(_lastCursorPos);
+				}
+				_Redraw();
+			}
+		}
+		else if(bHideEaserStrokes)
+		{
+			pHistory->AddHideEaserStrokeItem();
 			_Redraw();
 		}
 	}
@@ -1758,6 +1767,8 @@ void DrawArea::HideRubberBand(bool del)
 			delete _rubberBand;
 			_rubberBand = nullptr;
 			_rubberRect = QRect();
+			int alpha = ActPen().penAlpha * 100;
+			emit SetPenAlpha(alpha);
 		}
 		emit RubberBandSelection(false);
 	}

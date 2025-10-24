@@ -205,6 +205,7 @@ signals:
     void SignalPositionChanged(int newPos);
     void SignalGetArrowFlags(ArrowFlags& flags);
     void SignalGetActAlpha(int &alpha); // 0.. 100
+    void SignalSetPenAlpha(int alpha);
 
 public slots:
     void SlotNewData();

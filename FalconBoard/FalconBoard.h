@@ -172,6 +172,7 @@ private slots:
 	void SlotPenWidthEditingFinished();
 	void SlotPenAlphaChanged(int val);
 	void SlotPenAlphaEditingFinished();
+	void SlotSetPenAlphaFromDrawArea(int value);
 
 	void SlotForUndo(bool b);
 	void SlotForRedo(bool b);
