@@ -2751,9 +2751,10 @@ void DrawArea::ChangePenColorSlot(int key)
 }
 
 #endif
-void DrawArea::SetPenAlpha(qreal alpha)
+void DrawArea::SetPenAlpha(int alphaX100)
 {	
-	alpha /= 100.0;
+#ifndef _VIEWER
+	qreal alpha = alphaX100 / 100.0;
 	if (!_rubberBand)
 	{
 		pens[actPenIndex].penAlpha = alpha;
@@ -2763,6 +2764,7 @@ void DrawArea::SetPenAlpha(qreal alpha)
 	HistoryItem* phi = pHistory->AddPenAlphaChange(alpha);
 	if (phi)
 		_Redraw();
+#endif
 }
 
 void DrawArea::SetCursor(DrawCursorShape cs)

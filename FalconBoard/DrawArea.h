@@ -162,7 +162,7 @@ public:
         return pens[actPenIndex].penAlpha; 
     }
     void SetPenWidth(qreal width) { pens[actPenIndex].penWidth = width; }
-    void SetPenAlpha(qreal alpha);
+    void SetPenAlpha(int alphaX100);
 
     void SetCursor(DrawCursorShape cs);
 

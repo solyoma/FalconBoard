@@ -416,7 +416,7 @@ struct HistoryPenColorChangeItem : public HistoryItem
             //--------------------------------------------
 struct HistoryPenAlphaChangeItem : public HistoryItem
 {
-    int newAlpha;
+    qreal newAlpha;
     struct AlphaValue
     {
         int index=-1;      // in drawables
@@ -424,7 +424,7 @@ struct HistoryPenAlphaChangeItem : public HistoryItem
     };
     QVector<AlphaValue> affectedList;
 
-    HistoryPenAlphaChangeItem(History* pHist, const int &newAlpha);
+    HistoryPenAlphaChangeItem(History* pHist, qreal newAlpha);
     HistoryPenAlphaChangeItem(const HistoryPenAlphaChangeItem& o);
     HistoryPenAlphaChangeItem& operator=(const HistoryPenAlphaChangeItem& o);
     int Undo() override;

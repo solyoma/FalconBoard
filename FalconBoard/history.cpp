@@ -998,7 +998,7 @@ int HistoryArrowStyleChangeItem::Redo()
 }
 
 //****************** HistoryPenAlphaChangeItem ****************
-HistoryPenAlphaChangeItem::HistoryPenAlphaChangeItem(History* pHist, const int& newAlpha) 
+HistoryPenAlphaChangeItem::HistoryPenAlphaChangeItem(History* pHist, qreal newAlpha) 
 		:newAlpha(newAlpha), HistoryItem(pHist, HistEvent::hePenAlphaChanged)
 {
 	AlphaValue aval;
