@@ -1998,41 +1998,50 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 		return false;
 	// start point has the smallest, end point the largest x coordinate
 	// taking in account the y coordinates too
-	qreal xmin = 999999.0, xmax = 0,	 // value of x minimum and maximum coordinate
-		ymin = 999999.0, ymax = 0;		 // value of y minimum and maximum coordinate
-	int mix = -1, mxx = -1, miy=-1, mxy=-1;				 // index of these value in 'points[]'
+	qreal minX = 999999.0, maxX = 0,	 // value of x minimum and maximum coordinate
+		minY = 999999.0, maxY = 0;		 // value of y minimum and maximum coordinate
+	int iMinX = -1, iMaxX = -1, iMinY=-1, iMaxY=-1;				 // index of these value in 'points[]'
 	for (int i = 0; i < points.size(); ++i)
 	{
-		if (points[i].x() < xmin)
+		if (points[i].x() < minX)
 		{
-			mix = i;
-			xmin = points[i].x();
+			iMinX = i;
+			minX = points[i].x();
 		}
-		if (points[i].x() > xmax)
+		if (points[i].x() > maxX)
 		{
-			mxx = i;
-			xmax = points[i].x();
+			iMaxX = i;
+			maxX = points[i].x();
 		}
-		if (points[i].y() < ymin)
+		if (points[i].y() < minY)
 		{
-			miy = i;
-			ymin = points[i].y();
+			iMinY = i;
+			minY = points[i].y();
 		}
-		if (points[i].y() > ymax)
+		if (points[i].y() > maxY)
 		{
-			mxy = i;
-			ymax = points[i].y();
+			iMaxY = i;
+			maxY = points[i].y();
 		}
 	}
-	if(xmax-xmin < ymax-ymin)	// if the x range is smaller than the y range
-	{	// then we have a vertical line, so use ymin and ymax
-		mix = miy;
-		mxx = mxy;
+	if(maxX-minX < maxY-minY)	// if the x range is smaller than the y range
+	{	// then we have a vertical line, so use the indices of minY and maxY
+		iMinX = iMinY;
+		iMaxX = iMaxY;
+			// keep original line direction
+		if ((iMaxY - iMinY) * (maxY - minY) < 0)	 // original direction was opposite of the min and max position
+			std::swap(iMinY, iMaxY);
+	}
+	else if ((iMaxX - iMinX) * (maxX - minX) < 0)
+	{
+			// keep original line direction
+		std::swap(iMaxX, iMinX);
+		std::swap(iMaxY, iMinY);
 	}
 
 	QPointF pfStart, pfEnd; // start and end points
-	pfStart = points[mix];
-	pfEnd = points[mxx];
+	pfStart = points[iMinX];
+	pfEnd = points[iMaxX];
 
 	//qDebug("brect: (%d,%d),(%d,%d)", (int)brect.topLeft().x(), (int)brect.topLeft().y(), (int)brect.bottomRight().x(), (int)brect.bottomRight().y());
 	// now we have a line going through the start and end points of our scrible

@@ -498,10 +498,9 @@ private:
 #endif
 				if ((siz))
 				{
-					if (siz != TO_FRONT_SIZE || strcmp(data.constData(), TO_FRONT)) // then command line
-						emit SignalAddNewTab(data.constData());
-					clientSocket->flush();
-
+					// interpret received bytes as UTF-8 to reconstruct filenames with non-ASCII chars
+					QString received = QString::fromUtf8(data.constData(), siz);
+					emit SignalAddNewTab(received);
 				}
 
 				//clientSocket->disconnectFromServer();

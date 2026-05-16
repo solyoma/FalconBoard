@@ -55,23 +55,26 @@ int main(int argc, char *argv[])
 			// DEBUG
 #ifdef _DEBUG
 			qDebug("  Another instance is running");
-			// prepare parameters for other instance
+#endif
+			// prepare parameters for other instance (use Qt's Unicode arguments)
 			QByteArray arguments;
-			if (argc > 1)
+			QStringList qargs = a.arguments(); // QCoreApplication::arguments() via QApplication
+			if (qargs.size() > 1)
 			{
-				for (int i = 1; i < argc; ++i)
+				// skip qargs[0] (executable)
+				for (int i = 1; i < qargs.size(); ++i)
 				{
-					arguments.append(argv[i]);
-					arguments.append('\0');
+					QByteArray ba = qargs[i].toUtf8(); // encode each QString as UTF-8
+					arguments.append(ba);
+					arguments.append('\0'); // null separator as original protocol
 				}
 			}
 			else
+			{
 				arguments.append(TO_FRONT);
+			}
 
 			// Send the command line arguments over the pipe
-			// DEBUG
-			qDebug("  writing '%s' to socket", arguments.constData());
-#endif
 			socket.write(arguments);
 			socket.flush();
 			bool success = socket.waitForBytesWritten(1000);

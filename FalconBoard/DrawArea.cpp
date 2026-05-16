@@ -1504,7 +1504,18 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 
 				bool modified = false;
 
-				if (_lastScribbleItem.points.size() == 2)
+				auto addArrowFlags = [&]() ->void
+					{
+						if (!_erasemode)		// eraser dont't have arrows
+						{
+							ArrowFlags aflags = 0;
+							emit SignalGetArrowFlags(aflags);
+							_lastLineItem.arrowFlags = aflags;
+							modified = true;
+						}
+					};
+
+				if (_lastScribbleItem.points.size() == 2)	// point or line
 				{
 					if (_lastScribbleItem.points.at(0) == _lastScribbleItem.points.at(1))
 					{
@@ -1517,13 +1528,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 						(DrawableItem&)_lastLineItem = (DrawableItem&)_lastScribbleItem;
 						_lastLineItem.dtType = DrawableType::dtLine;
 						_lastLineItem.endPoint = _lastScribbleItem.points[1];
-						if (!_erasemode)		// eraser dont't have arrows
-						{
-							ArrowFlags aflags = 0;
-							emit SignalGetArrowFlags(aflags);
-							_lastLineItem.arrowFlags = aflags;
-							modified = true;
-						}
+						addArrowFlags();
 						_pLastDrawableItem = &_lastLineItem;
 					}
 				}
@@ -1534,6 +1539,7 @@ void DrawArea::MyButtonReleaseEvent(MyPointerEvent* event)
 					{
 						if (((DrawableScribble*)_pLastDrawableItem)->IsAlmostAStraightLine(_lastLineItem))
 						{
+							addArrowFlags();
 							_pLastDrawableItem = &_lastLineItem;
 							modified = true;
 						}
