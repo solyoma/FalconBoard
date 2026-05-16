@@ -739,8 +739,8 @@ struct DrawableLine : public DrawableItem
 {
     QPointF endPoint;                   // start point in DrawableItem
     
-    ArrowFlags arrowFlags = 0;              // see common.h
-
+    ArrowFlags arrowFlags = 0;          // see common.h. When a line is rotated the arrow must rotate with it
+                                        // vhen when horizontal or vertical flip requested
     DrawableLine() : DrawableItem()
     {
         dtType = DrawableType::dtLine;

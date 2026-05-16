@@ -753,15 +753,17 @@ bool MyRotation::RotateLine(QLineF& line, QPointF center, bool noCheck)
 	l.translate(-center);
 	l = _tr.map(l);       // always rotation first
 
+	QLineF l1 = l;
+
 	if (flipType == rotFlipH)
 	{
-		l.setP1(QPointF(-l.p1().x(), l.p1().y()));
-		l.setP2(QPointF(-l.p2().x(), l.p2().y()));
+		l.setP1(QPointF(l1.p2().x(), l1.p1().y()));
+		l.setP2(QPointF(l1.p1().x(), l1.p2().y()));
 	}
 	else if (flipType == rotFlipV)
 	{
-		l.setP1(QPointF(l.p1().x(), -l.p1().y()));
-		l.setP2(QPointF(l.p2().x(), -l.p2().y()));
+		l.setP1(QPointF(l1.p1().x(), l1.p2().y()));
+		l.setP2(QPointF(l1.p2().x(), l1.p1().y()));
 	}
 	l.translate(center);
 	if (noCheck || (l.p1().x() >= 0 && l.p1().y() >= 0 && l.p2().x() >= 0 && l.p2().y() >= 0))
@@ -1506,6 +1508,11 @@ bool DrawableLine::Rotate(MyRotation arot, QPointF center)
 	if (!arot.RotateLine(line, center, true))
 		return false;
 
+	if (arot.flipType == MyRotation::rotFlipH && arrowFlags)
+	{
+		arrowFlags = ((arrowFlags & noArrowAtStart) << 2) + ((arrowFlags & noArrowAtEnd) >> 2);
+	}
+
 	refPoint = line.p1();
 	endPoint = line.p2();
 
@@ -1602,10 +1609,10 @@ void DrawableLine::_DrawSingleArrow(QPainter* painter, QPointF topLeftOfVisibleA
 	if (!type)		// no arrows set
 		return;
 
-	QPointF start = refPoint-topLeftOfVisibleArea,
-			end	  = endPoint-topLeftOfVisibleArea;
-	if (start.x() > end.x() || (start.x() == end.x() && start.y() < end.y()))
-		qSwap(start, end);
+	QPointF start = refPoint - topLeftOfVisibleArea,
+			end   = endPoint - topLeftOfVisibleArea;
+	//if (start.x() > end.x() || (start.x() == end.x() && start.y() < end.y()))
+	//	qSwap(start, end);
 	QLineF line(start, end);
 	int angle = -line.angle();	  // < 360°	   line from left to right downwards has an angle > 180°
 

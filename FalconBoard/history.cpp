@@ -138,7 +138,7 @@ int HistoryDrawableItem::Redo()
 }
 
 //-------------------------------------------- 
-// HistoryDeleteItem
+// HistoryDrawableItem
 //--------------------------------------------
 DrawableItem* HistoryDrawableItem::GetDrawable(bool onlyVisible, int* pIndex) const
 {

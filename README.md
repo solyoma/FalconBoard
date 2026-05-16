@@ -163,7 +163,7 @@ saved drawings, but cannot modify them or create PDFs.**
 ## Képernyőfotók:
   ld. fent az angol részben
 
-## Tulajdonságok (2.x verziók):
+## Tulajdonságok (3.x verziók):
 
  - Működik Windows-on és linuxon és (remélem MAC-eken is)
  - Jelenleg kétnyelvű: magyar és angol, ami a programból választható

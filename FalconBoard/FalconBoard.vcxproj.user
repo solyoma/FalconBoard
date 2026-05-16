@@ -5,6 +5,10 @@
     </LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>"d:\Documents\Oktatas\_tárgyak\SarkadiTamásKisfizgyak2 -10 gyak.mwb"</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
   <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <QtLastBackgroundBuild>2024-04-22T18:57:27.5659164Z</QtLastBackgroundBuild>
     <QtTouchProperty>

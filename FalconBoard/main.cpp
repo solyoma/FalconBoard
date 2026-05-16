@@ -38,53 +38,65 @@ int main(int argc, char *argv[])
 		if (loaded && qs != "en_US")	 // only set when not American English
 			a.installTranslator(&translator);
 	}
-	ShowSplashScreen(true);	 // add text
-	// set up window and languages
-	FalconBoard w(a.screens()[0]->size());
-	w.SetLanguages(fileNames, ixLang);
-
+	// first check if another instance of the application is already running 
+	// and if so send command line arguments to it and exit
 	if (allowOnlyOneInstanceRunning)
 	{
-		// prepare parameters for other instance
-		QByteArray arguments;
-		if (argc > 1)
-		{
-			for (int i = 1; i < argc; ++i)
-			{
-				arguments.append(argv[i]);
-				arguments.append('\0');
-			}
-		}
-		else
-			arguments.append(TO_FRONT);
-
 		// Try to connect to the named pipe
 		// DEBUG
+#ifdef _DEBUG
 		qDebug("Trying to connect to pipe named '%s'", pipeName.toStdString().c_str());
+#endif
 		QLocalSocket socket;
 		socket.connectToServer(pipeName, QIODevice::WriteOnly);
 		if (socket.waitForConnected(1000))	// see if a server with 'pipeName' is running
 		{
 			// Another instance of the application is already running
 			// DEBUG
+#ifdef _DEBUG
 			qDebug("  Another instance is running");
+			// prepare parameters for other instance
+			QByteArray arguments;
+			if (argc > 1)
+			{
+				for (int i = 1; i < argc; ++i)
+				{
+					arguments.append(argv[i]);
+					arguments.append('\0');
+				}
+			}
+			else
+				arguments.append(TO_FRONT);
+
 			// Send the command line arguments over the pipe
 			// DEBUG
 			qDebug("  writing '%s' to socket", arguments.constData());
+#endif
 			socket.write(arguments);
 			socket.flush();
 			bool success = socket.waitForBytesWritten(1000);
 			// DEBUG
+#ifdef _DEBUG
 			qDebug("  write operation %s", success ? "successful" : "unsuccessful");
+#endif
 			return success ? 0 : -1;
 		}
 		else
 		// DEBUG
-			qDebug("Connection failed w. error '%s'",socket.errorString().toStdString().c_str());
+#ifdef _DEBUG
+			qDebug("No previous instance running ('%s')",socket.errorString().toStdString().c_str());
+#endif
 
-		// Application is not yet running. Create a local server to listen for connections from other instances
-		w.StartListenerThread(&a); // create new listener thread and start listeining on 'pipeName'
 	}
+
+	ShowSplashScreen(true);	 // add text
+		// set up window and languages
+	FalconBoard w(a.screens()[0]->size());
+	w.SetLanguages(fileNames, ixLang);
+		// Application is not yet running. Create a local server to listen for connections from other instances
+
+	w.StartListenerThread(&a); // create new listener thread and start listening on 'pipeName'
+
 
 	a.setAttribute(Qt::AA_SynthesizeMouseForUnhandledTouchEvents);
 	a.setWindowIcon(QIcon(":/FalconBoard/Resources/falconboard.png"));

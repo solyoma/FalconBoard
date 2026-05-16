@@ -197,8 +197,8 @@ private slots:
 
 	void SlotToggleArrowheadEnabled(bool b);
 	void SlotLineStyleTextActivated (const QString& text);
-	void SlotLeftArrowTextActivated (const QString& text);
-	void SlotRightArrowTextActivated(const QString& text);
+	void SlotEndArrowTextActivated (const QString& text);
+	void SlotStartArrowTextActivated(const QString& text);
 
 #endif
 	void on_actionPageSetup_triggered();
@@ -301,8 +301,8 @@ private:
 	QCheckBox* _psbUseLineArrow = nullptr;
 				// these 3 are icon based:
 	QComboBox* _psbLineStyleCombo = nullptr;
-	QComboBox* _psbLeftArrowCombo = nullptr;
-	QComboBox* _psbRightArrowCombo = nullptr;
+	QComboBox* _psbEndArrowCombo = nullptr;
+	QComboBox* _psbStartArrowCombo = nullptr;
 
 	QSpinBox * _psbGridSpacing = nullptr;	// - " -
 	QCheckBox* _pChkGridOn = nullptr;
@@ -481,15 +481,21 @@ private:
 		{
 			QLocalSocket* clientSocket = _pLocalServer->nextPendingConnection();
 			// DEBUG
+#ifdef _DEBUG
 			qDebug("Listener Thread: connection detected for pipe '%s'", _pLocalServer->serverName().toStdString().c_str());
+#endif
 			if (clientSocket)
 			{
 				// DEBUG
+#ifdef _DEBUG
 				qDebug("               : clientSocket created");
+#endif
 				QByteArray data = clientSocket->readAll();
 				int siz = data.size();
 				// DEBUG
+#ifdef _DEBUG
 				qDebug("Listener Thread: data size: %d - processing", siz);
+#endif
 				if ((siz))
 				{
 					if (siz != TO_FRONT_SIZE || strcmp(data.constData(), TO_FRONT)) // then command line

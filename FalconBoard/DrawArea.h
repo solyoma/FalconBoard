@@ -220,10 +220,12 @@ public slots:
     void SlotForPenColorRedefined(const DrawColors &drwclr);
 	void SlotStopHistorySave();
 
+#ifndef _VIEWER
     void SlotUseArrowStyleChanged(bool checked);
-    void SlotLineLeftArrowChanged(int index);
-    void SlotLineRightArrowChanged(int index);
+    void SlotLineEndArrowChanged(int index);
+    void SlotLineStartArrowChanged(int index);
     void SlotLineStyleChanged(int index);
+#endif
 
     void SlotScrollDocTo(int posRelToDocumentTop);
 
@@ -254,7 +256,6 @@ protected:
 
 
 #ifndef _VIEWER
-
 private:
     void _ChangePenByKeyboard(int key);
 #endif
@@ -403,6 +404,7 @@ private:
     void _SetLastPointPosition();           // for actual _history
     bool _CanSavePoint(QPointF &endpoint);    //used for constrained drawing using _lastScribbleItem.points[0]
     QPointF _CorrectForDirection(QPointF &newp);     // using _drawStarted and _isHorizontal
+    void _LineArrowChanged(int index, bool left);
 #endif
 
     inline DrawablePen &ActPen() 

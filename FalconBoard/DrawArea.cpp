@@ -2330,9 +2330,9 @@ void DrawArea::SlotStopHistorySave()
 		pHistory->InterruptSave();
 }
 
+#ifndef _VIEWER
  void DrawArea::SlotLineStyleChanged(int index)
 {
-#ifndef _VIEWER
 	if (_busy)
 		return;
 	++_busy;
@@ -2362,62 +2362,60 @@ void DrawArea::SlotStopHistorySave()
 	}
 	setFocus();
 	--_busy;
-#endif
 }
 
 static bool bAllowArrowChanges = false; // only set arrow type when this is true
 
 void DrawArea::SlotUseArrowStyleChanged(bool checked) // for checkbox
 {
-#ifndef _VIEWER
 	if (_busy)
 		return;
 	++_busy;
 	bAllowArrowChanges = checked;
 	--_busy;
 	setFocus();
-#endif
 }
 
-void DrawArea::SlotLineLeftArrowChanged(int index)
+void DrawArea::_LineArrowChanged(int index, bool left)
 {
-#ifndef _VIEWER
 	if (_busy || !bAllowArrowChanges)
 		return;
 	++_busy;
-	if (pHistory && _rubberBand && pHistory->SelectedSize())
+	if (pHistory)
 	{
 		DrawableIndexVector filtered;
-		if (pHistory->FilteredSelection(filtered, true))	// just lines
+		if (_rubberBand && pHistory->SelectedSize())
 		{
-			pHistory->AddArrowStyleChangeItem(index, 0, filtered);	   // left arrow, set arrow type for index
-			_Redraw();
+			if (pHistory->FilteredSelection(filtered, true))	// just lines
+			{
+				pHistory->AddArrowStyleChangeItem(index, left? 0 : 1, filtered);	   // left arrow, set arrow type for index
+				_Redraw();
+			}
+		}
+		else if (pHistory->LastItem() && pHistory->LastItem()->type == HistEvent::heDrawable)
+		{
+			DrawableItem* pdri = pHistory->LastItem()->GetDrawable(true);
+			if (pdri && pdri->dtType == DrawableType::dtLine)
+			{
+				filtered.push_back(dynamic_cast<HistoryDrawableItem*>(pHistory->LastItem())->indexOfDrawable);
+				pHistory->AddArrowStyleChangeItem(index, 0, filtered);	   // left arrow, set arrow type for index
+				_Redraw();
+			}
 		}
 	}
 	setFocus();
 	--_busy;
-#endif
+}
+void DrawArea::SlotLineEndArrowChanged(int index)
+{
+	_LineArrowChanged(index, true);
 }
 
-void DrawArea::SlotLineRightArrowChanged(int index)
+void DrawArea::SlotLineStartArrowChanged(int index)
 {
-#ifndef _VIEWER
-	if (_busy || !bAllowArrowChanges)
-		return;
-	++_busy;
-	if (pHistory && _rubberBand && pHistory->SelectedSize())
-	{
-		DrawableIndexVector filtered;
-		if (pHistory->FilteredSelection(filtered, true))	// just lines
-		{
-			pHistory->AddArrowStyleChangeItem(index, 1, filtered);	   // right arrow, set arrow type for index
-			_Redraw();
-		}
-	}
-	setFocus();
-	--_busy;
-#endif
+	_LineArrowChanged(index, false);
 }
+#endif
 
 void DrawArea::SlotScrollDocTo(int pos)
 {

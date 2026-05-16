@@ -286,8 +286,8 @@ constexpr ArrowType    noArrowAtStart = 0x03,      // these for bits to clear
 	                   noArrowAtEnd   = 0x0C,      // so these are never set into ArrowFlags!
                        arrowStartOut   = 1,  // arrow points outward from the start point   <|-
                        arrowStartIn    = 2,  //        - " - inward    - " -                |>-
-                       arrowEndOut     = 4,  // same for end point                          -|>
-                       arrowEndIn      = 8;  // same for end point                          -<|
+                       arrowEndOut     = 4,  // same as 1 above for end point               -|>
+                       arrowEndIn      = 8;  // same as 2 above for end point               -<|
 
 typedef int8_t ArrowFlags;
 typedef QVector<ArrowType> ArrowTypes;
