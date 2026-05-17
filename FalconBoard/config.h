@@ -8,8 +8,8 @@ constexpr int DRAWABLE_ZORDER_BASE = 10000000;  // zOrder for all images is belo
 const qint32 MAGIC_ID = 0x53414d57; // "SAMW" - little endian 
 									// MW: for "My Whiteboard", original name of the program
 									// !! MODIFY this and Save() for big endian processors!
-const qint32 MAGIC_VERSION = 0x56030000; // V 03.00.00	 - 2025.10.10.
-const QString sVersion = "3.0.0";
+const qint32 MAGIC_VERSION = 0x56030100; // V 03.01.00	 - 2025.10.10.
+const QString sVersion = "3.1.0";
 
 // names in configuration
 
