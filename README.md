@@ -243,7 +243,7 @@ saved drawings, but cannot modify them or create PDFs.**
     
     A programot nem kell telepíteni. A parancsfájlokat (FalconBoar.exe, FalconViewer.exe) és az ikon fájlt
     (FalconBoard.ico), illetve, amennyiben ezek nincsenk fent a rendszerben a Qt (és Windows alatt a Microsoft
-     redistributeable csomagot) be kell másolni egy tetszőleges mappába és egy parancsikont kell létrehozni
+     redistributable csomagot) be kell másolni egy tetszőleges mappába és egy parancsikont kell létrehozni
      az Asztalon. A program állapotát a felhasználó saját könyvtárában (Windows: a felhasználó
      *AppData\Local\FalconBoard* mappája, Linux a felhasználó könyvtárában levő rejtett *.falconBoard* mappába)
      elhelyezett .ini fájlban van elmentve.)
