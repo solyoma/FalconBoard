@@ -477,7 +477,7 @@ private:
 
 	void GetDataFromServer()	// called when a connection is detected
 	{
-		if (_pLocalServer->waitForNewConnection(100)) 
+		if (_pLocalServer->waitForNewConnection(100))
 		{
 			QLocalSocket* clientSocket = _pLocalServer->nextPendingConnection();
 			// DEBUG
@@ -491,26 +491,49 @@ private:
 				qDebug("               : clientSocket created");
 #endif
 				QByteArray data = clientSocket->readAll();
-				int siz = data.size();
 				// DEBUG
 #ifdef _DEBUG
-				qDebug("Listener Thread: data size: %d - processing", siz);
+				qDebug("Listener Thread: raw data size: %d", data.size());
 #endif
-				if ((siz))
+				if (!data.isEmpty())
 				{
-					// interpret received bytes as UTF-8 to reconstruct filenames with non-ASCII chars
-					QString received = QString::fromUtf8(data.constData(), siz);
-					emit SignalAddNewTab(received);
-				}
+					// Split on the null separator and take the first non-empty chunk.
+					// This removes trailing/embedded NULs from the part we decode.
+					QList<QByteArray> parts = data.split('\0');
+					QByteArray part;
+					for (const QByteArray& p : parts)
+					{
+						if (!p.isEmpty())
+						{
+							part = p;
+							break;
+						}
+					}
+					// If everything was empty (rare), fall back to the whole buffer trimmed of trailing NULs
+					if (part.isEmpty())
+					{
+						int realSize = data.size();
+						while (realSize > 0 && data[realSize - 1] == '\0') --realSize;
+						part = data.left(realSize);
+					}
 
-				//clientSocket->disconnectFromServer();
-				//clientSocket->deleteLater();
+#ifdef _DEBUG
+					qDebug("Listener Thread: first part size: %d, bytes: '%s'", part.size(), part.constData());
+#endif
+					// If the part equals the TO_FRONT command (ASCII) skip loading and only activate.
+					if (part != QByteArray(TO_FRONT))
+					{
+						// Interpret as UTF-8 to reconstruct non-ASCII file paths.
+						QString received = QString::fromUtf8(part);
+						emit SignalAddNewTab(received);
+					}
+					clientSocket->flush();
+				}
 
 				emit SignalActivate();
 			}
 		}
 	}
-
 };
 // ========================================================= Snapshotter ==========================================
 #ifndef _VIEWER

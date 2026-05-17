@@ -19,52 +19,45 @@ int main(int argc, char *argv[])
 	bool allowOnlyOneInstanceRunning = s->value("single", false).toBool();
 	FBSettings::Close();
 
-	QStringList fileNames = GetTranslations();	// sorted list of language string like "hu_HU"
-	
-	QTranslator translator;
-
-	QString qs, qsn;
-	qs = QLocale::system().name();
-	if (ixLang < 0)
-		ixLang = fileNames.indexOf("FalconBard_" + qs.left(2)+".qm"); // TODO: en_US or en_GB both are "en"
-
-	if (ixLang >= 0)
-	{
-		qsn = ":/FalconBoard/translations/" + fileNames[ixLang];
-		bool loaded = translator.load(qsn);
-		if (loaded)
-			qs = translator.language();
-
-		if (loaded && qs != "en_US")	 // only set when not American English
-			a.installTranslator(&translator);
-	}
 	// first check if another instance of the application is already running 
 	// and if so send command line arguments to it and exit
 	if (allowOnlyOneInstanceRunning)
 	{
 		// Try to connect to the named pipe
 		// DEBUG
-#ifdef _DEBUG
+//#ifdef _DEBUG
 		qDebug("Trying to connect to pipe named '%s'", pipeName.toStdString().c_str());
-#endif
+//#endif
 		QLocalSocket socket;
 		socket.connectToServer(pipeName, QIODevice::WriteOnly);
 		if (socket.waitForConnected(1000))	// see if a server with 'pipeName' is running
 		{
 			// Another instance of the application is already running
 			// DEBUG
-#ifdef _DEBUG
+//#ifdef _DEBUG
 			qDebug("  Another instance is running");
-#endif
+//#endif
 			// prepare parameters for other instance (use Qt's Unicode arguments)
 			QByteArray arguments;
 			QStringList qargs = a.arguments(); // QCoreApplication::arguments() via QApplication
 			if (qargs.size() > 1)
 			{
 				// skip qargs[0] (executable)
+// DEBUG the Release version
+				QFile f("arguments.txt");
+				f.open(QIODevice::WriteOnly | QIODevice::Append);
+				if(!f.isOpen())
+				{
+					QMessageBox::warning(nullptr, "FalconBoard",	"Failed to open arguments.txt for writing");
+				}
+				QTextStream ts(&f);	
+// end DEBUG					
 				for (int i = 1; i < qargs.size(); ++i)
 				{
 					QByteArray ba = qargs[i].toUtf8(); // encode each QString as UTF-8
+// DEBUG the Release version
+					ts << "Argument " << i << ": " << qargs[i] << " (UTF-8: " << ba.constData() << ")\n";
+// end DEBUG					
 					arguments.append(ba);
 					arguments.append('\0'); // null separator as original protocol
 				}
@@ -84,15 +77,34 @@ int main(int argc, char *argv[])
 #endif
 			return success ? 0 : -1;
 		}
-		else
 		// DEBUG
 #ifdef _DEBUG
-			qDebug("No previous instance running ('%s')",socket.errorString().toStdString().c_str());
+		else
+			qDebug("Error/No other instance is running ('%s')",socket.errorString().toStdString().c_str());
 #endif
 
 	}
 
 	ShowSplashScreen(true);	 // add text
+	QStringList fileNames = GetTranslations();	// sorted list of language string like "hu_HU"
+	
+	QTranslator translator;
+
+	QString qs, qsn;
+	qs = QLocale::system().name();
+	if (ixLang < 0)
+		ixLang = fileNames.indexOf("FalconBard_" + qs.left(2)+".qm"); // TODO: en_US or en_GB both are "en"
+
+	if (ixLang >= 0)
+	{
+		qsn = ":/FalconBoard/translations/" + fileNames[ixLang];
+		bool loaded = translator.load(qsn);
+		if (loaded)
+			qs = translator.language();
+
+		if (loaded && qs != "en_US")	 // only set when not American English
+			a.installTranslator(&translator);
+	}
 		// set up window and languages
 	FalconBoard w(a.screens()[0]->size());
 	w.SetLanguages(fileNames, ixLang);

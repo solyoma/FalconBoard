@@ -22,38 +22,38 @@ Invalid file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2489"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2514"/>
         <source>Can&apos;t Allocate Resources
 Not enough memory?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2492"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2517"/>
         <source>Can&apos;t find printer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="3091"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="3115"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 | Selection x:%6 y: %7, width: %8, height: %9</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="792"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="801"/>
         <source>With this pen width drawing would be outside of &quot;paper&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2495"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2520"/>
         <source>Print error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="2498"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="2523"/>
         <source>Print cancelled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/DrawArea.cpp" line="3097"/>
+        <location filename="../FalconBoard/DrawArea.cpp" line="3121"/>
         <source>   Page:%1, Left:%2, Top:%3 | Pen: x:%4, y:%5 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -61,62 +61,62 @@ Not enough memory?</source>
 <context>
     <name>FalconBoard</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="709"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="713"/>
         <source>%1...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="763"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="767"/>
         <source>Pen Width:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="774"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="778"/>
         <source> Alpha:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="788"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="792"/>
         <source>Grid size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="811"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="815"/>
         <source>Select line style</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="825"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="829"/>
         <source>Allow arrows to straight lines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="832"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="836"/>
         <source>Select left arrow type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="845"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="849"/>
         <source>Select right arrow type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="921"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="925"/>
         <source>Falconboard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="921"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="925"/>
         <source>Too many open files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1681"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1726"/>
         <source>C&amp;lear list</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1780"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1825"/>
         <source>Automatic snapshot save not finished!
 Please save each changed files manually!
 
@@ -124,161 +124,161 @@ Aborting close.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1919"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1964"/>
         <source>Maximum mumber of TABs reached. Please close some TABs to proceed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1926"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1968"/>
         <source>Do you want to limit the editable area horizontally to the pixel width set in Page Setup?
  You may change this any time in &apos;Options/Limit Paper Width&apos;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1940"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1982"/>
         <source>FalconBoard - Import</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2076"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2245"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2115"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2284"/>
         <source>Load Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2078"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2247"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2117"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2286"/>
         <source>FalconBoard files (*.mwb);;All files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2121"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2160"/>
         <source>FalconBoard - Go to Page</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2121"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2160"/>
         <source>Page:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2226"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2265"/>
         <source>FalconBoard - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2227"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2266"/>
         <source>This file path name is already used for another open document.
 Please enter a different one</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2299"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2338"/>
         <source>Open source Whiteboard/blackboard application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2301"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2340"/>
         <source>&lt;p&gt;© A. Sólyom (2020-22)&lt;/p&gt;&lt;br&gt;&lt;p&gt;https://github.com/solyoma/FalconBoard&lt;/p&gt;&lt;p&gt;Based on Qt&apos;s &lt;b&gt;Scribble&lt;/b&gt; example.&lt;/p&gt;&lt;p&gt;QuadTree code from &lt;b&gt;https://github.com/pvigier/Quadtree&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2540"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2579"/>
         <source>Background save in progress...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2554"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2603"/>
         <source>FalconBoard - settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2554"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2603"/>
         <source>Autocorrect tolerance in pixels</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2956"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="3013"/>
         <source>export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2014"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2056"/>
         <source>Maximum number of files reached, no new files can be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1093"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1155"/>
         <source>&lt;i&gt;%1&lt;/i&gt; have been modified.
 Do you want to save your changes?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2020"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2062"/>
         <source>Possibly too many files! 
 Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2173"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2212"/>
         <source>Please restart the program to change the language!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2214"/>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2284"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2253"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2323"/>
         <source>Save As</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2215"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2254"/>
         <source>FalconBoard Files (*.mwb);; All Files (*))</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2262"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2301"/>
         <source>Open Background Image</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2286"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2325"/>
         <source>%1 Files (*.%2);;All Files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2298"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2337"/>
         <source>About FalconBoard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2300"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2339"/>
         <source>&lt;p&gt;Version </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2501"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2540"/>
         <source>falconBoard - Grid spacing</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="2502"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="2541"/>
         <source>Spacing in pixels:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="205"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="208"/>
         <source>print</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="387"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="390"/>
         <source>Do you want to save the document before %1?
 
 (You may set automatic save in the Options menu.)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.h" line="389"/>
+        <location filename="../FalconBoard/FalconBoard.h" line="392"/>
         <source>FalconBoard - Question</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1120,11 +1120,6 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/helpdialog.ui" line="372"/>
-        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Recolor &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F7, 0, 8, 9, H, V- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate or flip &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;F7 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;- Rotate with a specific angle&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;0 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection right by 90 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;8 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection by 180 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;9 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection left by 90 degrees&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;H - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip horizontal&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;V - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip vertical&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shift+F7&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; - repeat last rotation&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins, Ctrl+C&lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt;)&lt;span style=&quot; font-weight:600;&quot;&gt;- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Copy selected items &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt;)&lt;span style=&quot; font-weight:600;&quot;&gt;, Shift+Del- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Cut selected items&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+V (Command+V) - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert items and images from the clipboard at the cursor position&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Delete selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R key- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Draw a rectangle around the selected area leaving a small margin around the selected items. &lt;br/&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Press &lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+R &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;if you don&apos;t want the margin, &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Shift+R&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; for a solid rectangle&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C key- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Draw an ellipse (or circle) inside the selected area,&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Shift+C- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;for solid ellipse (also for circles).&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X key - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Mark the center of a rectangular selection with intersecting lines&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;. (Dot)Key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Mark the center of a rectangular selection with a single point&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert vertical space from top of selected area (Moves all drawings down below the top of this selection)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Removes selected items or, when there are no items inside the selection area, removes empty space&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC &lt;/span&gt;Hide&lt;span style=&quot; font-style:italic;&quot;&gt; the selection&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../FalconBoard/helpdialog.ui" line="462"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Drawing commands only work in the full program and &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;don&apos;t work&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt; in a &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;Viewer&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
@@ -1167,6 +1162,11 @@ Only the first %1 valid, and not already loaded files will be loaded.</source>
     <message>
         <location filename="../FalconBoard/helpdialog.ui" line="360"/>
         <source>Keyboard shortcuts with an active selection</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../FalconBoard/helpdialog.ui" line="372"/>
+        <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;1, 2, 3, 4, 5 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Recolor &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F7, 0, 8, 9, H, V- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate or flip &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;completely selected&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;F7 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;- Rotate with a specific angle&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;0 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection right by 90 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;8 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection by 180 degrees&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;9 - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Rotate selection left by 90 degrees&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;H - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip horizontal&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;V - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Flip vertical&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Shift+F7&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; - repeat last rotation&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Ins, Ctrl+C&lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;C&lt;/span&gt;)&lt;span style=&quot; font-weight:600;&quot;&gt;- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Copy selected items &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+X &lt;/span&gt;(&lt;span style=&quot; font-weight:600;&quot;&gt;Command&lt;/span&gt;+&lt;span style=&quot; font-weight:600;&quot;&gt;X&lt;/span&gt;)&lt;span style=&quot; font-weight:600;&quot;&gt;, Shift+Del- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Cut selected items&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+V (Command+V) - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert items and images from the clipboard at the cursor position&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del, BackSpace- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Delete selected strokes &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;R key- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Draw a rectangle around the selected area leaving a small margin around the selected items. &lt;br/&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Press &lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+R &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;if you don&apos;t want the margin, &lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Shift+R&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; for a solid rectangle&lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;C key- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Draw an ellipse (or circle) inside the selected area,&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;&#xa0;Shift+C- &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;for solid ellipse (also for circles).&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;X key - &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Mark the center of a rectangular selection with intersecting lines&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;. (Dot)Key&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; Mark the center of a rectangular selection with a single point&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;F5 &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Insert vertical space from top of selected area (Moves all drawings down below the top of this selection)&lt;br/&gt;&lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Del &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Removes selected items or, when there are no items inside the selection area, removes empty space&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Alt+U &lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;If any part of the selected items was erased this reshows the erased parts.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;ESC &lt;/span&gt;Hide&lt;span style=&quot; font-style:italic;&quot;&gt; the selection&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1810,7 +1810,7 @@ Do you want to save the changes?</source>
 <context>
     <name>QApplication</name>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="1015"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="1019"/>
         <source>Save Visi&amp;ble As...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1841,32 +1841,32 @@ Do you want to save the changes?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="99"/>
+        <location filename="../FalconBoard/main.cpp" line="126"/>
         <source>FalconBoard Viewer - Debug version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="101"/>
+        <location filename="../FalconBoard/main.cpp" line="128"/>
         <source>FalconBoard - Debug version</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/main.cpp" line="105"/>
+        <location filename="../FalconBoard/main.cpp" line="132"/>
         <source>FalconBoard Viewer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/FalconBoard.cpp" line="128"/>
+        <location filename="../FalconBoard/FalconBoard.cpp" line="129"/>
         <source>Untitled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="1214"/>
+        <location filename="../FalconBoard/history.cpp" line="1275"/>
         <source>FalconG - Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../FalconBoard/history.cpp" line="1214"/>
+        <location filename="../FalconBoard/history.cpp" line="1275"/>
         <source>Can&apos;t rotate, as part of rotated area would be outside &apos;paper&apos;</source>
         <translation type="unfinished"></translation>
     </message>
