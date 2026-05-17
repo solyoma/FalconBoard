@@ -25,18 +25,18 @@ int main(int argc, char *argv[])
 	{
 		// Try to connect to the named pipe
 		// DEBUG
-//#ifdef _DEBUG
+#ifdef _DEBUG
 		qDebug("Trying to connect to pipe named '%s'", pipeName.toStdString().c_str());
-//#endif
+#endif
 		QLocalSocket socket;
 		socket.connectToServer(pipeName, QIODevice::WriteOnly);
 		if (socket.waitForConnected(1000))	// see if a server with 'pipeName' is running
 		{
 			// Another instance of the application is already running
 			// DEBUG
-//#ifdef _DEBUG
+#ifdef _DEBUG
 			qDebug("  Another instance is running");
-//#endif
+#endif
 			// prepare parameters for other instance (use Qt's Unicode arguments)
 			QByteArray arguments;
 			QStringList qargs = a.arguments(); // QCoreApplication::arguments() via QApplication
@@ -44,19 +44,19 @@ int main(int argc, char *argv[])
 			{
 				// skip qargs[0] (executable)
 // DEBUG the Release version
-				QFile f("arguments.txt");
-				f.open(QIODevice::WriteOnly | QIODevice::Append);
-				if(!f.isOpen())
-				{
-					QMessageBox::warning(nullptr, "FalconBoard",	"Failed to open arguments.txt for writing");
-				}
-				QTextStream ts(&f);	
+				//QFile f("arguments.txt");
+				//f.open(QIODevice::WriteOnly | QIODevice::Append);
+				//if(!f.isOpen())
+				//{
+				//	QMessageBox::warning(nullptr, "FalconBoard",	"Failed to open arguments.txt for writing");
+				//}
+				//QTextStream ts(&f);	
 // end DEBUG					
 				for (int i = 1; i < qargs.size(); ++i)
 				{
 					QByteArray ba = qargs[i].toUtf8(); // encode each QString as UTF-8
 // DEBUG the Release version
-					ts << "Argument " << i << ": " << qargs[i] << " (UTF-8: " << ba.constData() << ")\n";
+					//ts << "Argument " << i << ": " << qargs[i] << " (UTF-8: " << ba.constData() << ")\n";
 // end DEBUG					
 					arguments.append(ba);
 					arguments.append('\0'); // null separator as original protocol
