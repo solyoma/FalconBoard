@@ -2026,11 +2026,12 @@ bool DrawableScribble::IsAlmostAStraightLine(DrawableLine& lin)
 	}
 	if(maxX-minX < maxY-minY)	// if the x range is smaller than the y range
 	{	// then we have a vertical line, so use the indices of minY and maxY
-		iMinX = iMinY;
-		iMaxX = iMaxY;
 			// keep original line direction
 		if ((iMaxY - iMinY) * (maxY - minY) < 0)	 // original direction was opposite of the min and max position
 			std::swap(iMinY, iMaxY);
+
+		iMinX = iMinY;
+		iMaxX = iMaxY;
 	}
 	else if ((iMaxX - iMinX) * (maxX - minX) < 0)
 	{
